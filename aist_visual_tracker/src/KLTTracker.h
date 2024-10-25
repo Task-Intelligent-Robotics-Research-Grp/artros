@@ -98,30 +98,30 @@ class KLTTracker
 		featureList()		{ return _featureList; }
 
   private:
-    ros::NodeHandle					_nh;
+    ros::NodeHandle				_nh;
 
-    const ros::ServiceServer				_select_srv;
+    const ros::ServiceServer			_select_srv;
 
-    image_transport::ImageTransport			_it;
-    image_transport::Subscriber				_image_sub;
-    const image_transport::Publisher			_image_pub;
+    image_transport::ImageTransport		_it;
+    image_transport::Subscriber			_image_sub;
+    const image_transport::Publisher		_image_pub;
 
   // Tracker parameters and dynamic_reconfigure server for setting them
-    ddynamic_reconfigure::DDynamicReconfigure		_ddr;
-    int							_nfeatures;
-    int							_nframes;
-    bool						_replace;
+    ddynamic_reconfigure::DDynamicReconfigure	_ddr;
+    int						_nfeatures;
+    int						_nframes;
+    bool					_replace;
 
   // Tracker stuffs
-    KLT_TrackingContext					_ctx;
-    KLT_FeatureList					_featureList;
-    KLT_FeatureTable					_featureTable;
-    bool						_select;
-    size_t						_frame;
-    int							_previous_width;
-    int							_previous_height;
-    int							_marker_size;
-    int							_marker_thickness;
+    KLT_TrackingContext				_ctx;
+    KLT_FeatureList				_featureList;
+    KLT_FeatureTable				_featureTable;
+    bool					_select;
+    size_t					_frame;
+    int						_previous_width;
+    int						_previous_height;
+    int						_marker_size;
+    int						_marker_thickness;
 };
 
 inline KLT_Feature
