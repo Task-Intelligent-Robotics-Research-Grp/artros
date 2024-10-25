@@ -556,6 +556,8 @@ class CollisionObjectManager(object):
         return old_root_id, old_parent_link
 
     def _attach_descendants(self, co, link, T):
+        aco = self._get_attached_object(co.id)
+
         if link is not None:
             # Attach 'co' to 'link' with 'pose'.
             co.header.frame_id = link
@@ -566,8 +568,7 @@ class CollisionObjectManager(object):
             rospy.loginfo("(CollisionObjectManager) attached '%s' to '%s' with touch_links%s",
                           co.id, link, touch_links)
         else:
-            # Detach 'co' and get resulting reference link and pose.
-            aco = self._get_attached_object(co.id)
+            # Detach 'aco' and get resulting reference link and pose.
             self._psi.remove_attached_object(name=aco.object.id)
             rospy.loginfo("(CollisionObjectManager) detached '%s' from '%s'",
                           aco.object.id, aco.link_name)
@@ -585,7 +586,7 @@ class CollisionObjectManager(object):
                 self._attach_descendants(child_aco.object, link, T)
 
         # If 'co' is an attached object, attach its descendants to new 'link'.
-        if self._get_attached_object(co.id) is not None:
+        if aco is not None:
             for child_co in self._psi.get_objects().values():
                 if self._get_parent_id(child_co.id) == co.id:
                     # print('### child_co[%s]: parent_link=%s'
