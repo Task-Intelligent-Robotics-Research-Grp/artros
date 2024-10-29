@@ -112,7 +112,7 @@ class ForceTorqueSensorController
 
       public:
 		Sensor(interface_t* hw, ros::NodeHandle& root_nh,
-		       const std::string& name, const std::string& frame_id,
+		       const std::string& name,
 		       double pub_rate, const controller_t& controller)	;
 
 	void	starting(const ros::Time& time)				;
@@ -125,14 +125,14 @@ class ForceTorqueSensorController
 			       std_srvs::Trigger::Response& res)	;
 	bool	compute_calibration_cb(std_srvs::Trigger::Request&  req,
 				       std_srvs::Trigger::Response& res);
-	bool	clear_samples_cb(std_srvs::Trigger::Request&  req,
-				 std_srvs::Trigger::Response& res)	;
 	bool	save_calibration_cb(std_srvs::Trigger::Request&  req,
 				    std_srvs::Trigger::Response& res)	;
+	bool	clear_samples_cb(std_srvs::Trigger::Request&  req,
+				 std_srvs::Trigger::Response& res)	;
 	void	take_sample(const vector_t& k,
 			    const vector_t& f, const vector_t& m)	;
-	void	clear_samples()						;
 	void	save_calibration(std::ostream& out)		const	;
+	void	clear_samples()						;
 	void	set_filter_half_order(int half_order)			;
 	void	set_filter_cutoff_frequency(double cutoff_frequency)	;
 
@@ -142,16 +142,16 @@ class ForceTorqueSensorController
       private:
       // ROS node stuffs
 	const handle_t			_hw_handle;
+	ros::NodeHandle			_nh;
 	const std::string		_frame_id;
 	const publisher_p		_pub_org;
 	const publisher_p		_pub;
 	const ros::Duration		_pub_interval;
 	ros::Time			_last_pub_time;
-	ros::NodeHandle			_nh;
 	const ros::ServiceServer	_take_sample;
 	const ros::ServiceServer	_compute_calibration;
-	const ros::ServiceServer	_clear_samples;
 	const ros::ServiceServer	_save_calibration;
+	const ros::ServiceServer	_clear_samples;
 	ddr_t				_ddr;
 
       // Filtering stuffs
@@ -204,7 +204,6 @@ class ForceTorqueSensorController
     const KDL::Tree&	get_tree()				const	;
     void		get_jnt_pos(const std::vector<std::string>& jnt_name,
 				    KDL::JntArray& jnt_pos)	const	;
-    const std::string&	get_calib_dir()				const	;
 
   private:
     void	joint_state_cb(const joint_state_cp& joint_state)	;
@@ -273,12 +272,11 @@ ForceTorqueSensorController::init(interface_t* hw,
     }
 
   // Setup sensors.
-    const auto	frame_id = controller_nh.param<std::string>("frame_id", "");
     for (const auto& name : hw->getNames())
     {
 	try
 	{
-	    _sensors.push_back(sensor_p(new Sensor(hw, root_nh, name, frame_id,
+	    _sensors.push_back(sensor_p(new Sensor(hw, root_nh, name,
 						   pub_rate, *this)));
 	}
 	catch (const std::exception& err)
@@ -332,12 +330,6 @@ ForceTorqueSensorController::get_jnt_pos(
 	jnt_pos(i) = _joint_positions.at(jnt_name[i]);
 }
 
-const std::string&
-ForceTorqueSensorController::get_calib_dir() const
-{
-    return _calib_dir;
-}
-
 void
 ForceTorqueSensorController::joint_state_cb(const joint_state_cp& joint_state)
 {
@@ -353,26 +345,25 @@ ForceTorqueSensorController::joint_state_cb(const joint_state_cp& joint_state)
 ForceTorqueSensorController::Sensor::Sensor(interface_t* hw,
 					    ros::NodeHandle& root_nh,
 					    const std::string& name,
-					    const std::string& frame_id,
 					    double pub_rate,
 					    const controller_t& controller)
     :_hw_handle(hw->getHandle(name)),
-     _frame_id(frame_id != "" ? frame_id : _hw_handle.getFrameId()),
+     _nh(name),
+     _frame_id(_nh.param<std::string>("frame_id", _hw_handle.getFrameId())),
      _pub_org(new publisher_t(root_nh, name + "_org", 4)),
      _pub(new publisher_t(root_nh, name, 4)),
      _pub_interval(1.0/pub_rate),
      _last_pub_time(0),
-     _nh(name),
      _take_sample(_nh.advertiseService("take_sample",
       				       &Sensor::take_sample_cb, this)),
      _compute_calibration(_nh.advertiseService("compute_calibration",
 					       &Sensor::compute_calibration_cb,
 					       this)),
-     _clear_samples(_nh.advertiseService("clear_samples",
-					 &Sensor::clear_samples_cb, this)),
      _save_calibration(_nh.advertiseService("save_calibration",
 					    &Sensor::save_calibration_cb,
 					    this)),
+     _clear_samples(_nh.advertiseService("clear_samples",
+					 &Sensor::clear_samples_cb, this)),
      _ddr(_nh),
      _ft(ft_t::Zero()),
      _filter(2, 7.0*_pub_interval.toSec()),
@@ -633,21 +624,21 @@ ForceTorqueSensorController::Sensor::save_calibration_cb(
     try
     {
       // Open/create parent directory of the calibration file.
-	const auto&	calib_dir = _controller.get_calib_dir();
+	const auto	calib_file = std::string(getenv("HOME"))
+				   + "/.ros/aist_ftsensor"
+				   + _nh.getNamespace() + ".yaml";
+	const auto	dir = calib_file.substr(0,
+						calib_file.find_last_of('/'));
 	struct stat	buf;
-	if (stat(calib_dir.c_str(), &buf) && mkdir(calib_dir.c_str(), S_IRWXU))
-	    throw std::runtime_error("cannot create " + calib_dir + ": "
+	if (stat(dir.c_str(), &buf) && mkdir(dir.c_str(), S_IRWXU))
+	    throw std::runtime_error("cannot create " + dir + ": "
 						      + strerror(errno));
 
-      // Open calibration file.
-	const auto	calib_file = calib_dir + '/'
-					       + _nh.getNamespace() + ".yaml";
+      // Open calibration file and save calibration results.
 	std::ofstream	out(calib_file.c_str());
 	if (!out)
 	    throw std::runtime_error("cannot open " + calib_file + ": "
 						    + strerror(errno));
-
-      // Save calitration results.
 	save_calibration(out);
 
 	res.success = true;

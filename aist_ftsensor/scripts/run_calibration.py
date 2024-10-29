@@ -18,22 +18,20 @@ class FTCalibrationRoutines(AISTBaseRoutines):
         self._robot_name = rospy.get_param('~robot_name', 'a_bot')
         self._initpose   = rospy.get_param('~initpose',    [])
         self._speed      = rospy.get_param('~speed',       0.1)
+        self._sleep_time = rospy.get_param('~sleep_time',  2.0)
 
+        self._sensors = {}
         if rospy.get('~check', False):
-            ns = self._robot_name + '/wrench'
-            self._take_sample         = rospy.ServiceProxy(
-                                          ns + '/take_sample', Trigger)
-            self._compute_calibration = rospy.ServiceProxy(
-                                          ns + '/compute_calibration', Trigger)
-            self._save_calibration    = rospy.ServiceProxy(
-                                          ns + '/save_calibration', Trigger)
-            self._clear_samples       = rospy.ServiceProxy(
-                                          ns + '/clear_samples', Trigger)
-        else:
-            self._take_sample         = None
-            self._compute_calibration = None
-            self._save_calibration    = None
-            self._clear_samples       = None
+            for sensor in rospy.get_param('~sensors', {}):
+                ns = self._robot_name + '/' + sensor['sensor_name']
+                self._sensors[ns]['take_sample'] \
+                    = rospy.ServiceProxy(ns + '/take_sample', Trigger)
+                self._sensors[ns]['compute_calibration'] \
+                    = rospy.ServiceProxy(ns + '/compute_calibration', Trigger)
+                self._sensors[ns]['save_calibration'] \
+                    = rospy.ServiceProxy(ns + '/save_calibration', Trigger)
+                self._sensors[ns]['clear_samples'] \
+                    = rospy.ServiceProxy(ns + '/clear_samples', Trigger)
 
     def run(self):
         # Reset pose
@@ -73,12 +71,7 @@ class FTCalibrationRoutines(AISTBaseRoutines):
         if self._clear_samples:
             self._clear_samples()
 
-        self.go_to_pose_goal(self._robot_name,
-                             self.pose_from_xyzrpy(self._initpose),
-                             speed=self._speed,
-                             end_effector_link=self._robot_effector_frame)
-        if self._take_sample:
-            self._take_sample()
+        self._move_to(self._initpose)
 
         xyzrpy = copy.copy(self._initpose)
         for i in range(9):
@@ -113,6 +106,7 @@ class FTCalibrationRoutines(AISTBaseRoutines):
             return False
 
         if self._take_sample:
+            rospy.sleep(self._sleep_time)  # Wait for the robot to settle.
             self._take_sample()
         return True
 

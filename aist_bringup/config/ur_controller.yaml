@@ -16,7 +16,6 @@ force_torque_sensor_controller:
 aist_ftsensor_controller:
   type:         aist_ftsensor_controller/ForceTorqueSensorController
   publish_rate: *loop_hz
-  frame_id:     $(arg prefix)flange
 
 # Publish speed_scaling factor
 speed_scaling_state_controller:

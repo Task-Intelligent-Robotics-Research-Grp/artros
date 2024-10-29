@@ -1,4 +1,8 @@
 ftsensor_name: a_bot_ftsensor
-robot_name: a_bot
-gravity_frame: workspace_center
-initpose: [0.00, 0.00, 0.30, 0, 90, 90]
+robot_name:    a_bot
+initpose:      [0.00, 0.00, 0.30, 0, 90, 90]
+sensors:
+- sensor_name:        wrench
+  compensate_gravity: false
+  frame_id:           a_bot_flange
+  gravity_frame:      world
