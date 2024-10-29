@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<launch>
+
+  <arg name="robot_name"	default="a_bot"/>
+  <arg name="plot_args"
+       value="$(arg robot_name)/wrench/wrench/force/x
+	      $(arg robot_name)/wrench/wrench/force/y
+	      $(arg robot_name)/wrench/wrench/force/z
+	      $(arg robot_name)/wrench/wrench/torque/x
+	      $(arg robot_name)/wrench/wrench/torque/y
+	      $(arg robot_name)/wrench/wrench/torque/z"/>
+
+  <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot"
+	clear_params="true" args="$(arg plot_args)"/>
+
+</launch>

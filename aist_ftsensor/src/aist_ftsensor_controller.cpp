@@ -119,7 +119,6 @@ class ForceTorqueSensorController
 	void	update(const ros::Time& time,
 		       const ros::Duration& period)			;
 	void	stopping(const ros::Time& time)				{}
-	void	save_calibration(std::ostream& out)		const	;
 
       private:
 	bool	take_sample_cb(std_srvs::Trigger::Request&  req,
@@ -128,9 +127,12 @@ class ForceTorqueSensorController
 				       std_srvs::Trigger::Response& res);
 	bool	clear_samples_cb(std_srvs::Trigger::Request&  req,
 				 std_srvs::Trigger::Response& res)	;
+	bool	save_calibration_cb(std_srvs::Trigger::Request&  req,
+				    std_srvs::Trigger::Response& res)	;
 	void	take_sample(const vector_t& k,
 			    const vector_t& f, const vector_t& m)	;
 	void	clear_samples()						;
+	void	save_calibration(std::ostream& out)		const	;
 	void	set_filter_half_order(int half_order)			;
 	void	set_filter_cutoff_frequency(double cutoff_frequency)	;
 
@@ -149,6 +151,7 @@ class ForceTorqueSensorController
 	const ros::ServiceServer	_take_sample;
 	const ros::ServiceServer	_compute_calibration;
 	const ros::ServiceServer	_clear_samples;
+	const ros::ServiceServer	_save_calibration;
 	ddr_t				_ddr;
 
       // Filtering stuffs
@@ -201,11 +204,10 @@ class ForceTorqueSensorController
     const KDL::Tree&	get_tree()				const	;
     void		get_jnt_pos(const std::vector<std::string>& jnt_name,
 				    KDL::JntArray& jnt_pos)	const	;
+    const std::string&	get_calib_dir()				const	;
 
   private:
     void	joint_state_cb(const joint_state_cp& joint_state)	;
-    bool	save_calibration_cb(std_srvs::Trigger::Request&  req,
-				    std_srvs::Trigger::Response& res)	;
 
   private:
   // JointState stuffs
@@ -215,15 +217,13 @@ class ForceTorqueSensorController
     mutable std::mutex			_joint_state_mtx;
 
   // Calibration stuffs
-    std::string				_calib_file;
-    ros::ServiceServer			_save_calibration;
-
+    std::string				_calib_dir;
     std::vector<sensor_p>		_sensors;
 };
 
 ForceTorqueSensorController::ForceTorqueSensorController()
     :_tree(), _joint_state_sub(), _joint_positions(), _joint_state_mtx(),
-     _calib_file(), _save_calibration(), _sensors(0)
+     _calib_dir(), _sensors(0)
 {
 }
 
@@ -258,14 +258,9 @@ ForceTorqueSensorController::init(interface_t* hw,
 					 ::joint_state_cb, this);
 
   // Get calibration file name from parameter server.
-    _calib_file = root_nh.param<std::string>("calib_file",
-					     std::string(getenv("HOME")) +
-					     "/.ros/aist_ftsensor" +
-					     root_nh.getNamespace() + ".yaml");
-    _save_calibration = root_nh.advertiseService(
-			    "save_calibration",
-			    &ForceTorqueSensorController::save_calibration_cb,
-			    this);
+    _calib_dir = root_nh.param<std::string>("calib_dir",
+					    std::string(getenv("HOME")) +
+					    "/.ros/aist_ftsensor");
 
   // Get publishing period.
     const auto	pub_rate = controller_nh.param<double>("publish_rate", 0.0);
@@ -337,6 +332,12 @@ ForceTorqueSensorController::get_jnt_pos(
 	jnt_pos(i) = _joint_positions.at(jnt_name[i]);
 }
 
+const std::string&
+ForceTorqueSensorController::get_calib_dir() const
+{
+    return _calib_dir;
+}
+
 void
 ForceTorqueSensorController::joint_state_cb(const joint_state_cp& joint_state)
 {
@@ -344,44 +345,6 @@ ForceTorqueSensorController::joint_state_cb(const joint_state_cp& joint_state)
 
     for (size_t i = 0; i < joint_state->name.size(); ++i)
 	_joint_positions[joint_state->name[i]] = joint_state->position[i];
-}
-
-bool
-ForceTorqueSensorController::save_calibration_cb(
-    std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
-{
-    try
-    {
-      // Open/create parent directory of the calibration file.
-	const auto	dir = _calib_file.substr(0,
-						 _calib_file.find_last_of('/'));
-	struct stat	buf;
-	if (stat(dir.c_str(), &buf) && mkdir(dir.c_str(), S_IRWXU))
-	    throw std::runtime_error("cannot create " + dir + ": "
-						      + strerror(errno));
-
-      // Open calibration file.
-	std::ofstream	out(_calib_file.c_str());
-	if (!out)
-	    throw std::runtime_error("cannot open " + _calib_file + ": "
-						    + strerror(errno));
-
-      // Save calitration results.
-	for (const auto& sensor : _sensors)
-	    sensor->save_calibration(out);
-
-	res.success = true;
-	res.message = "save_calibration succeeded.";
-	ROS_INFO_STREAM("(aist_ftsensor_controller) " << res.message);
-    }
-    catch (const std::exception& err)
-    {
-	res.success = false;
-	res.message = std::string("save_calibration failed: ") + err.what();
-	ROS_ERROR_STREAM("(aist_ftsensor_controller) " << res.message);
-    }
-
-    return true;
 }
 
 /************************************************************************
@@ -407,6 +370,9 @@ ForceTorqueSensorController::Sensor::Sensor(interface_t* hw,
 					       this)),
      _clear_samples(_nh.advertiseService("clear_samples",
 					 &Sensor::clear_samples_cb, this)),
+     _save_calibration(_nh.advertiseService("save_calibration",
+					    &Sensor::save_calibration_cb,
+					    this)),
      _ddr(_nh),
      _ft(ft_t::Zero()),
      _filter(2, 7.0*_pub_interval.toSec()),
@@ -557,43 +523,6 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
     }
 }
 
-void
-ForceTorqueSensorController::Sensor::save_calibration(std::ostream& out) const
-{
-    const auto	ns   = _nh.getNamespace();
-    const auto	name = ns.substr(ns.find_last_of('/') + 1);
-
-    YAML::Emitter emitter;
-    emitter << YAML::BeginMap;
-    emitter << YAML::Key << name << YAML::Value;
-    emitter << YAML::BeginMap;
-    emitter << YAML::Key << "effector_mass" << YAML::Value << _mg/G;
-    emitter << YAML::Key << "rotation"	<< YAML::Value << YAML::Flow
-	    << YAML::BeginSeq
-	    << _q.x() << _q.y() << _q.z() << _q.w()
-	    << YAML::EndSeq;
-    emitter << YAML::Key << "force_offset" << YAML::Value << YAML::Flow
-	    << YAML::BeginSeq
-	    << _f0(0) << _f0(1) << _f0(2)
-	    << YAML::EndSeq;
-    emitter << YAML::Key << "torque_offset" << YAML::Value << YAML::Flow
-	    << YAML::BeginSeq
-	    << _m0(0) << _m0(1) << _m0(2)
-	    << YAML::EndSeq;
-    emitter << YAML::Key << "mass_center" << YAML::Value << YAML::Flow
-	    << YAML::BeginSeq
-	    << _r(0) << _r(1) << _r(2)
-	    << YAML::EndSeq;
-    emitter << YAML::Key << "filter_half_order"
-	    << YAML::Value << _filter.half_order();
-    emitter << YAML::Key << "filter_cutoff_frequency"
-	    << YAML::Value << _filter.cutoff()/_pub_interval.toSec();
-    emitter << YAML::EndMap;
-    emitter << YAML::EndMap;
-
-    out << emitter.c_str() << std::endl;
-}
-
 bool
 ForceTorqueSensorController::Sensor::take_sample_cb(
     std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
@@ -697,6 +626,44 @@ ForceTorqueSensorController::Sensor::clear_samples_cb(
     return true;
 }
 
+bool
+ForceTorqueSensorController::Sensor::save_calibration_cb(
+    std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
+{
+    try
+    {
+      // Open/create parent directory of the calibration file.
+	const auto&	calib_dir = _controller.get_calib_dir();
+	struct stat	buf;
+	if (stat(calib_dir.c_str(), &buf) && mkdir(calib_dir.c_str(), S_IRWXU))
+	    throw std::runtime_error("cannot create " + calib_dir + ": "
+						      + strerror(errno));
+
+      // Open calibration file.
+	const auto	calib_file = calib_dir + '/'
+					       + _nh.getNamespace() + ".yaml";
+	std::ofstream	out(calib_file.c_str());
+	if (!out)
+	    throw std::runtime_error("cannot open " + calib_file + ": "
+						    + strerror(errno));
+
+      // Save calitration results.
+	save_calibration(out);
+
+	res.success = true;
+	res.message = "save_calibration succeeded.";
+	ROS_INFO_STREAM("(aist_ftsensor_controller) " << res.message);
+    }
+    catch (const std::exception& err)
+    {
+	res.success = false;
+	res.message = std::string("save_calibration failed: ") + err.what();
+	ROS_ERROR_STREAM("(aist_ftsensor_controller) " << res.message);
+    }
+
+    return true;
+}
+
 void
 ForceTorqueSensorController::Sensor::take_sample(const vector_t& k,
 						 const vector_t& f,
@@ -731,6 +698,43 @@ ForceTorqueSensorController::Sensor::clear_samples()
 
     if (_fout.is_open())
 	_fout.close();
+}
+
+void
+ForceTorqueSensorController::Sensor::save_calibration(std::ostream& out) const
+{
+    const auto	ns   = _nh.getNamespace();
+    const auto	name = ns.substr(ns.find_last_of('/') + 1);
+
+    YAML::Emitter emitter;
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << name << YAML::Value;
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << "effector_mass" << YAML::Value << _mg/G;
+    emitter << YAML::Key << "rotation"	<< YAML::Value << YAML::Flow
+	    << YAML::BeginSeq
+	    << _q.x() << _q.y() << _q.z() << _q.w()
+	    << YAML::EndSeq;
+    emitter << YAML::Key << "force_offset" << YAML::Value << YAML::Flow
+	    << YAML::BeginSeq
+	    << _f0(0) << _f0(1) << _f0(2)
+	    << YAML::EndSeq;
+    emitter << YAML::Key << "torque_offset" << YAML::Value << YAML::Flow
+	    << YAML::BeginSeq
+	    << _m0(0) << _m0(1) << _m0(2)
+	    << YAML::EndSeq;
+    emitter << YAML::Key << "mass_center" << YAML::Value << YAML::Flow
+	    << YAML::BeginSeq
+	    << _r(0) << _r(1) << _r(2)
+	    << YAML::EndSeq;
+    emitter << YAML::Key << "filter_half_order"
+	    << YAML::Value << _filter.half_order();
+    emitter << YAML::Key << "filter_cutoff_frequency"
+	    << YAML::Value << _filter.cutoff()/_pub_interval.toSec();
+    emitter << YAML::EndMap;
+    emitter << YAML::EndMap;
+
+    out << emitter.c_str() << std::endl;
 }
 
 void

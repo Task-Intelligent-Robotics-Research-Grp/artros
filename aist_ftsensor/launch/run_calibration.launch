@@ -2,13 +2,16 @@
 <launch>
 
   <arg name="config"		default="aist"/>
-  <arg name="ftsensor_name"	default="a_bot_ftsensor"/>
-  <arg name="ns"		default="/"/>
+  <arg name="robot_name"	default="a_bot"/>
 
-  <node ns="$(arg ns)" name="run_calibration"
+  <node name="run_calibration"
 	pkg="aist_ftsensor" type="run_calibration.py" output="screen">
     <rosparam file="$(find aist_routines)/config/$(arg config)_config.yaml"/>
-    <rosparam file="$(dirname)/../config/$(arg ftsensor_name).yaml"/>
+    <rosparam file="$(dirname)/../config/$(arg robot_name)_ftsensor.yaml"/>
   </node>
+
+  <include file="$(dirname)/plot.launch">
+    <arg name="robot_name"	value="$(arg robot_name)"/>
+  </include>
 
 </launch>
