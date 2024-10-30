@@ -88,7 +88,7 @@ operator <<(std::ostream& out, const KDL::JntArray& joints)
 	out << ' ' << joints(i);
     return out << std::endl;
 }
-    
+
 /************************************************************************
 *  class ForceTorqueSensorController					*
 ************************************************************************/
@@ -300,7 +300,7 @@ ForceTorqueSensorController::init(interface_t* hw,
 	= controller_nh.advertiseService(
 	    "clear_samples",
 	    &ForceTorqueSensorController::clear_samples_cb, this);
-    
+
   // Setup sensors.
     for (const auto& name : hw->getNames())
     {
@@ -375,7 +375,7 @@ ForceTorqueSensorController::take_sample_cb(std_srvs::Trigger::Request& req,
 {
     for (const auto& sensor : _sensors)
 	sensor->take_sample();
-    
+
     res.success = true;
     res.message = "take_sample succeeded.";
     ROS_INFO_STREAM("(aist_ftsensor_controller) " << res.message);
@@ -396,7 +396,7 @@ ForceTorqueSensorController::compute_calibration_cb(
 
 	    return true;
 	}
-        
+
     res.success = true;
     res.message = "compute_calibration succeeded.";
     ROS_INFO_STREAM("(aist_ftsensor_controller) " << res.message);
@@ -436,7 +436,7 @@ ForceTorqueSensorController::save_calibration_cb(
 	res.message = std::string("save_calibration failed: ") + err.what();
 	ROS_ERROR_STREAM("(aist_ftsensor_controller) " << res.message);
     }
-    
+
     return true;
 }
 
@@ -446,7 +446,7 @@ ForceTorqueSensorController::clear_samples_cb(
 {
     for (const auto& sensor : _sensors)
 	sensor->clear_samples();
-    
+
     res.success = true;
     res.message = "clear_samples succeeded.";
     ROS_INFO_STREAM("(aist_ftsensor_controller) " << res.message);
@@ -499,7 +499,7 @@ ForceTorqueSensorController::Sensor
 {
     if (_frame_id == "")
 	throw std::runtime_error("Parameter frame_id is not specified");
-	
+
   // Get chain from gravity frame to sensor frame.
     const auto	gravity_frame = controller_nh.param<std::string>(
 				    "gravity_frame", "world");
@@ -589,7 +589,7 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 			<< ") joint_state not available yet: " << err.what());
 	return;
     }
-    
+
   // Get transform from sensor frame to gravity frame
   // for current joint positions.
     KDL::Frame	Tgs;
@@ -628,7 +628,7 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 	_pub->msg_.wrench.torque.x = ft(3);
 	_pub->msg_.wrench.torque.y = ft(4);
 	_pub->msg_.wrench.torque.z = ft(5);
-	    
+
 	_pub->unlockAndPublish();
 	_last_pub_time = time;
     }
@@ -717,6 +717,7 @@ ForceTorqueSensorController::Sensor::save_calibration(std::ostream& out) const
     emitter << YAML::BeginMap;
     emitter << YAML::Key << name << YAML::Value;
     emitter << YAML::BeginMap;
+    emitter << YAML::Key << "frame_id" << YAML::Value << _frame_id;
     emitter << YAML::Key << "effector_mass" << YAML::Value << _mg/G;
     emitter << YAML::Key << "rotation"	<< YAML::Value << YAML::Flow
 	    << YAML::BeginSeq
@@ -767,7 +768,7 @@ ForceTorqueSensorController::Sensor::take_sample(const vector_t& k,
 						 const vector_t& m)
 {
     using	namespace aist_utility;
-    
+
     ++_nsamples;
     _k_sum   += k;
     _f_sum   += f;

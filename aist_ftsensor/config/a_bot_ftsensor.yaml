@@ -1,3 +1,4 @@
+controller_ns: a_bot/aist_ftsensor_controller
 robot_name:    a_bot
 initpose:      [0.200, 0.000, 0.100, 0, 0, 90]
 gravity_frame: world

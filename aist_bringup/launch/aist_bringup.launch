@@ -71,10 +71,10 @@
 	      file="$(find aist_ftsensor)/config/a_bot_ftsensor.yaml"/>
     <rosparam ns="b_bot/aist_ftsensor_controller"
 	      file="$(find aist_ftsensor)/config/b_bot_ftsensor.yaml"/>
-    <!-- <rosparam ns="a_bot" name="wrench" -->
-    <!-- 	      file="$(arg ftsensor_calib_dir)/a_bot/wrench.yaml"/> -->
-    <!-- <rosparam ns="b_bot" name="wrench" -->
-    <!-- 	      file="$(arg ftsensor_calib_dir)/b_bot/wrench.yaml"/> -->
+    <!-- <rosparam ns="a_bot/aist_ftsensor_controller/sensors" -->
+    <!-- 	      file="$(arg ftsensor_calib_dir)/a_bot/aist_ftsensor_controller.yaml"/> -->
+    <!-- <rosparam ns="b_bot/aist_ftsensor_controller/sensors" -->
+    <!-- 	      file="$(arg ftsensor_calib_dir)/b_bot/aist_ftsensor_controller.yaml"/> -->
 
     <!-- Launch suction tool controllers -->
     <include file="$(find aist_fastening_tools

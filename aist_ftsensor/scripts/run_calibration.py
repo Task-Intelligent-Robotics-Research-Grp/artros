@@ -18,10 +18,11 @@ class FTCalibrationRoutines(AISTBaseRoutines):
         self._robot_name = rospy.get_param('~robot_name', 'a_bot')
         self._initpose   = rospy.get_param('~initpose',    [])
         self._speed      = rospy.get_param('~speed',       0.1)
-        self._sleep_time = rospy.get_param('~sleep_time',  2.0)
+        self._sleep_time = rospy.get_param('~sleep_time',  1.0)
         self._check      = rospy.get_param('~check',       False)
         if not self._check:
-            ns = self._robot_name + '/aist_ftsensor_controller'
+            ns = rospy.get_param('~controller_ns',
+                                 self._robot_name + '/aist_ftsensor_controller')
             self._take_sample         = rospy.ServiceProxy(ns + '/take_sample',
                                                            Trigger)
             self._compute_calibration = rospy.ServiceProxy(
