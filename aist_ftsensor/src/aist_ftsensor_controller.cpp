@@ -81,6 +81,14 @@ fromKDL(const KDL::Vector& v)
     return {v(0), v(1), v(2)};
 }
 
+std::ostream&
+operator <<(std::ostream& out, const KDL::JntArray& joints)
+{
+    for (size_t i = 0; i < joints.rows(); ++i)
+	out << ' ' << joints(i);
+    return out << std::endl;
+}
+    
 /************************************************************************
 *  class ForceTorqueSensorController					*
 ************************************************************************/
@@ -570,41 +578,49 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 	_pub_org->unlockAndPublish();
     }
 
+  // Lookup current positions of joints contained in the chain.
+    try
+    {
+	_controller.get_jnt_pos(_joint_names, _joint_positions);
+    }
+    catch (const std::out_of_range& err)
+    {
+	ROS_WARN_STREAM('(' << _nh.getNamespace()
+			<< ") joint_state not available yet: " << err.what());
+	return;
+    }
+    
+  // Get transform from sensor frame to gravity frame
+  // for current joint positions.
+    KDL::Frame	Tgs;
+    _fksolver->JntToCart(_joint_positions, Tgs);
+
+  // Get gravity direction w.r.t. sensor frame.
+    const vector_t	k = fromKDL(Tgs.M.Inverse(KDL::Vector(0, 0, -1)));
+
   // Apply low-pass filter to input force-torque signal.
-    auto	ft = _filter.filter(_ft);
+    auto		ft = _filter.filter(_ft);
+    const vector_t	f  = ft.head<3>();
+    const vector_t	m  = ft.tail<3>();
+
+    if (_do_sample)
+    {
+	take_sample(k, f, m);
+	_do_sample = false;
+    }
 
     if (_compensate_gravity)
     {
-      // Lookup current positions of joints contained in the chain.
-	_controller.get_jnt_pos(_joint_names, _joint_positions);
-
-      // Get transform from sensor frame to gravity frame
-      // for current joint positions.
-	KDL::Frame	Tgs;
-	_fksolver->JntToCart(_joint_positions, Tgs);
-
-      // Get gravity direction w.r.t. sensor frame.
-	const vector_t	k = fromKDL(Tgs.M.Inverse(KDL::Vector(0, 0, -1)));
-
-      // Compute filtered force and torque.
-	const vector_t	f = ft.head<3>();
-	const vector_t	m = ft.tail<3>();
-
-	if (_do_sample)
-	{
-	    take_sample(k, f, m);
-	    _do_sample = false;
-	}
-
       // Compensate force/torque offsets and gravity.
 	ft.head<3>() = _q.inverse()*(f - _f0) - _mg*k;
 	ft.tail<3>() = _q.inverse()*(m - _m0) - _r.cross(_mg*k);
     }
 
-  // Publish filtered (and optionally gravity compensated) force-torque signal.
+  // Publish filtered (and optionally gravity compensated)
+  // force-torque signal.
     if (_pub->trylock())
     {
-	_pub->msg_.header.stamp	   = time;
+	_pub->msg_.header.stamp    = time;
 	_pub->msg_.header.frame_id = _hw_handle.getFrameId();
 	_pub->msg_.wrench.force.x  = ft(0);
 	_pub->msg_.wrench.force.y  = ft(1);
@@ -612,7 +628,7 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 	_pub->msg_.wrench.torque.x = ft(3);
 	_pub->msg_.wrench.torque.y = ft(4);
 	_pub->msg_.wrench.torque.z = ft(5);
-
+	    
 	_pub->unlockAndPublish();
 	_last_pub_time = time;
     }
@@ -686,6 +702,8 @@ ForceTorqueSensorController::Sensor::compute_calibration()
     // 		    << std::sqrt(f_var/k_var - _mg*_mg)
     // 		    << "(Newton)");
 
+    ROS_INFO_STREAM('(' << _nh.getNamespace() << ") calibration computed");
+
     return true;
 }
 
@@ -724,6 +742,8 @@ ForceTorqueSensorController::Sensor::save_calibration(std::ostream& out) const
     emitter << YAML::EndMap;
 
     out << emitter.c_str() << std::endl;
+
+    ROS_INFO_STREAM('(' << _nh.getNamespace() << ") calibration saved");
 }
 
 void
@@ -737,6 +757,8 @@ ForceTorqueSensorController::Sensor::clear_samples()
     _kf_sum   = matrix_t::Zero();
     _km_sum   = matrix_t::Zero();
     _mm_sum   = matrix_t::Zero();
+
+    ROS_INFO_STREAM('(' << _nh.getNamespace() << ") samples cleared");
 }
 
 void
@@ -744,6 +766,8 @@ ForceTorqueSensorController::Sensor::take_sample(const vector_t& k,
 						 const vector_t& f,
 						 const vector_t& m)
 {
+    using	namespace aist_utility;
+    
     ++_nsamples;
     _k_sum   += k;
     _f_sum   += f;
@@ -756,6 +780,8 @@ ForceTorqueSensorController::Sensor::take_sample(const vector_t& k,
     // _fout << k.transpose() << std::endl;
     // _fout << f.transpose() << std::endl;
     // _fout << m.transpose() << std::endl << std::endl;
+    ROS_INFO_STREAM('(' << _nh.getNamespace() << ") "
+		    << _nsamples << "-th sample taken");
 }
 
 void
