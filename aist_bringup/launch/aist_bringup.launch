@@ -67,11 +67,9 @@
   <group unless="$(arg sim)">
 
     <!-- Load parameters for FT sensor controllers -->
-    <arg name="ftsensor_calib_dir"	value="$(env HOME
-					       )/.ros/aist_ftsensor"/>
-    <rosparam ns="a_bot"
+    <rosparam ns="a_bot/aist_ftsensor_controller"
 	      file="$(find aist_ftsensor)/config/a_bot_ftsensor.yaml"/>
-    <rosparam ns="b_bot"
+    <rosparam ns="b_bot/aist_ftsensor_controller"
 	      file="$(find aist_ftsensor)/config/b_bot_ftsensor.yaml"/>
     <!-- <rosparam ns="a_bot" name="wrench" -->
     <!-- 	      file="$(arg ftsensor_calib_dir)/a_bot/wrench.yaml"/> -->
