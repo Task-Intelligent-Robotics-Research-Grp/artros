@@ -14,24 +14,22 @@ class FTCalibrationRoutines(AISTBaseRoutines):
         super(FTCalibrationRoutines, self).__init__()
 
         self._robot_effector_frame \
-                = rospy.get_param('~robot_effector_frame', '')
+                         = rospy.get_param('~robot_effector_frame', '')
         self._robot_name = rospy.get_param('~robot_name', 'a_bot')
         self._initpose   = rospy.get_param('~initpose',    [])
         self._speed      = rospy.get_param('~speed',       0.1)
         self._sleep_time = rospy.get_param('~sleep_time',  2.0)
-
-        self._sensors = {}
-        if rospy.get('~check', False):
-            for sensor in rospy.get_param('~sensors', {}):
-                ns = self._robot_name + '/' + sensor['sensor_name']
-                self._sensors[ns]['take_sample'] \
-                    = rospy.ServiceProxy(ns + '/take_sample', Trigger)
-                self._sensors[ns]['compute_calibration'] \
-                    = rospy.ServiceProxy(ns + '/compute_calibration', Trigger)
-                self._sensors[ns]['save_calibration'] \
-                    = rospy.ServiceProxy(ns + '/save_calibration', Trigger)
-                self._sensors[ns]['clear_samples'] \
-                    = rospy.ServiceProxy(ns + '/clear_samples', Trigger)
+        self._check      = rospy.get_param('~check',       False)
+        if not self._check:
+            ns = self._robot_name + '/aist_ftsensor_controller'
+            self._take_sample         = rospy.ServiceProxy(ns + '/take_sample',
+                                                           Trigger)
+            self._compute_calibration = rospy.ServiceProxy(
+                                          ns + '/compute_calibration', Trigger)
+            self._save_calibration    = rospy.ServiceProxy(
+                                          ns + '/save_calibration', Trigger)
+            self._clear_samples       = rospy.ServiceProxy(
+                                          ns + '/clear_samples', Trigger)
 
     def run(self):
         # Reset pose
@@ -68,7 +66,7 @@ class FTCalibrationRoutines(AISTBaseRoutines):
     # Commands
     def calibrate(self):
         self.go_to_named_pose(self._robot_name, 'home')
-        if self._clear_samples:
+        if not self._check:
             self._clear_samples()
 
         self._move_to(self._initpose)
@@ -93,7 +91,7 @@ class FTCalibrationRoutines(AISTBaseRoutines):
             xyzrpy[4] -= 5
             self._move_to(xyzrpy)
 
-        if self._compute_calibration:
+        if not self._check:
             res = self._compute_calibration()
             print('  compute calibration: %s' % res.message)
             res = self._save_calibration()
@@ -105,7 +103,7 @@ class FTCalibrationRoutines(AISTBaseRoutines):
         if not self._move(xyzrpy):
             return False
 
-        if self._take_sample:
+        if not self._check:
             rospy.sleep(self._sleep_time)  # Wait for the robot to settle.
             self._take_sample()
         return True
