@@ -1,8 +1,3 @@
 controller_ns: a_bot/aist_ftsensor_controller
 robot_name:    a_bot
 initpose:      [0.200, 0.000, 0.100, 0, 0, 90]
-gravity_frame: world
-sensors:
-  wrench:
-    compensate_gravity: false
-    frame_id:           a_bot_tool0

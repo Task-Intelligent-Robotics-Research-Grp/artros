@@ -466,7 +466,11 @@ ForceTorqueSensorController::Sensor
 				    const controller_t& controller)
     :_hw_handle(hw->getHandle(name)),
      _nh(controller_nh, "sensors/" + name),
-     _frame_id(_nh.param<std::string>("frame_id", "")),
+     _frame_id(
+	 _nh.param<std::string>(
+	     "frame_id",
+	     _hw_handle.getFrameId().substr(
+		 0, _hw_handle.getFrameId().find("_controller")))),
      _pub_org(new publisher_t(root_nh, name + "_org", 4)),
      _pub(new publisher_t(root_nh, name, 4)),
      _pub_interval(1.0/pub_rate),
@@ -578,7 +582,7 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 	_pub_org->unlockAndPublish();
     }
 
-  // Lookup current positions of joints contained in the chain.
+  // Lookup current joint positions contained in the chain.
     try
     {
 	_controller.get_jnt_pos(_joint_names, _joint_positions);
