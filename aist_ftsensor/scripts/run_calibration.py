@@ -54,10 +54,13 @@ class FTCalibrationRoutines(AISTBaseRoutines):
     def print_help_messages(self):
         super(FTCalibrationRoutines, self).print_help_messages()
         print('=== Calibration commands ===')
+        print('  init:  go to initial pose')
         print('  calib: do calibration')
 
     def interactive(self, key, robot_name, axis, speed):
-        if key == 'calib':
+        if key == 'init':
+            self._move_to(self._initpose)
+        elif key == 'calib':
             self.calibrate()
         else:
             return super(FTCalibrationRoutines, self) \

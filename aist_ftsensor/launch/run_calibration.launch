@@ -3,6 +3,7 @@
 
   <arg name="config"		default="aist"/>
   <arg name="robot_name"	default="a_bot"/>
+  <arg name="with_org"		default="false"/>
 
   <node name="run_calibration"
 	pkg="aist_ftsensor" type="run_calibration.py" output="screen">
@@ -12,6 +13,7 @@
 
   <include file="$(dirname)/plot.launch">
     <arg name="robot_name"	value="$(arg robot_name)"/>
+    <arg name="with_org"	value="$(arg with_org)"/>
   </include>
 
 </launch>

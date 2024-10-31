@@ -2,13 +2,26 @@
 <launch>
 
   <arg name="robot_name"	default="a_bot"/>
-  <arg name="plot_args"
+  <arg name="with_org"		default="false"/>
+  <arg name="plot_args_without_org"
        value="$(arg robot_name)/wrench/wrench/force/x
 	      $(arg robot_name)/wrench/wrench/force/y
 	      $(arg robot_name)/wrench/wrench/force/z
 	      $(arg robot_name)/wrench/wrench/torque/x
 	      $(arg robot_name)/wrench/wrench/torque/y
 	      $(arg robot_name)/wrench/wrench/torque/z"/>
+  <arg name="plot_args_with_org"
+       value="$(arg plot_args_without_org)
+	      $(arg robot_name)/wrench_org/wrench/force/x
+	      $(arg robot_name)/wrench_org/wrench/force/y
+	      $(arg robot_name)/wrench_org/wrench/force/z
+	      $(arg robot_name)/wrench_org/wrench/torque/x
+	      $(arg robot_name)/wrench_org/wrench/torque/y
+	      $(arg robot_name)/wrench_org/wrench/torque/z"/>
+  <arg if="$(arg with_org)"
+       name="plot_args"		value="$(arg plot_args_with_org)"/>
+  <arg unless="$(arg with_org)"
+       name="plot_args"		value="$(arg plot_args_without_org)"/>
 
   <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot"
 	clear_params="true" args="$(arg plot_args)"/>
