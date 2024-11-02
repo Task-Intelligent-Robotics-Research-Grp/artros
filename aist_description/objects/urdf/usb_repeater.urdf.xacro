@@ -1,0 +1,115 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="usb_repeater">
+
+  <xacro:macro name="usb_repeater" params="prefix parent *origin">
+
+    <xacro:property name="arrangement_radius"	value="0.031"/>
+    <xacro:property name="leg_radius"		value="0.003"/>
+    <xacro:property name="leg_height"		value="0.010"/>
+    <xacro:property name="plate_radius"		value="0.0375"/>
+    <xacro:property name="plate_thickness"	value="0.004"/>
+    <xacro:property name="repeater_width"	value="0.033"/>
+    <xacro:property name="repeater_length"	value="0.055"/>
+    <xacro:property name="repeater_height"	value="0.014"/>
+
+    <xacro:macro name="my_cylinder"
+		 params="name parent radius thickness *origin">
+
+      <link name="${name}">
+	<visual>
+          <origin xyz="0 0 ${thickness/2}" rpy="0 0 0"/>
+          <geometry>
+            <cylinder radius="${radius}" length="${thickness}"/>
+          </geometry>
+          <material name="White">
+            <color rgba="1.0 1.0 1.0 1.0"/>
+          </material>
+	</visual>
+	<collision>
+          <origin xyz="0 0 ${thickness/2}" rpy="0 0 0"/>
+          <geometry>
+            <cylinder radius="${radius}" length="${thickness}"/>
+          </geometry>
+	</collision>
+	<inertial>
+          <mass value="1.0"/>
+          <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
+	</inertial>
+      </link>
+      <gazebo reference="${name}">
+	<material>Gazebo/White</material>
+      </gazebo>
+
+      <joint name="${name}" type="fixed">
+	<parent link="${parent}"/>
+	<child  link="${name}"/>
+	<xacro:insert_block name="origin"/>
+      </joint>
+
+    </xacro:macro>
+
+    <link name="${prefix}base_link"/>
+    <joint name="${prefix}base_link" type="fixed">
+      <parent link="${parent}"/>
+      <child  link="${prefix}base_link"/>
+      <xacro:insert_block name="origin"/>
+    </joint>
+
+    <xacro:my_cylinder name="${prefix}front_leg"
+		 radius="${leg_radius}" thickness="${leg_height}"
+		 parent="${prefix}base_link">
+      <origin xyz="${arrangement_radius} 0 0" rpy="0 0 0"/>
+    </xacro:my_cylinder>
+
+    <xacro:my_cylinder name="${prefix}left_leg"
+		 radius="${leg_radius}" thickness="${leg_height}"
+		 parent="${prefix}base_link">
+      <origin xyz="${-0.5*arrangement_radius} ${0.866*arrangement_radius} 0"
+	      rpy="0 0 0"/>
+    </xacro:my_cylinder>
+
+    <xacro:my_cylinder name="${prefix}right_leg"
+		 radius="${leg_radius}" thickness="${leg_height}"
+		 parent="${prefix}base_link">
+      <origin xyz="${-0.5*arrangement_radius} ${-0.866*arrangement_radius} 0"
+	      rpy="0 0 0"/>
+    </xacro:my_cylinder>
+
+    <xacro:my_cylinder name="${prefix}plate"
+		 radius="${plate_radius}" thickness="${plate_thickness}"
+		 parent="${prefix}base_link">
+      <origin xyz="0 0 ${leg_height}" rpy="0 0 0"/>
+    </xacro:my_cylinder>
+
+    <link name="${prefix}body">
+      <visual>
+        <geometry>
+          <box size="${repeater_width} ${repeater_length} ${repeater_height}"/>
+        </geometry>
+        <material name="Black">
+          <color rgba="0.0 0.0 0.0 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="${repeater_width} ${repeater_length} ${repeater_height}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="1.0"/>
+        <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
+      </inertial>
+    </link>
+    <gazebo reference="${prefix}body">
+      <material>Gazebo/Black</material>
+    </gazebo>
+
+    <joint name="${prefix}body" type="fixed">
+      <parent link="${prefix}plate"/>
+      <child  link="${prefix}body"/>
+      <origin xyz="0 0 ${plate_thickness + repeater_height/2}" rpy="0 0 0"/>
+    </joint>
+
+  </xacro:macro>
+
+</robot>

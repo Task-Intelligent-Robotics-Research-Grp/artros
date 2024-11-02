@@ -9,7 +9,7 @@
   <xacro:property name="b_bot_y"	value="0.4875"/>
   <xacro:property name="b_bot_theta"	value="${pi}"/>
   <xacro:property name="bots_z"		value="0.770"/>
-  <xacro:property name="screen_z"	value="${bots_z + 0.040}"/>
+  <xacro:property name="screen_z"	value="${bots_z + 0.048}"/>
 
   <!-- ground -->
   <link name="ground"/>
@@ -155,7 +155,7 @@
   <!--   <origin xyz="0 0 0" rpy="${pi} 0 0"/> -->
   <!-- </xacro:ft300> -->
 
-  <!-- Spawn and attach gripper -->
+  <!-- Spawn and attach grippers -->
   <xacro:include filename="$(find aist_robotiq
 			   )/urdf/robotiq_arg2f_coupling.urdf.xacro"/>
   <xacro:robotiq_arg2f_coupling prefix="a_bot_gripper_coupling_"
@@ -182,24 +182,17 @@
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:robotiq_85_gripper>
 
-  <!-- <xacro:include filename="$(find aist_description -->
-  <!-- 			   )/devices/urdf/single_suction_gripper.urdf.xacro"/> -->
-  <!-- <xacro:single_suction_gripper prefix="b_bot_gripper_" -->
-  <!-- 				parent="b_bot_ftsensor_flange_link"> -->
-  <!--   <origin xyz="0 0 0" rpy="0 ${0.3*pi/180} ${0.2*pi/180}"/> -->
-  <!-- </xacro:single_suction_gripper> -->
-
-  <!-- Add PhoXi 3D scanner -->
-  <!-- <xacro:include filename="$(find aist_description -->
-  <!-- 			   )/scenes/urdf/load_calibration.urdf.xacro"/> -->
-  <!-- <xacro:load_calibration filename="$(find aist_handeye_calibration -->
-  <!-- 				    )/calib/a_phoxi_m_camera.yaml"/> -->
-  <!-- <xacro:include filename="$(find aist_phoxi_camera -->
-  <!-- 			   )/urdf/phoxi_m_camera.urdf.xacro"/> -->
-  <!-- <xacro:phoxi_m_camera name="a_phoxi_m_camera" parent="workspace_center"> -->
-  <!--   <origin xyz="${origin[0]} ${origin[1]} ${origin[2]}" -->
-  <!--   	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/> -->
-  <!-- </xacro:phoxi_m_camera> -->
+  <!-- Add USB repeaters -->
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/usb_repeater.urdf.xacro"/>
+  <xacro:usb_repeater prefix="a_bot_usb_repeater_"
+		      parent="a_bot_wrist_2_link">
+    <origin xyz="0.000 -0.051 0.000" rpy="${pi/2} ${-pi/2} 0"/>
+  </xacro:usb_repeater>
+  <xacro:usb_repeater prefix="b_bot_usb_repeater_"
+		      parent="b_bot_wrist_2_link">
+    <origin xyz="0.000 -0.051 0.000" rpy="${pi/2} ${-pi/2} 0"/>
+  </xacro:usb_repeater>
 
   <!-- Add Motioncam-3D scanner -->
   <xacro:include filename="$(find aist_description
@@ -213,7 +206,7 @@
     	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/>
   </xacro:motioncam_m_camera>
 
-  <!-- RealSense cameras -->
+  <!-- Add RealSense cameras -->
   <xacro:include filename="$(find aist_description
   			   )/devices/urdf/sr305_on_2f140.urdf.xacro" />
   <xacro:sr305_on_2f140 prefix="a_bot_"
@@ -225,7 +218,7 @@
   		       parent="b_bot_gripper_base_link"
   		       use_nominal_extrinsics="true"/>
 
-  <!-- live camera -->
+  <!-- Add live camera -->
   <xacro:load_calibration filename="$(find aist_camera_calibration
 				    )/calib/live_camera.yaml"/>
   <link name="live_camera_optical_frame"/>
@@ -236,7 +229,7 @@
     	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/>
   </joint>
 
-  <!-- virtual screen -->
+  <!-- Add virtual screen -->
   <link name="virtual_screen"/>
   <joint name="virtual_screen_joint" type="fixed">
     <parent link="ground"/>

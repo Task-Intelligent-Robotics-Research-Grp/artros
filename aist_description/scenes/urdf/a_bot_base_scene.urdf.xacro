@@ -140,6 +140,14 @@
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:robotiq_140_gripper>
 
+  <!-- Add USB repeater -->
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/usb_repeater.urdf.xacro"/>
+  <xacro:usb_repeater prefix="a_bot_usb_repeater_"
+		      parent="a_bot_wrist_2_link">
+    <origin xyz="0.000 -0.051 0.000" rpy="${pi/2} ${-pi/2} 0"/>
+  </xacro:usb_repeater>
+
   <!-- RealSense cameras -->
   <xacro:include filename="$(find aist_description
   			   )/devices/urdf/sr305_on_2f140.urdf.xacro" />

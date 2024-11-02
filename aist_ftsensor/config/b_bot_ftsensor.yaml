@@ -1,4 +1,3 @@
-ftsensor_name: b_bot_ftsensor
-robot_name: b_bot
-gravity_frame: workspace_center
-initpose: [0.00, 0.00, 0.30, 0, 90, -90]
+controller_ns: b_bot/aist_ftsensor_controller
+robot_name:    b_bot
+initpose:      [0.200, 0.000, 0.100, 0, 0, -90]

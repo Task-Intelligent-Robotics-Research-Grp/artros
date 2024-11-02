@@ -8,7 +8,7 @@ Panels:
         - /TF1
         - /TF1/Frames1
       Splitter Ratio: 0.7746478915214539
-    Tree Height: 502
+    Tree Height: 475
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -2365,9 +2365,9 @@ Visualization Manager:
         base/panel_bearing_screw_hole_2:
           Value: false
         base/panel_bearing_screw_hole_aligner_1:
-          Value: false
+          Value: true
         base/panel_bearing_screw_hole_aligner_2:
-          Value: false
+          Value: true
         base/panel_motor_screw_hole_1:
           Value: false
         base/panel_motor_screw_hole_2:
@@ -2547,9 +2547,9 @@ Visualization Manager:
         panel_bearing/bottom_screw_hole_2:
           Value: false
         panel_bearing/bottom_screw_hole_aligner_1:
-          Value: false
+          Value: true
         panel_bearing/bottom_screw_hole_aligner_2:
-          Value: false
+          Value: true
         panel_bearing/default_grasp:
           Value: true
         panel_bearing/front_hole:
@@ -2573,7 +2573,7 @@ Visualization Manager:
         precision_tool_holder_link:
           Value: false
         screw_feeder_m3_base_link:
-          Value: false
+          Value: true
         screw_feeder_m3_front_side:
           Value: false
         screw_feeder_m3_gap:
@@ -2583,25 +2583,25 @@ Visualization Manager:
         screw_feeder_m3_outlet_link:
           Value: true
         screw_feeder_m4_base_link:
-          Value: false
+          Value: true
         screw_feeder_m4_front_side:
           Value: false
         screw_feeder_m4_gap:
-          Value: false
+          Value: true
         screw_feeder_m4_inlet_link:
           Value: true
         screw_feeder_m4_outlet_link:
           Value: true
         screw_m3_1/base_link:
-          Value: true
+          Value: false
         screw_m3_1/screw_head:
           Value: true
         screw_m3_1/screw_tip:
-          Value: false
+          Value: true
         screw_m4_1/base_link:
           Value: false
         screw_m4_1/screw_head:
-          Value: false
+          Value: true
         screw_m4_1/screw_tip:
           Value: true
         screw_tool_m3/base_link:
@@ -2613,9 +2613,9 @@ Visualization Manager:
         screw_tool_m3_holder_link:
           Value: false
         screw_tool_m4/base_link:
-          Value: false
+          Value: true
         screw_tool_m4/tip_link:
-          Value: false
+          Value: true
         screw_tool_m4_holder_base_link:
           Value: false
         screw_tool_m4_holder_link:
@@ -2701,31 +2701,31 @@ Visualization Manager:
         virtual_screen:
           Value: false
         workbench_back_bar:
-          Value: false
+          Value: true
         workbench_base_link:
-          Value: false
+          Value: true
         workbench_center_bar:
-          Value: false
+          Value: true
         workbench_front_border:
-          Value: false
+          Value: true
         workbench_holder_link:
-          Value: false
+          Value: true
         workbench_right_bar:
-          Value: false
+          Value: true
         workbench_right_border:
-          Value: false
+          Value: true
         workbench_table_base_link:
-          Value: false
+          Value: true
         workbench_table_leg1:
-          Value: false
+          Value: true
         workbench_table_leg2:
-          Value: false
+          Value: true
         workbench_table_leg3:
-          Value: false
+          Value: true
         workbench_table_top:
-          Value: false
+          Value: true
         workbench_table_top_center:
-          Value: false
+          Value: true
         workbench_table_top_origin:
           Value: true
         workspace_center:
@@ -3253,7 +3253,7 @@ Visualization Manager:
       Use rainbow: true
       Value: true
     - Class: rviz/Image
-      Enabled: true
+      Enabled: false
       Image Topic: /a_motioncam/texture
       Max Value: 1
       Median window: 5
@@ -3263,7 +3263,7 @@ Visualization Manager:
       Queue Size: 2
       Transport Hint: raw
       Unreliable: false
-      Value: true
+      Value: false
     - Class: rviz/Image
       Enabled: true
       Image Topic: /live_camera/image_raw
@@ -3338,19 +3338,34 @@ Visualization Manager:
       Arrow Width: 0.5
       Class: rviz/WrenchStamped
       Enabled: false
-      Force Arrow Scale: 0.20000000298023224
+      Force Arrow Scale: 5
       Force Color: 204; 51; 51
       Hide Small Values: true
       History Length: 1
-      Name: WrenchStamped
+      Name: ABotWrench
+      Queue Size: 10
+      Topic: /a_bot/wrench
+      Torque Arrow Scale: 2
+      Torque Color: 204; 204; 51
+      Unreliable: false
+      Value: false
+    - Alpha: 1
+      Arrow Width: 0.5
+      Class: rviz/WrenchStamped
+      Enabled: false
+      Force Arrow Scale: 10
+      Force Color: 204; 51; 51
+      Hide Small Values: true
+      History Length: 1
+      Name: BBotWrench
       Queue Size: 10
       Topic: /b_bot/wrench
-      Torque Arrow Scale: 0.5
+      Torque Arrow Scale: 10
       Torque Color: 204; 204; 51
       Unreliable: false
       Value: false
     - Class: rviz/Image
-      Enabled: true
+      Enabled: false
       Image Topic: /camera_multiplexer/image
       Max Value: 1
       Median window: 5
@@ -3360,15 +3375,15 @@ Visualization Manager:
       Queue Size: 2
       Transport Hint: raw
       Unreliable: false
-      Value: true
+      Value: false
     - Class: rviz/Marker
-      Enabled: true
+      Enabled: false
       Marker Topic: /collision_object_manager/collision_marker
       Name: CollisionMarker
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -3397,7 +3412,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.135615587234497
+      Distance: 1.2423486709594727
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -3405,24 +3420,24 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.07729644328355789
-        Y: -0.011451496742665768
-        Z: 0.37644878029823303
+        X: -0.3023425340652466
+        Y: 0.02974531427025795
+        Z: 0.6291046738624573
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6773285865783691
+      Pitch: 0.6523289084434509
       Target Frame: <Fixed Frame>
-      Yaw: 1.8114739656448364
+      Yaw: 0.44147518277168274
     Saved: ~
 Window Geometry:
   CameraMultiplexerImage:
     collapsed: false
   Displays:
     collapsed: false
-  Height: 1043
+  Height: 928
   Hide Left Dock: false
   Hide Right Dock: true
   LiveCamera:
@@ -3433,7 +3448,7 @@ Window Geometry:
     collapsed: false
   PhoxiTexture:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000400000000000001f3000003b9fc0200000012fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000b0fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afc0000003d000002500000019a0100001cfa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001f300fffffffb000000100044006900730070006c0061007900730100000000000002ad0000015600fffffffb0000001800500068006f00780069005400650078007400750072006501000002930000007d0000001600fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb000000120020002d00200053006c00690064006500720000000000ffffffff0000000000000000fb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c00690064006500720000000000ffffffff0000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016fb0000001c004d0075006c007400690070006c006500780065007200520047004201000002f70000009a0000000000000000fb0000000a0049006d00610067006501000001e7000000f80000000000000000fb0000000a0049006d00610067006501000002e50000011d0000000000000000fb0000001800500068006f0078006900540065007800740075007200650100000256000000d00000000000000000fb00000014004c00690076006500430061006d0065007200610100000316000000600000001600fffffffb0000002c00430061006d006500720061004d0075006c007400690070006c00650078006500720049006d006100670065010000037c0000007a0000001600ffffff000000010000010f000003ccfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003a000003cc000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000074f0000003efc0100000002fb0000000800540069006d006500000000000000074f0000041800fffffffb0000000800540069006d0065010000000000000450000000000000000000000587000003b900000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000001f300000346fc0200000012fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000b0fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afc0000003d000002350000019a0100001cfa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001f300fffffffb000000100044006900730070006c0061007900730100000000000002ad0000015600fffffffb0000001800500068006f00780069005400650078007400750072006500000002930000007d0000001600fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb000000120020002d00200053006c00690064006500720000000000ffffffff0000000000000000fb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c00690064006500720000000000ffffffff0000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016fb0000001c004d0075006c007400690070006c006500780065007200520047004201000002f70000009a0000000000000000fb0000000a0049006d00610067006501000001e7000000f80000000000000000fb0000000a0049006d00610067006501000002e50000011d0000000000000000fb0000001800500068006f0078006900540065007800740075007200650100000256000000d00000000000000000fb00000014004c00690076006500430061006d00650072006101000002780000010b0000001600fffffffb0000002c00430061006d006500720061004d0075006c007400690070006c00650078006500720049006d00610067006500000003680000008e0000001600ffffff000000010000010f000003ccfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003a000003cc000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000074f0000003efc0100000002fb0000000800540069006d006500000000000000074f0000041800fffffffb0000000800540069006d00650100000000000004500000000000000000000004bc0000034600000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -3442,6 +3457,6 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: true
-  Width: 1920
-  X: 6400
-  Y: 0
+  Width: 1717
+  X: 6487
+  Y: 46

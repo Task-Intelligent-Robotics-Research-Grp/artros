@@ -6,7 +6,7 @@
   <arg name="camera_names"		default="a_bot_camera b_bot_camera"/>
   <arg name="active_camera_name"	default="b_bot_camera"/>
   <arg name="manager"			default="camera_manager"/>
-  <arg name="manager_threads"		default="4"/>
+  <arg name="manager_threads"		default="8"/>
 
   <!-- Launch nodelet manager -->
   <node name="$(arg manager)"
@@ -23,13 +23,6 @@
   </include>
 
   <group unless="$(arg sim)">
-
-    <!-- Launch PhoXi camera -->
-    <!-- <include file="$(find aist_phoxi_camera)/launch/run.launch"> -->
-    <!--   <arg name="camera_name"	value="a_phoxi_m_camera"/> -->
-    <!--   <arg name="id"		value="2018-09-017-LC3"/> -->
-    <!--   <arg name="frame"		value="a_phoxi_m_camera_sensor"/> -->
-    <!-- </include> -->
 
     <!-- Launch Motioncam-3D camera -->
     <include file="$(find aist_phoxi_camera)/launch/run_with_config.launch">
