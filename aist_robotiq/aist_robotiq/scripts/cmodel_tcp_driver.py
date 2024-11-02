@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Software License Agreement (BSD License)
 #
@@ -35,25 +35,27 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy, sys, socket
+import rclpy, sys, socket
 from aist_robotiq.cmodel_modbus import CModelModbusTCP
 from pymodbus.exceptions        import ModbusException
+from rclpy.executors            import ExternalShutdownException
 
 if __name__ == '__main__':
-    rospy.init_node('cmodel_tcp_driver')
-
-    myargv   = rospy.myargv(sys.argv)
-    slave_id = 9 if len(myargv) < 3 else int(myargv[2])
-
     try:
-        ip_address = myargv[1]
-        socket.inet_aton(ip_address)
+        rclpy.init()
 
-        cmodel = CModelModbusTCP(ip_address, slave_id)
-        cmodel.run()
+        ip_addess = sys.argv[1]
+        slave_id  = 9 if len(sys.argv) < 3 else int(sys.argv[2])
+        cmodel    = CModelModbusTCP(ip_address, slave_id)
+
+        rclpy.spin(cmodel)
+
+        cmodel.destroy_node()
     except socket.error as err:
-        rospy.logfatal('(cmodel_tcp_driver) %s' % err)
+        rclpy.get_logger().fatal('socket error: %s' % err)
     except ModbusException as err:
-        rospy.logfatal('(cmodel_tcp_driver) %s' % err)
-    except rospy.ROSInterruptException:
+        rclpy.get_logger().fatal(err)
+    except (KeyboardInterrupt, ExternalShutdownException):
         pass
+    finally:
+        rclpy.shutdown()

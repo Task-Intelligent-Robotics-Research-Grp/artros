@@ -72,7 +72,7 @@ class GenericGripper(object):
                             'release_position': max_position,
                             'max_effort':       max_effort}
 
-        rospy.loginfo('%s initialized.', action_ns)
+        rospy.get_loger().info('%s initialized.', action_ns)
 
     @property
     def parameters(self):

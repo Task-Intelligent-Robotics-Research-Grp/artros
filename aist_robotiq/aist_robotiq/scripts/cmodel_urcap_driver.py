@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Software License Agreement (BSD License)
 #
@@ -35,19 +35,24 @@
 #
 # Author: Toshio Ueshiba
 #
-import sys, socket, rospy
+import sys, socket, rclpy
 from aist_robotiq.cmodel_urcap import CModelURCap
+from rclpy.executors           import ExternalShutdownException
 
 if __name__ == '__main__':
-    rospy.init_node('cmodel_urcap_driver')
-
-    myargv   = rospy.myargv(sys.argv)
-    slave_id = 9 if len(myargv) < 3 else int(myargv[2])
-
     try:
-        cmodel = CModelURCap(myargv[1], slave_id)
-        cmodel.run()
+        rclpy.init():
+
+        ip_address = sys.argv[1]
+        slave_id   = 9 if len(sys.argv) < 3 else int(sys.argv[2])
+        cmodel     = CModelModbusRTU(ip_address, slave_id)
+
+        rclpy.spin(cmodel)
+
+        cmodel.destroy_node()
     except socket.error as err:
-        rospy.logfatal('(cmodel_urcap_driver) socket error: %s' % err)
-    except rospy.ROSInterruptException:
+        rclpy.get_logger().fatal('socket error: %s' % err)
+    except (KeyboardInterrupt, ExternalShutdownException):
         pass
+    finally:
+        rclpy.shutdown()

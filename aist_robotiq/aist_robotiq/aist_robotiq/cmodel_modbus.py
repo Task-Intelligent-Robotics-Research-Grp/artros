@@ -44,7 +44,7 @@ from pymodbus.client.sync     import ModbusTcpClient, ModbusSerialClient
 #########################################################################
 class CModelModbusBase(CModelBase):
     def __init__(self, slave_id):
-        super(CModelModbusBase, self).__init__(slave_id)
+        super().__init__(slave_id)
 
     def disconnect(self):
         if self._client:          # (self._client is defined in derived class)
@@ -56,14 +56,14 @@ class CModelModbusBase(CModelBase):
 
         # Convert the command to a byte array of 6-length.
         self.data = []
-        self.data.append(command.rACT +
-                         (command.rMOD << 1) + (command.rGTO << 3) +
-                         (command.rATR << 4) + (command.rARD << 5))  # Byte0
-        self.data.append(0)                                          # Byte1
-        self.data.append(0)                                          # Byte2
-        self.data.append(command.rPR)                                # Byte3
-        self.data.append(command.rSP)                                # Byte4
-        self.data.append(command.rFR)                                # Byte5
+        self.data.append(command.r_act +
+                         (command.r_mod << 1) + (command.r_gto << 3) +
+                         (command.r_atr << 4) + (command.r_ard << 5))  # Byte0
+        self.data.append(0)                                            # Byte1
+        self.data.append(0)                                            # Byte2
+        self.data.append(command.r_pr)                                 # Byte3
+        self.data.append(command.r_sp)                                 # Byte4
+        self.data.append(command.r_fr)                                 # Byte5
         self._put_command(self.data)
 
     def get_status(self):
@@ -72,16 +72,16 @@ class CModelModbusBase(CModelBase):
 
         # Assign the values to their respective variables
         status = CModelStatus()
-        status.gACT =  data[0]       & 0x01
-        status.gMOD = (data[0] >> 1) & 0x03
-        status.gGTO = (data[0] >> 3) & 0x01
-        status.gSTA = (data[0] >> 4) & 0x03
-        status.gOBJ = (data[0] >> 6) & 0x03
-        status.gVAS =  data[1]       & 0x03
-        status.gFLT =  data[2]       & 0x0f
-        status.gPR  =  data[3]
-        status.gPO  =  data[4]
-        status.gCOU =  data[5]
+        status.g_act =  data[0]       & 0x01
+        status.g_mod = (data[0] >> 1) & 0x03
+        status.g_gto = (data[0] >> 3) & 0x01
+        status.g_sta = (data[0] >> 4) & 0x03
+        status.g_obj = (data[0] >> 6) & 0x03
+        status.g_bas =  data[1]       & 0x03
+        status.g_flt =  data[2]       & 0x0f
+        status.g_pr  =  data[3]
+        status.g_po  =  data[4]
+        status.g_cou =  data[5]
         return status
 
     def _put_command(self, data):
@@ -114,7 +114,7 @@ class CModelModbusBase(CModelBase):
 #########################################################################
 class CModelModbusTCP(CModelModbusBase):
     def __init__(self, ip_address, slave_id=9):
-        super(CModelModbusTCP, self).__init__(slave_id)
+        super().__init__(slave_id)
         self._lock   = threading.Lock()
         self._client = ModbusTcpClient(ip_address)
         self._client.connect()
@@ -132,7 +132,7 @@ class CModelModbusTCP(CModelModbusBase):
 #########################################################################
 class CModelModbusRTU(CModelModbusBase):
     def __init__(self, port, slave_id=9):
-        super(CModelModbusRTU, self).__init__(slave_id)
+        super().__init__(slave_id)
         self._lock   = threading.Lock()
         self._client = ModbusSerialClient(method='rtu', port=port,
                                           stopbits=1, bytesize=8, parity='N',

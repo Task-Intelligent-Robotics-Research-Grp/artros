@@ -37,10 +37,9 @@
  *  \file	ft300_driver.cpp
  *  \brief	ROS driver for Robotiq FT300 force-torque sensors
  */
-#include <ros/ros.h>
-#include <controller_manager/controller_manager.h>
-#include <hardware_interface/robot_hw.h>
-#include <hardware_interface/force_torque_sensor_interface.h>
+#include <rclcpp/rclcpp.hpp>
+#include <controller_manager/controller_manager.hpp>
+#include <hardware_interface/sensor_interface.hpp>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>		// for struct sockaddr_in
@@ -71,42 +70,52 @@ splitd(const char* s, double& val)
 /************************************************************************
 *  class ft300_driver							*
 ************************************************************************/
-class ft300_driver : public hardware_interface::RobotHW
+class ft300_driver : public rclcpp::Node
+		     public hardware_interface::SensorInterface
 {
   private:
     using interface_t	= hardware_interface::ForceTorqueSensorInterface;
     using handle_t	= hardware_interface::ForceTorqueSensorHandle;
     using manager_t	= controller_manager::ControllerManager;
+    using timer_p	= rclcpp::TimerBase::SharedPtr;
 
   public:
 			ft300_driver()					;
     virtual		~ft300_driver()					;
 
-    void		run()						;
-    virtual void	read(const ros::Time&, const ros::Duration&)	;
+    virtual void	read(const rclcpp::Time&,
+			     const rclcpp::Duration&)			;
 
   private:
-    bool		up_socket()					;
-    bool		connect_socket(u_long s_addr, int port)		;
+    template <class T>
+    T		declare_read_only_parameter(const std::string& name,
+					    const T& default_value)	;
+    void	tick()							;
+    bool	up_socket()						;
+    bool	connect_socket(u_long s_addr, int port)			;
 
   private:
-    ros::NodeHandle	_nh;
     const int		_socket;
     interface_t		_interface;
     double		_ft[6];
+
+    timer_p		_timer;
 };
 
 ft300_driver::ft300_driver()
-    :_nh("~"),
-     _socket(::socket(AF_INET, SOCK_STREAM, 0)),
+    :_socket(::socket(AF_INET, SOCK_STREAM, 0)),
      _interface(),
-     _ft{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}
+     _ft{0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+     _timer(create_wall_timer(std::chrono::duration<doubke>(
+				  1.0/declare_read_only_parameter<double>(
+				      "rate", 125.0)),
+			      std::bind(&ft300_driver::tick, this)))
 {
   // Check whether the socket is correctly opened.
     if (_socket < 0)
     {
-	ROS_ERROR_STREAM("(ft300_driver) failed to open socket: "
-			 << strerror(errno));
+	RCLCPP_ERROR_STREAM(get_logger(),
+			    "failed to open socket: " << strerror(errno));
 	throw;
     }
 
@@ -114,11 +123,12 @@ ft300_driver::ft300_driver()
 	throw;
 
   // Register hardware interface handle.
-    const auto	frame_id = _nh.param<std::string>("frame_id", "wrench_link");
+    const auto	frame_id = declare_read_only_parameter<std::string>(
+				"frame_id", "wrench_link");
     _interface.registerHandle(handle_t("wrench", frame_id, &_ft[0], &_ft[3]));
     registerInterface(&_interface);
 
-    ROS_INFO_STREAM("(ft300_driver) ft300_driver started.");
+    RCLCPP_INFO_STREAM(get_logger(), "ft300_driver started.");
 }
 
 ft300_driver::~ft300_driver()
@@ -128,26 +138,7 @@ ft300_driver::~ft300_driver()
 }
 
 void
-ft300_driver::run()
-{
-    ros::NodeHandle	nh;
-    manager_t		manager(this, nh);
-    ros::Rate		rate(_nh.param<double>("rate", 125.0));
-    ros::AsyncSpinner	spinner(1);
-    spinner.start();
-
-    while (ros::ok())
-    {
-	read(ros::Time::now(), rate.cycleTime());
-	manager.update(ros::Time::now(), rate.cycleTime());
-	rate.sleep();
-    }
-
-    spinner.stop();
-}
-
-void
-ft300_driver::read(const ros::Time&, const ros::Duration&)
+ft300_driver::read(const rclcpp::Time&, const rclcpp::Duration&)
 {
     std::array<char, 1024>	buf;
     const auto			nbytes = ::read(_socket,
@@ -169,12 +160,29 @@ ft300_driver::read(const ros::Time&, const ros::Duration&)
     s = splitd(s, _ft[5]);
 }
 
+template <class T> T
+ft300_driver::declare_read_only_parameter(const std::string& name,
+					  const T& default_value)
+{
+    return declare_parameter(
+                name, default_value,
+                ddynamic_reconfigure2::read_only_param_desc<T>(name));
+}
+
+void
+ft300_driver::tick()
+{
+    read(get_clock()->now(), rate.cycleTime());
+    manager.update(ros::Time::now(), rate.cycleTime());
+}
+
 bool
 ft300_driver::up_socket()
 {
   // Get hoastname and port from parameters.
-    const auto	hostname = _nh.param<std::string>("hostname", "192.168.1.1");
-    const auto	port	 = _nh.param<int>("port", 63351);
+    const auto	hostname = decalre_read_only_parameter<std::string>(
+			       "hostname", "192.168.1.1");
+    const auto	port	 = decalre_read_only_parameter<int>("port", 63351);
 
   // Connect socket to hostname:port.
     auto	addr = inet_addr(hostname.c_str());
@@ -202,44 +210,21 @@ ft300_driver::connect_socket(u_long s_addr, int port)
     server.sin_family	   = AF_INET;
     server.sin_port	   = htons(port);
     server.sin_addr.s_addr = s_addr;
-    ROS_INFO_STREAM("(ft300_driver) trying to connect socket to "
-		    << inet_ntoa(server.sin_addr) << ':' << port << "...");
+    RCLCPP_INFO_STREAM(get_logger(), "trying to connect socket to "
+		       << inet_ntoa(server.sin_addr) << ':' << port << "...");
     if (::connect(_socket, (sockaddr*)&server, sizeof(server)) == 0)
     {
-	ROS_INFO_STREAM("(ft300_driver) succeeded.");
+	RCLCPP_INFO_STREAM("succeeded.");
 	return true;
     }
     else
     {
-	ROS_ERROR_STREAM("(ft300_driver) failed: " << strerror(errno));
+	RCLCPP_ERROR_STREAM("failed: " << strerror(errno));
 	return false;
     }
 }
 }	// namepsace aist_robotiq
 
-/************************************************************************
-*  global functions							*
-************************************************************************/
-int
-main(int argc, char* argv[])
-{
-    ros::init(argc, argv, "ft300_driver");
+#include <rclcpp_components/register_node_macro.hpp>
 
-    try
-    {
-	aist_robotiq::ft300_driver	node;
-	node.run();
-    }
-    catch (const std::exception& err)
-    {
-	std::cerr << err.what() << std::endl;
-	return 1;
-    }
-    catch (...)
-    {
-	std::cerr << "Unknown error." << std::endl;
-	return 1;
-    }
-
-    return 0;
-}
+RCLCPP_COMPONENTS_REGISTER_NODE(aist_robotiq::ft300_driver)

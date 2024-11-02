@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Software License Agreement (BSD License)
 #
@@ -35,20 +35,24 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy, sys
+import rclpy, sys
 from aist_robotiq.cmodel_modbus import CModelModbusRTU
 from pymodbus.exceptions        import ModbusException
+from rclpy.executors            import ExternalShutdownException
 
 if __name__ == '__main__':
-    rospy.init_node('cmodel_rtu_driver')
-
-    myargv   = rospy.myargv(sys.argv)
-    slave_id = 9 if len(myargv) < 3 else int(myargv[2])
-
     try:
-        cmodel = CModelModbusRTU(myargv[1], int(myargv[2]))
-        cmodel.run()
+        rclpy.init():
+        port     = int(sys.argv[1])
+        slave_id = 9 if len(sys.argv) < 3 else int(sys.argv[2])
+        cmodel   = CModelModbusRTU(port, slave_id)
+
+        rclpy.spin(cmodel)
+
+        cmodel.destroy_node()
     except ModbusException as err:
-        rospy.logfatal('(cmodel_rtu_driver) %s' % err)
-    except rospy.ROSInterruptException:
+        rclpy.get_logger.fatal(err)
+    except (KeyboardInterrupt, ExternalShutdownException):
         pass
+    finally:
+        rclpy.shutdown()

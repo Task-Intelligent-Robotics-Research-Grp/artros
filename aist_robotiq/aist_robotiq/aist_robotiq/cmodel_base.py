@@ -33,38 +33,36 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy
+from rclpy.node       import Node
 from numpy            import clip
 from aist_robotiq.msg import CModelStatus, CModelCommand
 
 #########################################################################
 #  class CModelBase                                                     #
 #########################################################################
-class CModelBase(object):
+class CModelBase(Node):
     def __init__(self, slave_id):
-        super(CModelBase, self).__init__()
+        super().__init__()
         self._slave_id = slave_id
-        self._pub      = rospy.Publisher('/status', CModelStatus, queue_size=3)
-        rospy.Subscriber('/command', CModelCommand, self.put_command)
+        self._pub      = self.create_publisher(CModelStatus, '/status', 3)
+        self._sub      = self.create_subscription(CModelCommand, '/command',
+                                                  self.put_command)
+        self._timer    = self.create_timer(0.05, self._timer_cb)
 
-    def run(self):
-        rate = rospy.Rate(20)
-        while not rospy.is_shutdown():
-            try:
-                status = self.get_status() # (defined in derived class)
-                self._pub.publish(status)  # Forward device status to controller
-            except Exception as e:
-                rospy.logerr(e)
-            rate.sleep()
-        self.disconnect()                  # (defined in derived class)
+    def __del__(self):
+        self.disconnect()           # (defined in derived class)
+
+    def _timer_cb(self):
+        status = self.get_status()  # (defined in derived class)
+        self._pub.publish(status)   # Forward device status to controller
 
     def _clip_command(self, command):
-        command.rACT = clip(command.rACT, 0, 1)
-        command.rMOD = clip(command.rACT, 0, 3)
-        command.rGTO = clip(command.rGTO, 0, 1)
-        command.rATR = clip(command.rATR, 0, 1)
-        command.rARD = clip(command.rATR, 0, 1)
-        command.rPR  = clip(command.rPR,  0, 255)
-        command.rSP  = clip(command.rSP,  0, 255)
-        command.rFR  = clip(command.rFR,  0, 255)
+        command.r_act = clip(command.r_act, 0, 1)
+        command.r_mod = clip(command.r_mod, 0, 3)
+        command.r_gto = clip(command.r_gto, 0, 1)
+        command.r_atr = clip(command.r_atr, 0, 1)
+        command.r_ard = clip(command.r_ard, 0, 1)
+        command.r_pr  = clip(command.r_pr,  0, 255)
+        command.r_sp  = clip(command.r_sp,  0, 255)
+        command.r_fr  = clip(command.r_fr,  0, 255)
         return command

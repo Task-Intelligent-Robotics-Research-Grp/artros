@@ -35,23 +35,26 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy, os
+import rclpy, os
 import numpy as np
-from sensor_msgs.msg  import JointState
-from control_msgs.msg import (GripperCommandAction, GripperCommandGoal,
-                              GripperCommandResult, GripperCommandFeedback)
-from aist_robotiq.msg import CModelStatus, CModelCommand
-from aist_robotiq.srv import SetVelocity, SetVelocityResponse
-from actionlib        import SimpleActionServer
+from rclpy.node            import Node
+from rclpy.action          import ActionServer, GoalResponse, CancelResponse
+from rclpy.callback_groups import ReentrantCallbackGroup
+from rclpy.executors       import (ExternalShutdownException,
+                                   MultithreadedExecutor)
+from sensor_msgs.msg       import JointState
+from control_msgs.msg      import (GripperCommandAction, GripperCommandGoal,
+                                   GripperCommandResult,
+                                   GripperCommandFeedback)
+from aist_robotiq_msgs.msg import CModelStatus, CModelCommand
+from aist_robotiq_msgs.srv import SetVelocity, SetVelocityResponse
 
 #########################################################################
 #  class CModelController                                               #
 #########################################################################
-class CModelController(object):
+class CModelController(Node):
     def __init__(self):
-        super(CModelController, self).__init__()
-
-        self._name = rospy.get_name()
+        super().__init__('cmodel_controller')
 
         # Read configuration parameters
         self._min_position = rospy.get_param('~min_position', 0.0)
@@ -64,17 +67,19 @@ class CModelController(object):
 
         # Velocity parameter set by service server.
         self._velocity         = 0.5*(self._min_velocity + self._max_velocity)
-        self._set_velocity_srv = rospy.Service('~set_velocity', SetVelocity,
-                                               self._set_velocity_cb)
+        self._set_velocity_srv = self.create_service(SetVelocity,
+                                                     'set_velocity',
+                                                     self._set_velocity_cb)
 
         # Status recevied from driver, command sent to driver
-        self._status_sub      = rospy.Subscriber('~status', CModelStatus,
-                                                 self._status_cb, queue_size=1)
-        self._command_pub     = rospy.Publisher('~command', CModelCommand,
-                                                queue_size=1)
-        self._joint_state_pub = rospy.Publisher('/joint_states',
-                                                JointState, queue_size=1)
-        self._goal_rPR        = 0
+        self._status_sub      = self.create_subscription(CModelStatus,
+                                                         'status',
+                                                         self._status_cb, 1)
+        self._command_pub     = self.create_publisher(CModelCommand,
+                                                      'command', 1)
+        self._joint_state_pub = self.create_publisher(JointState,
+                                                      '/joint_states', 1)
+        self._goal_r_pr       = 0
 
         # Position parameters to be calibrated
         self._min_gap_counts   = 255  # gap counts at full-close position
@@ -82,21 +87,27 @@ class CModelController(object):
         self._calibration_step = 0    # ready for calibration
 
         # Configure and start the action server
-        self._server = SimpleActionServer('~gripper_cmd', GripperCommandAction,
-                                          auto_start=False)
-        self._server.register_goal_callback(self._goal_cb)
-        self._server.register_preempt_callback(self._preempt_cb)
-        self._server.start()
+        self._server = ActionServer(
+                           self, GripperCommandAction, 'gripper_cmd',
+                           goal_callback=self._goal_cb,
+                           handle_accepted_callback=self._handle_accepted_cb,
+                           cancel_callback=self._cancel_cb,
+                           callback_group=ReentrantCallbackGroup())
 
         # Calibrate gripper
-        rospy.sleep(2.0)              # wait for server comes up
+        rclpy.sleep(2.0)              # wait for server comes up
         self._calibrate()
 
-        rospy.logdebug('(%s) Started', self._name)
+        self.get_logger().debug('Started')
 
-    def _set_velocity_cb(self, req):
+    def destroy(self):
+        self._server.destroy()
+        super().destroy_node()
+
+    def _set_velocity_cb(self, req, res):
         self._velocity = req.velocity
-        return SetVelocityResponse(True)
+        res.success = True
+        return res
 
     def _status_cb(self, status):
         # Publish the joint_states for the gripper
@@ -109,49 +120,49 @@ class CModelController(object):
         # Handle calibration process if not moving
         if self._is_active(status) and not self._is_moving(status):
             if self._calibration_step == 1:
-                rospy.loginfo("(%s) calibration step 1: start calibration",
-                              self._name)
+                self.get_logger().info("calibration step 1: start calibration")
                 self._calibration_step = 2
                 self._send_raw_move_command(0, 64, 1)    # full-open
                 rospy.sleep(0.5)
             elif self._calibration_step == 2:
                 self._max_gap_counts = status.gPO        # record at full-open
-                rospy.loginfo("(%s) calibration step 2: gap[%d]@full-open",
-                              self._name, self._max_gap_counts)
+                self.get_logger().info("calibration step 2: gap[%d]@full-open",
+                                       self._max_gap_counts)
                 self._calibration_step = 3
                 self._send_raw_move_command(255, 64, 1)  # full-close
                 rospy.sleep(0.5)
             elif self._calibration_step == 3:
                 self._min_gap_counts = status.gPO        # record at full-close
-                rospy.loginfo("(%s) calibration step 3: gap[%d]@full-close",
-                              self._name, self._min_gap_counts)
+                self.get_logger().info("calibration step 3: gap[%d]@full-close",
+                                       self._min_gap_counts)
                 self._calibration_step = 0
                 self._send_raw_move_command(0, 64, 1)    # full-open
-                rospy.loginfo('(%s) calibrated to [%d, %d]', self._name,
-                              self._min_gap_counts, self._max_gap_counts)
+                self.get_logger().info('calibrated to [%d, %d]',
+                                       self._min_gap_counts,
+                                       self._max_gap_counts)
 
         # Return if no active goals
-        if not self._server.is_active():
+        if self._goal_handle is None:
             return
 
         # Handle the active goal
-        if not self._is_active(status):
-            rospy.logwarn('(%s) abort goal because the gripper is not yet active', self._name)
-            self._server.set_aborted()
+        if not self._goal_handle.is_active:
+            self.get_logger().warn('abort goal because the gripper is not yet active')
+            self._goal_handle.abort()
         elif self._error(status) != 0:
-            rospy.logwarn('(%s) faulted with code: %x',
-                          self._name, self._error(status))
-            self._server.set_aborted()
+            self.get_logger().warn('faulted with code: %x',
+                                   self._error(status))
+            self._goal_handle.abort()
         elif self._reached_goal(status):
-            rospy.loginfo('(%s) reached goal', self._name)
-            self._server.set_succeeded(
+            self.get_logger().info('reached goal')
+            self._goal_handle.succeed()
                 GripperCommandResult(*self._status_values(status)))
         elif self._stalled(status):
-            rospy.loginfo('(%s) stalled', self._name)
-            self._server.set_succeeded(
+            self.get_logger().info('stalled')
+            self._goal_handle.succeed(
                 GripperCommandResult(*self._status_values(status)))
         else:
-            self._server.publish_feedback(
+            self._goal_handle.publish_feedback(
                 GripperCommandFeedback(*self._status_values(status)))
 
     def _goal_cb(self):
@@ -162,14 +173,21 @@ class CModelController(object):
             self._server.set_preempted()
             return
 
-        self._goal_rPR = self._send_move_command(goal.command.position,
-                                                 self._velocity,
-                                                 goal.command.max_effort)
+        self._goal_r_pr = self._send_move_command(goal.command.position,
+                                                  self._velocity,
+                                                  goal.command.max_effort)
 
-    def _preempt_cb(self):
-        self._stop()
-        rospy.loginfo('(%s) preempted', self._name)
-        self._server.set_preempted()
+    def _handle_accepted_cb(self, goal_handle):
+        with self._goal_lock:
+            if self._goal_handle is not None and self._goal_handle.is_active:
+                self.get_logger().info('Aborting previous goal')
+                self._goal_handle.abort()
+            self._goal_handle = goal_handle
+        goal_handle.execute()
+
+    def _cancel_cb(self, goal_handle):
+        self.get_logger().info('cancelled')
+        return CancelResponse.ACCEPT
 
     def _calibrate(self):
         self._calibration_step = 1
@@ -192,19 +210,19 @@ class CModelController(object):
         # print('*** _send_raw_move_command: pos=%d, vel=%d, eff=%d'
         #       % (pos, vel, eff))
         command = CModelCommand()
-        command.rACT = 1
-        command.rGTO = 1
-        command.rPR  = pos
-        command.rSP  = vel
-        command.rFR  = eff
+        command.r_act = 1
+        command.r_gto = 1
+        command.r_pr  = pos
+        command.r_sp  = vel
+        command.r_fr  = eff
         self._command_pub.publish(command)
 
     def _stop(self):
         command = CModelCommand()
-        command.rACT = 1
-        command.rGTO = 0
+        command.r_act = 1
+        command.r_gto = 0
         self._command_pub.publish(command)
-        rospy.logdebug('(%s) stopping', self._name)
+        self.get_logger().debug('stopping')
 
     def _position(self, status):
         return (status.gPO - self._min_gap_counts) * self.position_per_tick \
@@ -214,29 +232,29 @@ class CModelController(object):
         return status.gCOU * self.effort_per_tick + self._min_effort
 
     def _stalled(self, status):
-        # After the goal accepted in _goal_cb(), status.gPR does not
+        # After the goal accepted in _goal_cb(), status.g_pr does not
         # correctly reflects the requested position if _status_cb() is
         # called before _send_move_command(). Thus we have to use
-        # self._goal_rPR instead of status.gPR.
-        return (status.gOBJ == 1 and status.gPO > self._goal_rPR) or \
-               (status.gOBJ == 2 and status.gPO < self._goal_rPR)
+        # self._goal_r_pr instead of status.g_pr.
+        return (status.g_obj == 1 and status.g_po > self._goal_r_pr) or \
+               (status.g_obj == 2 and status.g_po < self._goal_r_ptr)
 
     def _reached_goal(self, status):
         # ibid
-        return abs(status.gPO - self._goal_rPR) <= 1
+        return abs(status.g_po - self._goal_r_pr) <= 1
 
     def _status_values(self, status):
         return self._position(status), self._effort(status), \
                self._stalled(status),  self._reached_goal(status)
 
     def _error(self, status):
-        return status.gFLT
+        return status.g_flt
 
     def _is_active(self, status):
-        return status.gSTA == 3 and status.gACT == 1
+        return status.g_sta == 3 and status.g_act == 1
 
     def _is_moving(self, status):
-        return status.gGTO == 1 and status.gOBJ == 0
+        return status.g_gto == 1 and status.g_obj == 0
 
     @property
     def position_per_tick(self):
@@ -252,7 +270,14 @@ class CModelController(object):
         return (self._max_effort - self._min_effort) / 255
 
 
+def main(args=None):
+    try:
+        with rclpy.init(args=args):
+            controller = CModelController()
+            executor   = MultiThreadedExecutor()
+            rclpy.spin(controller, executor)
+    except (KeyboardInterrupt, ExternalShutdownException):
+        pass
+
 if __name__ == '__main__':
-    rospy.init_node('cmodel_controller')
-    controller = CModelController()
-    rospy.spin()
+    main()

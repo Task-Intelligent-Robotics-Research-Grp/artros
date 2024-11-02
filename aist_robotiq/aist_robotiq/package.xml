@@ -1,32 +1,41 @@
 <?xml version="1.0"?>
-<package format="2">
+<package format="3">
+
   <name>aist_robotiq</name>
   <version>0.1.0</version>
-  <description>The aist_gazebo package</description>
-
+  <description>The aist_robotiq package</description>
+  <author>Toshio UESHIBA</author>
   <maintainer email="t.ueshiba@aist.go.jp">Toshio UESHIBA</maintainer>
   <license>BSD</license>
-  <author email="t.ueshiba@aist.go.jp">Toshio UESHIBA</author>
-  <url type="repository">https://gitlab.com/art-aist-private/artros</url>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
 
-  <build_depend>message_generation</build_depend>
-  <exec_depend>message_runtime</exec_depend>
+  <build_depend>rclcpp_components</build_depend>
+  <exec_depend>rclcpp_components</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
 
-  <depend>gazebo_ros</depend>
-  <depend>roscpp</depend>
   <depend>control_toolbox</depend>
   <depend>xmlrpcpp</depend>
-  <depend>rospy</depend>
-  <depend>actionlib</depend>
-  <depend>actionlib_msgs</depend>
+  <depend>gazebo_ros</depend>
+  <depend>rclpy</depend>
   <depend>control_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>controller_manager</depend>
   <depend>controller_interface</depend>
+  <depend>aist_msgs</depend>
+  <depend>ddynamic_reconfigure2</depend>
+
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
 
   <export>
+    <build_type>ament_cmake</build_type>
     <gazebo_ros plugin_path="${prefix}/lib" gazebo_media_path="${prefix}" />
   </export>
+
 </package>

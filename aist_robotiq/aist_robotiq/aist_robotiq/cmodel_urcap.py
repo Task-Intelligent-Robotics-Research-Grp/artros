@@ -3,7 +3,7 @@
 # Ported to ROS by felixvd
 # Modified by T.Ueshiba
 
-import rospy, socket, threading
+import time, socket, threading
 from aist_robotiq.cmodel_base import CModelBase
 from aist_robotiq.msg         import CModelStatus
 
@@ -40,7 +40,7 @@ class CModelURCap(CModelBase):
         """
         Constructor
         """
-        super(CModelURCap, self).__init__(slave_id)
+        super().__init__(slave_id)
         self._lock   = threading.Lock()
         self._socket = self.connect(address)
         #self.activate()
@@ -71,34 +71,34 @@ class CModelURCap(CModelBase):
 
         # Wait until STA == 3.
         while self._get_var(self.STA) != 3:
-            rospy.sleep(0.01)
+            time.sleep(0.01)
 
     def put_command(self, command):
         command  = self._clip_command(command)
         # Do not set variable 'ACT' because setting zero value will cause
         # the device reset.
         var_dict = dict([(self.SID, self._slave_id),
-                         (self.MOD, command.rMOD),
-                         (self.GTO, command.rGTO),
-                         (self.ATR, command.rATR),
-                         (self.ARD, command.rARD),
-                         (self.POS, command.rPR),
-                         (self.SPE, command.rSP),
-                         (self.FOR, command.rFR)])
+                         (self.MOD, command.r_mod),
+                         (self.GTO, command.r_gto),
+                         (self.ATR, command.r_atr),
+                         (self.ARD, command.r_ard),
+                         (self.POS, command.r_pr),
+                         (self.SPE, command.r_sp),
+                         (self.FOR, command.r_fr)])
         self._set_vars(var_dict)
 
     def get_status(self):
         status = CModelStatus()
         # Assign values to their respective variables
-        status.gACT = self._get_var(self.ACT)
-        status.gMOD = self._get_var(self.MOD)
-        status.gGTO = self._get_var(self.GTO)
-        status.gSTA = self._get_var(self.STA)
-        status.gOBJ = self._get_var(self.OBJ)
-        status.gFLT = self._get_var(self.FLT)
-        status.gPR  = self._get_var(self.PRE)
-        status.gPO  = self._get_var(self.POS)
-        status.gCOU = self._get_var(self.COU)
+        status.g_act = self._get_var(self.ACT)
+        status.g_mod = self._get_var(self.MOD)
+        status.g_gto = self._get_var(self.GTO)
+        status.g_sta = self._get_var(self.STA)
+        status.g_obj = self._get_var(self.OBJ)
+        status.g_flt = self._get_var(self.FLT)
+        status.g_pr  = self._get_var(self.PRE)
+        status.g_po  = self._get_var(self.POS)
+        status.g_cou = self._get_var(self.COU)
         return status
 
     def _set_vars(self, var_dict):

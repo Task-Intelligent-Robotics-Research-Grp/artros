@@ -35,30 +35,33 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy, os
+import rclpy, os
 import numpy as np
-from aist_robotiq.msg import (CModelStatus, CModelCommand,
-                              EPickCommandAction, EPickCommandGoal,
-                              EPickCommandResult, EPickCommandFeedback)
+from rclpy.node            import Node
+from rclpy.action          import ActionServer, GoalResponse, CancelResponse
+from rclpy.callback_groups import ReentrantCallbackGroup
+from rclpy.executors       import (ExternalShutdownException,
+                                   MultithreadedExecutor)
+from aist_robotiq.msg      import (CModelStatus, CModelCommand,
+                                   EPickCommandAction, EPickCommandGoal,
+                                   EPickCommandResult, EPickCommandFeedback)
 from actionlib        import SimpleActionServer
 
 #########################################################################
 #  class EPickController                                                #
 #########################################################################
-class EPickController(object):
+class EPickController(Node):
     def __init__(self):
-        super(EPickController, self).__init__()
-
-        self._name = rospy.get_name()
+        super().__init__()
 
         # Status recevied from driver, command sent to driver
-        self._status_sub  = rospy.Subscriber('~status', CModelStatus,
-                                             self._status_cb, queue_size=1)
-        self._command_pub = rospy.Publisher('~command', CModelCommand,
-                                            queue_size=1)
+        self._status_sub  = self.create_subscription(CModelStatus, 'status',
+                                                     self._status_cb, 1)
+        self._command_pub = self.create_publisher(CModelCommand, 'command', 1)
 
         # Configure and start the action server
-        self._server = SimpleActionServer('~gripper_cmd', EPickCommandAction,
+        self._server = ActionServer(self, EPickCommandAction, 'gripper_cmd',
+                                    callback_group=ReentrantCallbackGroup(),
                                           auto_start=False)
         self._server.register_goal_callback(self._goal_cb)
         self._server.register_preempt_callback(self._preempt_cb)
