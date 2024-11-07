@@ -82,14 +82,18 @@ class FTCalibrationRoutines(AISTBaseRoutines):
 
         xyzrpy = copy.copy(self._initpose)
         xyzrpy[3] -= 60
-        for i in range(12):
-            self._move_to(xyzrpy)
-            xyzrpy[3] += 10
-
-        xyzrpy = copy.copy(self._initpose)
         xyzrpy[4] -= 60
         for i in range(12):
             self._move_to(xyzrpy)
+            xyzrpy[3] += 10
+            xyzrpy[4] += 10
+
+        xyzrpy = copy.copy(self._initpose)
+        xyzrpy[3] += 60
+        xyzrpy[4] -= 60
+        for i in range(12):
+            self._move_to(xyzrpy)
+            xyzrpy[3] -= 10
             xyzrpy[4] += 10
 
         if not self._check:
