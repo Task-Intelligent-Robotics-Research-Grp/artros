@@ -477,7 +477,7 @@ ForceTorqueSensorController::Sensor
      _last_pub_time(0),
      _ddr(_nh),
      _ft(ft_t::Zero()),
-     _filter(2, 7.0*_pub_interval.toSec()),
+     _filter(2, 15.0*_pub_interval.toSec()),
      _ft_mtx(),
      _controller(controller),
      _chain(),
