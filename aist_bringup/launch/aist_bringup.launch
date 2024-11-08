@@ -66,12 +66,20 @@
   <!-- Launch other hardware drivers -->
   <group unless="$(arg sim)">
 
+    <!-- Load calibration parameters for FT sensor controllers -->
+    <arg name="ftsensor_calib_dir"	value="$(env HOME
+					       )/.ros/aist_ftsensor"/>
+    <rosparam ns="a_bot/aist_ftsensor_controller/sensors"
+    	      file="$(arg ftsensor_calib_dir
+		    )/a_bot/aist_ftsensor_controller.yaml"/>
+    <rosparam ns="b_bot/aist_ftsensor_controller/sensors"
+    	      file="$(arg ftsensor_calib_dir
+		    )/b_bot/aist_ftsensor_controller.yaml"/>
+
     <!-- Launch suction tool controllers -->
     <include file="$(find aist_fastening_tools
     		   )/launch/suction_tool_controllers.launch">
       <arg name="driver_ns"		value="b_bot/ur_hardware_interface"/>
-      <!-- <arg name="tool_names"		value="screw_tool_m3 screw_tool_m4 -->
-      <!-- 					       suction_tool base_fixture"/> -->
       <arg name="tool_names"		value="screw_tool_m3 screw_tool_m4
       					       suction_tool"/>
     </include>

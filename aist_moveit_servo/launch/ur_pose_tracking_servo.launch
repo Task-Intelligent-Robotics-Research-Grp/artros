@@ -2,7 +2,7 @@
   <!-- Launch an example that sends commands via C++ API. -->
 
   <arg name="robot_name"	default="a_bot"/>
-  <arg name="camera_name"	default="$(arg robot_name)_inside_camera"/>
+  <arg name="camera_name"	default="$(arg robot_name)_camera"/>
   <arg name="sim"		default="false"/>
   <arg name="traj"		default="true"/>
   <arg name="velocity_control"	default="false"/>
