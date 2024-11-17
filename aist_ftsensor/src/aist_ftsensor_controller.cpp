@@ -132,6 +132,7 @@ class ForceTorqueSensorController
 	bool	compute_calibration()					;
 	void	save_calibration(std::ostream& out)		const	;
 	void	clear_samples()						;
+	void	reset_bias()						;
 
       private:
 	void	take_sample(const vector_t& k,
@@ -175,6 +176,7 @@ class ForceTorqueSensorController
 
       // Calibration stuffs
 	bool				_do_sample;
+	bool				_do_reset;
 	size_t				_nsamples;
 	vector_t			_k_sum;
 	vector_t			_f_sum;
@@ -214,6 +216,8 @@ class ForceTorqueSensorController
 				    std_srvs::Trigger::Response& res)	;
     bool	clear_samples_cb(std_srvs::Trigger::Request&  req,
 				 std_srvs::Trigger::Response& res)	;
+    bool	reset_bias_cb(std_srvs::Trigger::Request&  req,
+			      std_srvs::Trigger::Response& res)		;
 
   private:
   // JointState stuffs
@@ -227,7 +231,8 @@ class ForceTorqueSensorController
     ros::ServiceServer			_compute_calibration;
     ros::ServiceServer			_save_calibration;
     ros::ServiceServer			_clear_samples;
-
+    ros::ServiceServer			_reset_bias;
+    
     std::string				_calib_file;
     std::vector<sensor_p>		_sensors;
 };
@@ -300,6 +305,10 @@ ForceTorqueSensorController::init(interface_t* hw,
 	= controller_nh.advertiseService(
 	    "clear_samples",
 	    &ForceTorqueSensorController::clear_samples_cb, this);
+    _reset_bias
+	= controller_nh.advertiseService(
+	    "reset_bias",
+	    &ForceTorqueSensorController::reset_bias_cb, this);
 
   // Setup sensors.
     for (const auto& name : hw->getNames())
@@ -454,6 +463,20 @@ ForceTorqueSensorController::clear_samples_cb(
     return true;
 }
 
+bool
+ForceTorqueSensorController::reset_bias_cb(
+    std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
+{
+    for (const auto& sensor : _sensors)
+	sensor->reset_bias();
+
+    res.success = true;
+    res.message = "reset_bias succeeded.";
+    ROS_INFO_STREAM("(aist_ftsensor_controller) " << res.message);
+
+    return true;
+}
+
 /************************************************************************
 *  class ForceTorqueSensorController::Sensor				*
 ************************************************************************/
@@ -491,6 +514,7 @@ ForceTorqueSensorController::Sensor
      _f0(vector_param("force_offset")),
      _m0(vector_param("torque_offset")),
      _do_sample(false),
+     _do_reset(false),
      _nsamples(0),
      _k_sum(vector_t::Zero()),
      _f_sum(vector_t::Zero()),
@@ -611,6 +635,12 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
     {
 	take_sample(k, f, m);
 	_do_sample = false;
+    }
+    else if (_do_reset)
+    {
+	_f0 = f - _q*(_mg*k);
+	_m0 = m - _q*(_r.cross(_mg*k));
+	_do_reset = false;
     }
 
     if (_compensate_gravity)
@@ -764,6 +794,12 @@ ForceTorqueSensorController::Sensor::clear_samples()
     _mm_sum   = matrix_t::Zero();
 
     ROS_INFO_STREAM('(' << _nh.getNamespace() << ") samples cleared");
+}
+
+void
+ForceTorqueSensorController::Sensor::reset_bias()
+{
+    _do_reset = true;
 }
 
 void
