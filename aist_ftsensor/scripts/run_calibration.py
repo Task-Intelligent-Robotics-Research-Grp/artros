@@ -59,6 +59,7 @@ class FTCalibrationRoutines(AISTBaseRoutines):
         print('  init:  go to initial pose')
         print('  calib: do calibration')
         print('  check: check calibration')
+        print('  reset: reset bias parameters')
 
     def interactive(self, key, robot_name, axis, speed):
         if key == 'init':
