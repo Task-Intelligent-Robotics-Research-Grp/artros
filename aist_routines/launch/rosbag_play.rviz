@@ -4,12 +4,13 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /TF1/Status1
         - /TF1/Frames1
         - /MultiplexerImage1
         - /DepthCloud1/Auto Size1
-      Splitter Ratio: 0.7242105007171631
-    Tree Height: 407
+        - /ABotWrench1
+        - /BBotWrench1
+      Splitter Ratio: 0.49473685026168823
+    Tree Height: 403
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -472,6 +473,24 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        base_fixture_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base_fixture_piston:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base_fixture_piston_head:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_fixture_tip_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         cage_back_left_pillar:
           Alpha: 1
           Show Axes: false
@@ -559,6 +578,52 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+        screw_feeder_m3_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        screw_feeder_m3_front_side:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        screw_feeder_m3_gap:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        screw_feeder_m3_inlet_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        screw_feeder_m3_outlet_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        screw_feeder_m4_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        screw_feeder_m4_front_side:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        screw_feeder_m4_gap:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        screw_feeder_m4_inlet_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        screw_feeder_m4_outlet_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         screw_tool_m3_holder_base_link:
           Alpha: 1
           Show Axes: false
@@ -587,6 +652,73 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
         virtual_screen:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        workbench_back_bar:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        workbench_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        workbench_center_bar:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        workbench_front_border:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        workbench_holder_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        workbench_right_bar:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        workbench_right_border:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        workbench_table_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        workbench_table_leg1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        workbench_table_leg2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        workbench_table_leg3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        workbench_table_top:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        workbench_table_top_center:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        workbench_table_top_origin:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -731,8 +863,6 @@ Visualization Manager:
         a_bot_wrist_2_link:
           Value: true
         a_bot_wrist_3_link:
-          Value: true
-        a_motioncam_color_camera_frame:
           Value: true
         a_motioncam_link:
           Value: true
@@ -1186,9 +1316,7 @@ Visualization Manager:
                                             b_bot_gripper_right_inner_finger_pad:
                                               {}
                                     b_bot_gripper_tip_link:
-                                      screw_tool_m4/base_link:
-                                        screw_tool_m4/tip_link:
-                                          {}
+                                      {}
                               b_bot_tool0:
                                 {}
             cage_front_left_pillar:
@@ -1217,7 +1345,14 @@ Visualization Manager:
                             {}
                     screw_tool_m4_holder_base_link:
                       screw_tool_m4_holder_link:
-                        {}
+                        screw_tool_m4/base_link:
+                          screw_m4_1/base_link:
+                            screw_m4_1/screw_head:
+                              {}
+                            screw_m4_1/screw_tip:
+                              {}
+                          screw_tool_m4/tip_link:
+                            {}
                     suction_tool_holder_base_link:
                       suction_tool_holder_link:
                         suction_tool/base_link:
@@ -1239,11 +1374,7 @@ Visualization Manager:
                         screw_feeder_m4_front_side:
                           screw_feeder_m4_gap:
                             screw_feeder_m4_outlet_link:
-                              screw_m4_1/base_link:
-                                screw_m4_1/screw_head:
-                                  {}
-                                screw_m4_1/screw_tip:
-                                  {}
+                              {}
                         screw_feeder_m4_inlet_link:
                           {}
                     workbench_back_bar:
@@ -1368,8 +1499,7 @@ Visualization Manager:
               a_motioncam_link:
                 a_motioncam_reference:
                   a_motioncam_sensor:
-                    a_motioncam_color_camera_frame:
-                      {}
+                    {}
               live_camera_optical_frame:
                 {}
             workspace_table_base_link:
@@ -1424,7 +1554,7 @@ Visualization Manager:
       Occlusion Compensation:
         Occlusion Time-Out: 30
         Value: false
-      Position Transformer: ""
+      Position Transformer: XYZ
       Queue Size: 5
       Selectable: true
       Size (Pixels): 3
@@ -1432,6 +1562,44 @@ Visualization Manager:
       Topic Filter: true
       Use Fixed Frame: true
       Use rainbow: true
+      Value: true
+    - Alpha: 1
+      Arrow Width: 0.5
+      Class: rviz/WrenchStamped
+      Enabled: true
+      Force Arrow Scale: 0.5
+      Force Color: 204; 51; 51
+      Hide Small Values: true
+      History Length: 1
+      Name: ABotWrench
+      Queue Size: 10
+      Topic: /a_bot/wrench
+      Torque Arrow Scale: 1
+      Torque Color: 204; 204; 51
+      Unreliable: false
+      Value: true
+    - Alpha: 1
+      Arrow Width: 0.5
+      Class: rviz/WrenchStamped
+      Enabled: true
+      Force Arrow Scale: 0.5
+      Force Color: 204; 51; 51
+      Hide Small Values: true
+      History Length: 1
+      Name: BBotWrench
+      Queue Size: 10
+      Topic: /b_bot/wrench
+      Torque Arrow Scale: 1
+      Torque Color: 204; 204; 51
+      Unreliable: false
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /collision_object_manager/collision_marker
+      Name: CollisionMarker
+      Namespaces:
+        "": true
+      Queue Size: 100
       Value: true
   Enabled: true
   Global Options:
@@ -1461,7 +1629,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.695741653442383
+      Distance: 9.150520324707031
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -1477,9 +1645,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.44539713859558105
+      Pitch: 0.6853969097137451
       Target Frame: <Fixed Frame>
-      Yaw: 0.6385818719863892
+      Yaw: 1.993584156036377
     Saved: ~
 Window Geometry:
   Displays:
@@ -1489,7 +1657,7 @@ Window Geometry:
   Hide Right Dock: true
   MultiplexerImage:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000400000000000001dd0000039cfc0200000009fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003b00000220000000c700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb00000020004d0075006c007400690070006c00650078006500720049006d0061006700650100000261000001760000001600ffffff000000010000010f00000554fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003b00000554000000a000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000063500000044fc0100000002fb0000000800540069006d00650100000000000006350000030700fffffffb0000000800540069006d00650100000000000004500000000000000000000004520000039c00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000001dd00000398fc0200000009fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d0000021e000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb00000020004d0075006c007400690070006c00650078006500720049006d0061006700650100000261000001740000001600ffffff000000010000010f00000554fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003b00000554000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000063500000044fc0100000002fb0000000800540069006d0065010000000000000635000003bc00fffffffb0000000800540069006d00650100000000000004500000000000000000000004520000039800000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -1499,5 +1667,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1589
-  X: 970
-  Y: 27
+  X: 4391
+  Y: 136

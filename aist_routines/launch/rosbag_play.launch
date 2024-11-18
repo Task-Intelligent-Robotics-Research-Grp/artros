@@ -2,7 +2,7 @@
 <launch>
 
   <arg name="config"		default="aist"/>
-  <arg name="scene"		default=""/>
+  <arg name="scene"		default="assembly"/>
   <arg name="file_name"		default="servo_test"/>
   <arg name="rosbag_rate"	default="0.5"/>
   <arg name="rvizconfig"	default="$(dirname)/rosbag_play.rviz"/>
@@ -11,6 +11,7 @@
     <arg name="config"		value="$(arg config)"/>
     <arg name="scene"		value="$(arg scene)"/>
     <arg name="rvizconfig"	value="$(arg rvizconfig)"/>
+    <arg name="joint_gui"	value="false"/>
   </include>
   
   <node name="rosbag_play" pkg="rosbag" type="play" output="screen"
