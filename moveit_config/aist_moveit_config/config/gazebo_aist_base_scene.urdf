@@ -2522,27 +2522,318 @@
             <offset>0.0</offset>
         </plugin>
     </gazebo>
-    <!-- <xacro:include filename="$(find aist_description -->
-    <!-- 			   )/devices/urdf/single_suction_gripper.urdf.xacro"/> -->
-    <!-- <xacro:single_suction_gripper prefix="b_bot_gripper_" -->
-    <!-- 				parent="b_bot_ftsensor_flange_link"> -->
-    <!--   <origin xyz="0 0 0" rpy="0 ${0.3*pi/180} ${0.2*pi/180}"/> -->
-    <!-- </xacro:single_suction_gripper> -->
-    <!-- Add PhoXi 3D scanner -->
-    <!-- <xacro:include filename="$(find aist_description -->
-    <!-- 			   )/scenes/urdf/load_calibration.urdf.xacro"/> -->
-    <!-- <xacro:load_calibration filename="$(find aist_handeye_calibration -->
-    <!-- 				    )/calib/a_phoxi_m_camera.yaml"/> -->
-    <!-- <xacro:include filename="$(find aist_phoxi_camera -->
-    <!-- 			   )/urdf/phoxi_m_camera.urdf.xacro"/> -->
-    <!-- <xacro:phoxi_m_camera name="a_phoxi_m_camera" parent="workspace_center"> -->
-    <!--   <origin xyz="${origin[0]} ${origin[1]} ${origin[2]}" -->
-    <!--   	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/> -->
-    <!-- </xacro:phoxi_m_camera> -->
+    <link name="a_bot_usb_repeater_base_link" />
+    <joint name="a_bot_usb_repeater_base_link" type="fixed">
+        <parent link="a_bot_wrist_2_link" />
+        <child link="a_bot_usb_repeater_base_link" />
+        <origin rpy="1.5707963267948966 -1.5707963267948966 0" xyz="0.000 -0.051 0.000" />
+    </joint>
+    <link name="a_bot_usb_repeater_front_leg">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0.005" />
+            <geometry>
+                <cylinder length="0.01" radius="0.003" />
+            </geometry>
+            <material name="White">
+                <color rgba="1.0 1.0 1.0 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0.005" />
+            <geometry>
+                <cylinder length="0.01" radius="0.003" />
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="1.0" />
+            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+        </inertial>
+    </link>
+    <gazebo reference="a_bot_usb_repeater_front_leg">
+        <material>Gazebo/White</material>
+    </gazebo>
+    <joint name="a_bot_usb_repeater_front_leg" type="fixed">
+        <parent link="a_bot_usb_repeater_base_link" />
+        <child link="a_bot_usb_repeater_front_leg" />
+        <origin rpy="0 0 0" xyz="0.031 0 0" />
+    </joint>
+    <link name="a_bot_usb_repeater_left_leg">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0.005" />
+            <geometry>
+                <cylinder length="0.01" radius="0.003" />
+            </geometry>
+            <material name="White">
+                <color rgba="1.0 1.0 1.0 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0.005" />
+            <geometry>
+                <cylinder length="0.01" radius="0.003" />
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="1.0" />
+            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+        </inertial>
+    </link>
+    <gazebo reference="a_bot_usb_repeater_left_leg">
+        <material>Gazebo/White</material>
+    </gazebo>
+    <joint name="a_bot_usb_repeater_left_leg" type="fixed">
+        <parent link="a_bot_usb_repeater_base_link" />
+        <child link="a_bot_usb_repeater_left_leg" />
+        <origin rpy="0 0 0" xyz="-0.0155 0.026846 0" />
+    </joint>
+    <link name="a_bot_usb_repeater_right_leg">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0.005" />
+            <geometry>
+                <cylinder length="0.01" radius="0.003" />
+            </geometry>
+            <material name="White">
+                <color rgba="1.0 1.0 1.0 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0.005" />
+            <geometry>
+                <cylinder length="0.01" radius="0.003" />
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="1.0" />
+            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+        </inertial>
+    </link>
+    <gazebo reference="a_bot_usb_repeater_right_leg">
+        <material>Gazebo/White</material>
+    </gazebo>
+    <joint name="a_bot_usb_repeater_right_leg" type="fixed">
+        <parent link="a_bot_usb_repeater_base_link" />
+        <child link="a_bot_usb_repeater_right_leg" />
+        <origin rpy="0 0 0" xyz="-0.0155 -0.026846 0" />
+    </joint>
+    <link name="a_bot_usb_repeater_plate">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0.002" />
+            <geometry>
+                <cylinder length="0.004" radius="0.0375" />
+            </geometry>
+            <material name="White">
+                <color rgba="1.0 1.0 1.0 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0.002" />
+            <geometry>
+                <cylinder length="0.004" radius="0.0375" />
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="1.0" />
+            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+        </inertial>
+    </link>
+    <gazebo reference="a_bot_usb_repeater_plate">
+        <material>Gazebo/White</material>
+    </gazebo>
+    <joint name="a_bot_usb_repeater_plate" type="fixed">
+        <parent link="a_bot_usb_repeater_base_link" />
+        <child link="a_bot_usb_repeater_plate" />
+        <origin rpy="0 0 0" xyz="0 0 0.01" />
+    </joint>
+    <link name="a_bot_usb_repeater_body">
+        <visual>
+            <geometry>
+                <box size="0.033 0.055 0.014" />
+            </geometry>
+            <material name="Black">
+                <color rgba="0.0 0.0 0.0 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <box size="0.033 0.055 0.014" />
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="1.0" />
+            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+        </inertial>
+    </link>
+    <gazebo reference="a_bot_usb_repeater_body">
+        <material>Gazebo/Black</material>
+    </gazebo>
+    <joint name="a_bot_usb_repeater_body" type="fixed">
+        <parent link="a_bot_usb_repeater_plate" />
+        <child link="a_bot_usb_repeater_body" />
+        <origin rpy="0 0 0" xyz="0 0 0.011" />
+    </joint>
+    <link name="b_bot_usb_repeater_base_link" />
+    <joint name="b_bot_usb_repeater_base_link" type="fixed">
+        <parent link="b_bot_wrist_2_link" />
+        <child link="b_bot_usb_repeater_base_link" />
+        <origin rpy="1.5707963267948966 -1.5707963267948966 0" xyz="0.000 -0.051 0.000" />
+    </joint>
+    <link name="b_bot_usb_repeater_front_leg">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0.005" />
+            <geometry>
+                <cylinder length="0.01" radius="0.003" />
+            </geometry>
+            <material name="White">
+                <color rgba="1.0 1.0 1.0 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0.005" />
+            <geometry>
+                <cylinder length="0.01" radius="0.003" />
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="1.0" />
+            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+        </inertial>
+    </link>
+    <gazebo reference="b_bot_usb_repeater_front_leg">
+        <material>Gazebo/White</material>
+    </gazebo>
+    <joint name="b_bot_usb_repeater_front_leg" type="fixed">
+        <parent link="b_bot_usb_repeater_base_link" />
+        <child link="b_bot_usb_repeater_front_leg" />
+        <origin rpy="0 0 0" xyz="0.031 0 0" />
+    </joint>
+    <link name="b_bot_usb_repeater_left_leg">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0.005" />
+            <geometry>
+                <cylinder length="0.01" radius="0.003" />
+            </geometry>
+            <material name="White">
+                <color rgba="1.0 1.0 1.0 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0.005" />
+            <geometry>
+                <cylinder length="0.01" radius="0.003" />
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="1.0" />
+            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+        </inertial>
+    </link>
+    <gazebo reference="b_bot_usb_repeater_left_leg">
+        <material>Gazebo/White</material>
+    </gazebo>
+    <joint name="b_bot_usb_repeater_left_leg" type="fixed">
+        <parent link="b_bot_usb_repeater_base_link" />
+        <child link="b_bot_usb_repeater_left_leg" />
+        <origin rpy="0 0 0" xyz="-0.0155 0.026846 0" />
+    </joint>
+    <link name="b_bot_usb_repeater_right_leg">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0.005" />
+            <geometry>
+                <cylinder length="0.01" radius="0.003" />
+            </geometry>
+            <material name="White">
+                <color rgba="1.0 1.0 1.0 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0.005" />
+            <geometry>
+                <cylinder length="0.01" radius="0.003" />
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="1.0" />
+            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+        </inertial>
+    </link>
+    <gazebo reference="b_bot_usb_repeater_right_leg">
+        <material>Gazebo/White</material>
+    </gazebo>
+    <joint name="b_bot_usb_repeater_right_leg" type="fixed">
+        <parent link="b_bot_usb_repeater_base_link" />
+        <child link="b_bot_usb_repeater_right_leg" />
+        <origin rpy="0 0 0" xyz="-0.0155 -0.026846 0" />
+    </joint>
+    <link name="b_bot_usb_repeater_plate">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0.002" />
+            <geometry>
+                <cylinder length="0.004" radius="0.0375" />
+            </geometry>
+            <material name="White">
+                <color rgba="1.0 1.0 1.0 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0.002" />
+            <geometry>
+                <cylinder length="0.004" radius="0.0375" />
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="1.0" />
+            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+        </inertial>
+    </link>
+    <gazebo reference="b_bot_usb_repeater_plate">
+        <material>Gazebo/White</material>
+    </gazebo>
+    <joint name="b_bot_usb_repeater_plate" type="fixed">
+        <parent link="b_bot_usb_repeater_base_link" />
+        <child link="b_bot_usb_repeater_plate" />
+        <origin rpy="0 0 0" xyz="0 0 0.01" />
+    </joint>
+    <link name="b_bot_usb_repeater_body">
+        <visual>
+            <geometry>
+                <box size="0.033 0.055 0.014" />
+            </geometry>
+            <material name="Black">
+                <color rgba="0.0 0.0 0.0 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <box size="0.033 0.055 0.014" />
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="1.0" />
+            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+        </inertial>
+    </link>
+    <gazebo reference="b_bot_usb_repeater_body">
+        <material>Gazebo/Black</material>
+    </gazebo>
+    <joint name="b_bot_usb_repeater_body" type="fixed">
+        <parent link="b_bot_usb_repeater_plate" />
+        <child link="b_bot_usb_repeater_body" />
+        <origin rpy="0 0 0" xyz="0 0 0.011" />
+    </joint>
     <joint name="a_motioncam_link_joint" type="fixed">
         <parent link="workspace_center" />
         <child link="a_motioncam_link" />
-        <origin rpy="0.08450640838509203 1.0689731022296014 -3.047472137518003" xyz="0.5264331391465542 -0.10089186963870693 0.6628505002312947" />
+        <origin rpy="-0.03928732754619564 1.0628695458424167 3.104012489951837" xyz="0.5276042818292748 -0.07468461065230031 0.6581105757417809" />
     </joint>
     <joint name="a_motioncam_reference_joint" type="fixed">
         <parent link="a_motioncam_link" />
@@ -2655,7 +2946,7 @@
     <!-- camera mount to origin: 4mm; cameras to origin: 3.721 mm. = 7.721 mm offset? -->
     <!-- I forgot which conventions exist for "camera_joint" and "camera_link_joint" so I hesitate to delete one. -->
     <joint name="a_bot_camera_joint" type="fixed">
-        <origin rpy="0.0      0.3491      0.0" xyz="0.026      0.0      0.0595" />
+        <origin rpy="0.005347150648361527      0.38666681358877475      0.0005141030065124729" xyz="0.08046421018432694      -0.013512509598350497      0.09167488147585981" />
         <parent link="a_bot_gripper_base_link" />
         <child link="a_bot_camera_connector_link" />
     </joint>
@@ -2818,7 +3109,7 @@
     <!-- camera mount to origin: 4mm; cameras to origin: 3.721 mm. = 7.721 mm offset? -->
     <!-- I forgot which conventions exist for "camera_joint" and "camera_link_joint" so I hesitate to delete one. -->
     <joint name="b_bot_camera_joint" type="fixed">
-        <origin rpy="0.0      0.3491      0.0" xyz="0.026      0.0      0.0595" />
+        <origin rpy="0.025965299312343315      0.39909087634186097      0.03917642821862998" xyz="0.03583950688939626      -0.01906877964474716      0.08153437390863827" />
         <parent link="b_bot_gripper_base_link" />
         <child link="b_bot_camera_connector_link" />
     </joint>
@@ -2952,14 +3243,14 @@
     <joint name="workspace_live_camera_joint" type="fixed">
         <parent link="workspace_center" />
         <child link="live_camera_optical_frame" />
-        <origin rpy="-2.6534537924083277 0.05764023800141899 1.623811236576318" xyz="0.43314679324975547 -0.10556504271980752 0.7460823474831381" />
+        <origin rpy="-2.664930711433391 -0.012207193910574477 1.602272823676792" xyz="0.4370288783995411 -0.071661759880621 0.745049041752134" />
     </joint>
-    <!-- virtual screen -->
+    <!-- Add virtual screen -->
     <link name="virtual_screen" />
     <joint name="virtual_screen_joint" type="fixed">
         <parent link="ground" />
         <child link="virtual_screen" />
-        <origin rpy="0 0 0" xyz="0 0 0.81" />
+        <origin rpy="0 0 0" xyz="0 0 0.8180000000000001" />
     </joint>
     <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
     <link name="world" />
