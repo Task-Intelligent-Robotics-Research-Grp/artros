@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="image_topic"	default="camera_multiplexer/image"/>
+  <arg name="encoding"		default="bgr8"/>
+
+  <node name="image_saver"
+	pkg="image_view" type="image_saver" output="screen">
+    <remap from="image"			to="$(arg image_topic)"/>
+    <param name="encoding"		value="$(arg encoding)"/>
+    <param name="filename_format"	value="frame%04i.jpg"/>
+    <param name="save_all_image"	value="false"/>
+  </node>
+
+</launch>

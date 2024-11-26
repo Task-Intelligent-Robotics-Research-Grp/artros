@@ -110,14 +110,14 @@ picking_parameters:
       release_position: 0.025
       max_effort:       5.0
   screw_m3:
-    approach_offset:  [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
+    approach_offset:  [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
     pick_offset:      [0.000, 0.000,  0.000, 0.0, 0.0, 0.0]
-    departure_offset: [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
-    speed_fast:       1.0
-    speed_slow:       0.1
+    departure_offset: [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
+    speed_fast:       0.1
+    speed_slow:       0.01
   screw_m4:
-    approach_offset:  [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
+    approach_offset:  [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
     pick_offset:      [0.000, 0.000,  0.000, 0.0, 0.0, 0.0]
-    departure_offset: [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
-    speed_fast:       1.0
-    speed_slow:       0.1
+    departure_offset: [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
+    speed_fast:       0.1
+    speed_slow:       0.01

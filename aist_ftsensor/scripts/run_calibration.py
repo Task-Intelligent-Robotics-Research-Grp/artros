@@ -31,6 +31,8 @@ class FTCalibrationRoutines(AISTBaseRoutines):
                                           ns + '/save_calibration', Trigger)
             self._clear_samples       = rospy.ServiceProxy(
                                           ns + '/clear_samples', Trigger)
+            self._reset_bias          = rospy.ServiceProxy(
+                                          ns + '/reset_bias', Trigger)
 
     def run(self):
         # Reset pose
@@ -57,6 +59,7 @@ class FTCalibrationRoutines(AISTBaseRoutines):
         print('  init:  go to initial pose')
         print('  calib: do calibration')
         print('  check: check calibration')
+        print('  reset: reset bias parameters')
 
     def interactive(self, key, robot_name, axis, speed):
         if key == 'init':
@@ -67,6 +70,8 @@ class FTCalibrationRoutines(AISTBaseRoutines):
         elif key == 'check':
             self._check = True
             self.calibrate()
+        elif key == 'reset':
+            self._reset_bias()
         else:
             return super(FTCalibrationRoutines, self) \
                   .interactive(key, robot_name, axis, speed)
