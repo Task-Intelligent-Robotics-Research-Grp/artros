@@ -111,7 +111,7 @@ class HMIRoutines(KittingRoutines):
 
     # Graspability stuffs
     def search_bin(self, bin_id,
-                   min_height=0.004, max_height=0.045, max_slant=pi/4):
+                   min_height=0.006, max_height=0.045, max_slant=pi/4):
         return super().search_bin(bin_id, min_height, max_height,
                                   0 if self.using_hmi_graspability_params else
                                   max_slant)

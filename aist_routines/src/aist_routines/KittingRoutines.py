@@ -126,7 +126,7 @@ class KittingRoutines(AssemblyRoutines):
 
     # Commands
     def search_bin(self, bin_id,
-                   min_height=0.004, max_height=0.045, max_slant=pi/4):
+                   min_height=0.006, max_height=0.045, max_slant=pi/4):
         bin_props  = self._bin_props[bin_id]
         part_id    = bin_props['part_id']
         part_props = self._part_props[part_id]
