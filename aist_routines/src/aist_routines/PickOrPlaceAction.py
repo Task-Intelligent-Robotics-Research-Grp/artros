@@ -172,6 +172,11 @@ class PickOrPlace(SimpleActionClient):
             if goal.pick:
                 gripper.grasp()
                 if object_id != '':
+                    original_parent_link \
+                        = com.get_object_info(object_id).parent_link
+                    original_pose = routines.lookup_pose(
+                                        goal.pose.header.frame_id,
+                                        original_parent_link)
                     com.attach_object(object_id, gripper.tip_link,
                                       routines.lookup_pose(
                                           gripper.tip_link,
@@ -226,6 +231,9 @@ class PickOrPlace(SimpleActionClient):
                rospy.get_param('use_real_robot', False) and \
                not gripper.wait():    # Wait for postgrasp completed
                 gripper.release()
+                if object_id != '':
+                    com.detach_object(object_id, original_parent_link,
+                                      original_pose, goal.pose.header.frame_id)
                 raise PickOrPlace.Error(PickOrPlaceResult.GRASP_FAILURE,
                                         'Failed to grasp')
 
