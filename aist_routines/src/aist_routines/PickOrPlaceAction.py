@@ -177,7 +177,7 @@ class PickOrPlace(SimpleActionClient):
                     original_pose = routines.lookup_pose(
                                         goal.pose.header.frame_id,
                                         original_parent_link)
-                    com.attach_object(object_id, gripper.tip_link,
+                    com.attach_object(object_id,
                                       routines.lookup_pose(
                                           gripper.tip_link,
                                           goal.pose.header.frame_id),
@@ -187,7 +187,7 @@ class PickOrPlace(SimpleActionClient):
                 if object_id != '':
                     inhand_pose = routines.lookup_pose(goal.subframe_link,
                                                        gripper.tip_link)
-                    com.detach_object(object_id, goal.pose.header.frame_id,
+                    com.detach_object(object_id,
                                       routines.lookup_pose(
                                           goal.pose.header.frame_id,
                                           goal.subframe_link),
@@ -208,8 +208,8 @@ class PickOrPlace(SimpleActionClient):
                     pose   = PoseStamped(goal.pose.header,
                                          PickOrPlace._concatenate_poses(
                                              goal.pose.pose,
-                                             routines.pose_from_offset(
-                                                 goal.departure_offset),
+                                             routines.pose_from_xyzrpy(
+                                                 goal.departure_offset).pose,
                                              inhand_pose))
                 else:
                     offset = goal.approach_offset

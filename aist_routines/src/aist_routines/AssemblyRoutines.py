@@ -175,20 +175,20 @@ class AssemblyRoutines(URRoutines):
 
     def _initialize_collision_objects(self):
         self.com.remove_object('', '')
-        for object_type, pose \
-            in rospy.get_param('~initial_object_poses', {}).items():
-            self.com.create_object(object_type, pose['target_link'],
-                                   self.pose_from_offset(
-                                       pose.get('offset',
-                                                [.0, .0, .0, .0, .0, .0])),
-                                   pose.get('source_link', ''))
+        for object_type, config \
+            in rospy.get_param('~initial_object_config', {}).items():
+            self.com.create_object(object_type,
+                                   self.pose_from_xyzrpy(
+                                       config.get('offset', ()),
+                                       config['target_link']),
+                                   config.get('source_link', ''))
             rospy.sleep(0.5)
             if object_type == 'panel_bearing':
-                self.com.attach_object(object_type, pose['target_link'],
-                                       self.pose_from_offset(
-                                           pose.get('offset',
-                                                    [.0, .0, .0, .0, .0, .0])),
-                                       pose.get('source_link', ''))
+                self.com.attach_object(object_type,
+                                       self.pose_from_xyzrpy(
+                                           config.get('offset', ()),
+                                           config['target_link']),
+                                       config.get('source_link', ''))
 
         self._screw_m3_id = 0
         self._screw_m4_id = 0
@@ -201,8 +201,9 @@ class AssemblyRoutines(URRoutines):
         else:
             self._screw_m4_id += 1
         feeder_name = 'screw_feeder_' + screw_type[-2:]
-        self.com.create_object(screw_type, feeder_name + '_outlet_link',
-                               self.pose_from_offset(),
+        self.com.create_object(screw_type,
+                               self.pose_from_xyzrpy(
+                                   frame_id=feeder_name + '_outlet_link'),
                                object_id=self._screw_id(screw_type))
 
     def _screw_id(self, screw_type):

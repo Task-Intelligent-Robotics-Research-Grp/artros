@@ -44,7 +44,7 @@ class CollisionObjectManagerClient(object):
     def __init__(self, listener, server='collision_object_manager'):
         super().__init__()
 
-        self._listener    = listener
+        self._listener = listener
         try:
             service = server + '/manage_collision_object'
             rospy.wait_for_service(service, timeout=5.0)
@@ -52,16 +52,15 @@ class CollisionObjectManagerClient(object):
         except rospy.ROSException as e:
             rospy.logerr(e)
 
-    def create_object(self, object_type, frame_id, pose,
-                      subframe_link='', object_id=''):
+    def create_object(self, object_type, pose, subframe_link='', object_id=''):
         req = ManageCollisionObjectRequest()
         req.op          = ManageCollisionObjectRequest.CREATE_OBJECT
         req.object_type = object_type
         req.object_id   = object_id if object_id != '' else object_type
-        req.frame_id    = frame_id
         req.subframe    = CollisionObjectManagerClient \
                          ._subframe_name(subframe_link)
-        req.pose        = pose
+        req.frame_id    = pose.header.frame_id
+        req.pose        = pose.pose
         return self._send(req).success
 
     def remove_object(self, object_id='', frame_id=''):
@@ -71,24 +70,24 @@ class CollisionObjectManagerClient(object):
         req.frame_id  = frame_id
         return self._send(req).success
 
-    def attach_object(self, object_id, frame_id, pose, subframe_link=''):
+    def attach_object(self, object_id, pose, subframe_link=''):
         req = ManageCollisionObjectRequest()
         req.op        = ManageCollisionObjectRequest.ATTACH_OBJECT
         req.object_id = object_id
-        req.frame_id  = frame_id
         req.subframe  = CollisionObjectManagerClient \
                        ._subframe_name(subframe_link)
-        req.pose      = pose
+        req.frame_id  = pose.header.frame_id
+        req.pose      = pose.pose
         return self._send(req).success
 
-    def detach_object(self, object_id, frame_id, pose, subframe_link=''):
+    def detach_object(self, object_id, pose, subframe_link=''):
         req = ManageCollisionObjectRequest()
         req.op        = ManageCollisionObjectRequest.DETACH_OBJECT
         req.object_id = object_id
-        req.frame_id  = frame_id
         req.subframe  = CollisionObjectManagerClient \
                        ._subframe_name(subframe_link)
-        req.pose      = pose
+        req.frame_id  = pose.header.frame_id
+        req.pose      = pose.pose
         return self._send(req).success
 
     def append_touch_links(self, object_id, touch_link):
