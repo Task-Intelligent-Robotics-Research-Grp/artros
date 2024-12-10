@@ -234,8 +234,10 @@ class PickOrPlace(SimpleActionClient):
                not gripper.wait():    # Wait for postgrasp completed
                 gripper.release()
                 if object_id != '':
-                    com.detach_object(object_id, original_parent_link,
-                                      original_pose, goal.pose.header.frame_id)
+                    com.detach_object(object_id, original_pose,
+                                      goal.pose.header.frame_id,
+                                      PickOrPlace._get_object_id(
+                                          gripper.tip_link))
                 raise PickOrPlace.Error(PickOrPlaceResult.GRASP_FAILURE,
                                         'Failed to grasp')
 

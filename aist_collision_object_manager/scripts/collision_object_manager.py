@@ -551,7 +551,8 @@ class CollisionObjectManager(object):
         if self._get_attached_object(co.id) is not None:
             parent_co = self._get_any_object(self._get_parent_id(co.id))
             if parent_co is not None and parent_co != leaf_id:
-                old_root_id, old_parent_link = self._rotate_tree(parent_co)
+                old_root_id, old_parent_link = self._rotate_tree(parent_co,
+                                                                 leaf_id)
                 self._instance_props_dict[parent_co.id].subframe_transforms[0]\
                     = _inverse_transform(self._instance_props_dict[co.id]\
                                              .subframe_transforms[0])

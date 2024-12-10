@@ -78,6 +78,7 @@ class CollisionObjectManagerClient(object):
                        ._subframe_name(subframe_link)
         req.frame_id  = pose.header.frame_id
         req.pose      = pose.pose
+        req.leaf_id   = ''
         return self._send(req).success
 
     def detach_object(self, object_id, pose, subframe_link='', leaf_id=''):
@@ -88,7 +89,7 @@ class CollisionObjectManagerClient(object):
                        ._subframe_name(subframe_link)
         req.frame_id  = pose.header.frame_id
         req.pose      = pose.pose
-        req.leaf_id   = gripper_tip_link
+        req.leaf_id   = leaf_id
         return self._send(req).success
 
     def append_touch_links(self, object_id, touch_link):
