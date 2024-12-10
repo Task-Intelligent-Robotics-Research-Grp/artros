@@ -191,7 +191,9 @@ class PickOrPlace(SimpleActionClient):
                                       routines.lookup_pose(
                                           goal.pose.header.frame_id,
                                           goal.subframe_link),
-                                      goal.subframe_link)
+                                      goal.subframe_link,
+                                      PickOrPlace._get_object_id(
+                                          gripper.tip_link))
 
             # Go back to departure(pick) or approach(place) pose.
             self._publish_feedback(PickOrPlaceFeedback.DEPARTING,
@@ -210,7 +212,7 @@ class PickOrPlace(SimpleActionClient):
                                              goal.pose.pose,
                                              routines.pose_from_xyzrpy(
                                                  goal.departure_offset).pose,
-                                             inhand_pose))
+                                             inhand_pose.pose))
                 else:
                     offset = goal.approach_offset
                     pose   = goal.pose

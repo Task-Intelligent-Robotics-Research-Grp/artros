@@ -295,7 +295,8 @@ class CollisionObjectManager(object):
                                               req.pose, req.subframe, True)
             elif req.op == ManageCollisionObjectRequest.DETACH_OBJECT:
                 self._attach_or_detach_object(req.object_id, req.frame_id,
-                                              req.pose, req.subframe, False)
+                                              req.pose, req.subframe, False,
+                                              req.leaf_id)
             elif req.op == ManageCollisionObjectRequest.APPEND_TOUCH_LINKS:
                 self._append_or_remove_touch_links(req.object_id,
                                                    req.frame_id, True)
@@ -439,7 +440,8 @@ class CollisionObjectManager(object):
         self._psi.remove_attached_object(frame_id, object_id)
         self._psi.remove_world_object(object_id)
 
-    def _attach_or_detach_object(self, object_id, link, pose, subframe, attach):
+    def _attach_or_detach_object(self, object_id, link, pose, subframe, attach,
+                                 leaf_id=''):
         """Attach/detach the collision object
 
         Attach/detach the collision object.
@@ -457,7 +459,7 @@ class CollisionObjectManager(object):
             raise Exception("unknown collision object '%s'" % object_id)
 
         # Make this object root of the tree attached to link.
-        old_root_id, old_parent_link = self._rotate_tree(co)
+        old_root_id, old_parent_link = self._rotate_tree(co, leaf_id)
 
         # If the object pose is specified as that of subframe other than
         # 'base_link', convert the given pose to that of 'base_link'.
@@ -522,7 +524,7 @@ class CollisionObjectManager(object):
     #
     # Utilities
     #
-    def _rotate_tree(self, co):
+    def _rotate_tree(self, co, leaf_id):
         def _inverse_transform(transform):
             T = tfs.inverse_matrix(
                     tfs.concatenate_matrices(
@@ -548,7 +550,7 @@ class CollisionObjectManager(object):
         # parent-child relation between them.
         if self._get_attached_object(co.id) is not None:
             parent_co = self._get_any_object(self._get_parent_id(co.id))
-            if parent_co is not None:
+            if parent_co is not None and parent_co != leaf_id:
                 old_root_id, old_parent_link = self._rotate_tree(parent_co)
                 self._instance_props_dict[parent_co.id].subframe_transforms[0]\
                     = _inverse_transform(self._instance_props_dict[co.id]\

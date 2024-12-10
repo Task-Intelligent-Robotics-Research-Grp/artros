@@ -686,7 +686,7 @@ class AISTBaseRoutines(object):
         params = self._picking_params.get(part_id)
         if params is None:
             params = self._picking_params[
-                self.com.get_object_info(part_id).object_type]
+                         self.com.get_object_info(part_id).object_type]
         placing_params = self._placing_params.get(target_pose.header.frame_id,
                                                   params)
         if not placing_params.get('place_offset'):

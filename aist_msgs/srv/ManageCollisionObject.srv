@@ -49,6 +49,7 @@ string                        object_id
 string                        subframe
 string                        frame_id
 geometry_msgs/Pose            pose
+string                        leaf_id
 ---
 bool                          success
 aist_msgs/CollisionObjectInfo info
