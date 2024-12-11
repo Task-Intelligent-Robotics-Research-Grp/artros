@@ -175,8 +175,8 @@ class PickOrPlace(SimpleActionClient):
                     original_parent_link \
                         = com.get_object_info(object_id).parent_link
                     original_pose = routines.lookup_pose(
-                                        goal.pose.header.frame_id,
-                                        original_parent_link)
+                                        original_parent_link,
+                                        goal.pose.header.frame_id)
                     com.attach_object(object_id,
                                       routines.lookup_pose(
                                           gripper.tip_link,

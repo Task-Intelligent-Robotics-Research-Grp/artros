@@ -453,6 +453,7 @@ class CollisionObjectManager(object):
           pose (geometry_msgs/Pose): subframe pose w.r.t. 'link'
           subframe    (str):  subframe name with which the object pose is
                               specified
+          attach     (bool):  True if
         """
         co = self._get_any_object(object_id)
         if co is None:
