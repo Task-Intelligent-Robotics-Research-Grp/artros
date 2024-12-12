@@ -80,6 +80,7 @@ class AssemblyRoutines(URRoutines):
         print('  P:  Place part')
         print('  I:  Initialize all collision objects')
         print('  i:  Show infomation on collision objects')
+        print('  ci: Show infomation on child collision object of frame')
         print('  r:  Remove specified collision objects')
         print('  H:  Move all robots to home')
         print('  B:  Move all robots to back')
@@ -94,8 +95,7 @@ class AssemblyRoutines(URRoutines):
             screw_type = raw_input('  screw name? ')
             self.pick_screw(robot_name, screw_type)
         elif key == 'SC':
-            screw_id = raw_input('  screw ID? ')
-            self.place_screw(robot_name, screw_id)
+            self.place_screw(robot_name)
         elif key == 'p':
             part_id  = raw_input('  part ID? ')
             subframe = raw_input('  subframe? ')
@@ -114,6 +114,11 @@ class AssemblyRoutines(URRoutines):
         elif key == 'i':
             object_id = raw_input('  object ID? ')
             info = self.com.get_object_info(object_id)
+            if info is not None:
+                self._print_object_info(info)
+        elif key == 'ci':
+            frame_id = raw_input('  parent frame? ')
+            info = self.com.get_child_object_info(frame_id)
             if info is not None:
                 self._print_object_info(info)
         elif key == 'r':
@@ -161,7 +166,10 @@ class AssemblyRoutines(URRoutines):
         self._generate_screw(screw_type)
         return True
 
-    def place_screw(self, robot_name, screw_id):
+    def place_screw(self, robot_name):
+        screw_id    = self._grasped_object_id(robot_name)
+        if screw_id is None:
+            return False
         screw_type  = screw_id.rsplit('_', 1)[0]
         feeder_name = 'screw_feeder_' + screw_type[-2:]
         if self.place_at_frame(robot_name,
@@ -207,6 +215,15 @@ class AssemblyRoutines(URRoutines):
         self._generate_screw('screw_m3')
         self._generate_screw('screw_m4')
 
+    def _grasped_object_id(self, robot_name):
+        gripper_name = self.gripper(robot_name).name
+        gripper_link \
+            = gripper_name + '_tip_link' \
+              if gripper_name == self.default_gripper_name(robot_name) else \
+              gripper_name + '/base_link'
+        info = self.com.get_child_object_info(gripper_link)
+        return info.object_id if info is not None else None
+
     def _generate_screw(self, screw_type):
         if screw_type == 'screw_m3':
             self._screw_m3_id += 1
@@ -227,6 +244,6 @@ class AssemblyRoutines(URRoutines):
                screw_type + '_' + str(self._screw_m4_id)
 
     def _print_object_info(self, info):
-        print('    type:        %s\n    parent_link: %s\n    attach_link: %s\n    touch_links: %s\n    pose:\n%s'
-              % (info.object_type, info.parent_link,
+        print('    object_id:   %s\n    type:        %s\n    parent_link: %s\n    attach_link: %s\n    touch_links: %s\n    pose:\n%s'
+              % (info.object_id, info.object_type, info.parent_link,
                  info.attach_link, info.touch_links, info.pose))

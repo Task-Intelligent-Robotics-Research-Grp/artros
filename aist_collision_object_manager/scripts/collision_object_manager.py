@@ -307,6 +307,8 @@ class CollisionObjectManager(object):
                 self._reset_touch_links()
             elif req.op == ManageCollisionObjectRequest.GET_OBJECT_INFO:
                 res.info = self._get_object_info(req.object_id)
+            elif req.op == ManageCollisionObjectRequest.GET_CHILD_OBJECT_INFO:
+                res.info = self._get_child_object_info(req.frame_id)
             else:
                 raise Exception('unknown operation[%d]' % req.op)
         except Exception as e:
@@ -521,6 +523,21 @@ class CollisionObjectManager(object):
         info.object_type = self._instance_props_dict[object_id].type
         info.parent_link = self._get_parent_link(object_id)
         return info
+
+    def _get_child_object_info(self, frame_id):
+        for aco in self._psi.get_attached_objects().values():
+            if self._get_parent_link(aco.object.id) == frame_id:
+                info = CollisionObjectInfo()
+                info.object_id   = aco.object.id
+                info.attach_link = aco.link_name
+                info.touch_links = aco.touch_links
+                info.pose        = PoseStamped(aco.object.header,
+                                               aco.object.pose)
+                info.object_type = self._instance_props_dict[info.object_id] \
+                                       .type
+                info.parent_link = self._get_parent_link(info.object_id)
+                return info
+        return None
 
     #
     # Utilities

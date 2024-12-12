@@ -118,6 +118,13 @@ class CollisionObjectManagerClient(object):
         res = self._send(req)
         return res.info if res.success else None
 
+    def get_child_object_info(self, frame_id):
+        req          = ManageCollisionObjectRequest()
+        req.op       = ManageCollisionObjectRequest.GET_CHILD_OBJECT_INFO
+        req.frame_id = frame_id
+        res = self._send(req)
+        return res.info if res.success else None
+
     @staticmethod
     def _subframe_name(subframe_link):
         if subframe_link == '':

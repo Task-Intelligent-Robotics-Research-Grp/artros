@@ -43,6 +43,11 @@ uint8 RESET_TOUCH_LINKS=7
 #
 uint8 GET_OBJECT_INFO=8
 
+# - Return infomation of the object which is a child of the frame
+#   specified by 'frame_id' in 'info'.
+#
+uint8 GET_CHILD_OBJECT_INFO=9
+
 uint8                         op
 string                        object_type
 string                        object_id
