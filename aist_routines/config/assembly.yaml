@@ -11,10 +11,10 @@ initial_object_config:
     target_link: workbench_holder_link
 #  panel_motor:
 #    target_link: base/panel_motor_screw_hole_1
-#    source_link: panel_motor/bottom_screw_hole_aligner_1
+#    source_link: panel_motor/base_screw_hole_aligner_1
   panel_bearing:
     target_link: base/panel_bearing_screw_hole_1
-    source_link: panel_bearing/bottom_screw_hole_aligner_1
+    source_link: panel_bearing/base_screw_hole_aligner_1
 
 placing_parameters:
   precision_tool_holder_link:
@@ -33,6 +33,14 @@ placing_parameters:
     approach_offset:  [-0.002, 0.000, 0.055, 0.0, 0.0, 0.0]
     place_offset:     [ 0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
     departure_offset: [-0.002, 0.000, 0.055, 0.0, 0.0, 0.0]
+  screw_feeder_m3_inlet_link:
+    approach_offset:  [0.000, 0.000, 0.030, 0.0, 0.0, 0.0]
+    place_offset:     [0.000, 0.000, 0.005, 0.0, 0.0, 0.0]
+    departure_offset: [0.000, 0.000, 0.030, 0.0, 0.0, 0.0]
+  screw_feeder_m4_inlet_link:
+    approach_offset:  [0.000, 0.000, 0.030, 0.0, 0.0, 0.0]
+    place_offset:     [0.000, 0.000, 0.005, 0.0, 0.0, 0.0]
+    departure_offset: [0.000, 0.000, 0.030, 0.0, 0.0, 0.0]
   default:
     approach_offset:  [ 0.000, 0.000, 0.050, 0.0, 0.0, 0.0]
     place_offset:     [ 0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
