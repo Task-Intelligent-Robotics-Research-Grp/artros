@@ -92,7 +92,7 @@ class AssemblyRoutines(URRoutines):
         elif key == 'T':
             self.place_tool(robot_name)
         elif key == 'sc':
-            screw_type = raw_input('  screw name? ')
+            screw_type = raw_input('  screw type? ')
             self.pick_screw(robot_name, screw_type)
         elif key == 'SC':
             self.place_screw(robot_name)
