@@ -8,8 +8,8 @@
   <xacro:property name="workbench_bar_width"	 value="0.480"/>
   <xacro:property name="workbench_y"		 value="0.630"/>
   <xacro:property name="screw_feeder_width"	 value="0.126"/>
-  <xacro:property name="screw_feeder_y"		 value="0.030"/>
-  <xacro:property name="screw_feeder_x"		 value="0.010"/>
+  <xacro:property name="screw_feeder_y"		 value="0.034"/>
+  <xacro:property name="screw_feeder_x"		 value="0.014"/>
 
   <xacro:include filename="$(find aist_description
 			   )/objects/urdf/workbench.urdf.xacro"/>
