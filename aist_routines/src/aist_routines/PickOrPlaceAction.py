@@ -206,40 +206,35 @@ class PickOrPlace(SimpleActionClient):
             else:
                 speed = goal.speed_fast
                 if object_id != '':
-                    offset = ()
                     pose   = PoseStamped(goal.pose.header,
                                          PickOrPlace._concatenate_poses(
                                              goal.pose.pose,
                                              routines.pose_from_xyzrpy(
                                                  goal.departure_offset).pose,
                                              inhand_pose.pose))
+                    offset = ()
                 else:
-                    offset = goal.approach_offset
                     pose   = goal.pose
+                    offset = goal.approach_offset
             success = routines.go_to_pose_goal(goal.robot_name,
                                                pose, offset, speed)
 
             # Check success of going back to departure/approach pose.
             if not self._server.is_active():
                 return
-            if not success:
-                if goal.pick:
-                    gripper.release()
-                raise PickOrPlace.Error(PickOrPlaceResult.DEPARTURE_FAILURE,
-                                        'Failed to depart from target')
-
-            # Check success of postgrasp.
-            if goal.pick and \
-               rospy.get_param('use_real_robot', False) and \
-               not gripper.wait():    # Wait for postgrasp completed
+            if not success or \
+               (goal.pick and
+                rospy.get_param('use_real_robot', False) and \
+                not gripper.wait()):    # Wait for postgrasp completed
                 gripper.release()
                 if object_id != '':
                     com.detach_object(object_id, original_pose,
                                       goal.pose.header.frame_id,
                                       PickOrPlace._get_object_id(
                                           gripper.tip_link))
-                raise PickOrPlace.Error(PickOrPlaceResult.GRASP_FAILURE,
-                                        'Failed to grasp')
+                raise PickOrPlace.Error(PickOrPlaceResult.DEPARTURE_FAILURE,
+                                        'Failed to grasp' if success else
+                                        'Failed to depart from target')
 
             self._server.set_succeeded(PickOrPlaceResult(
                                            PickOrPlaceResult.SUCCESS))
