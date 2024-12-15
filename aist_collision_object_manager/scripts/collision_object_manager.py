@@ -481,8 +481,12 @@ class CollisionObjectManager(object):
         # If 'link' is a 'base_link' of another object, find its attach link
         # and compute pose of 'co' w.r.t. it.
         link, pose = self._find_attach_link_and_pose(link, pose)
-
         print('### attach_link=%s, pose=%s' % (link, pose))
+
+        # - Attach 'co' and its descendants to 'link' if attach is true.
+        # - Detach 'co' from its attach link and attach all its descendants
+        #   to 'link' otherwise.
+        # - In both cases, pose of 'co' w.r.t. 'link' is spedified by 'pose'.
         self._attach_descendants(co, link,
                                  tfs.concatenate_matrices(
                                      _pose_matrix(pose),
@@ -582,7 +586,8 @@ class CollisionObjectManager(object):
     def _attach_descendants(self, co, link, T, attach):
         aco = self._get_attached_object(co.id)
 
-        if attach:  # Attach 'co' to 'link' with 'pose'.
+        if attach:
+            # Attach 'co' to 'link' with 'pose'.
             co.header.frame_id = link
             co.pose = _pose_from_matrix(tfs.concatenate_matrices(
                                             T, _pose_matrix(co.pose)))
@@ -590,10 +595,13 @@ class CollisionObjectManager(object):
             self._psi.attach_object(co, link, touch_links)
             rospy.loginfo("(CollisionObjectManager) attached '%s' to '%s' with touch_links%s",
                           co.id, link, touch_links)
-        else:  # Detach 'aco' and get resulting reference link and pose.
+        else:
+            # Detach 'aco' from its attach link.
             self._psi.remove_attached_object(name=aco.object.id)
             rospy.loginfo("(CollisionObjectManager) detached '%s' from '%s'",
                           aco.object.id, aco.link_name)
+
+            # Change pose of the detached collision object.
             co = self._get_object(aco.object.id)
             co.header.frame_id = link
             co.pose = _pose_from_matrix(tfs.concatenate_matrices(
@@ -601,6 +609,8 @@ class CollisionObjectManager(object):
             print('### Before: link=%s, pose=%s' % (co.header.frame_id,
                                                     co.pose))
             self._psi.add_object(co)
+
+            # Get pose of the detached object w.r.t. planning frame.
             co = self._get_object(co.id)
             print('### After:  link=%s, pose=%s' % (co.header.frame_id,
                                                     co.pose))
@@ -617,7 +627,7 @@ class CollisionObjectManager(object):
 
         # If 'co' is an attached object, attach also all descendant
         # non-attached collision objects to 'link'.
-        if aco is not None:
+        if aco is not None and attach:
             for child_co in self._psi.get_objects().values():
                 if self._get_parent_id(child_co.id) == co.id:
                     self._attach_descendants(child_co, link, T, True)
