@@ -481,7 +481,6 @@ class CollisionObjectManager(object):
         # If 'link' is a 'base_link' of another object, find its attach link
         # and compute pose of 'co' w.r.t. it.
         link, pose = self._find_attach_link_and_pose(link, pose)
-        print('### attach_link=%s, pose=%s' % (link, pose))
 
         # - Attach 'co' and its descendants to 'link' if attach is true.
         # - Detach 'co' from its attach link and attach all its descendants
@@ -606,27 +605,27 @@ class CollisionObjectManager(object):
             co.header.frame_id = link
             co.pose = _pose_from_matrix(tfs.concatenate_matrices(
                                             T, _pose_matrix(aco.object.pose)))
-            print('### Before: link=%s, pose=%s' % (co.header.frame_id,
-                                                    co.pose))
             self._psi.add_object(co)
 
             # Get pose of the detached object w.r.t. planning frame.
+            # Then update 'link' as well as pose transformation matrix 'T'.
             co = self._get_object(co.id)
-            print('### After:  link=%s, pose=%s' % (co.header.frame_id,
-                                                    co.pose))
             link = co.header.frame_id
             T = tfs.concatenate_matrices(_pose_matrix(co.pose),
                                          tfs.inverse_matrix(
                                              _pose_matrix(aco.object.pose)))
 
-        # Switch attach links to 'link' for all descendant attached
-        # collision objects.
+        # Since all child attached objects are connected to the current
+        # object 'co', we have to switch their attach links to 'link'.
         for child_aco in self._psi.get_attached_objects().values():
             if self._get_parent_id(child_aco.object.id) == co.id:
                 self._attach_descendants(child_aco.object, link, T, True)
 
-        # If 'co' is an attached object, attach also all descendant
-        # non-attached collision objects to 'link'.
+        # If 'co' is an attached object and the attach operation is required,
+        # this is an intermediate status that 'co' has been made root by
+        # _rotate_tree() and the parent-child relation is reversed. Therefore,
+        # the current attached object 'co' is actually connected to its child
+        # non-attaced objects and we have to attach them to 'link'.
         if aco is not None and attach:
             for child_co in self._psi.get_objects().values():
                 if self._get_parent_id(child_co.id) == co.id:
