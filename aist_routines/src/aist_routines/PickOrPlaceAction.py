@@ -229,17 +229,22 @@ class PickOrPlace(SimpleActionClient):
                                         'Failed to depart from target')
 
             # Check success of postgrasp.
-            if goal.pick and \
-               rospy.get_param('use_real_robot', False) and \
-               not gripper.wait():    # Wait for postgrasp completed
-                gripper.release()
-                if object_id != '':
+            # if goal.pick and \
+            #    rospy.get_param('use_real_robot', False) and \
+            #    not gripper.wait():    # Wait for postgrasp completed
+            #     gripper.release()
+            #     if object_id != '':
+            if goal.pick:
+                print('### object_id=%s' % object_id)
+                if object_id.rsplit('_', 1)[0] == 'screw_m3':
+                    print('### target_frame=%s, original_pose=%s'
+                          % (goal.pose.header.frame_id, original_pose))
                     com.detach_object(object_id, original_pose,
                                       goal.pose.header.frame_id,
                                       PickOrPlace._get_object_id(
                                           gripper.tip_link))
-                raise PickOrPlace.Error(PickOrPlaceResult.GRASP_FAILURE,
-                                        'Failed to grasp')
+                # raise PickOrPlace.Error(PickOrPlaceResult.GRASP_FAILURE,
+                #                         'Failed to grasp')
 
             self._server.set_succeeded(PickOrPlaceResult(
                                            PickOrPlaceResult.SUCCESS))

@@ -355,8 +355,8 @@ class CollisionObjectManager(object):
         # If the object pose is specified as that of subframe other than
         # 'base_link', convert the given pose to that of 'base_link'.
         # Then compute a transform from 'base_link' to the new parent link.
-        frame_id, pose = self._convert_to_parent_link_and_pose(frame_id, pose,
-                                                               co, subframe)
+        frame_id, pose = self._find_parent_link_and_pose(frame_id, pose,
+                                                         co, subframe)
         co.header.frame_id = frame_id
         co.pose            = pose
 
@@ -464,11 +464,9 @@ class CollisionObjectManager(object):
         # Make this object root of the tree attached to link.
         old_root_id, old_parent_link = self._rotate_tree(co, leaf_id)
 
-        # If the object pose is specified as that of subframe other than
-        # 'base_link', convert the given pose to that of 'base_link'.
-        # Then compute a transform from 'base_link' to the new parent link.
-        link, pose = self._convert_to_parent_link_and_pose(link, pose,
-                                                           co, subframe)
+        # If 'link' is a subframe of another object, find the frame ID
+        # and pose of its 'base_link'.
+        link, pose = self._find_parent_link_and_pose(link, pose, co, subframe)
         self._instance_props_dict[co.id].subframe_transforms[0] \
             = TransformStamped(Header(frame_id=link),
                                co.id + '/base_link',
@@ -480,12 +478,17 @@ class CollisionObjectManager(object):
                                                     pose.orientation.z,
                                                     pose.orientation.w)))
 
-        # Set the new attach link to the specified object and its descendants.
-        link, pose = self._convert_to_attach_link_and_pose(link, pose)
-        self._attach_descendants(co, link if attach else None,
+        # If 'link' is a 'base_link' of another object, find its attach link
+        # and compute pose of 'co' w.r.t. it.
+        link, pose = self._find_attach_link_and_pose(link, pose)
+
+        print('### attach_link=%s, pose=%s' % (link, pose))
+        self._attach_descendants(co, link,
                                  tfs.concatenate_matrices(
                                      _pose_matrix(pose),
-                                     tfs.inverse_matrix(_pose_matrix(co.pose))))
+                                     tfs.inverse_matrix(
+                                         _pose_matrix(co.pose))),
+                                 attach)
         self._append_or_remove_touch_links(old_root_id, old_parent_link, True)
 
     def _append_or_remove_touch_links(self, object_id, link, append):
@@ -576,11 +579,10 @@ class CollisionObjectManager(object):
                                              .subframe_transforms[0])
         return old_root_id, old_parent_link
 
-    def _attach_descendants(self, co, link, T):
+    def _attach_descendants(self, co, link, T, attach):
         aco = self._get_attached_object(co.id)
 
-        if link is not None:
-            # Attach 'co' to 'link' with 'pose'.
+        if attach:  # Attach 'co' to 'link' with 'pose'.
             co.header.frame_id = link
             co.pose = _pose_from_matrix(tfs.concatenate_matrices(
                                             T, _pose_matrix(co.pose)))
@@ -588,31 +590,74 @@ class CollisionObjectManager(object):
             self._psi.attach_object(co, link, touch_links)
             rospy.loginfo("(CollisionObjectManager) attached '%s' to '%s' with touch_links%s",
                           co.id, link, touch_links)
-        else:
-            # Detach 'aco' and get resulting reference link and pose.
+        else:  # Detach 'aco' and get resulting reference link and pose.
             self._psi.remove_attached_object(name=aco.object.id)
             rospy.loginfo("(CollisionObjectManager) detached '%s' from '%s'",
                           aco.object.id, aco.link_name)
             co = self._get_object(aco.object.id)
+            co.header.frame_id = link
+            co.pose = _pose_from_matrix(tfs.concatenate_matrices(
+                                            T, _pose_matrix(aco.object.pose)))
+            print('### Before: link=%s, pose=%s' % (co.header.frame_id,
+                                                    co.pose))
+            self._psi.add_object(co)
+            co = self._get_object(co.id)
+            print('### After:  link=%s, pose=%s' % (co.header.frame_id,
+                                                    co.pose))
             link = co.header.frame_id
             T = tfs.concatenate_matrices(_pose_matrix(co.pose),
                                          tfs.inverse_matrix(
                                              _pose_matrix(aco.object.pose)))
 
+        # Switch attach links to 'link' for all descendant attached
+        # collision objects.
         for child_aco in self._psi.get_attached_objects().values():
             if self._get_parent_id(child_aco.object.id) == co.id:
-                # print('### child_aco[%s]: parent_link=%s'
-                #       % (child_aco.object.id,
-                #          self._get_parent_link(child_aco.object.id)))
-                self._attach_descendants(child_aco.object, link, T)
+                self._attach_descendants(child_aco.object, link, T, True)
 
-        # If 'co' is an attached object, attach its descendants to new 'link'.
+        # If 'co' is an attached object, attach also all descendant
+        # non-attached collision objects to 'link'.
         if aco is not None:
             for child_co in self._psi.get_objects().values():
                 if self._get_parent_id(child_co.id) == co.id:
-                    # print('### child_co[%s]: parent_link=%s'
-                    #       % (child_co.id, self._get_parent_link(child_co.id)))
-                    self._attach_descendants(child_co, link, T)
+                    self._attach_descendants(child_co, link, T, True)
+
+    def _find_parent_link_and_pose(self, frame_id, pose, co, subframe):
+
+        def _subframe_pose(co, subframe):
+            return co.subframe_poses[co.subframe_names.index(subframe)]
+
+        # Convert the given pose of 'subframe' of 'co' to that of 'base_link'.
+        pose = _pose_from_matrix(
+                   tfs.concatenate_matrices(
+                       _pose_matrix(pose),
+                       tfs.inverse_matrix(
+                           _pose_matrix(_subframe_pose(co, subframe)))))
+
+        # Separate the parent link 'frame_id' into object ID and subframe name.
+        parent_id, parent_subframe = _decompose_link_name(frame_id)
+
+        # If the parent link 'frame_id' is a subframe of any other collision
+        # object, return its 'base_link' and the pose of 'base_link' of 'co'
+        # w.r.t. it.
+        return (frame_id, pose) if parent_id == '' else \
+               (parent_id + '/base_link',
+                _pose_from_matrix(
+                   tfs.concatenate_matrices(
+                       _pose_matrix(
+                           _subframe_pose(self._get_any_object(parent_id),
+                                          parent_subframe)),
+                       _pose_matrix(pose))))
+
+    def _find_attach_link_and_pose(self, frame_id, pose):
+        # If 'frame_id' is the 'base_link' of any collision object,
+        # return its attach link and convert the given pose from 'frame_id'
+        # to the attach link.
+        co = self._get_any_object(_decompose_link_name(frame_id)[0])
+        return (frame_id, pose) if co is None else \
+               (co.header.frame_id,
+                _pose_from_matrix(tfs.concatenate_matrices(
+                    _pose_matrix(co.pose), _pose_matrix(pose))))
 
     def _get_object(self, object_id):
         return self._psi.get_objects([object_id]).get(object_id)
@@ -631,42 +676,12 @@ class CollisionObjectManager(object):
         return _decompose_link_name(self._get_parent_link(object_id))[0]
 
     def _get_touch_links(self, link):
-        tokens = link.rsplit('/', 1)
-        return self._touch_links.get(link, []) if len(tokens) == 1 else \
-               [tokens[0] + '/base_link']
+        object_id, _ = _decompose_link_name(link)
+        return self._touch_links.get(link, []) if object_id == '' else \
+               [object_id + '/base_link']
 
     def _get_parent_touch_links(self, object_id):
         return self._get_touch_links(self._get_parent_link(object_id))
-
-    def _convert_to_parent_link_and_pose(self, frame_id, pose, co, subframe):
-
-        def _subframe_pose(co, subframe):
-            return co.subframe_poses[co.subframe_names.index(subframe)]
-
-        # Convert 'pose' w.r.t. 'subframe' to that w.r.t. base_link.
-        pose = _pose_from_matrix(
-                   tfs.concatenate_matrices(
-                       _pose_matrix(pose),
-                       tfs.inverse_matrix(
-                           _pose_matrix(_subframe_pose(co, subframe)))))
-
-        # Separate 'frame_id' into object ID and subframe name.
-        parent_id, parent_subframe = _decompose_link_name(frame_id)
-        return (frame_id, pose) if parent_id == '' else \
-               (parent_id + '/base_link',
-                _pose_from_matrix(
-                   tfs.concatenate_matrices(
-                       _pose_matrix(
-                           _subframe_pose(self._get_any_object(parent_id),
-                                          parent_subframe)),
-                       _pose_matrix(pose))))
-
-    def _convert_to_attach_link_and_pose(self, frame_id, pose):
-        co = self._get_any_object(_decompose_link_name(frame_id)[0])
-        return (frame_id, pose) if co is None else \
-               (co.header.frame_id,
-                _pose_from_matrix(tfs.concatenate_matrices(
-                    _pose_matrix(co.pose), _pose_matrix(pose))))
 
     def _generate_marker_id_list(self, n):
         marker_id_list = []
