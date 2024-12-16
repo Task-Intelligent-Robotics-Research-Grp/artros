@@ -245,7 +245,11 @@
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </joint>
 
-  <!-- Include indivisual scene file -->
+  <!-- Import assembly scene -->
+  <xacro:include filename="$(find aist_description
+			   )/scenes/urdf/assembly.urdf.xacro"/>
+
+  <!-- Import indivisual scene -->
   <xacro:if value="${'$(arg scene)' != ''}">
     <xacro:include filename="$(find aist_description)/scenes/urdf/$(arg
 			     scene).urdf.xacro"/>
