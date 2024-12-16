@@ -13,8 +13,8 @@
 
     <xacro:property name="gap_width"	value="${length - front_left_length
 						- front_right_length}"/>
-    <xacro:property name="gap_height"	value=".072"/>
-    <xacro:property name="gap_depth"	value="${front_height - gap_height}"/>
+    <xacro:property name="gap_depth"	value=".012"/>
+    <xacro:property name="gap_height"	value="${front_height - gap_depth}"/>
     <xacro:property name="gap_x"	value=".046"/>
     <xacro:property name="gap_y"	value="${length/2}"/>
 

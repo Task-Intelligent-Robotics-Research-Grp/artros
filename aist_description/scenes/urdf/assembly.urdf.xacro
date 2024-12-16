@@ -7,7 +7,7 @@
   <xacro:property name="workbench_height"	 value="0.150"/>
   <xacro:property name="workbench_bar_width"	 value="0.480"/>
   <xacro:property name="workbench_y"		 value="0.630"/>
-  <xacro:property name="screw_feeder_width"	 value="0.126"/>
+  <xacro:property name="screw_feeder_width"	 value="0.1268"/>
   <xacro:property name="screw_feeder_y"		 value="0.034"/>
   <xacro:property name="screw_feeder_x"		 value="0.014"/>
 
