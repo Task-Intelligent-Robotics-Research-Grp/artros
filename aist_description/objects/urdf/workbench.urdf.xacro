@@ -87,7 +87,7 @@
       <origin xyz="${width - border_width} ${border_width} 0" rpy="0 0 0"/>
     </xacro:aist_box>
 
-    <!-- base fixture -->
+    <!-- base fixture and head -->
     <xacro:include filename="$(find aist_fastening_tools
 			     )/urdf/base_fixture.urdf.xacro"/>
     <xacro:base_fixture prefix="base_fixture_"
@@ -95,6 +95,12 @@
       <origin xyz="${base_fixture_x} ${base_fixture_y} 0"
 	      rpy="0 0 ${theta}"/>
     </xacro:base_fixture>
+    <xacro:include filename="$(find aist_description
+			     )/objects/urdf/base_fixture_head.urdf.xacro"/>
+    <xacro:base_fixture_head prefix="base_fixture_head_"
+			     parent="base_fixture_piston_head">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </xacro:base_fixture_head>
 
     <!-- auxiliary frames -->
     <xacro:macro name="auxiliary_frame" params="parent child *origin">

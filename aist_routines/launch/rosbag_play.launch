@@ -2,8 +2,8 @@
 <launch>
 
   <arg name="config"		default="aist"/>
-  <arg name="scene"		default="assembly"/>
-  <arg name="file_name"		default="servo_test-feeder"/>
+  <arg name="scene"		default=""/>
+  <arg name="file_name"		default="servo_test-feeder-2"/>
   <arg name="rosbag_rate"	default="0.5"/>
   <arg name="rvizconfig"	default="$(dirname)/rosbag_play.rviz"/>
 
