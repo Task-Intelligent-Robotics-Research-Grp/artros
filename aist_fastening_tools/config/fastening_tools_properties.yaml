@@ -77,15 +77,6 @@ base_fixture:
     pose:        [0.0, 0.0, 0.013, 0.0, 0.0, 180.0]
     scale:       [0.001, 0.001, 0.001]
     color:       [0.8, 0.8, 0.8, 1.0]
-  - url:         'package://aist_fastening_tools/meshes/visual/MGPM12-20Z_head.stl'
-    pose:        [0.006, -0.0331, 0.002, 0.0, 0.0, 0.0]
-    scale:       [0.001, 0.001, 0.001]
-    color:       [0.8, 0.8, 0.8, 1.0]
-  collision_meshes:
-  - url:         'package://aist_fastening_tools/meshes/collision/MGPM12-20Z_head.stl'
-    pose:        [0.006, -0.0331, 0.002, 0.0, 0.0, 0.0]
-    scale:       [0.001, 0.001, 0.001]
-    color:       [0.8, 0.8, 0.8, 1.0]
   subframes:
     tip_link:    [0.033, 0.0, 0.013, 0.0, 0.0, 0.0]
     piston_head: [0.013, 0.0, 0.013, 0.0, 0.0, 0.0]
