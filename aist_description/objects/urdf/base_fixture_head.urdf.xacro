@@ -7,7 +7,7 @@
     <!-- A link representing the gripper and a joint attaching it to parnet -->
     <link name="${prefix}base_link">
       <visual>
-        <origin xyz="-0.007 -0.0331 -0.011" rpy="0 0 0"/>
+        <origin xyz="-0.007 -0.033 -0.011" rpy="0 0 0"/>
 	<geometry>
           <mesh filename="package://aist_description/objects/meshes/base_fixture_head.stl" scale="0.001 0.001 0.001"/>
 	</geometry>
@@ -17,7 +17,7 @@
       </visual>
       <collision>
       <!-- avoid collision -->
-        <origin xyz="-0.007 -0.0331 -0.011" rpy="0 0 0"/>
+        <origin xyz="-0.007 -0.033 -0.011" rpy="0 0 0"/>
 	<geometry>
 	  <mesh
 	      filename="package://aist_description/objects/meshes/base_fixture_head-collision.stl" scale="0.001 0.001 0.001"/>
@@ -36,7 +36,7 @@
     <joint name="${prefix}tip_joint" type="fixed">
       <parent link="${prefix}base_link"/>
       <child  link="${prefix}tip_link"/>
-      <origin xyz="0.007 0.0 -0.013" rpy="0 0 ${-33.2749*pi/180}"/>
+      <origin xyz="0.007 0.0 -0.013" rpy="0 0 ${-30.9639*pi/180}"/>
     </joint>
 
   </xacro:macro>
