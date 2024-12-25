@@ -41,10 +41,9 @@ from aist_msgs.srv import ManageCollisionObject, ManageCollisionObjectRequest
 #  class CollisionObjectManagerClient                                   #
 #########################################################################
 class CollisionObjectManagerClient(object):
-    def __init__(self, listener, server='collision_object_manager'):
+    def __init__(self, server='collision_object_manager'):
         super().__init__()
 
-        self._listener = listener
         try:
             service = server + '/manage_collision_object'
             rospy.wait_for_service(service, timeout=5.0)
@@ -70,26 +69,30 @@ class CollisionObjectManagerClient(object):
         req.frame_id  = frame_id
         return self._send(req).success
 
-    def attach_object(self, object_id, pose, subframe_link=''):
+    def attach_object(self, object_id, parent_link):
         req = ManageCollisionObjectRequest()
         req.op        = ManageCollisionObjectRequest.ATTACH_OBJECT
         req.object_id = object_id
-        req.subframe  = CollisionObjectManagerClient \
-                       ._subframe_name(subframe_link)
-        req.frame_id  = pose.header.frame_id
-        req.pose      = pose.pose
+        req.frame_id  = parent_link
         req.leaf_id   = ''
         return self._send(req).success
 
-    def detach_object(self, object_id, pose, subframe_link='', leaf_id=''):
+    def detach_object(self, object_id, parent_link, leaf_id=''):
         req = ManageCollisionObjectRequest()
         req.op        = ManageCollisionObjectRequest.DETACH_OBJECT
+        req.object_id = object_id
+        req.frame_id  = parent_link
+        req.leaf_id   = leaf_id
+        return self._send(req).success
+
+    def move_object(self, object_id, pose, subframe_link=''):
+        req = ManageCollisionObejctRequest()
+        req.op = ManageCollisionObjectRequest.MOVE_OBJECT
         req.object_id = object_id
         req.subframe  = CollisionObjectManagerClient \
                        ._subframe_name(subframe_link)
         req.frame_id  = pose.header.frame_id
         req.pose      = pose.pose
-        req.leaf_id   = leaf_id
         return self._send(req).success
 
     def append_touch_links(self, object_id, touch_link):

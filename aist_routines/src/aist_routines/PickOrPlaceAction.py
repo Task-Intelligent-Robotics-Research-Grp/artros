@@ -177,21 +177,14 @@ class PickOrPlace(SimpleActionClient):
                     original_pose = routines.lookup_pose(
                                         original_parent_link,
                                         goal.pose.header.frame_id)
-                    com.attach_object(object_id,
-                                      routines.lookup_pose(
-                                          gripper.tip_link,
-                                          goal.pose.header.frame_id),
-                                      goal.pose.header.frame_id)
+                    com.attach_object(object_id, gripper.tip_link)
             else:
                 gripper.release()
                 if object_id != '':
                     inhand_pose = routines.lookup_pose(goal.subframe_link,
                                                        gripper.tip_link)
                     com.detach_object(object_id,
-                                      routines.lookup_pose(
-                                          goal.pose.header.frame_id,
-                                          goal.subframe_link),
-                                      goal.subframe_link,
+                                      goal.pose.header.frame_id,
                                       PickOrPlace._get_object_id(
                                           gripper.tip_link))
 
@@ -226,8 +219,7 @@ class PickOrPlace(SimpleActionClient):
                 if goal.pick:
                     gripper.release()
                     if object_id != '':
-                        com.detach_object(object_id, original_pose,
-                                          goal.pose.header.frame_id,
+                        com.detach_object(object_id, original_parent_link,
                                           PickOrPlace._get_object_id(
                                               gripper.tip_link))
                 raise PickOrPlace.Error(PickOrPlaceResult.DEPARTURE_FAILURE,
@@ -239,8 +231,7 @@ class PickOrPlace(SimpleActionClient):
                 not gripper.wait():  # Wait for postgrasp completed
                 gripper.release()
                 if object_id != '':
-                    com.detach_object(object_id, original_pose,
-                                      goal.pose.header.frame_id,
+                    com.detach_object(object_id,
                                       PickOrPlace._get_object_id(
                                           gripper.tip_link))
                 raise PickOrPlace.Error(PickOrPlaceResult.GRASP_FAILURE,

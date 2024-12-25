@@ -203,12 +203,8 @@ class AssemblyRoutines(URRoutines):
                                        config['target_link']),
                                    config.get('source_link', ''))
             rospy.sleep(0.5)
-            # if object_type == 'panel_bearing':
-            #     self.com.attach_object(object_type,
-            #                            self.pose_from_xyzrpy(
-            #                                config.get('offset', ()),
-            #                                config['target_link']),
-            #                            config.get('source_link', ''))
+            if object_type == 'panel_bearing':
+                self.com.attach_object(object_type, config['target_link'])
 
         self._screw_m3_id = 0
         self._screw_m4_id = 0
