@@ -224,7 +224,8 @@ class CModelController(object):
     def _reached_goal(self, status):
         # ibid
         # return abs(status.gPO - self._goal_rPR) <= 1
-        return status.gPO == self._goal_rPR
+        # return status.gPO == self._goal_rPR
+        return status.gOBJ == 3
 
     def _status_values(self, status):
         return self._position(status), self._effort(status), \
