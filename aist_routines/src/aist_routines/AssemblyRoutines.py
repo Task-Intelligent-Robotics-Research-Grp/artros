@@ -72,12 +72,12 @@ class AssemblyRoutines(URRoutines):
     def print_help_messages(self):
         super().print_help_messages()
         print('=== Assembly commands ===')
-        print('  t:  Pick tool')
-        print('  T:  Place tool')
-        print('  sc: Pick screw')
-        print('  SC: Place screw')
-        print('  p:  Pick part')
-        print('  P:  Place part')
+        print('  pt: Pick tool')
+        print('  PT: Place tool')
+        print('  ps: Pick screw')
+        print('  PS: Place screw')
+        print('  pp: Pick part')
+        print('  PP: Place part')
         print('  I:  Initialize all collision objects')
         print('  i:  Show infomation on collision objects')
         print('  ci: Show infomation on child collision object of frame')
@@ -86,23 +86,23 @@ class AssemblyRoutines(URRoutines):
         print('  B:  Move all robots to back')
 
     def interactive(self, key, robot_name, axis, speed):
-        if key == 't':
+        if key == 'pt':
             tool_name = raw_input('  tool name? ')
             self.pick_tool(robot_name, tool_name)
-        elif key == 'T':
+        elif key == 'PT':
             self.place_tool(robot_name)
-        elif key == 'sc':
+        elif key == 'ps':
             screw_type = raw_input('  screw type? ')
             self.pick_screw(robot_name, screw_type)
-        elif key == 'SC':
+        elif key == 'PS':
             self.place_screw(robot_name)
-        elif key == 'p':
+        elif key == 'pp':
             part_id  = raw_input('  part ID? ')
             subframe = raw_input('  subframe? ')
             if subframe == '':
                 subframe = 'default_grasp'
             self.pick_part(robot_name, part_id, subframe)
-        elif key == 'P':
+        elif key == 'PP':
             part_id  = raw_input('  part ID? ')
             subframe = raw_input('  subframe? ')
             if subframe == '':

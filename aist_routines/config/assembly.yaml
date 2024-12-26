@@ -56,7 +56,7 @@ picking_parameters:
     gripper_parameters:
       grasp_position:   0.000
       release_position: 0.065
-      max_effort:       5.0
+      max_effort:       20.0
   screw_tool_m3:
     approach_offset:  [ 0.140, 0.000, 0.010, 0.0, 15.0, 0.0]
     pick_offset:      [-0.005, 0.000, 0.008, 0.0, 15.0, 0.0]
@@ -66,7 +66,7 @@ picking_parameters:
     gripper_parameters:
       grasp_position:   0.000
       release_position: 0.035
-      max_effort:       5.0
+      max_effort:       20.0
   screw_tool_m4:
     approach_offset:  [ 0.140, 0.000, 0.010, 0.0, 10.0, 0.0]
     pick_offset:      [-0.005, 0.000, 0.008, 0.0, 10.0, 0.0]
@@ -76,7 +76,7 @@ picking_parameters:
     gripper_parameters:
       grasp_position:   0.000
       release_position: 0.035
-      max_effort:       5.0
+      max_effort:       20.0
   suction_tool:
     approach_offset:  [-0.002, 0.000, 0.055, 0.0, 0.0, 0.0]
     pick_offset:      [ 0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
@@ -86,7 +86,7 @@ picking_parameters:
     gripper_parameters:
       grasp_position:   0.000
       release_position: 0.085
-      max_effort:       5.0
+      max_effort:       20.0
   base:
     approach_offset:  [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
     pick_offset:      [0.000, 0.000, -0.003, 0.0, 0.0, 0.0]

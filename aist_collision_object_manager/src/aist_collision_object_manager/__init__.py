@@ -86,8 +86,8 @@ class CollisionObjectManagerClient(object):
         return self._send(req).success
 
     def move_object(self, object_id, pose, subframe_link=''):
-        req = ManageCollisionObejctRequest()
-        req.op = ManageCollisionObjectRequest.MOVE_OBJECT
+        req = ManageCollisionObjectRequest()
+        req.op        = ManageCollisionObjectRequest.MOVE_OBJECT
         req.object_id = object_id
         req.subframe  = CollisionObjectManagerClient \
                        ._subframe_name(subframe_link)
