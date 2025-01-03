@@ -78,6 +78,8 @@ class AssemblyRoutines(URRoutines):
         print('  PS: Place screw')
         print('  pp: Pick part')
         print('  PP: Place part')
+        print('  fb: Fix base')
+        print('  FB: Release base')
         print('  I:  Initialize all collision objects')
         print('  i:  Show infomation on collision objects')
         print('  ci: Show infomation on child collision object of frame')
@@ -109,6 +111,10 @@ class AssemblyRoutines(URRoutines):
                 subframe = 'base_link'
             place_frame = raw_input('  place frame? ')
             self.place_part(robot_name, part_id, subframe, place_frame)
+        elif key == 'fb':
+            self.fix_part('base')
+        elif key == 'FB':
+            self.release_part('base')
         elif key == 'I':
             self._initialize_collision_objects()
         elif key == 'i':
@@ -123,9 +129,9 @@ class AssemblyRoutines(URRoutines):
                 self._print_object_info(info)
         elif key == 'r':
             object_id   = raw_input('  object_id? ')
-            target_link = raw_input('  target_link? ') if object_id == '' else\
+            attach_link = raw_input('  attach_link? ') if object_id == '' else\
                           ''
-            self.com.remove_object(object_id, target_link)
+            self.com.remove_object(object_id, attach_link)
         elif key == 'H':
             self.go_to_named_pose('all_bots', 'home')
         elif key == 'B':
@@ -193,6 +199,18 @@ class AssemblyRoutines(URRoutines):
         return self.place_at_frame(robot_name, place_frame, part_id,
                                    subframe_link=part_id + '/' + subframe)
 
+    def fix_part(self, part_id, offset=(), subframe='base_link'):
+        gripper = self._grippers['base_fixture']
+        gripper.grasp()
+        self.com.attach_object(part_id, gripper.tip_link)
+        self.com.move_object(part_id, self.pose_from_xyzrpy(offset),
+                             part_id + '/' + subframe)
+
+    def release_part(self, part_id):
+        gripper = self._grippers['base_fixture']
+        gripper.release()
+        self.com.detach_object(part_id, gripper.tip_link)
+
     def _initialize_collision_objects(self):
         self.com.remove_object()
         for object_type, config \
@@ -200,13 +218,13 @@ class AssemblyRoutines(URRoutines):
             self.com.create_object(object_type,
                                    self.pose_from_xyzrpy(
                                        config.get('offset', ()),
-                                       config['target_link']),
-                                   config.get('source_link', ''))
+                                       config['parent_link']),
+                                   config.get('subframe', 'base_link'))
             rospy.sleep(0.5)
-            if object_type == 'panel_bearing':
-                self.com.attach_object(object_type, config['target_link'])
-            if object_type == 'base':
-                self.com.attach_object(object_type, config['target_link'])
+            # if object_type == 'panel_bearing' or object_type == 'panel_motor':
+            #     self.com.attach_object(object_type, config['parent_link'])
+            # if object_type == 'base':
+            #     self.com.attach_object(object_type, config['parent_link'])
 
         self._screw_m3_id = 0
         self._screw_m4_id = 0

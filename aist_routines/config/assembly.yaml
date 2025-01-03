@@ -1,20 +1,20 @@
 initial_object_config:
   precision_tool:
-    target_link: precision_tool_holder_link
+    parent_link: precision_tool_holder_link
   screw_tool_m3:
-    target_link: screw_tool_m3_holder_link
+    parent_link: screw_tool_m3_holder_link
   screw_tool_m4:
-    target_link: screw_tool_m4_holder_link
+    parent_link: screw_tool_m4_holder_link
   suction_tool:
-    target_link: suction_tool_holder_link
+    parent_link: suction_tool_holder_link
   base:
-    target_link: workbench_holder_link
-#  panel_motor:
-#    target_link: base/panel_motor_screw_hole_1
-#    source_link: panel_motor/base_screw_hole_aligner_1
+    parent_link: workbench_holder_link
+  panel_motor:
+    parent_link: base/panel_motor_screw_hole_1
+    subframe:    base_screw_hole_aligner_1
   panel_bearing:
-    target_link: base/panel_bearing_screw_hole_1
-    source_link: panel_bearing/base_screw_hole_aligner_1
+    parent_link: base/panel_bearing_screw_hole_1
+    subframe:    base_screw_hole_aligner_1
 
 placing_parameters:
   precision_tool_holder_link:

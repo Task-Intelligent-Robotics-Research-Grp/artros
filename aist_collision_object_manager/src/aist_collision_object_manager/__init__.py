@@ -51,13 +51,13 @@ class CollisionObjectManagerClient(object):
         except rospy.ROSException as e:
             rospy.logerr(e)
 
-    def create_object(self, object_type, pose, subframe_link='', object_id=''):
+    def create_object(self, object_type, pose,
+                      subframe='base_link', object_id=''):
         req = ManageCollisionObjectRequest()
         req.op          = ManageCollisionObjectRequest.CREATE_OBJECT
         req.object_type = object_type
         req.object_id   = object_id if object_id != '' else object_type
-        req.subframe    = CollisionObjectManagerClient \
-                         ._subframe_name(subframe_link)
+        req.subframe    = subframe
         req.frame_id    = pose.header.frame_id
         req.pose        = pose.pose
         return self._send(req).success
@@ -85,12 +85,11 @@ class CollisionObjectManagerClient(object):
         req.leaf_id   = leaf_id
         return self._send(req).success
 
-    def move_object(self, object_id, pose, subframe_link=''):
+    def move_object(self, object_id, pose, subframe='base_link'):
         req = ManageCollisionObjectRequest()
         req.op        = ManageCollisionObjectRequest.MOVE_OBJECT
         req.object_id = object_id
-        req.subframe  = CollisionObjectManagerClient \
-                       ._subframe_name(subframe_link)
+        req.subframe  = subframe
         req.frame_id  = pose.header.frame_id
         req.pose      = pose.pose
         return self._send(req).success
@@ -128,10 +127,3 @@ class CollisionObjectManagerClient(object):
         req.frame_id = frame_id
         res = self._send(req)
         return res.info if res.success else None
-
-    @staticmethod
-    def _subframe_name(subframe_link):
-        if subframe_link == '':
-            return 'base_link'
-        tokens = subframe_link.rsplit('/', 1)
-        return tokens[0] if len(tokens) == 1 else tokens[1]

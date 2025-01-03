@@ -5,11 +5,13 @@
 
   <xacro:property name="a_bot_x"	value="0"/>
   <xacro:property name="a_bot_y"	value="-0.4875"/>
+  <xacro:property name="a_bot_z"	value="0.770"/>
   <xacro:property name="b_bot_x"	value="0"/>
   <xacro:property name="b_bot_y"	value="0.4875"/>
+  <xacro:property name="b_bot_z"	value="0.770"/>
   <xacro:property name="b_bot_theta"	value="${pi}"/>
-  <xacro:property name="bots_z"		value="0.770"/>
-  <xacro:property name="screen_z"	value="${bots_z + 0.048}"/>
+  <xacro:property name="table_h"	value="0.770"/>
+  <xacro:property name="screen_z"	value="0.048"/>
 
   <!-- ground -->
   <link name="ground"/>
@@ -29,7 +31,7 @@
   <xacro:cage prefix="cage_"
 	      width="${cage_w}" length="${cage_l}" height="${cage_h}"
 	      thickness="${cage_t}"
-	      workspace_height="${bots_z - cage_z}"
+	      workspace_height="${table_h - cage_z}"
 	      tool_bar_height="${tool_bar_h}"
 	      camera_bar_height="${camera_bar_h}"
 	      parent="ground">
@@ -45,7 +47,7 @@
   <xacro:include filename="$(find aist_description
 			   )/objects/urdf/table.urdf.xacro"/>
   <xacro:table prefix="workspace_table_"
-	       width="${table_w}" length="${table_l}" height="${bots_z}"
+	       width="${table_w}" length="${table_l}" height="${table_h}"
 	       parent="ground">
     <origin xyz="${-cage_w/2 + cage_offset_x + cage_t} ${-table_l/2} 0"
 	    rpy="0 0 0"/>
@@ -54,7 +56,7 @@
   <joint name="ground_to_workspace" type="fixed">
     <parent link="ground"/>
     <child  link="workspace_center"/>
-    <origin xyz="0 0 ${bots_z}" rpy="0 0 0"/>
+    <origin xyz="0 0 ${table_h}" rpy="0 0 0"/>
   </joint>
 
   <!-- tool holders -->
@@ -118,13 +120,13 @@
   <joint name="ground_a_bot_joint" type="fixed">
     <parent link="ground"/>
     <child  link="a_bot_base_link"/>
-    <origin xyz="${a_bot_x} ${a_bot_y} ${bots_z}" rpy="0 0 0"/>
+    <origin xyz="${a_bot_x} ${a_bot_y} ${a_bot_z}" rpy="0 0 0"/>
   </joint>
 
   <joint name="ground_b_bot_joint" type="fixed">
     <parent link="ground"/>
     <child  link="b_bot_base_link"/>
-    <origin xyz="${b_bot_x} ${b_bot_y} ${bots_z}" rpy="0 0 ${b_bot_theta}"/>
+    <origin xyz="${b_bot_x} ${b_bot_y} ${b_bot_z}" rpy="0 0 ${b_bot_theta}"/>
   </joint>
 
   <!-- Attach mounter for Zivid2+ camera -->
@@ -232,7 +234,7 @@
   <!-- Add virtual screen -->
   <link name="virtual_screen"/>
   <joint name="virtual_screen_joint" type="fixed">
-    <parent link="ground"/>
+    <parent link="workspace_center"/>
     <child  link="virtual_screen"/>
     <origin xyz="0 0 ${screen_z}" rpy="0 0 0"/>
   </joint>

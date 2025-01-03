@@ -223,7 +223,8 @@ class PickOrPlace(SimpleActionClient):
                                           PickOrPlace._get_object_id(
                                               gripper.tip_link))
                         com.move_object(object_id, original_pose,
-                                        goal.pose.header.frame_id)
+                                        PickOrPlace._get_subframe(
+                                            goal.pose.header.frame_id))
                 raise PickOrPlace.Error(PickOrPlaceResult.DEPARTURE_FAILURE,
                                         'Failed to depart from target')
 
@@ -237,7 +238,8 @@ class PickOrPlace(SimpleActionClient):
                                       PickOrPlace._get_object_id(
                                           gripper.tip_link))
                     com.move_object(object_id, original_pose,
-                                    goal.pose.header.frame_id)
+                                    PickOrPlace._get_subframe(
+                                        goal.pose.header.frame_id))
                 raise PickOrPlace.Error(PickOrPlaceResult.GRASP_FAILURE,
                                         'Failed to grasp')
 
@@ -276,6 +278,11 @@ class PickOrPlace(SimpleActionClient):
     def _get_object_id(link_name):
         tokens = link_name.rsplit('/', 1)
         return tokens[0] if len(tokens) == 2 else ''
+
+    @staticmethod
+    def _get_subframe(link_name):
+        tokens = link_name.rsplit('/', 1)
+        return tokens[1] if len(tokens) == 2 else link_name
 
     @staticmethod
     def _concatenate_poses(*poses):
