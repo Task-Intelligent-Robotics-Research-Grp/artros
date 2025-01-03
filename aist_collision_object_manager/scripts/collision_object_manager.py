@@ -547,8 +547,6 @@ class CollisionObjectManager(object):
                                                     pose.orientation.y,
                                                     pose.orientation.z,
                                                     pose.orientation.w)))
-
-
         self._move_descendants(co,
                                _transform_matrix(
                                    self._buffer.lookup_transform(
@@ -668,8 +666,7 @@ class CollisionObjectManager(object):
         else:
             self._psi.attach_object(co, aco.link_name, aco.touch_links)
 
-        # Since all child attached objects are connected to the current
-        # object 'co', we have to switch their attach links to 'link'.
+        # Set poses for all child attached objects.
         for child_aco in self._psi.get_attached_objects().values():
             if self._get_parent_id(child_aco.object.id) == co.id:
                 self._move_descendants(child_aco.object, T)

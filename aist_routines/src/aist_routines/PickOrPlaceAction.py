@@ -230,7 +230,7 @@ class PickOrPlace(SimpleActionClient):
             # Check success of postgrasp.
             if goal.pick and \
                rospy.get_param('use_real_robot', False) and \
-                not gripper.wait():  # Wait for postgrasp completed
+               not gripper.wait():  # Wait for postgrasp completed
                 gripper.release()
                 if object_id != '':
                     com.detach_object(object_id, original_parent_link,
