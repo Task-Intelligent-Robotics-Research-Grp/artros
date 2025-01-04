@@ -75,7 +75,8 @@ class CollisionObjectManagerClient(object):
         req.object_id = object_id
         req.frame_id  = parent_link
         req.leaf_id   = ''
-        return self._send(req).success
+        res = self._send(req)
+        return res.info if res.success else None
 
     def detach_object(self, object_id, parent_link, leaf_id=''):
         req = ManageCollisionObjectRequest()
@@ -83,7 +84,8 @@ class CollisionObjectManagerClient(object):
         req.object_id = object_id
         req.frame_id  = parent_link
         req.leaf_id   = leaf_id
-        return self._send(req).success
+        res = self._send(req)
+        return res.info if res.success else None
 
     def move_object(self, object_id, pose, subframe='base_link'):
         req = ManageCollisionObjectRequest()
@@ -92,7 +94,8 @@ class CollisionObjectManagerClient(object):
         req.subframe  = subframe
         req.frame_id  = pose.header.frame_id
         req.pose      = pose.pose
-        return self._send(req).success
+        res = self._send(req)
+        return res.info if res.success else None
 
     def append_touch_links(self, object_id, touch_link):
         req = ManageCollisionObjectRequest()

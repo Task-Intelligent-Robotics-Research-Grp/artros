@@ -306,10 +306,13 @@ class CollisionObjectManager(object):
             elif req.op == ManageCollisionObjectRequest.REMOVE_OBJECT:
                 self._remove_object(req.object_id, req.frame_id)
             elif req.op == ManageCollisionObjectRequest.ATTACH_OBJECT:
+                res.info = self._get_object_info(req.object_id)
                 self._attach_object(req.object_id, req.frame_id)
             elif req.op == ManageCollisionObjectRequest.DETACH_OBJECT:
+                res.info = self._get_object_info(req.object_id)
                 self._detach_object(req.object_id, req.frame_id, req.leaf_id)
             elif req.op == ManageCollisionObjectRequest.MOVE_OBJECT:
+                res.info = self._get_object_info(req.object_id)
                 self._move_object(req.object_id,
                                   req.frame_id, req.pose, req.subframe)
             elif req.op == ManageCollisionObjectRequest.APPEND_TOUCH_LINKS:
@@ -328,9 +331,9 @@ class CollisionObjectManager(object):
             else:
                 raise Exception('unknown operation[%d]' % req.op)
         except Exception as e:
-            raise(e)
-            # rospy.logerr('(CollisionObjectManager) %s', e)
-            # res.success = False
+            # raise(e)
+            rospy.logerr('(CollisionObjectManager) %s', e)
+            res.success = False
 
         return res
 
@@ -528,10 +531,18 @@ class CollisionObjectManager(object):
                                              _pose_matrix(aco.object.pose)))
         self._append_or_remove_touch_links(old_root_id, old_parent_link, True)
 
-    def _move_object(self, object_id, parent_link, pose, subframe):
+    def _move_object(self, object_id, frame_id, pose, subframe):
         co = self._get_any_object(object_id)
         if co is None:
             raise Exception("unknown collision object '%s'" % object_id)
+
+        # Transform the given pose from 'frame_id' to parent link of 'co'.
+        parent_link = self._get_parent_link(co.id)
+        pose = _pose_from_matrix(
+                   _transform_matrix(
+                       self._buffer.lookup_transform(parent_link, frame_id,
+                                                     rospy.Time()).transform) @
+                   _pose_matrix(pose))
 
         # Transform the given pose of subframe to that of 'base_link'
         # described w.r.t. 'parent_link' which is a parent link of 'object_id'.
