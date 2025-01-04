@@ -7,8 +7,8 @@
 
   <xacro:property name="a_bot_x"	value="0"/>
   <xacro:property name="a_bot_y"	value="-0.4875"/>
-  <xacro:property name="bots_z"		value="0.770"/>
-  <xacro:property name="screen_z"	value="${bots_z + 0.0347}"/>
+  <xacro:property name="a_bot_z"	value="0.770"/>
+  <xacro:property name="table_h"	value="0.770"/>
 
   <!-- ground -->
   <link name="ground"/>
@@ -28,7 +28,7 @@
   <xacro:cage prefix="cage_"
 	      width="${cage_w}" length="${cage_l}" height="${cage_h}"
 	      thickness="${cage_t}"
-	      workspace_height="${bots_z - cage_z}"
+	      workspace_height="${table_h - cage_z}"
 	      tool_bar_height="${tool_bar_h}"
 	      camera_bar_height="${camera_bar_h}"
 	      parent="ground">
@@ -40,21 +40,30 @@
 
   <!-- workspace -->
   <xacro:property name="table_w"	value="0.900"/>
-  <xacro:property name="table_l"	value="1.800"/>
+  <xacro:property name="table_l"	value="0.700"/>
   <xacro:include filename="$(find aist_description
 			   )/objects/urdf/table.urdf.xacro"/>
   <xacro:table prefix="workspace_table_"
-	       width="${table_w}" length="${table_l}" height="${bots_z}"
+	       width="${table_w}" length="${table_l}" height="${table_h}"
 	       parent="ground">
     <origin xyz="${-cage_w/2 + cage_offset_x + cage_t} ${-table_l/2} 0"
 	    rpy="0 0 0"/>
   </xacro:table>
   <link name="workspace_center"/>
-  <joint name="ground_to_workspace" type="fixed">
+  <joint name="workspace_joint" type="fixed">
     <parent link="ground"/>
     <child  link="workspace_center"/>
-    <origin xyz="0 0 ${bots_z}" rpy="0 0 0"/>
+    <origin xyz="0 0 ${table_h}" rpy="0 0 0"/>
   </joint>
+
+  <!-- tables for mounting robot arms -->
+  <xacro:property name="bot_table_size"	value="0.275"/>
+  <xacro:table prefix="a_bot_table_"
+	       width="${bot_table_size}" length="${bot_table_size}"
+	       height="${a_bot_z}" parent="ground">
+    <origin xyz="${a_bot_x - bot_table_size/2} ${a_bot_y - bot_table_size/2} 0"
+	    rpy="0 0 0"/>
+  </xacro:table>
 
   <!-- tool holders -->
   <xacro:property name="precision_tool_holder_y"	value="0.60"/>
@@ -100,30 +109,11 @@
       safety_limits="true"
       safety_pos_margin="0.3"/>
 
-  <joint name="ground_a_bot_joint" type="fixed">
-    <parent link="ground"/>
+  <joint name="a_bot_base_link_joint" type="fixed">
+    <parent link="a_bot_table_top_center"/>
     <child  link="a_bot_base_link"/>
-    <origin xyz="${a_bot_x} ${a_bot_y} ${bots_z}" rpy="0 0 0"/>
+    <origin xyz="0 0 0 " rpy="0 0 0"/>
   </joint>
-
-  <!-- Attach mounter for Zivid2+ camera -->
-  <!-- <xacro:include filename="$(find aist_description)/devices/urdf/zivid_coupling.urdf.xacro"/> -->
-  <!-- <xacro:zivid_coupling prefix="a_bot_zivid_coupling_" parent="a_bot_flange"> -->
-  <!--   <origin xyz="0 0 0" rpy="${pi} 0 0" /> -->
-  <!-- </xacro:zivid_coupling> -->
-
-  <!-- <!-\- Spawn and attach Zivid2+ camera -\-> -->
-  <!-- <xacro:include filename="$(find aist_description -->
-  <!-- 			   )/scenes/urdf/load_calibration.urdf.xacro"/> -->
-  <!-- <xacro:load_calibration filename="$(find aist_handeye_calibration -->
-  <!-- 				    )/calib/a_bot_zivid.yaml"/> -->
-  <!-- <xacro:include filename="$(find aist_description -->
-  <!-- 			   )/devices/urdf/zivid2plus.urdf.xacro"/> -->
-  <!-- <xacro:zivid2plus name="a_bot_zivid" -->
-  <!-- 		    parent="a_bot_zivid_coupling_flange_link"> -->
-  <!--   <origin xyz="${origin[0]} ${origin[1]} ${origin[2]}" -->
-  <!--   	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/> -->
-  <!-- </xacro:zivid2plus> -->
 
   <!-- Spawn and attach gripper -->
   <xacro:include filename="$(find aist_robotiq
@@ -157,7 +147,7 @@
 
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
   <link name="world"/>
-  <joint name="world_ground_joint" type="fixed">
+  <joint name="ground_joint" type="fixed">
     <parent link="world"/>
     <child  link="ground"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
