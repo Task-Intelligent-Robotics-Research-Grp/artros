@@ -307,7 +307,7 @@ class CollisionObjectManager(object):
                 self._remove_object(req.object_id, req.frame_id)
             elif req.op == ManageCollisionObjectRequest.ATTACH_OBJECT:
                 res.info = self._get_object_info(req.object_id)
-                self._attach_object(req.object_id, req.frame_id)
+                self._attach_object(req.object_id, req.frame_id, req.leaf_id)
             elif req.op == ManageCollisionObjectRequest.DETACH_OBJECT:
                 res.info = self._get_object_info(req.object_id)
                 self._detach_object(req.object_id, req.frame_id, req.leaf_id)
@@ -462,7 +462,7 @@ class CollisionObjectManager(object):
         self._psi.remove_attached_object(frame_id, object_id)
         self._psi.remove_world_object(object_id)
 
-    def _attach_object(self, object_id, parent_link):
+    def _attach_object(self, object_id, parent_link, leaf_id):
         """Attach collision object
         Args:
           object_id   (str):  unique ID of the object to be attached/detached
@@ -473,7 +473,7 @@ class CollisionObjectManager(object):
             raise Exception("unknown collision object '%s'" % object_id)
 
         # Make this object root of the tree attached to link.
-        old_root_id, old_parent_link = self._rotate_tree(co)
+        old_root_id, old_parent_link = self._rotate_tree(co, leaf_id)
 
         # If 'parent_link' is a subframe of another collision object,
         # get frame ID its 'base_link'.
@@ -619,7 +619,7 @@ class CollisionObjectManager(object):
     #
     # Utilities
     #
-    def _rotate_tree(self, co, leaf_id=''):
+    def _rotate_tree(self, co, leaf_id):
         def _inverse_transform(transform):
             T = tfs.inverse_matrix(
                     tfs.translation_matrix(
