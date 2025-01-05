@@ -49,7 +49,7 @@ YAMLファイルに指定されたサブフレームの他に，対象物体は�
 前節で導入した部品間の接触・接続関係は，`tf`のtransformation treeと`CollisionObject`および`AttachedCollisionObject`を用いて次のように実装される．
 
 - 製品を構成する部品間の接触・接続関係を表す木構造は，そのままtransformation treeで表現する．すなわち，ある部品が接触または接続する対象部品は，その部品の`base_link`のtransformation treeにおける親リンクを`base_link`とする部品である．
-- 自分の親に接触している部品は`CollisionObject`で，接触している部品は`AttachedCollisionObject`で，それぞれ表現される．
+- 自分の親に接触している部品は`CollisionObject`で，接続している部品は`AttachedCollisionObject`で，それぞれ表現される．
 - 外界に接触している部品を表す`CollisionObject`のポーズは，`planning_frame`(例えば'world')で表される．`CollisionObject`の子孫となる`AttachedCollisionObject`の`link_name`も同じく`planning_frame`となるように管理する．
 - `CollisionObject`ではなく外界(グリッパなど)に直接接続している`AttachedCollisionObject`およびその子孫である`AttachedCollisionObject`の`link_name`は，その外界を表すリンクとなるように管理する．
 - よって，一つの製品を表す木構造のノードとなる`CollisionObject`の`header.framae_id`と`AttachedCollisionObject`の`link_name`は，全て同一の外界リンクを指す．

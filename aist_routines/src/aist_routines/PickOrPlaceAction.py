@@ -172,21 +172,16 @@ class PickOrPlace(SimpleActionClient):
             if goal.pick:
                 gripper.grasp()
                 if object_id != '':
-                    com.attach_object(object_id, gripper.tip_link,
-                                      routines.lookup_pose(
-                                          gripper.tip_link,
-                                          goal.pose.header.frame_id),
-                                      goal.pose.header.frame_id)
+                    original_object_info = com.attach_object(object_id,
+                                                             gripper.tip_link)
             else:
                 gripper.release()
                 if object_id != '':
                     inhand_pose = routines.lookup_pose(goal.subframe_link,
                                                        gripper.tip_link)
                     com.detach_object(object_id, goal.pose.header.frame_id,
-                                      routines.lookup_pose(
-                                          goal.pose.header.frame_id,
-                                          goal.subframe_link),
-                                      goal.subframe_link)
+                                      PickOrPlace._get_object_id(
+                                          gripper.tip_link))
 
             # Go back to departure(pick) or approach(place) pose.
             self._publish_feedback(PickOrPlaceFeedback.DEPARTING,
@@ -199,16 +194,16 @@ class PickOrPlace(SimpleActionClient):
             else:
                 speed = goal.speed_fast
                 if object_id != '':
-                    offset = ()
                     pose   = PoseStamped(goal.pose.header,
                                          PickOrPlace._concatenate_poses(
                                              goal.pose.pose,
-                                             routines.pose_from_offset(
-                                                 goal.departure_offset),
-                                             inhand_pose))
+                                             routines.pose_from_xyzrpy(
+                                                 goal.departure_offset).pose,
+                                             inhand_pose.pose))
+                    offset = ()
                 else:
-                    offset = goal.approach_offset
                     pose   = goal.pose
+                    offset = goal.approach_offset
             success = routines.go_to_pose_goal(goal.robot_name,
                                                pose, offset, speed)
 
@@ -218,14 +213,30 @@ class PickOrPlace(SimpleActionClient):
             if not success:
                 if goal.pick:
                     gripper.release()
+                    if object_id != '':
+                        com.detach_object(object_id,
+                                          original_object_info.parent_link,
+                                          PickOrPlace._get_object_id(
+                                              gripper.tip_link))
+                        com.move_object(object_id, original_object_info.pose,
+                                        PickOrPlace._get_subframe(
+                                            goal.pose.header.frame_id))
                 raise PickOrPlace.Error(PickOrPlaceResult.DEPARTURE_FAILURE,
                                         'Failed to depart from target')
 
             # Check success of postgrasp.
             if goal.pick and \
                rospy.get_param('use_real_robot', False) and \
-               not gripper.wait():    # Wait for postgrasp completed
+               not gripper.wait():  # Wait for postgrasp completed
                 gripper.release()
+                if object_id != '':
+                    com.detach_object(object_id,
+                                      original_object_info.parent_link,
+                                      PickOrPlace._get_object_id(
+                                          gripper.tip_link))
+                    com.move_object(object_id, original_object_info.pose,
+                                    PickOrPlace._get_subframe(
+                                        goal.pose.header.frame_id))
                 raise PickOrPlace.Error(PickOrPlaceResult.GRASP_FAILURE,
                                         'Failed to grasp')
 
@@ -264,6 +275,11 @@ class PickOrPlace(SimpleActionClient):
     def _get_object_id(link_name):
         tokens = link_name.rsplit('/', 1)
         return tokens[0] if len(tokens) == 2 else ''
+
+    @staticmethod
+    def _get_subframe(link_name):
+        tokens = link_name.rsplit('/', 1)
+        return tokens[1] if len(tokens) == 2 else link_name
 
     @staticmethod
     def _concatenate_poses(*poses):

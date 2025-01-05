@@ -5,12 +5,9 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /MotionPlanning1/Planning Request1
-        - /TF1
         - /TF1/Frames1
-        - /TF1/Frames1/base/base_link1
-        - /TF1/Frames1/panel_bearing/base_link1
       Splitter Ratio: 0.5198618173599243
-    Tree Height: 336
+    Tree Height: 441
   - Class: rviz/Help
     Name: Help
   - Class: rviz/Views
@@ -229,6 +226,35 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          a_bot_usb_repeater_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_usb_repeater_body:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_usb_repeater_front_leg:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_usb_repeater_left_leg:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_usb_repeater_plate:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_usb_repeater_right_leg:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           a_bot_wrist_1_link:
             Alpha: 1
             Show Axes: false
@@ -259,228 +285,6 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
           base_fixture_tip_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bin_1_part_16_bottom_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_bottom_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_bottom_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_bottom_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_top_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_top_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_top_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_top_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bin_1_part_17_bottom_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_bottom_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_bottom_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_bottom_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_top_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_top_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_top_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_top_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bin_1_part_5_bottom_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_bottom_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_bottom_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_bottom_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_top_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_top_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_top_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_top_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bin_2_part_4_bottom_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_bottom_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_bottom_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_bottom_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_top_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_top_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_top_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_top_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bin_2_part_7_bottom_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_bottom_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_bottom_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_bottom_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_top_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_top_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_top_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_top_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bin_2_part_8_bottom_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_bottom_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_bottom_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_bottom_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_top_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_top_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_top_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_top_front_right_corner:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -558,15 +362,6 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          plate:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          plate_lower_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           precision_tool_holder_base_link:
             Alpha: 1
             Show Axes: false
@@ -581,7 +376,12 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          screw_feeder_m3_front_side:
+          screw_feeder_m3_front_left_side:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          screw_feeder_m3_front_right_side:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -604,7 +404,12 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          screw_feeder_m4_front_side:
+          screw_feeder_m4_front_left_side:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          screw_feeder_m4_front_right_side:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -646,149 +451,6 @@ Visualization Manager:
             Show Trail: false
             Value: true
           suction_tool_holder_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          tray_2_divider2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          tray_2_partition_1:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_1_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_2_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_3:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_3_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_4:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_4_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_5:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_5_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_6:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_6_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_7:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_7_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_8:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_8_pickup_1:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_8_pickup_2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_holder:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          tray_2_screw_m3_1:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m3_2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m3_3:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m3_4:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m3_5:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m3_6:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_1:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_3:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_4:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_5:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_6:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_7:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_8:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_9:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -1100,6 +762,35 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          a_bot_usb_repeater_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_usb_repeater_body:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_usb_repeater_front_leg:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_usb_repeater_left_leg:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_usb_repeater_plate:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_usb_repeater_right_leg:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           a_bot_wrist_1_link:
             Alpha: 1
             Show Axes: false
@@ -1130,228 +821,6 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
           base_fixture_tip_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bin_1_part_16_bottom_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_bottom_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_bottom_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_bottom_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_top_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_top_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_top_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_top_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bin_1_part_17_bottom_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_bottom_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_bottom_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_bottom_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_top_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_top_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_top_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_top_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bin_1_part_5_bottom_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_bottom_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_bottom_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_bottom_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_top_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_top_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_top_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_top_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bin_2_part_4_bottom_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_bottom_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_bottom_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_bottom_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_top_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_top_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_top_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_top_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bin_2_part_7_bottom_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_bottom_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_bottom_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_bottom_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_top_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_top_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_top_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_top_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bin_2_part_8_bottom_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_bottom_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_bottom_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_bottom_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_top_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_top_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_top_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_top_front_right_corner:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -1429,15 +898,6 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          plate:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          plate_lower_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           precision_tool_holder_base_link:
             Alpha: 1
             Show Axes: false
@@ -1452,7 +912,12 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          screw_feeder_m3_front_side:
+          screw_feeder_m3_front_left_side:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          screw_feeder_m3_front_right_side:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -1475,7 +940,12 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          screw_feeder_m4_front_side:
+          screw_feeder_m4_front_left_side:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          screw_feeder_m4_front_right_side:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -1517,149 +987,6 @@ Visualization Manager:
             Show Trail: false
             Value: true
           suction_tool_holder_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          tray_2_divider2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          tray_2_partition_1:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_1_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_2_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_3:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_3_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_4:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_4_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_5:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_5_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_6:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_6_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_7:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_7_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_8:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_8_pickup_1:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_8_pickup_2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_holder:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          tray_2_screw_m3_1:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m3_2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m3_3:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m3_4:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m3_5:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m3_6:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_1:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_3:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_4:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_5:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_6:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_7:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_8:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_9:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -1851,59 +1178,23 @@ Visualization Manager:
           Value: false
         a_bot_upper_arm_link:
           Value: false
+        a_bot_usb_repeater_base_link:
+          Value: true
+        a_bot_usb_repeater_body:
+          Value: true
+        a_bot_usb_repeater_front_leg:
+          Value: true
+        a_bot_usb_repeater_left_leg:
+          Value: true
+        a_bot_usb_repeater_plate:
+          Value: true
+        a_bot_usb_repeater_right_leg:
+          Value: true
         a_bot_wrist_1_link:
           Value: false
         a_bot_wrist_2_link:
           Value: false
         a_bot_wrist_3_link:
-          Value: false
-        base/base_link:
-          Value: true
-        base/big_hole_1:
-          Value: false
-        base/big_hole_2:
-          Value: false
-        base/big_hole_3:
-          Value: false
-        base/big_hole_4:
-          Value: false
-        base/cable_pin1:
-          Value: false
-        base/cable_pin2:
-          Value: false
-        base/cable_pin3:
-          Value: false
-        base/cable_pin4:
-          Value: false
-        base/corner_1:
-          Value: false
-        base/corner_2:
-          Value: false
-        base/corner_3:
-          Value: false
-        base/corner_4:
-          Value: false
-        base/default_grasp:
-          Value: true
-        base/panel_bearing_screw_hole_1:
-          Value: false
-        base/panel_bearing_screw_hole_2:
-          Value: false
-        base/panel_bearing_screw_hole_aligner_1:
-          Value: false
-        base/panel_bearing_screw_hole_aligner_2:
-          Value: false
-        base/panel_motor_screw_hole_1:
-          Value: false
-        base/panel_motor_screw_hole_2:
-          Value: false
-        base/panel_motor_screw_hole_aligner_1:
-          Value: false
-        base/panel_motor_screw_hole_aligner_2:
-          Value: false
-        base/terminal_top:
-          Value: false
-        base/under_outer_hole:
           Value: false
         base_fixture_base_link:
           Value: false
@@ -1913,114 +1204,6 @@ Visualization Manager:
           Value: true
         base_fixture_tip_link:
           Value: true
-        bin_1_part_16:
-          Value: false
-        bin_1_part_16_bottom_back_left_corner:
-          Value: false
-        bin_1_part_16_bottom_back_right_corner:
-          Value: false
-        bin_1_part_16_bottom_front_left_corner:
-          Value: false
-        bin_1_part_16_bottom_front_right_corner:
-          Value: false
-        bin_1_part_16_top_back_left_corner:
-          Value: false
-        bin_1_part_16_top_back_right_corner:
-          Value: false
-        bin_1_part_16_top_front_left_corner:
-          Value: false
-        bin_1_part_16_top_front_right_corner:
-          Value: false
-        bin_1_part_17:
-          Value: false
-        bin_1_part_17_bottom_back_left_corner:
-          Value: false
-        bin_1_part_17_bottom_back_right_corner:
-          Value: false
-        bin_1_part_17_bottom_front_left_corner:
-          Value: false
-        bin_1_part_17_bottom_front_right_corner:
-          Value: false
-        bin_1_part_17_top_back_left_corner:
-          Value: false
-        bin_1_part_17_top_back_right_corner:
-          Value: false
-        bin_1_part_17_top_front_left_corner:
-          Value: false
-        bin_1_part_17_top_front_right_corner:
-          Value: false
-        bin_1_part_5:
-          Value: false
-        bin_1_part_5_bottom_back_left_corner:
-          Value: false
-        bin_1_part_5_bottom_back_right_corner:
-          Value: false
-        bin_1_part_5_bottom_front_left_corner:
-          Value: false
-        bin_1_part_5_bottom_front_right_corner:
-          Value: false
-        bin_1_part_5_top_back_left_corner:
-          Value: false
-        bin_1_part_5_top_back_right_corner:
-          Value: false
-        bin_1_part_5_top_front_left_corner:
-          Value: false
-        bin_1_part_5_top_front_right_corner:
-          Value: false
-        bin_2_part_4:
-          Value: false
-        bin_2_part_4_bottom_back_left_corner:
-          Value: false
-        bin_2_part_4_bottom_back_right_corner:
-          Value: false
-        bin_2_part_4_bottom_front_left_corner:
-          Value: false
-        bin_2_part_4_bottom_front_right_corner:
-          Value: false
-        bin_2_part_4_top_back_left_corner:
-          Value: false
-        bin_2_part_4_top_back_right_corner:
-          Value: false
-        bin_2_part_4_top_front_left_corner:
-          Value: false
-        bin_2_part_4_top_front_right_corner:
-          Value: false
-        bin_2_part_7:
-          Value: false
-        bin_2_part_7_bottom_back_left_corner:
-          Value: false
-        bin_2_part_7_bottom_back_right_corner:
-          Value: false
-        bin_2_part_7_bottom_front_left_corner:
-          Value: false
-        bin_2_part_7_bottom_front_right_corner:
-          Value: false
-        bin_2_part_7_top_back_left_corner:
-          Value: false
-        bin_2_part_7_top_back_right_corner:
-          Value: false
-        bin_2_part_7_top_front_left_corner:
-          Value: false
-        bin_2_part_7_top_front_right_corner:
-          Value: false
-        bin_2_part_8:
-          Value: false
-        bin_2_part_8_bottom_back_left_corner:
-          Value: false
-        bin_2_part_8_bottom_back_right_corner:
-          Value: false
-        bin_2_part_8_bottom_front_left_corner:
-          Value: false
-        bin_2_part_8_bottom_front_right_corner:
-          Value: false
-        bin_2_part_8_top_back_left_corner:
-          Value: false
-        bin_2_part_8_top_back_right_corner:
-          Value: false
-        bin_2_part_8_top_front_left_corner:
-          Value: false
-        bin_2_part_8_top_front_right_corner:
-          Value: false
         cage_back_left_pillar:
           Value: false
         cage_back_right_pillar:
@@ -2051,54 +1234,16 @@ Visualization Manager:
           Value: false
         ground:
           Value: true
-        panel_bearing/base_link:
-          Value: true
-        panel_bearing/bearing_screw_hole_1:
-          Value: false
-        panel_bearing/bearing_screw_hole_2:
-          Value: false
-        panel_bearing/bearing_screw_hole_3:
-          Value: false
-        panel_bearing/bearing_screw_hole_4:
-          Value: false
-        panel_bearing/bottom_corner_1:
-          Value: false
-        panel_bearing/bottom_corner_2:
-          Value: false
-        panel_bearing/bottom_screw_hole_1:
-          Value: false
-        panel_bearing/bottom_screw_hole_2:
-          Value: false
-        panel_bearing/bottom_screw_hole_aligner_1:
-          Value: false
-        panel_bearing/bottom_screw_hole_aligner_2:
-          Value: false
-        panel_bearing/default_grasp:
-          Value: true
-        panel_bearing/front_hole:
-          Value: false
-        panel_bearing/pulley_ridge_bottom:
-          Value: false
-        panel_bearing/pulley_ridge_middle:
-          Value: false
-        panel_bearing/pulley_ridge_top:
-          Value: false
-        plate:
-          Value: false
-        plate_lower_left_corner:
-          Value: false
-        precision_tool/base_link:
-          Value: true
-        precision_tool/tip_link:
-          Value: true
         precision_tool_holder_base_link:
           Value: false
         precision_tool_holder_link:
           Value: false
         screw_feeder_m3_base_link:
           Value: false
-        screw_feeder_m3_front_side:
-          Value: false
+        screw_feeder_m3_front_left_side:
+          Value: true
+        screw_feeder_m3_front_right_side:
+          Value: true
         screw_feeder_m3_gap:
           Value: false
         screw_feeder_m3_inlet_link:
@@ -2107,126 +1252,28 @@ Visualization Manager:
           Value: true
         screw_feeder_m4_base_link:
           Value: false
-        screw_feeder_m4_front_side:
-          Value: false
+        screw_feeder_m4_front_left_side:
+          Value: true
+        screw_feeder_m4_front_right_side:
+          Value: true
         screw_feeder_m4_gap:
           Value: false
         screw_feeder_m4_inlet_link:
           Value: false
         screw_feeder_m4_outlet_link:
           Value: true
-        screw_m3_1/base_link:
-          Value: true
-        screw_m3_1/screw_head:
-          Value: false
-        screw_m3_1/screw_tip:
-          Value: true
-        screw_m4_1/base_link:
-          Value: true
-        screw_m4_1/screw_head:
-          Value: false
-        screw_m4_1/screw_tip:
-          Value: true
-        screw_m4_2/base_link:
-          Value: true
-        screw_m4_2/screw_head:
-          Value: true
-        screw_m4_2/screw_tip:
-          Value: true
-        screw_tool_m3/base_link:
-          Value: true
-        screw_tool_m3/tip_link:
-          Value: true
         screw_tool_m3_holder_base_link:
           Value: false
         screw_tool_m3_holder_link:
           Value: false
-        screw_tool_m4/base_link:
-          Value: true
-        screw_tool_m4/tip_link:
-          Value: true
         screw_tool_m4_holder_base_link:
           Value: false
         screw_tool_m4_holder_link:
           Value: false
-        suction_tool/base_link:
-          Value: true
-        suction_tool/tip_link:
-          Value: true
         suction_tool_holder_base_link:
           Value: false
         suction_tool_holder_link:
           Value: true
-        tray_2:
-          Value: false
-        tray_2_divider2:
-          Value: false
-        tray_2_partition_1:
-          Value: false
-        tray_2_partition_1_pickup:
-          Value: false
-        tray_2_partition_2:
-          Value: false
-        tray_2_partition_2_pickup:
-          Value: false
-        tray_2_partition_3:
-          Value: false
-        tray_2_partition_3_pickup:
-          Value: false
-        tray_2_partition_4:
-          Value: false
-        tray_2_partition_4_pickup:
-          Value: false
-        tray_2_partition_5:
-          Value: false
-        tray_2_partition_5_pickup:
-          Value: false
-        tray_2_partition_6:
-          Value: false
-        tray_2_partition_6_pickup:
-          Value: false
-        tray_2_partition_7:
-          Value: false
-        tray_2_partition_7_pickup:
-          Value: false
-        tray_2_partition_8:
-          Value: false
-        tray_2_partition_8_pickup_1:
-          Value: false
-        tray_2_partition_8_pickup_2:
-          Value: false
-        tray_2_screw_holder:
-          Value: false
-        tray_2_screw_m3_1:
-          Value: false
-        tray_2_screw_m3_2:
-          Value: false
-        tray_2_screw_m3_3:
-          Value: false
-        tray_2_screw_m3_4:
-          Value: false
-        tray_2_screw_m3_5:
-          Value: false
-        tray_2_screw_m3_6:
-          Value: false
-        tray_2_screw_m4_1:
-          Value: false
-        tray_2_screw_m4_2:
-          Value: false
-        tray_2_screw_m4_3:
-          Value: false
-        tray_2_screw_m4_4:
-          Value: false
-        tray_2_screw_m4_5:
-          Value: false
-        tray_2_screw_m4_6:
-          Value: false
-        tray_2_screw_m4_7:
-          Value: false
-        tray_2_screw_m4_8:
-          Value: false
-        tray_2_screw_m4_9:
-          Value: false
         workbench_back_bar:
           Value: false
         workbench_base_link:
@@ -2291,6 +1338,16 @@ Visualization Manager:
                     a_bot_forearm_link:
                       a_bot_wrist_1_link:
                         a_bot_wrist_2_link:
+                          a_bot_usb_repeater_base_link:
+                            a_bot_usb_repeater_front_leg:
+                              {}
+                            a_bot_usb_repeater_left_leg:
+                              {}
+                            a_bot_usb_repeater_plate:
+                              a_bot_usb_repeater_body:
+                                {}
+                            a_bot_usb_repeater_right_leg:
+                              {}
                           a_bot_wrist_3_link:
                             a_bot_flange:
                               a_bot_gripper_coupling_base_link:
@@ -2347,50 +1404,33 @@ Visualization Manager:
                   cage_tool_bar:
                     precision_tool_holder_base_link:
                       precision_tool_holder_link:
-                        precision_tool/base_link:
-                          precision_tool/tip_link:
-                            {}
+                        {}
                     screw_tool_m3_holder_base_link:
                       screw_tool_m3_holder_link:
-                        screw_tool_m3/base_link:
-                          screw_tool_m3/tip_link:
-                            {}
+                        {}
                     screw_tool_m4_holder_base_link:
                       screw_tool_m4_holder_link:
-                        screw_tool_m4/base_link:
-                          screw_tool_m4/tip_link:
-                            {}
+                        {}
                     suction_tool_holder_base_link:
                       suction_tool_holder_link:
-                        suction_tool/base_link:
-                          suction_tool/tip_link:
-                            {}
+                        {}
                   workbench_base_link:
                     screw_feeder_m3_base_link:
-                      screw_feeder_m3_front_side:
+                      screw_feeder_m3_front_left_side:
                         screw_feeder_m3_gap:
                           screw_feeder_m3_outlet_link:
-                            screw_m3_1/base_link:
-                              screw_m3_1/screw_head:
-                                {}
-                              screw_m3_1/screw_tip:
-                                {}
+                            {}
+                      screw_feeder_m3_front_right_side:
+                        {}
                       screw_feeder_m3_inlet_link:
                         {}
                       screw_feeder_m4_base_link:
-                        screw_feeder_m4_front_side:
+                        screw_feeder_m4_front_left_side:
                           screw_feeder_m4_gap:
                             screw_feeder_m4_outlet_link:
-                              screw_m4_1/base_link:
-                                screw_m4_1/screw_head:
-                                  {}
-                                screw_m4_1/screw_tip:
-                                  {}
-                              screw_m4_2/base_link:
-                                screw_m4_2/screw_head:
-                                  {}
-                                screw_m4_2/screw_tip:
-                                  {}
+                              {}
+                        screw_feeder_m4_front_right_side:
+                          {}
                         screw_feeder_m4_inlet_link:
                           {}
                     workbench_back_bar:
@@ -2417,84 +1457,7 @@ Visualization Manager:
                           workbench_front_border:
                             {}
                           workbench_holder_link:
-                            base/base_link:
-                              base/big_hole_1:
-                                {}
-                              base/big_hole_2:
-                                {}
-                              base/big_hole_3:
-                                {}
-                              base/big_hole_4:
-                                {}
-                              base/cable_pin1:
-                                {}
-                              base/cable_pin2:
-                                {}
-                              base/cable_pin3:
-                                {}
-                              base/cable_pin4:
-                                {}
-                              base/corner_1:
-                                {}
-                              base/corner_2:
-                                {}
-                              base/corner_3:
-                                {}
-                              base/corner_4:
-                                {}
-                              base/default_grasp:
-                                {}
-                              base/panel_bearing_screw_hole_1:
-                                {}
-                              base/panel_bearing_screw_hole_2:
-                                {}
-                              base/panel_bearing_screw_hole_aligner_1:
-                                {}
-                              base/panel_bearing_screw_hole_aligner_2:
-                                {}
-                              base/panel_motor_screw_hole_1:
-                                {}
-                              base/panel_motor_screw_hole_2:
-                                {}
-                              base/panel_motor_screw_hole_aligner_1:
-                                {}
-                              base/panel_motor_screw_hole_aligner_2:
-                                {}
-                              base/terminal_top:
-                                {}
-                              base/under_outer_hole:
-                                {}
-                              panel_bearing/base_link:
-                                panel_bearing/bearing_screw_hole_1:
-                                  {}
-                                panel_bearing/bearing_screw_hole_2:
-                                  {}
-                                panel_bearing/bearing_screw_hole_3:
-                                  {}
-                                panel_bearing/bearing_screw_hole_4:
-                                  {}
-                                panel_bearing/bottom_corner_1:
-                                  {}
-                                panel_bearing/bottom_corner_2:
-                                  {}
-                                panel_bearing/bottom_screw_hole_1:
-                                  {}
-                                panel_bearing/bottom_screw_hole_2:
-                                  {}
-                                panel_bearing/bottom_screw_hole_aligner_1:
-                                  {}
-                                panel_bearing/bottom_screw_hole_aligner_2:
-                                  {}
-                                panel_bearing/default_grasp:
-                                  {}
-                                panel_bearing/front_hole:
-                                  {}
-                                panel_bearing/pulley_ridge_bottom:
-                                  {}
-                                panel_bearing/pulley_ridge_middle:
-                                  {}
-                                panel_bearing/pulley_ridge_top:
-                                  {}
+                            {}
                           workbench_right_border:
                             {}
                           workbench_table_top_center:
@@ -2510,171 +1473,7 @@ Visualization Manager:
               cage_upper_right_bar:
                 {}
             workspace_center:
-              plate:
-                plate_lower_left_corner:
-                  bin_1_part_16:
-                    bin_1_part_16_bottom_back_left_corner:
-                      {}
-                    bin_1_part_16_bottom_back_right_corner:
-                      {}
-                    bin_1_part_16_bottom_front_left_corner:
-                      {}
-                    bin_1_part_16_bottom_front_right_corner:
-                      {}
-                    bin_1_part_16_top_back_left_corner:
-                      {}
-                    bin_1_part_16_top_back_right_corner:
-                      {}
-                    bin_1_part_16_top_front_left_corner:
-                      {}
-                    bin_1_part_16_top_front_right_corner:
-                      {}
-                  bin_1_part_17:
-                    bin_1_part_17_bottom_back_left_corner:
-                      {}
-                    bin_1_part_17_bottom_back_right_corner:
-                      {}
-                    bin_1_part_17_bottom_front_left_corner:
-                      {}
-                    bin_1_part_17_bottom_front_right_corner:
-                      {}
-                    bin_1_part_17_top_back_left_corner:
-                      {}
-                    bin_1_part_17_top_back_right_corner:
-                      {}
-                    bin_1_part_17_top_front_left_corner:
-                      {}
-                    bin_1_part_17_top_front_right_corner:
-                      {}
-                  bin_1_part_5:
-                    bin_1_part_5_bottom_back_left_corner:
-                      {}
-                    bin_1_part_5_bottom_back_right_corner:
-                      {}
-                    bin_1_part_5_bottom_front_left_corner:
-                      {}
-                    bin_1_part_5_bottom_front_right_corner:
-                      {}
-                    bin_1_part_5_top_back_left_corner:
-                      {}
-                    bin_1_part_5_top_back_right_corner:
-                      {}
-                    bin_1_part_5_top_front_left_corner:
-                      {}
-                    bin_1_part_5_top_front_right_corner:
-                      {}
-                  bin_2_part_4:
-                    bin_2_part_4_bottom_back_left_corner:
-                      {}
-                    bin_2_part_4_bottom_back_right_corner:
-                      {}
-                    bin_2_part_4_bottom_front_left_corner:
-                      {}
-                    bin_2_part_4_bottom_front_right_corner:
-                      {}
-                    bin_2_part_4_top_back_left_corner:
-                      {}
-                    bin_2_part_4_top_back_right_corner:
-                      {}
-                    bin_2_part_4_top_front_left_corner:
-                      {}
-                    bin_2_part_4_top_front_right_corner:
-                      {}
-                  bin_2_part_7:
-                    bin_2_part_7_bottom_back_left_corner:
-                      {}
-                    bin_2_part_7_bottom_back_right_corner:
-                      {}
-                    bin_2_part_7_bottom_front_left_corner:
-                      {}
-                    bin_2_part_7_bottom_front_right_corner:
-                      {}
-                    bin_2_part_7_top_back_left_corner:
-                      {}
-                    bin_2_part_7_top_back_right_corner:
-                      {}
-                    bin_2_part_7_top_front_left_corner:
-                      {}
-                    bin_2_part_7_top_front_right_corner:
-                      {}
-                  bin_2_part_8:
-                    bin_2_part_8_bottom_back_left_corner:
-                      {}
-                    bin_2_part_8_bottom_back_right_corner:
-                      {}
-                    bin_2_part_8_bottom_front_left_corner:
-                      {}
-                    bin_2_part_8_bottom_front_right_corner:
-                      {}
-                    bin_2_part_8_top_back_left_corner:
-                      {}
-                    bin_2_part_8_top_back_right_corner:
-                      {}
-                    bin_2_part_8_top_front_left_corner:
-                      {}
-                    bin_2_part_8_top_front_right_corner:
-                      {}
-                  tray_2:
-                    tray_2_divider2:
-                      {}
-                    tray_2_partition_1:
-                      tray_2_partition_1_pickup:
-                        {}
-                    tray_2_partition_2:
-                      tray_2_partition_2_pickup:
-                        {}
-                    tray_2_partition_3:
-                      tray_2_partition_3_pickup:
-                        {}
-                    tray_2_partition_4:
-                      tray_2_partition_4_pickup:
-                        {}
-                    tray_2_partition_5:
-                      tray_2_partition_5_pickup:
-                        {}
-                    tray_2_partition_6:
-                      tray_2_partition_6_pickup:
-                        {}
-                    tray_2_partition_7:
-                      tray_2_partition_7_pickup:
-                        {}
-                    tray_2_partition_8:
-                      tray_2_partition_8_pickup_1:
-                        {}
-                      tray_2_partition_8_pickup_2:
-                        {}
-                    tray_2_screw_holder:
-                      {}
-                    tray_2_screw_m3_1:
-                      {}
-                    tray_2_screw_m3_2:
-                      {}
-                    tray_2_screw_m3_3:
-                      {}
-                    tray_2_screw_m3_4:
-                      {}
-                    tray_2_screw_m3_5:
-                      {}
-                    tray_2_screw_m3_6:
-                      {}
-                    tray_2_screw_m4_1:
-                      {}
-                    tray_2_screw_m4_2:
-                      {}
-                    tray_2_screw_m4_3:
-                      {}
-                    tray_2_screw_m4_4:
-                      {}
-                    tray_2_screw_m4_5:
-                      {}
-                    tray_2_screw_m4_6:
-                      {}
-                    tray_2_screw_m4_7:
-                      {}
-                    tray_2_screw_m4_8:
-                      {}
-                    tray_2_screw_m4_9:
-                      {}
+              {}
             workspace_table_base_link:
               workspace_table_leg1:
                 {}
@@ -2758,20 +1557,20 @@ Visualization Manager:
       Max Value: 1
       Median window: 5
       Min Value: 0
-      Name: aruco_result
+      Name: ABotCameraImage
       Normalize Range: true
       Queue Size: 2
       Transport Hint: raw
       Unreliable: false
       Value: true
     - Class: rviz/Marker
-      Enabled: true
+      Enabled: false
       Marker Topic: /collision_object_manager/collision_marker
-      Name: Marker
+      Name: CollisionObjectMarker
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -2789,7 +1588,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.5184897184371948
+      Distance: 1.0348082780838013
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -2797,22 +1596,24 @@ Visualization Manager:
         Value: false
       Field of View: 0.75
       Focal Point:
-        X: -0.5236605405807495
-        Y: -0.15902221202850342
-        Z: 1.0798569917678833
+        X: -0.42501774430274963
+        Y: -0.2111632525920868
+        Z: 0.9935421943664551
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.08602086454629898
+      Pitch: 0.26102083921432495
       Target Frame: world
-      Yaw: 0.9740235805511475
+      Yaw: 1.0740234851837158
     Saved: ~
 Window Geometry:
+  ABotCameraImage:
+    collapsed: false
   Displays:
     collapsed: false
-  Height: 757
+  Height: 914
   Help:
     collapsed: false
   Hide Left Dock: false
@@ -2821,11 +1622,9 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000002650000029ffc0200000007fc0000003b000001a6000001840100001afa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001ca00fffffffb000000100044006900730070006c0061007900730100000000000001f00000015600fffffffb0000000800480065006c00700000000342000000bb0000006e00fffffffb0000000a00560069006500770073000000010c000000a4000000a000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016fb000000180061007200750063006f005f0072006500730075006c007401000001e7000000f30000001600ffffff000003a90000029f00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000001f30000033cfc0200000007fc0000003b0000020f000001840100001afa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001ca00fffffffb000000100044006900730070006c0061007900730100000000000001f00000015600fffffffb0000000800480065006c00700000000342000000bb0000006e00fffffffb0000000a00560069006500770073000000010c000000a4000000a000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016fb0000001e00410042006f007400430061006d0065007200610049006d0061006700650100000250000001270000001600ffffff0000041b0000033c00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
   Width: 1556
-  X: 899
-  Y: 123
-  aruco_result:
-    collapsed: false
+  X: 1004
+  Y: 27

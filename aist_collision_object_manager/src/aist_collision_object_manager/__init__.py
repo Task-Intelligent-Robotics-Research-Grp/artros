@@ -41,10 +41,9 @@ from aist_msgs.srv import ManageCollisionObject, ManageCollisionObjectRequest
 #  class CollisionObjectManagerClient                                   #
 #########################################################################
 class CollisionObjectManagerClient(object):
-    def __init__(self, listener, server='collision_object_manager'):
+    def __init__(self, server='collision_object_manager'):
         super().__init__()
 
-        self._listener    = listener
         try:
             service = server + '/manage_collision_object'
             rospy.wait_for_service(service, timeout=5.0)
@@ -52,16 +51,15 @@ class CollisionObjectManagerClient(object):
         except rospy.ROSException as e:
             rospy.logerr(e)
 
-    def create_object(self, object_type, frame_id, pose,
-                      subframe_link='', object_id=''):
+    def create_object(self, object_type, pose,
+                      subframe='base_link', object_id=''):
         req = ManageCollisionObjectRequest()
         req.op          = ManageCollisionObjectRequest.CREATE_OBJECT
         req.object_type = object_type
         req.object_id   = object_id if object_id != '' else object_type
-        req.frame_id    = frame_id
-        req.subframe    = CollisionObjectManagerClient \
-                         ._subframe_name(subframe_link)
-        req.pose        = pose
+        req.subframe    = subframe
+        req.frame_id    = pose.header.frame_id
+        req.pose        = pose.pose
         return self._send(req).success
 
     def remove_object(self, object_id='', frame_id=''):
@@ -71,25 +69,33 @@ class CollisionObjectManagerClient(object):
         req.frame_id  = frame_id
         return self._send(req).success
 
-    def attach_object(self, object_id, frame_id, pose, subframe_link=''):
+    def attach_object(self, object_id, parent_link):
         req = ManageCollisionObjectRequest()
         req.op        = ManageCollisionObjectRequest.ATTACH_OBJECT
         req.object_id = object_id
-        req.frame_id  = frame_id
-        req.subframe  = CollisionObjectManagerClient \
-                       ._subframe_name(subframe_link)
-        req.pose      = pose
-        return self._send(req).success
+        req.frame_id  = parent_link
+        req.leaf_id   = ''
+        res = self._send(req)
+        return res.info if res.success else None
 
-    def detach_object(self, object_id, frame_id, pose, subframe_link=''):
+    def detach_object(self, object_id, parent_link, leaf_id=''):
         req = ManageCollisionObjectRequest()
         req.op        = ManageCollisionObjectRequest.DETACH_OBJECT
         req.object_id = object_id
-        req.frame_id  = frame_id
-        req.subframe  = CollisionObjectManagerClient \
-                       ._subframe_name(subframe_link)
-        req.pose      = pose
-        return self._send(req).success
+        req.frame_id  = parent_link
+        req.leaf_id   = leaf_id
+        res = self._send(req)
+        return res.info if res.success else None
+
+    def move_object(self, object_id, pose, subframe='base_link'):
+        req = ManageCollisionObjectRequest()
+        req.op        = ManageCollisionObjectRequest.MOVE_OBJECT
+        req.object_id = object_id
+        req.subframe  = subframe
+        req.frame_id  = pose.header.frame_id
+        req.pose      = pose.pose
+        res = self._send(req)
+        return res.info if res.success else None
 
     def append_touch_links(self, object_id, touch_link):
         req = ManageCollisionObjectRequest()
@@ -117,9 +123,10 @@ class CollisionObjectManagerClient(object):
         res = self._send(req)
         return res.info if res.success else None
 
-    @staticmethod
-    def _subframe_name(subframe_link):
-        if subframe_link == '':
-            return 'base_link'
-        tokens = subframe_link.rsplit('/', 1)
-        return tokens[0] if len(tokens) == 1 else tokens[1]
+    def get_child_object_info(self, frame_id):
+        req          = ManageCollisionObjectRequest()
+        req.op       = ManageCollisionObjectRequest \
+                      .GET_ATTACHED_CHILD_OBJECT_INFO
+        req.frame_id = frame_id
+        res = self._send(req)
+        return res.info if res.success else None

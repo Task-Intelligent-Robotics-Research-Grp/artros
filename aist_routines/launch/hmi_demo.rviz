@@ -5,10 +5,9 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /MotionPlanning1/Planning Request1
-        - /TF1
         - /TF1/Frames1
-      Splitter Ratio: 0.7746478915214539
-    Tree Height: 475
+      Splitter Ratio: 0.6720321774482727
+    Tree Height: 378
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -238,6 +237,35 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          a_bot_usb_repeater_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_usb_repeater_body:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_usb_repeater_front_leg:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_usb_repeater_left_leg:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_usb_repeater_plate:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_usb_repeater_right_leg:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           a_bot_wrist_1_link:
             Alpha: 1
             Show Axes: false
@@ -420,6 +448,35 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          b_bot_usb_repeater_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_usb_repeater_body:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          b_bot_usb_repeater_front_leg:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          b_bot_usb_repeater_left_leg:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          b_bot_usb_repeater_plate:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          b_bot_usb_repeater_right_leg:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           b_bot_wrist_1_link:
             Alpha: 1
             Show Axes: false
@@ -440,6 +497,15 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          base_fixture_head_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          base_fixture_head_tip_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           base_fixture_piston:
             Alpha: 1
             Show Axes: false
@@ -776,7 +842,12 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          screw_feeder_m3_front_side:
+          screw_feeder_m3_front_left_side:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          screw_feeder_m3_front_right_side:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -799,7 +870,12 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          screw_feeder_m4_front_side:
+          screw_feeder_m4_front_left_side:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          screw_feeder_m4_front_right_side:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -1299,6 +1375,35 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          a_bot_usb_repeater_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_usb_repeater_body:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_usb_repeater_front_leg:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_usb_repeater_left_leg:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_usb_repeater_plate:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_usb_repeater_right_leg:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           a_bot_wrist_1_link:
             Alpha: 1
             Show Axes: false
@@ -1481,6 +1586,35 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          b_bot_usb_repeater_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_usb_repeater_body:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          b_bot_usb_repeater_front_leg:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          b_bot_usb_repeater_left_leg:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          b_bot_usb_repeater_plate:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          b_bot_usb_repeater_right_leg:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           b_bot_wrist_1_link:
             Alpha: 1
             Show Axes: false
@@ -1501,6 +1635,15 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          base_fixture_head_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          base_fixture_head_tip_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           base_fixture_piston:
             Alpha: 1
             Show Axes: false
@@ -1837,7 +1980,12 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          screw_feeder_m3_front_side:
+          screw_feeder_m3_front_left_side:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          screw_feeder_m3_front_right_side:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -1860,7 +2008,12 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          screw_feeder_m4_front_side:
+          screw_feeder_m4_front_left_side:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          screw_feeder_m4_front_right_side:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -2242,6 +2395,18 @@ Visualization Manager:
           Value: false
         a_bot_upper_arm_link:
           Value: false
+        a_bot_usb_repeater_base_link:
+          Value: false
+        a_bot_usb_repeater_body:
+          Value: false
+        a_bot_usb_repeater_front_leg:
+          Value: false
+        a_bot_usb_repeater_left_leg:
+          Value: false
+        a_bot_usb_repeater_plate:
+          Value: false
+        a_bot_usb_repeater_right_leg:
+          Value: false
         a_bot_wrist_1_link:
           Value: false
         a_bot_wrist_2_link:
@@ -2326,6 +2491,18 @@ Visualization Manager:
           Value: false
         b_bot_upper_arm_link:
           Value: false
+        b_bot_usb_repeater_base_link:
+          Value: false
+        b_bot_usb_repeater_body:
+          Value: false
+        b_bot_usb_repeater_front_leg:
+          Value: false
+        b_bot_usb_repeater_left_leg:
+          Value: false
+        b_bot_usb_repeater_plate:
+          Value: false
+        b_bot_usb_repeater_right_leg:
+          Value: false
         b_bot_wrist_1_link:
           Value: false
         b_bot_wrist_2_link:
@@ -2333,7 +2510,7 @@ Visualization Manager:
         b_bot_wrist_3_link:
           Value: false
         base/base_link:
-          Value: true
+          Value: false
         base/big_hole_1:
           Value: false
         base/big_hole_2:
@@ -2359,15 +2536,15 @@ Visualization Manager:
         base/corner_4:
           Value: false
         base/default_grasp:
-          Value: true
+          Value: false
         base/panel_bearing_screw_hole_1:
           Value: false
         base/panel_bearing_screw_hole_2:
           Value: false
         base/panel_bearing_screw_hole_aligner_1:
-          Value: true
+          Value: false
         base/panel_bearing_screw_hole_aligner_2:
-          Value: true
+          Value: false
         base/panel_motor_screw_hole_1:
           Value: false
         base/panel_motor_screw_hole_2:
@@ -2382,12 +2559,16 @@ Visualization Manager:
           Value: false
         base_fixture_base_link:
           Value: false
+        base_fixture_head_base_link:
+          Value: false
+        base_fixture_head_tip_link:
+          Value: false
         base_fixture_piston:
           Value: false
         base_fixture_piston_head:
-          Value: true
+          Value: false
         base_fixture_tip_link:
-          Value: true
+          Value: false
         bin_1_part_16:
           Value: false
         bin_1_part_16_bottom_back_left_corner:
@@ -2530,6 +2711,14 @@ Visualization Manager:
           Value: false
         panel_bearing/base_link:
           Value: true
+        panel_bearing/base_screw_hole_1:
+          Value: false
+        panel_bearing/base_screw_hole_2:
+          Value: false
+        panel_bearing/base_screw_hole_aligner_1:
+          Value: true
+        panel_bearing/base_screw_hole_aligner_2:
+          Value: true
         panel_bearing/bearing_screw_hole_1:
           Value: false
         panel_bearing/bearing_screw_hole_2:
@@ -2542,14 +2731,6 @@ Visualization Manager:
           Value: false
         panel_bearing/bottom_corner_2:
           Value: false
-        panel_bearing/bottom_screw_hole_1:
-          Value: false
-        panel_bearing/bottom_screw_hole_2:
-          Value: false
-        panel_bearing/bottom_screw_hole_aligner_1:
-          Value: true
-        panel_bearing/bottom_screw_hole_aligner_2:
-          Value: true
         panel_bearing/default_grasp:
           Value: true
         panel_bearing/front_hole:
@@ -2563,9 +2744,9 @@ Visualization Manager:
         plate:
           Value: false
         plate_lower_left_corner:
-          Value: true
+          Value: false
         precision_tool/base_link:
-          Value: true
+          Value: false
         precision_tool/tip_link:
           Value: true
         precision_tool_holder_base_link:
@@ -2573,8 +2754,10 @@ Visualization Manager:
         precision_tool_holder_link:
           Value: false
         screw_feeder_m3_base_link:
-          Value: true
-        screw_feeder_m3_front_side:
+          Value: false
+        screw_feeder_m3_front_left_side:
+          Value: false
+        screw_feeder_m3_front_right_side:
           Value: false
         screw_feeder_m3_gap:
           Value: false
@@ -2583,29 +2766,31 @@ Visualization Manager:
         screw_feeder_m3_outlet_link:
           Value: true
         screw_feeder_m4_base_link:
-          Value: true
-        screw_feeder_m4_front_side:
+          Value: false
+        screw_feeder_m4_front_left_side:
+          Value: false
+        screw_feeder_m4_front_right_side:
           Value: false
         screw_feeder_m4_gap:
-          Value: true
+          Value: false
         screw_feeder_m4_inlet_link:
           Value: true
         screw_feeder_m4_outlet_link:
           Value: true
         screw_m3_1/base_link:
           Value: false
-        screw_m3_1/screw_head:
+        screw_m3_1/head:
           Value: true
-        screw_m3_1/screw_tip:
+        screw_m3_1/tip_link:
           Value: true
         screw_m4_1/base_link:
           Value: false
-        screw_m4_1/screw_head:
+        screw_m4_1/head:
           Value: true
-        screw_m4_1/screw_tip:
+        screw_m4_1/tip_link:
           Value: true
         screw_tool_m3/base_link:
-          Value: true
+          Value: false
         screw_tool_m3/tip_link:
           Value: true
         screw_tool_m3_holder_base_link:
@@ -2613,7 +2798,7 @@ Visualization Manager:
         screw_tool_m3_holder_link:
           Value: false
         screw_tool_m4/base_link:
-          Value: true
+          Value: false
         screw_tool_m4/tip_link:
           Value: true
         screw_tool_m4_holder_base_link:
@@ -2701,29 +2886,29 @@ Visualization Manager:
         virtual_screen:
           Value: false
         workbench_back_bar:
-          Value: true
+          Value: false
         workbench_base_link:
-          Value: true
+          Value: false
         workbench_center_bar:
-          Value: true
+          Value: false
         workbench_front_border:
-          Value: true
+          Value: false
         workbench_holder_link:
-          Value: true
+          Value: false
         workbench_right_bar:
-          Value: true
+          Value: false
         workbench_right_border:
-          Value: true
+          Value: false
         workbench_table_base_link:
-          Value: true
+          Value: false
         workbench_table_leg1:
-          Value: true
+          Value: false
         workbench_table_leg2:
-          Value: true
+          Value: false
         workbench_table_leg3:
-          Value: true
+          Value: false
         workbench_table_top:
-          Value: true
+          Value: false
         workbench_table_top_center:
           Value: true
         workbench_table_top_origin:
@@ -2765,6 +2950,16 @@ Visualization Manager:
                     a_bot_forearm_link:
                       a_bot_wrist_1_link:
                         a_bot_wrist_2_link:
+                          a_bot_usb_repeater_base_link:
+                            a_bot_usb_repeater_front_leg:
+                              {}
+                            a_bot_usb_repeater_left_leg:
+                              {}
+                            a_bot_usb_repeater_plate:
+                              a_bot_usb_repeater_body:
+                                {}
+                            a_bot_usb_repeater_right_leg:
+                              {}
                           a_bot_wrist_3_link:
                             a_bot_flange:
                               a_bot_gripper_coupling_base_link:
@@ -2815,6 +3010,16 @@ Visualization Manager:
                     b_bot_forearm_link:
                       b_bot_wrist_1_link:
                         b_bot_wrist_2_link:
+                          b_bot_usb_repeater_base_link:
+                            b_bot_usb_repeater_front_leg:
+                              {}
+                            b_bot_usb_repeater_left_leg:
+                              {}
+                            b_bot_usb_repeater_plate:
+                              b_bot_usb_repeater_body:
+                                {}
+                            b_bot_usb_repeater_right_leg:
+                              {}
                           b_bot_wrist_3_link:
                             b_bot_flange:
                               b_bot_gripper_coupling_base_link:
@@ -2891,25 +3096,29 @@ Visualization Manager:
                             {}
                   workbench_base_link:
                     screw_feeder_m3_base_link:
-                      screw_feeder_m3_front_side:
+                      screw_feeder_m3_front_left_side:
                         screw_feeder_m3_gap:
                           screw_feeder_m3_outlet_link:
                             screw_m3_1/base_link:
-                              screw_m3_1/screw_head:
+                              screw_m3_1/head:
                                 {}
-                              screw_m3_1/screw_tip:
+                              screw_m3_1/tip_link:
                                 {}
+                      screw_feeder_m3_front_right_side:
+                        {}
                       screw_feeder_m3_inlet_link:
                         {}
                       screw_feeder_m4_base_link:
-                        screw_feeder_m4_front_side:
+                        screw_feeder_m4_front_left_side:
                           screw_feeder_m4_gap:
                             screw_feeder_m4_outlet_link:
                               screw_m4_1/base_link:
-                                screw_m4_1/screw_head:
+                                screw_m4_1/head:
                                   {}
-                                screw_m4_1/screw_tip:
+                                screw_m4_1/tip_link:
                                   {}
+                        screw_feeder_m4_front_right_side:
+                          {}
                         screw_feeder_m4_inlet_link:
                           {}
                     workbench_back_bar:
@@ -2930,7 +3139,9 @@ Visualization Manager:
                           base_fixture_base_link:
                             base_fixture_piston:
                               base_fixture_piston_head:
-                                {}
+                                base_fixture_head_base_link:
+                                  base_fixture_head_tip_link:
+                                    {}
                             base_fixture_tip_link:
                               {}
                           workbench_front_border:
@@ -2984,6 +3195,14 @@ Visualization Manager:
                               base/under_outer_hole:
                                 {}
                               panel_bearing/base_link:
+                                panel_bearing/base_screw_hole_1:
+                                  {}
+                                panel_bearing/base_screw_hole_2:
+                                  {}
+                                panel_bearing/base_screw_hole_aligner_1:
+                                  {}
+                                panel_bearing/base_screw_hole_aligner_2:
+                                  {}
                                 panel_bearing/bearing_screw_hole_1:
                                   {}
                                 panel_bearing/bearing_screw_hole_2:
@@ -2995,14 +3214,6 @@ Visualization Manager:
                                 panel_bearing/bottom_corner_1:
                                   {}
                                 panel_bearing/bottom_corner_2:
-                                  {}
-                                panel_bearing/bottom_screw_hole_1:
-                                  {}
-                                panel_bearing/bottom_screw_hole_2:
-                                  {}
-                                panel_bearing/bottom_screw_hole_aligner_1:
-                                  {}
-                                panel_bearing/bottom_screw_hole_aligner_2:
                                   {}
                                 panel_bearing/default_grasp:
                                   {}
@@ -3337,35 +3548,35 @@ Visualization Manager:
     - Alpha: 1
       Arrow Width: 0.5
       Class: rviz/WrenchStamped
-      Enabled: false
-      Force Arrow Scale: 5
+      Enabled: true
+      Force Arrow Scale: 0.10000000149011612
       Force Color: 204; 51; 51
       Hide Small Values: true
       History Length: 1
       Name: ABotWrench
       Queue Size: 10
       Topic: /a_bot/wrench
-      Torque Arrow Scale: 2
+      Torque Arrow Scale: 1
       Torque Color: 204; 204; 51
       Unreliable: false
-      Value: false
+      Value: true
     - Alpha: 1
       Arrow Width: 0.5
       Class: rviz/WrenchStamped
-      Enabled: false
-      Force Arrow Scale: 10
+      Enabled: true
+      Force Arrow Scale: 0.10000000149011612
       Force Color: 204; 51; 51
       Hide Small Values: true
       History Length: 1
       Name: BBotWrench
       Queue Size: 10
       Topic: /b_bot/wrench
-      Torque Arrow Scale: 10
+      Torque Arrow Scale: 1
       Torque Color: 204; 204; 51
       Unreliable: false
-      Value: false
+      Value: true
     - Class: rviz/Image
-      Enabled: false
+      Enabled: true
       Image Topic: /camera_multiplexer/image
       Max Value: 1
       Median window: 5
@@ -3375,7 +3586,7 @@ Visualization Manager:
       Queue Size: 2
       Transport Hint: raw
       Unreliable: false
-      Value: false
+      Value: true
     - Class: rviz/Marker
       Enabled: false
       Marker Topic: /collision_object_manager/collision_marker
@@ -3384,6 +3595,30 @@ Visualization Manager:
         {}
       Queue Size: 100
       Value: false
+    - Class: rviz/Image
+      Enabled: true
+      Image Topic: /feature_tracker/result_image
+      Max Value: 1
+      Median window: 5
+      Min Value: 0
+      Name: TrackingResultImage
+      Normalize Range: true
+      Queue Size: 2
+      Transport Hint: raw
+      Unreliable: false
+      Value: true
+    - Class: rviz/Image
+      Enabled: true
+      Image Topic: /feature_tracker/debug_image
+      Max Value: 1
+      Median window: 5
+      Min Value: 0
+      Name: TrackingDebugImage
+      Normalize Range: true
+      Queue Size: 2
+      Transport Hint: raw
+      Unreliable: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -3412,7 +3647,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.2423486709594727
+      Distance: 8.401493072509766
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -3420,24 +3655,24 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.3023425340652466
-        Y: 0.02974531427025795
-        Z: 0.6291046738624573
+        X: -0.009585230611264706
+        Y: -0.02021036110818386
+        Z: 0.4034900367259979
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6523289084434509
+      Pitch: 0.5947965383529663
       Target Frame: <Fixed Frame>
-      Yaw: 0.44147518277168274
+      Yaw: 1.5564745664596558
     Saved: ~
 Window Geometry:
   CameraMultiplexerImage:
     collapsed: false
   Displays:
     collapsed: false
-  Height: 928
+  Height: 1043
   Hide Left Dock: false
   Hide Right Dock: true
   LiveCamera:
@@ -3448,15 +3683,19 @@ Window Geometry:
     collapsed: false
   PhoxiTexture:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000400000000000001f300000346fc0200000012fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000b0fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afc0000003d000002350000019a0100001cfa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001f300fffffffb000000100044006900730070006c0061007900730100000000000002ad0000015600fffffffb0000001800500068006f00780069005400650078007400750072006500000002930000007d0000001600fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb000000120020002d00200053006c00690064006500720000000000ffffffff0000000000000000fb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c00690064006500720000000000ffffffff0000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016fb0000001c004d0075006c007400690070006c006500780065007200520047004201000002f70000009a0000000000000000fb0000000a0049006d00610067006501000001e7000000f80000000000000000fb0000000a0049006d00610067006501000002e50000011d0000000000000000fb0000001800500068006f0078006900540065007800740075007200650100000256000000d00000000000000000fb00000014004c00690076006500430061006d00650072006101000002780000010b0000001600fffffffb0000002c00430061006d006500720061004d0075006c007400690070006c00650078006500720049006d00610067006500000003680000008e0000001600ffffff000000010000010f000003ccfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003a000003cc000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000074f0000003efc0100000002fb0000000800540069006d006500000000000000074f0000041800fffffffb0000000800540069006d00650100000000000004500000000000000000000004bc0000034600000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000001f3000003b9fc0200000015fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000b0fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afc0000003d000001d40000019a0100001cfa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001f300fffffffb000000100044006900730070006c0061007900730100000000000002ad0000015600fffffffb00000014004c00690076006500430061006d00650072006101000002170000006d0000001600fffffffb0000001800500068006f00780069005400650078007400750072006500000002930000007d0000001600fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb000000120020002d00200053006c00690064006500720000000000ffffffff0000000000000000fb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c00690064006500720000000000ffffffff0000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016fb0000001c004d0075006c007400690070006c006500780065007200520047004201000002f70000009a0000000000000000fb0000000a0049006d00610067006501000001e7000000f80000000000000000fb0000000a0049006d00610067006501000002e50000011d0000000000000000fb0000001800500068006f0078006900540065007800740075007200650100000256000000d00000000000000000fb0000002c00430061006d006500720061004d0075006c007400690070006c00650078006500720049006d006100670065010000028a0000008b0000001600fffffffb00000020004d0075006c007400690070006c00650078006500720049006d00610067006500000002c0000001230000000000000000fb000000260054007200610063006b0069006e00670052006500730075006c00740049006d006100670065010000031b0000006c0000001600fffffffb000000240054007200610063006b0069006e0067004400650062007500670049006d006100670065010000038d000000690000001600ffffff000000010000010f000003ccfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003a000003cc000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000074f0000003efc0100000002fb0000000800540069006d006500000000000000074f0000041800fffffffb0000000800540069006d0065010000000000000450000000000000000000000587000003b900000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
     collapsed: false
   Tool Properties:
     collapsed: false
+  TrackingDebugImage:
+    collapsed: false
+  TrackingResultImage:
+    collapsed: false
   Views:
     collapsed: true
-  Width: 1717
-  X: 6487
-  Y: 46
+  Width: 1920
+  X: 6400
+  Y: 0

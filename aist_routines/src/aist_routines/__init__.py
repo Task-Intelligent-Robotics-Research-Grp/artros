@@ -102,7 +102,7 @@ class AISTBaseRoutines(object):
                       self.planning_frame, self.reference_frame, self.eef_step)
 
         # CollisionObjectManager wrapping MoveIt PlanningSceneInterface
-        self._com = CollisionObjectManagerClient(self._listener)
+        self._com = CollisionObjectManagerClient()
 
         # MoveIt GetPositionIK service client
         self._compute_ik = rospy.ServiceProxy('/compute_ik', GetPositionIK)
@@ -686,7 +686,7 @@ class AISTBaseRoutines(object):
         params = self._picking_params.get(part_id)
         if params is None:
             params = self._picking_params[
-                self.com.get_object_info(part_id).object_type]
+                         self.com.get_object_info(part_id).object_type]
         placing_params = self._placing_params.get(target_pose.header.frame_id,
                                                   params)
         if not placing_params.get('place_offset'):
@@ -708,16 +708,14 @@ class AISTBaseRoutines(object):
     def pick_at_frame(self, robot_name, target_frame, part_id,
                       offset=(), wait=True, done_cb=None, active_cb=None):
         return self.pick(robot_name,
-                         PoseStamped(Header(frame_id=target_frame),
-                                     self.pose_from_offset(offset)),
+                         self.pose_from_xyzrpy(offset, target_frame),
                          part_id, wait, done_cb, active_cb)
 
     def place_at_frame(self, robot_name, target_frame, part_id,
                        offset=(), subframe_link='',
                        wait=True, done_cb=None, active_cb=None):
         return self.place(robot_name,
-                          PoseStamped(Header(frame_id=target_frame),
-                                      self.pose_from_offset(offset)),
+                          self.pose_from_xyzrpy(offset, target_frame),
                           part_id, subframe_link, wait, done_cb, active_cb)
 
     def pick_or_place_wait_for_stage(self, stage, timeout=rospy.Duration()):
@@ -777,7 +775,8 @@ class AISTBaseRoutines(object):
         except Exception as e:
             rospy.logerr('AISTBaseRoutines.lookup_pose(): %s', str(e))
             return None
-        return Pose(Point(*t), Quaternion(*q))
+        return PoseStamped(Header(frame_id=target_frame),
+                           Pose(Point(*t), Quaternion(*q)))
 
     def correct_orientation(self, pose):
         poses = self.correct_orientations(PoseArray(pose.header, [pose.pose]))
@@ -796,9 +795,13 @@ class AISTBaseRoutines(object):
                                                   pose.orientation, up.vector)))
         return corrected_poses
 
-    def pose_from_xyzrpy(self, xyzrpy):
-        return PoseStamped(Header(frame_id=self.reference_frame),
-                           self.pose_from_offset(xyzrpy))
+    def pose_from_xyzrpy(self, xyzrpy=(), frame_id=''):
+        if frame_id == '':
+            frame_id = self.reference_frame
+        return PoseStamped(
+                   Header(frame_id=frame_id),
+                   Pose(Point(*self._position_from_offset(xyzrpy[0:3])),
+                        Quaternion(*self._orientation_from_offset(xyzrpy[3:]))))
 
     def xyzrpy_from_pose(self, pose):
         transformed_pose = self.transform_pose_to_target_frame(pose).pose
@@ -814,10 +817,6 @@ class AISTBaseRoutines(object):
     def format_pose(self, target_pose):
         return '[{:.4f}, {:.4f}, {:.4f}; {:.2f}, {:.2f}. {:.2f}]'.format(
             *self.xyzrpy_from_pose(target_pose))
-
-    def pose_from_offset(self, offset=()):
-        return Pose(Point(*self._position_from_offset(offset[0:3])),
-                    Quaternion(*self._orientation_from_offset(offset[3:])))
 
     # Private functions
     def _position_from_offset(self, offset):

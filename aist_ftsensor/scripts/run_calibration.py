@@ -18,8 +18,8 @@ class FTCalibrationRoutines(AISTBaseRoutines):
         self._robot_name = rospy.get_param('~robot_name', 'a_bot')
         self._initpose   = rospy.get_param('~initpose',    [])
         self._speed      = rospy.get_param('~speed',       0.1)
-        self._sleep_time = rospy.get_param('~sleep_time',  1.0)
-        self._check      = rospy.get_param('~check',       False)
+        self._sleep_time = rospy.get_param('~sleep_time',  2.0)
+        self._check      = False
         if not self._check:
             ns = rospy.get_param('~controller_ns',
                                  self._robot_name + '/aist_ftsensor_controller')
@@ -31,6 +31,8 @@ class FTCalibrationRoutines(AISTBaseRoutines):
                                           ns + '/save_calibration', Trigger)
             self._clear_samples       = rospy.ServiceProxy(
                                           ns + '/clear_samples', Trigger)
+            self._reset_bias          = rospy.ServiceProxy(
+                                          ns + '/reset_bias', Trigger)
 
     def run(self):
         # Reset pose
@@ -56,12 +58,20 @@ class FTCalibrationRoutines(AISTBaseRoutines):
         print('=== Calibration commands ===')
         print('  init:  go to initial pose')
         print('  calib: do calibration')
+        print('  check: check calibration')
+        print('  reset: reset bias parameters')
 
     def interactive(self, key, robot_name, axis, speed):
         if key == 'init':
             self._move_to(self._initpose)
         elif key == 'calib':
+            self._check = False
             self.calibrate()
+        elif key == 'check':
+            self._check = True
+            self.calibrate()
+        elif key == 'reset':
+            self._reset_bias()
         else:
             return super(FTCalibrationRoutines, self) \
                   .interactive(key, robot_name, axis, speed)
@@ -69,31 +79,27 @@ class FTCalibrationRoutines(AISTBaseRoutines):
 
     # Commands
     def calibrate(self):
-        self.go_to_named_pose(self._robot_name, 'home')
+        self.go_to_named_pose(self._robot_name, 'home', speed=self._speed)
         if not self._check:
             self._clear_samples()
 
         self._move_to(self._initpose)
 
         xyzrpy = copy.copy(self._initpose)
-        for i in range(9):
-            xyzrpy[3] += 5
+        xyzrpy[3] -= 60
+        xyzrpy[4] -= 60
+        for i in range(12):
             self._move_to(xyzrpy)
+            xyzrpy[3] += 10
+            xyzrpy[4] += 10
 
         xyzrpy = copy.copy(self._initpose)
-        for i in range(9):
-            xyzrpy[3] -= 5
+        xyzrpy[3] += 60
+        xyzrpy[4] -= 60
+        for i in range(12):
             self._move_to(xyzrpy)
-
-        xyzrpy = copy.copy(self._initpose)
-        for i in range(9):
-            xyzrpy[4] += 5
-            self._move_to(xyzrpy)
-
-        xyzrpy = copy.copy(self._initpose)
-        for i in range(9):
-            xyzrpy[4] -= 5
-            self._move_to(xyzrpy)
+            xyzrpy[3] -= 10
+            xyzrpy[4] += 10
 
         if not self._check:
             res = self._compute_calibration()
@@ -101,14 +107,14 @@ class FTCalibrationRoutines(AISTBaseRoutines):
             res = self._save_calibration()
             print('  save calibration: %s' % res.message)
 
-        self.go_to_named_pose(self._robot_name, 'home')
+        self.go_to_named_pose(self._robot_name, 'home', speed=self._speed)
 
     def _move_to(self, xyzrpy):
         if not self._move(xyzrpy):
             return False
+        rospy.sleep(self._sleep_time)  # Wait for the robot to settle.
 
         if not self._check:
-            rospy.sleep(self._sleep_time)  # Wait for the robot to settle.
             self._take_sample()
         return True
 

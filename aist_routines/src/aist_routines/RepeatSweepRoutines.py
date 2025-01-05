@@ -91,8 +91,7 @@ class RepeatSweepRoutines(KittingRoutines):
         part_props = self._part_props[part_id]
         robot_name = part_props['robot_name']
         offset     = (x_offset, 0.0, 0.020)
-        pose       = PoseStamped(Header(frame_id=frame_id),
-                                 self.pose_from_offset(offset))
+        pose       = self.pose_from_xyzrpy(offset, frame_id)
         params     = self._repeat_sweep_params
         result     = self._repeat_sweep.send_goal(robot_name, pose,
                                                   params['sweep_length'],

@@ -33,6 +33,12 @@
       <arg name="manager"		value="$(arg manager)"/>
     </include>
 
+    <!-- Start live camera -->
+    <node name="live_camera" pkg="usb_cam" type="usb_cam_node"
+	  clear_params="true" output="screen">
+      <rosparam file="$(dirname)/../config/live_camera.yaml"/>
+    </node>
+
     <!-- Launch Zivid camera -->
     <!-- <include file="$(dirname)/zivid_camera.launch"> -->
     <!--   <arg name="camera_name"		value="a_bot_zivid"/> -->

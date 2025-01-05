@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="file_name"		default="servo_test"/>
+
+  <arg name="depth_topic"	value="/camera_multiplexer/depth"/>
+  <arg name="image_topic"	value="/camera_multiplexer/image"/>
+  <arg name="cinfo_topic"	value="/camera_multiplexer/camera_info"/>
+
+  <node name="rosbag_record" pkg="rosbag" type="record" output="screen"
+  	args="$(arg depth_topic) $(arg cinfo_topic) $(arg image_topic)
+	      /joint_states
+	      /tf
+	      /a_bot/wrench /b_bot/wrench
+	      /collision_object_manager/collision_marker
+	      -o $(env HOME)/catkin_ws/data/$(arg file_name)"/>
+
+</launch>
