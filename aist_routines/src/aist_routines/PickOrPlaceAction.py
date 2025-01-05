@@ -218,9 +218,6 @@ class PickOrPlace(SimpleActionClient):
                                           original_object_info.parent_link,
                                           PickOrPlace._get_object_id(
                                               gripper.tip_link))
-                        com.move_object(object_id, original_object_info.pose,
-                                        PickOrPlace._get_subframe(
-                                            goal.pose.header.frame_id))
                 raise PickOrPlace.Error(PickOrPlaceResult.DEPARTURE_FAILURE,
                                         'Failed to depart from target')
 

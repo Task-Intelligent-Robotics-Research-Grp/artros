@@ -637,21 +637,22 @@ class CollisionObjectManager(object):
                        Transform(Vector3(*tfs.translation_from_matrix(T)),
                                  Quaternion(*tfs.quaternion_from_matrix(T))))
 
-        old_root_id     = co.id
-        old_parent_link = self._get_parent_link(co.id)
-
-        # If 'co' is attached to any other collision object,
-        # reverse parent-child relation between them.
-        if self._get_attached_object(co.id) is not None:
-            parent_co = self._get_any_object(self._get_parent_id(co.id))
-            if parent_co is not None and parent_co.id != leaf_id:
-                old_root_id, old_parent_link = self._rotate_tree(parent_co,
-                                                                 leaf_id)
-                self._instance_props_dict[parent_co.id].subframe_transforms[0]\
-                    = _inverse_transform(self._instance_props_dict[co.id]\
-                                             .subframe_transforms[0])
-        else:  # Reached the root! Convert 'co' to attached collision object.
+        # If 'co' is not attached to any links, we have reached root!
+        if self._get_attached_object(co.id) is None:
             self._psi.attach_object(co, co.header.frame_id)
+            return co.id, self._get_parent_link(co.id)
+
+        # If 'co' is not attached to any other collision object or attached
+        # to an object with ID of 'leaf_id', we have reached root!
+        parent_co = self._get_any_object(self._get_parent_id(co.id))
+        if parent_co is None or parent_co.id == leaf_id:
+            return co.id, self._get_parent_link(co.id)
+
+        # Reverse parent-child relation between 'co' and its parent.
+        old_root_id, old_parent_link = self._rotate_tree(parent_co, leaf_id)
+        self._instance_props_dict[parent_co.id].subframe_transforms[0] \
+            = _inverse_transform(
+                    self._instance_props_dict[co.id].subframe_transforms[0])
         return old_root_id, old_parent_link
 
     def _attach_descendants(self, co, attach_link, T):
