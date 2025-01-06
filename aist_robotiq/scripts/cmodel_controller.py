@@ -218,14 +218,15 @@ class CModelController(object):
         # correctly reflects the requested position if _status_cb() is
         # called before _send_move_command(). Thus we have to use
         # self._goal_rPR instead of status.gPR.
-        return (status.gOBJ == 1 and status.gPO > self._goal_rPR) or \
-               (status.gOBJ == 2 and status.gPO < self._goal_rPR)
+        # return (status.gOBJ == 1 and status.gPO > self._goal_rPR) or \
+        #        (status.gOBJ == 2 and status.gPO < self._goal_rPR)
+        return status.gOBJ == 1 or status.gOBJ == 2
 
     def _reached_goal(self, status):
         # ibid
-        # return abs(status.gPO - self._goal_rPR) <= 1
+        return abs(status.gPO - self._goal_rPR) <= 1
         # return status.gPO == self._goal_rPR
-        return status.gOBJ == 3
+        # return status.gOBJ == 3
 
     def _status_values(self, status):
         return self._position(status), self._effort(status), \

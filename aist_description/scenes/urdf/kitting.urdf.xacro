@@ -12,7 +12,7 @@
 		  length="${plate_l}"
 		  height="${plate_h}"
 		  parent="workspace_center">
-    <origin xyz="-0.062 ${-plate_l/2} 0" rpy="0 0 0"/>
+    <origin xyz="-0.065 ${-plate_l/2} 0" rpy="0 0 0"/>
   </xacro:aist_box>
   <link name="plate_lower_left_corner"/>
   <joint name="plate_corner_joint" type="fixed">
