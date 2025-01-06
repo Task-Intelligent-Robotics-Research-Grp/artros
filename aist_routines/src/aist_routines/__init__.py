@@ -205,6 +205,7 @@ class AISTBaseRoutines(object):
         print('  grasp:       grasp with the current gripper')
         print('  postgrasp:   postgrasp with the current gripper')
         print('  release:     release with the current gripper')
+        print('  gpos:        set gripper position')
         print('=== Fastening tool commands ===')
         print('  tighten:     tighten screw')
         print('  loosen:      loosen screw')
@@ -345,6 +346,9 @@ class AISTBaseRoutines(object):
             self.postgrasp(robot_name)
         elif key == 'release':
             self.release(robot_name)
+        elif key == 'gpos':
+            position = float(raw_input('  position? '))
+            self.set_gripper_position(robot_name, position)
 
         # Fastening tool stuffs
         elif key == 'tighten':
