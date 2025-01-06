@@ -221,8 +221,8 @@ class AssemblyRoutines(URRoutines):
                                        config['parent_link']),
                                    config.get('subframe', 'base_link'))
             rospy.sleep(0.5)
-            if object_type == 'panel_bearing' or object_type == 'panel_motor':
-                self.com.attach_object(object_type, config['parent_link'])
+            # if object_type == 'panel_bearing' or object_type == 'panel_motor':
+            #     self.com.attach_object(object_type, config['parent_link'])
             # if object_type == 'base':
             #     self.com.attach_object(object_type, config['parent_link'])
 
