@@ -40,7 +40,7 @@
 
   <!-- workspace -->
   <xacro:property name="table_w"	value="0.900"/>
-  <xacro:property name="table_l"	value="0.700"/>
+  <xacro:property name="table_l"	value="0.750"/>
   <xacro:include filename="$(find aist_description
 			   )/objects/urdf/table.urdf.xacro"/>
   <xacro:table prefix="workspace_table_"
@@ -57,7 +57,7 @@
   </joint>
 
   <!-- tables for mounting robot arms -->
-  <xacro:property name="bot_table_size"	value="0.275"/>
+  <xacro:property name="bot_table_size"	value="0.225"/>
   <xacro:table prefix="a_bot_table_"
 	       width="${bot_table_size}" length="${bot_table_size}"
 	       height="${a_bot_z}" parent="ground">
