@@ -170,7 +170,7 @@ class CollisionObjectManager(object):
         def parent_link(self):
             return self.subframe_transforms[0].header.frame_id
 
-    def __init__(self, ns='', synchronous=True):
+    def __init__(self):
         """Initialize collision object manager
 
         - Load object properties from parameter '~object_properties'
@@ -235,7 +235,9 @@ class CollisionObjectManager(object):
             self._obj_props_dict[type] = obj_props
             rospy.loginfo('(CollisionObjectManager) loaded properties of type[%s]', type)
 
-        self._psi                 = psi.PlanningSceneInterface(ns, synchronous)
+        self._psi                 = psi.PlanningSceneInterface(
+                                        rospy.get_param('~ns', ''),
+                                        rospy.get_param('~synchronus', True))
         self._instance_props_dict = {}
         self._touch_links         = rospy.get_param('~touch_links', {})
         self._marker_id_min       = 0
@@ -775,5 +777,5 @@ if __name__ == '__main__':
 
   rospy.init_node('collision_object_manager', anonymous=True)
 
-  server = CollisionObjectManager(synchronous=False)
+  server = CollisionObjectManager()
   rospy.spin()

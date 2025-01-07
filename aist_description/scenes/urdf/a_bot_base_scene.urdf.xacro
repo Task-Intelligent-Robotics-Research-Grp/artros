@@ -7,7 +7,7 @@
 
   <xacro:property name="a_bot_x"	value="0"/>
   <xacro:property name="a_bot_y"	value="-0.4875"/>
-  <xacro:property name="a_bot_z"	value="0.770"/>
+  <xacro:property name="a_bot_z"	value="0.766"/>
   <xacro:property name="table_h"	value="0.770"/>
 
   <!-- ground -->
