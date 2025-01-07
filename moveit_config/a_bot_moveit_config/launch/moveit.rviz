@@ -4,7 +4,6 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /MotionPlanning1
         - /MotionPlanning1/Planning Request1
         - /TF1/Frames1
       Splitter Ratio: 0.6116700172424316
@@ -1003,7 +1002,7 @@ Visualization Manager:
         Interactive Marker Size: 0
         Joint Violation Color: 255; 0; 255
         Planning Group: a_bot_gripper
-        Query Goal State: true
+        Query Goal State: false
         Query Start State: false
         Show Workspace: false
         Start State Alpha: 1
@@ -3077,7 +3076,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.235410690307617
+      Distance: 1.0381338596343994
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -3093,9 +3092,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5460206270217896
+      Pitch: 0.47102081775665283
       Target Frame: world
-      Yaw: 0.8090237975120544
+      Yaw: 1.5190224647521973
     Saved: ~
 Window Geometry:
   ABotCameraImage:
