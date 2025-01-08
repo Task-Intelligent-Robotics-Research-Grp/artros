@@ -165,6 +165,9 @@ class CModelController(object):
         self._goal_rPR = self._send_move_command(goal.command.position,
                                                  self._velocity,
                                                  goal.command.max_effort)
+        rospy.loginfo('(%s) sent move command[position=%f, velocity=%f, max_effort=%f]',
+                      self._name, goal.command.position, self._velocity,
+                      goal.command.max_effort)
 
     def _preempt_cb(self):
         self._stop()
@@ -218,15 +221,12 @@ class CModelController(object):
         # correctly reflects the requested position if _status_cb() is
         # called before _send_move_command(). Thus we have to use
         # self._goal_rPR instead of status.gPR.
-        # return (status.gOBJ == 1 and status.gPO > self._goal_rPR) or \
-        #        (status.gOBJ == 2 and status.gPO < self._goal_rPR)
-        return status.gOBJ == 1 or status.gOBJ == 2
+        return (status.gOBJ == 1 and status.gPO > self._goal_rPR + 1) or \
+               (status.gOBJ == 2 and status.gPO + 1 < self._goal_rPR)
 
     def _reached_goal(self, status):
         # ibid
-        return abs(status.gPO - self._goal_rPR) <= 1
-        # return status.gPO == self._goal_rPR
-        # return status.gOBJ == 3
+        return status.gOBJ == 3 and abs(status.gPO - self._goal_rPR) <= 1
 
     def _status_values(self, status):
         return self._position(status), self._effort(status), \
