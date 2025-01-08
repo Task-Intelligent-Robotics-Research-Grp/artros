@@ -6,9 +6,9 @@
   <xacro:property name="a_bot_x"	value="0"/>
   <xacro:property name="a_bot_y"	value="-0.4875"/>
   <xacro:property name="a_bot_z"	value="0.766"/>
-  <xacro:property name="b_bot_x"	value="-0.002"/>
-  <xacro:property name="b_bot_y"	value="0.4875"/>
-  <xacro:property name="b_bot_z"	value="0.769"/>
+  <xacro:property name="b_bot_x"	value="-0.003"/>
+  <xacro:property name="b_bot_y"	value="0.4876"/>
+  <xacro:property name="b_bot_z"	value="0.768"/>
   <xacro:property name="b_bot_theta"	value="${pi}"/>
   <xacro:property name="table_h"	value="0.770"/>
   <xacro:property name="screen_z"	value="0.048"/>
@@ -99,7 +99,7 @@
 			   )/objects/urdf/suction_tool_holder.urdf.xacro"/>
   <xacro:suction_tool_holder prefix="suction_tool_holder_"
 			   parent="cage_tool_bar">
-    <origin xyz="0 ${suction_tool_holder_y} ${cage_t}" rpy="0 0 0"/>
+    <origin xyz="-0.003 ${suction_tool_holder_y} ${cage_t}" rpy="0 0 0"/>
   </xacro:suction_tool_holder>
 
   <!-- robot arms -->
