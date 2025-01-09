@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /TF1/Frames1
         - /PhoXiDepthCloud1/Auto Size1
+        - /DisplayContacts1
       Splitter Ratio: 0.5855130553245544
     Tree Height: 415
   - Class: rviz/Selection
@@ -228,6 +229,39 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          a_bot_table_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_table_leg1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_table_leg2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_table_leg3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_table_top:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_table_top_center:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_table_top_origin:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           a_bot_tool0:
             Alpha: 1
             Show Axes: false
@@ -439,6 +473,39 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          b_bot_table_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          b_bot_table_leg1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          b_bot_table_leg2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          b_bot_table_leg3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          b_bot_table_top:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          b_bot_table_top_center:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_table_top_origin:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           b_bot_tool0:
             Alpha: 1
             Show Axes: false
@@ -1366,6 +1433,39 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          a_bot_table_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_table_leg1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_table_leg2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_table_leg3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_table_top:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_table_top_center:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_table_top_origin:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           a_bot_tool0:
             Alpha: 1
             Show Axes: false
@@ -1577,6 +1677,39 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          b_bot_table_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          b_bot_table_leg1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          b_bot_table_leg2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          b_bot_table_leg3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          b_bot_table_top:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          b_bot_table_top_center:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_table_top_origin:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           b_bot_tool0:
             Alpha: 1
             Show Axes: false
@@ -2319,12 +2452,682 @@ Visualization Manager:
       Value: true
       Velocity_Scaling_Factor: 1
     - Class: rviz/TF
-      Enabled: false
+      Enabled: true
       Filter (blacklist): ""
       Filter (whitelist): ""
       Frame Timeout: 15
       Frames:
         All Enabled: false
+        a_bot_base:
+          Value: false
+        a_bot_base_link:
+          Value: false
+        a_bot_base_link_inertia:
+          Value: false
+        a_bot_camera_color_frame:
+          Value: false
+        a_bot_camera_color_optical_frame:
+          Value: false
+        a_bot_camera_connector_link:
+          Value: false
+        a_bot_camera_depth_frame:
+          Value: false
+        a_bot_camera_depth_optical_frame:
+          Value: false
+        a_bot_camera_left_ir_frame:
+          Value: false
+        a_bot_camera_left_ir_optical_frame:
+          Value: false
+        a_bot_camera_link:
+          Value: false
+        a_bot_camera_mount:
+          Value: false
+        a_bot_camera_right_ir_frame:
+          Value: false
+        a_bot_camera_right_ir_optical_frame:
+          Value: false
+        a_bot_flange:
+          Value: false
+        a_bot_forearm_link:
+          Value: false
+        a_bot_gripper_base_link:
+          Value: false
+        a_bot_gripper_coupling_base_link:
+          Value: false
+        a_bot_gripper_coupling_flange_link:
+          Value: false
+        a_bot_gripper_left_inner_finger:
+          Value: false
+        a_bot_gripper_left_inner_finger_pad:
+          Value: false
+        a_bot_gripper_left_inner_knuckle:
+          Value: false
+        a_bot_gripper_left_outer_finger:
+          Value: false
+        a_bot_gripper_left_outer_knuckle:
+          Value: false
+        a_bot_gripper_right_inner_finger:
+          Value: false
+        a_bot_gripper_right_inner_finger_pad:
+          Value: false
+        a_bot_gripper_right_inner_knuckle:
+          Value: false
+        a_bot_gripper_right_outer_finger:
+          Value: false
+        a_bot_gripper_right_outer_knuckle:
+          Value: false
+        a_bot_gripper_robotiq_arg2f_base_link:
+          Value: false
+        a_bot_gripper_tip_link:
+          Value: true
+        a_bot_shoulder_link:
+          Value: false
+        a_bot_table_base_link:
+          Value: false
+        a_bot_table_leg1:
+          Value: false
+        a_bot_table_leg2:
+          Value: false
+        a_bot_table_leg3:
+          Value: false
+        a_bot_table_top:
+          Value: false
+        a_bot_table_top_center:
+          Value: false
+        a_bot_table_top_origin:
+          Value: false
+        a_bot_tool0:
+          Value: false
+        a_bot_tool0_controller:
+          Value: false
+        a_bot_upper_arm_link:
+          Value: false
+        a_bot_usb_repeater_base_link:
+          Value: false
+        a_bot_usb_repeater_body:
+          Value: false
+        a_bot_usb_repeater_front_leg:
+          Value: false
+        a_bot_usb_repeater_left_leg:
+          Value: false
+        a_bot_usb_repeater_plate:
+          Value: false
+        a_bot_usb_repeater_right_leg:
+          Value: false
+        a_bot_wrist_1_link:
+          Value: false
+        a_bot_wrist_2_link:
+          Value: false
+        a_bot_wrist_3_link:
+          Value: false
+        a_motioncam_color_camera_frame:
+          Value: false
+        a_motioncam_link:
+          Value: false
+        a_motioncam_reference:
+          Value: false
+        a_motioncam_sensor:
+          Value: false
+        b_bot_base:
+          Value: false
+        b_bot_base_link:
+          Value: false
+        b_bot_base_link_inertia:
+          Value: false
+        b_bot_camera_color_frame:
+          Value: false
+        b_bot_camera_color_optical_frame:
+          Value: false
+        b_bot_camera_connector_link:
+          Value: false
+        b_bot_camera_depth_frame:
+          Value: false
+        b_bot_camera_depth_optical_frame:
+          Value: false
+        b_bot_camera_left_ir_frame:
+          Value: false
+        b_bot_camera_left_ir_optical_frame:
+          Value: false
+        b_bot_camera_link:
+          Value: false
+        b_bot_camera_mount:
+          Value: false
+        b_bot_camera_right_ir_frame:
+          Value: false
+        b_bot_camera_right_ir_optical_frame:
+          Value: false
+        b_bot_flange:
+          Value: false
+        b_bot_forearm_link:
+          Value: false
+        b_bot_gripper_base_link:
+          Value: false
+        b_bot_gripper_coupling_base_link:
+          Value: false
+        b_bot_gripper_coupling_flange_link:
+          Value: false
+        b_bot_gripper_left_inner_finger:
+          Value: false
+        b_bot_gripper_left_inner_finger_pad:
+          Value: false
+        b_bot_gripper_left_inner_knuckle:
+          Value: false
+        b_bot_gripper_left_outer_finger:
+          Value: false
+        b_bot_gripper_left_outer_knuckle:
+          Value: false
+        b_bot_gripper_right_inner_finger:
+          Value: false
+        b_bot_gripper_right_inner_finger_pad:
+          Value: false
+        b_bot_gripper_right_inner_knuckle:
+          Value: false
+        b_bot_gripper_right_outer_finger:
+          Value: false
+        b_bot_gripper_right_outer_knuckle:
+          Value: false
+        b_bot_gripper_robotiq_arg2f_base_link:
+          Value: false
+        b_bot_gripper_tip_link:
+          Value: true
+        b_bot_shoulder_link:
+          Value: false
+        b_bot_table_base_link:
+          Value: false
+        b_bot_table_leg1:
+          Value: false
+        b_bot_table_leg2:
+          Value: false
+        b_bot_table_leg3:
+          Value: false
+        b_bot_table_top:
+          Value: false
+        b_bot_table_top_center:
+          Value: false
+        b_bot_table_top_origin:
+          Value: false
+        b_bot_tool0:
+          Value: false
+        b_bot_tool0_controller:
+          Value: false
+        b_bot_upper_arm_link:
+          Value: false
+        b_bot_usb_repeater_base_link:
+          Value: false
+        b_bot_usb_repeater_body:
+          Value: false
+        b_bot_usb_repeater_front_leg:
+          Value: false
+        b_bot_usb_repeater_left_leg:
+          Value: false
+        b_bot_usb_repeater_plate:
+          Value: false
+        b_bot_usb_repeater_right_leg:
+          Value: false
+        b_bot_wrist_1_link:
+          Value: false
+        b_bot_wrist_2_link:
+          Value: false
+        b_bot_wrist_3_link:
+          Value: false
+        base/base_link:
+          Value: true
+        base/big_hole_1:
+          Value: false
+        base/big_hole_2:
+          Value: false
+        base/big_hole_3:
+          Value: false
+        base/big_hole_4:
+          Value: false
+        base/cable_pin1:
+          Value: false
+        base/cable_pin2:
+          Value: false
+        base/cable_pin3:
+          Value: false
+        base/cable_pin4:
+          Value: false
+        base/corner_1:
+          Value: false
+        base/corner_2:
+          Value: false
+        base/corner_3:
+          Value: false
+        base/corner_4:
+          Value: false
+        base/default_grasp:
+          Value: true
+        base/panel_bearing_screw_hole_1:
+          Value: false
+        base/panel_bearing_screw_hole_2:
+          Value: false
+        base/panel_motor_screw_hole_1:
+          Value: false
+        base/panel_motor_screw_hole_2:
+          Value: false
+        base/terminal_top:
+          Value: false
+        base_fixture_base_link:
+          Value: false
+        base_fixture_head_base_link:
+          Value: false
+        base_fixture_head_tip_link:
+          Value: true
+        base_fixture_piston:
+          Value: false
+        base_fixture_piston_head:
+          Value: false
+        base_fixture_tip_link:
+          Value: false
+        bin_1_part_16:
+          Value: false
+        bin_1_part_16_bottom_back_left_corner:
+          Value: false
+        bin_1_part_16_bottom_back_right_corner:
+          Value: false
+        bin_1_part_16_bottom_front_left_corner:
+          Value: false
+        bin_1_part_16_bottom_front_right_corner:
+          Value: false
+        bin_1_part_16_top_back_left_corner:
+          Value: false
+        bin_1_part_16_top_back_right_corner:
+          Value: false
+        bin_1_part_16_top_front_left_corner:
+          Value: false
+        bin_1_part_16_top_front_right_corner:
+          Value: false
+        bin_1_part_17:
+          Value: false
+        bin_1_part_17_bottom_back_left_corner:
+          Value: false
+        bin_1_part_17_bottom_back_right_corner:
+          Value: false
+        bin_1_part_17_bottom_front_left_corner:
+          Value: false
+        bin_1_part_17_bottom_front_right_corner:
+          Value: false
+        bin_1_part_17_top_back_left_corner:
+          Value: false
+        bin_1_part_17_top_back_right_corner:
+          Value: false
+        bin_1_part_17_top_front_left_corner:
+          Value: false
+        bin_1_part_17_top_front_right_corner:
+          Value: false
+        bin_1_part_5:
+          Value: false
+        bin_1_part_5_bottom_back_left_corner:
+          Value: false
+        bin_1_part_5_bottom_back_right_corner:
+          Value: false
+        bin_1_part_5_bottom_front_left_corner:
+          Value: false
+        bin_1_part_5_bottom_front_right_corner:
+          Value: false
+        bin_1_part_5_top_back_left_corner:
+          Value: false
+        bin_1_part_5_top_back_right_corner:
+          Value: false
+        bin_1_part_5_top_front_left_corner:
+          Value: false
+        bin_1_part_5_top_front_right_corner:
+          Value: false
+        bin_2_part_4:
+          Value: false
+        bin_2_part_4_bottom_back_left_corner:
+          Value: false
+        bin_2_part_4_bottom_back_right_corner:
+          Value: false
+        bin_2_part_4_bottom_front_left_corner:
+          Value: false
+        bin_2_part_4_bottom_front_right_corner:
+          Value: false
+        bin_2_part_4_top_back_left_corner:
+          Value: false
+        bin_2_part_4_top_back_right_corner:
+          Value: false
+        bin_2_part_4_top_front_left_corner:
+          Value: false
+        bin_2_part_4_top_front_right_corner:
+          Value: false
+        bin_2_part_7:
+          Value: false
+        bin_2_part_7_bottom_back_left_corner:
+          Value: false
+        bin_2_part_7_bottom_back_right_corner:
+          Value: false
+        bin_2_part_7_bottom_front_left_corner:
+          Value: false
+        bin_2_part_7_bottom_front_right_corner:
+          Value: false
+        bin_2_part_7_top_back_left_corner:
+          Value: false
+        bin_2_part_7_top_back_right_corner:
+          Value: false
+        bin_2_part_7_top_front_left_corner:
+          Value: false
+        bin_2_part_7_top_front_right_corner:
+          Value: false
+        bin_2_part_8:
+          Value: false
+        bin_2_part_8_bottom_back_left_corner:
+          Value: false
+        bin_2_part_8_bottom_back_right_corner:
+          Value: false
+        bin_2_part_8_bottom_front_left_corner:
+          Value: false
+        bin_2_part_8_bottom_front_right_corner:
+          Value: false
+        bin_2_part_8_top_back_left_corner:
+          Value: false
+        bin_2_part_8_top_back_right_corner:
+          Value: false
+        bin_2_part_8_top_front_left_corner:
+          Value: false
+        bin_2_part_8_top_front_right_corner:
+          Value: false
+        cage_back_left_pillar:
+          Value: false
+        cage_back_right_pillar:
+          Value: false
+        cage_front_left_pillar:
+          Value: false
+        cage_front_right_pillar:
+          Value: false
+        cage_lower_back_bar:
+          Value: false
+        cage_lower_front_bar:
+          Value: false
+        cage_lower_left_bar:
+          Value: false
+        cage_lower_right_bar:
+          Value: false
+        cage_tool_bar:
+          Value: true
+        cage_upper_back_bar:
+          Value: false
+        cage_upper_front_bar:
+          Value: false
+        cage_upper_left_bar:
+          Value: false
+        cage_upper_right_bar:
+          Value: false
+        cage_workspace_bar:
+          Value: false
+        ground:
+          Value: false
+        live_camera_optical_frame:
+          Value: false
+        panel_bearing/base_link:
+          Value: false
+        panel_bearing/base_screw_hole_1:
+          Value: true
+        panel_bearing/base_screw_hole_2:
+          Value: true
+        panel_bearing/base_screw_hole_aligner_1:
+          Value: false
+        panel_bearing/base_screw_hole_aligner_2:
+          Value: false
+        panel_bearing/bearing_screw_hole_1:
+          Value: false
+        panel_bearing/bearing_screw_hole_2:
+          Value: false
+        panel_bearing/bearing_screw_hole_3:
+          Value: false
+        panel_bearing/bearing_screw_hole_4:
+          Value: false
+        panel_bearing/bottom_corner_1:
+          Value: false
+        panel_bearing/bottom_corner_2:
+          Value: false
+        panel_bearing/default_grasp:
+          Value: true
+        panel_bearing/front_hole:
+          Value: false
+        panel_bearing/pulley_ridge_bottom:
+          Value: false
+        panel_bearing/pulley_ridge_middle:
+          Value: false
+        panel_bearing/pulley_ridge_top:
+          Value: false
+        panel_motor/back_hole:
+          Value: false
+        panel_motor/back_hole_bottom:
+          Value: false
+        panel_motor/base_link:
+          Value: false
+        panel_motor/base_screw_hole_1:
+          Value: true
+        panel_motor/base_screw_hole_2:
+          Value: true
+        panel_motor/base_screw_hole_aligner_1:
+          Value: false
+        panel_motor/base_screw_hole_aligner_2:
+          Value: false
+        panel_motor/bottom_corner_1:
+          Value: false
+        panel_motor/bottom_corner_2:
+          Value: false
+        panel_motor/center:
+          Value: false
+        panel_motor/default_grasp:
+          Value: true
+        panel_motor/motor_screw_hole_1:
+          Value: false
+        panel_motor/motor_screw_hole_2:
+          Value: false
+        panel_motor/motor_screw_hole_3:
+          Value: false
+        panel_motor/motor_screw_hole_4:
+          Value: false
+        panel_motor/motor_screw_hole_5:
+          Value: false
+        panel_motor/motor_screw_hole_6:
+          Value: false
+        panel_motor/motor_screw_hole_aligner_1:
+          Value: false
+        panel_motor/motor_screw_hole_aligner_2:
+          Value: false
+        panel_motor/motor_screw_hole_aligner_3:
+          Value: false
+        panel_motor/motor_screw_hole_aligner_4:
+          Value: false
+        panel_motor/motor_screw_hole_aligner_5:
+          Value: false
+        panel_motor/motor_screw_hole_aligner_6:
+          Value: false
+        plate:
+          Value: false
+        plate_lower_left_corner:
+          Value: true
+        precision_tool/base_link:
+          Value: false
+        precision_tool/tip_link:
+          Value: true
+        precision_tool_holder_base_link:
+          Value: false
+        precision_tool_holder_link:
+          Value: false
+        screw_feeder_m3_base_link:
+          Value: false
+        screw_feeder_m3_front_left_side:
+          Value: false
+        screw_feeder_m3_front_right_side:
+          Value: false
+        screw_feeder_m3_gap:
+          Value: false
+        screw_feeder_m3_inlet_link:
+          Value: true
+        screw_feeder_m3_outlet_link:
+          Value: true
+        screw_feeder_m4_base_link:
+          Value: false
+        screw_feeder_m4_front_left_side:
+          Value: false
+        screw_feeder_m4_front_right_side:
+          Value: false
+        screw_feeder_m4_gap:
+          Value: false
+        screw_feeder_m4_inlet_link:
+          Value: true
+        screw_feeder_m4_outlet_link:
+          Value: true
+        screw_m3_1/base_link:
+          Value: false
+        screw_m3_1/head:
+          Value: true
+        screw_m3_1/tip_link:
+          Value: false
+        screw_m4_1/base_link:
+          Value: false
+        screw_m4_1/head:
+          Value: true
+        screw_m4_1/tip_link:
+          Value: false
+        screw_tool_m3/base_link:
+          Value: false
+        screw_tool_m3/tip_link:
+          Value: false
+        screw_tool_m3_holder_base_link:
+          Value: false
+        screw_tool_m3_holder_link:
+          Value: false
+        screw_tool_m4/base_link:
+          Value: false
+        screw_tool_m4/tip_link:
+          Value: false
+        screw_tool_m4_holder_base_link:
+          Value: false
+        screw_tool_m4_holder_link:
+          Value: false
+        suction_tool/base_link:
+          Value: false
+        suction_tool/tip_link:
+          Value: true
+        suction_tool_holder_base_link:
+          Value: false
+        suction_tool_holder_link:
+          Value: true
+        tray_2:
+          Value: false
+        tray_2_divider2:
+          Value: false
+        tray_2_partition_1:
+          Value: false
+        tray_2_partition_1_pickup:
+          Value: false
+        tray_2_partition_2:
+          Value: false
+        tray_2_partition_2_pickup:
+          Value: false
+        tray_2_partition_3:
+          Value: false
+        tray_2_partition_3_pickup:
+          Value: false
+        tray_2_partition_4:
+          Value: false
+        tray_2_partition_4_pickup:
+          Value: false
+        tray_2_partition_5:
+          Value: false
+        tray_2_partition_5_pickup:
+          Value: false
+        tray_2_partition_6:
+          Value: false
+        tray_2_partition_6_pickup:
+          Value: false
+        tray_2_partition_7:
+          Value: false
+        tray_2_partition_7_pickup:
+          Value: false
+        tray_2_partition_8:
+          Value: false
+        tray_2_partition_8_pickup_1:
+          Value: false
+        tray_2_partition_8_pickup_2:
+          Value: false
+        tray_2_screw_holder:
+          Value: false
+        tray_2_screw_m3_1:
+          Value: false
+        tray_2_screw_m3_2:
+          Value: false
+        tray_2_screw_m3_3:
+          Value: false
+        tray_2_screw_m3_4:
+          Value: false
+        tray_2_screw_m3_5:
+          Value: false
+        tray_2_screw_m3_6:
+          Value: false
+        tray_2_screw_m4_1:
+          Value: false
+        tray_2_screw_m4_2:
+          Value: false
+        tray_2_screw_m4_3:
+          Value: false
+        tray_2_screw_m4_4:
+          Value: false
+        tray_2_screw_m4_5:
+          Value: false
+        tray_2_screw_m4_6:
+          Value: false
+        tray_2_screw_m4_7:
+          Value: false
+        tray_2_screw_m4_8:
+          Value: false
+        tray_2_screw_m4_9:
+          Value: false
+        virtual_screen:
+          Value: false
+        workbench_back_bar:
+          Value: false
+        workbench_base_link:
+          Value: false
+        workbench_center_bar:
+          Value: false
+        workbench_front_border:
+          Value: false
+        workbench_holder_link:
+          Value: false
+        workbench_right_bar:
+          Value: false
+        workbench_right_border:
+          Value: false
+        workbench_table_base_link:
+          Value: false
+        workbench_table_leg1:
+          Value: false
+        workbench_table_leg2:
+          Value: false
+        workbench_table_leg3:
+          Value: false
+        workbench_table_top:
+          Value: false
+        workbench_table_top_center:
+          Value: false
+        workbench_table_top_origin:
+          Value: false
+        workspace_center:
+          Value: false
+        workspace_table_base_link:
+          Value: false
+        workspace_table_leg1:
+          Value: false
+        workspace_table_leg2:
+          Value: false
+        workspace_table_leg3:
+          Value: false
+        workspace_table_top:
+          Value: false
+        workspace_table_top_center:
+          Value: false
+        workspace_table_top_origin:
+          Value: true
+        world:
+          Value: false
       Marker Alpha: 1
       Marker Scale: 0.15000000596046448
       Name: TF
@@ -2332,9 +3135,550 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        {}
+        world:
+          ground:
+            a_bot_table_base_link:
+              a_bot_table_leg1:
+                {}
+              a_bot_table_leg2:
+                {}
+              a_bot_table_leg3:
+                {}
+              a_bot_table_top:
+                a_bot_table_top_origin:
+                  a_bot_table_top_center:
+                    a_bot_base_link:
+                      a_bot_base:
+                        a_bot_tool0_controller:
+                          {}
+                      a_bot_base_link_inertia:
+                        a_bot_shoulder_link:
+                          a_bot_upper_arm_link:
+                            a_bot_forearm_link:
+                              a_bot_wrist_1_link:
+                                a_bot_wrist_2_link:
+                                  a_bot_usb_repeater_base_link:
+                                    a_bot_usb_repeater_front_leg:
+                                      {}
+                                    a_bot_usb_repeater_left_leg:
+                                      {}
+                                    a_bot_usb_repeater_plate:
+                                      a_bot_usb_repeater_body:
+                                        {}
+                                    a_bot_usb_repeater_right_leg:
+                                      {}
+                                  a_bot_wrist_3_link:
+                                    a_bot_flange:
+                                      a_bot_gripper_coupling_base_link:
+                                        a_bot_gripper_coupling_flange_link:
+                                          a_bot_gripper_base_link:
+                                            a_bot_camera_connector_link:
+                                              a_bot_camera_link:
+                                                a_bot_camera_depth_frame:
+                                                  a_bot_camera_color_frame:
+                                                    a_bot_camera_color_optical_frame:
+                                                      {}
+                                                  a_bot_camera_depth_optical_frame:
+                                                    {}
+                                                  a_bot_camera_left_ir_frame:
+                                                    a_bot_camera_left_ir_optical_frame:
+                                                      {}
+                                                  a_bot_camera_right_ir_frame:
+                                                    a_bot_camera_right_ir_optical_frame:
+                                                      {}
+                                            a_bot_camera_mount:
+                                              {}
+                                            a_bot_gripper_robotiq_arg2f_base_link:
+                                              a_bot_gripper_left_inner_knuckle:
+                                                {}
+                                              a_bot_gripper_left_outer_knuckle:
+                                                a_bot_gripper_left_outer_finger:
+                                                  a_bot_gripper_left_inner_finger:
+                                                    a_bot_gripper_left_inner_finger_pad:
+                                                      {}
+                                              a_bot_gripper_right_inner_knuckle:
+                                                {}
+                                              a_bot_gripper_right_outer_knuckle:
+                                                a_bot_gripper_right_outer_finger:
+                                                  a_bot_gripper_right_inner_finger:
+                                                    a_bot_gripper_right_inner_finger_pad:
+                                                      {}
+                                            a_bot_gripper_tip_link:
+                                              {}
+                                      a_bot_tool0:
+                                        {}
+            b_bot_table_base_link:
+              b_bot_table_leg1:
+                {}
+              b_bot_table_leg2:
+                {}
+              b_bot_table_leg3:
+                {}
+              b_bot_table_top:
+                b_bot_table_top_origin:
+                  b_bot_table_top_center:
+                    b_bot_base_link:
+                      b_bot_base:
+                        b_bot_tool0_controller:
+                          {}
+                      b_bot_base_link_inertia:
+                        b_bot_shoulder_link:
+                          b_bot_upper_arm_link:
+                            b_bot_forearm_link:
+                              b_bot_wrist_1_link:
+                                b_bot_wrist_2_link:
+                                  b_bot_usb_repeater_base_link:
+                                    b_bot_usb_repeater_front_leg:
+                                      {}
+                                    b_bot_usb_repeater_left_leg:
+                                      {}
+                                    b_bot_usb_repeater_plate:
+                                      b_bot_usb_repeater_body:
+                                        {}
+                                    b_bot_usb_repeater_right_leg:
+                                      {}
+                                  b_bot_wrist_3_link:
+                                    b_bot_flange:
+                                      b_bot_gripper_coupling_base_link:
+                                        b_bot_gripper_coupling_flange_link:
+                                          b_bot_gripper_base_link:
+                                            b_bot_camera_connector_link:
+                                              b_bot_camera_link:
+                                                b_bot_camera_depth_frame:
+                                                  b_bot_camera_color_frame:
+                                                    b_bot_camera_color_optical_frame:
+                                                      {}
+                                                  b_bot_camera_depth_optical_frame:
+                                                    {}
+                                                  b_bot_camera_left_ir_frame:
+                                                    b_bot_camera_left_ir_optical_frame:
+                                                      {}
+                                                  b_bot_camera_right_ir_frame:
+                                                    b_bot_camera_right_ir_optical_frame:
+                                                      {}
+                                            b_bot_camera_mount:
+                                              {}
+                                            b_bot_gripper_robotiq_arg2f_base_link:
+                                              b_bot_gripper_left_inner_knuckle:
+                                                {}
+                                              b_bot_gripper_left_outer_knuckle:
+                                                b_bot_gripper_left_outer_finger:
+                                                  b_bot_gripper_left_inner_finger:
+                                                    b_bot_gripper_left_inner_finger_pad:
+                                                      {}
+                                              b_bot_gripper_right_inner_knuckle:
+                                                {}
+                                              b_bot_gripper_right_outer_knuckle:
+                                                b_bot_gripper_right_outer_finger:
+                                                  b_bot_gripper_right_inner_finger:
+                                                    b_bot_gripper_right_inner_finger_pad:
+                                                      {}
+                                            b_bot_gripper_tip_link:
+                                              {}
+                                      b_bot_tool0:
+                                        {}
+            cage_front_left_pillar:
+              cage_back_left_pillar:
+                {}
+              cage_back_right_pillar:
+                {}
+              cage_front_right_pillar:
+                {}
+              cage_lower_back_bar:
+                {}
+              cage_lower_front_bar:
+                {}
+              cage_lower_left_bar:
+                cage_workspace_bar:
+                  cage_tool_bar:
+                    precision_tool_holder_base_link:
+                      precision_tool_holder_link:
+                        precision_tool/base_link:
+                          precision_tool/tip_link:
+                            {}
+                    screw_tool_m3_holder_base_link:
+                      screw_tool_m3_holder_link:
+                        screw_tool_m3/base_link:
+                          screw_tool_m3/tip_link:
+                            {}
+                    screw_tool_m4_holder_base_link:
+                      screw_tool_m4_holder_link:
+                        screw_tool_m4/base_link:
+                          screw_tool_m4/tip_link:
+                            {}
+                    suction_tool_holder_base_link:
+                      suction_tool_holder_link:
+                        suction_tool/base_link:
+                          suction_tool/tip_link:
+                            {}
+                  workbench_base_link:
+                    screw_feeder_m3_base_link:
+                      screw_feeder_m3_front_left_side:
+                        screw_feeder_m3_gap:
+                          screw_feeder_m3_outlet_link:
+                            screw_m3_1/base_link:
+                              screw_m3_1/head:
+                                {}
+                              screw_m3_1/tip_link:
+                                {}
+                      screw_feeder_m3_front_right_side:
+                        {}
+                      screw_feeder_m3_inlet_link:
+                        {}
+                      screw_feeder_m4_base_link:
+                        screw_feeder_m4_front_left_side:
+                          screw_feeder_m4_gap:
+                            screw_feeder_m4_outlet_link:
+                              screw_m4_1/base_link:
+                                screw_m4_1/head:
+                                  {}
+                                screw_m4_1/tip_link:
+                                  {}
+                        screw_feeder_m4_front_right_side:
+                          {}
+                        screw_feeder_m4_inlet_link:
+                          {}
+                    workbench_back_bar:
+                      {}
+                    workbench_center_bar:
+                      {}
+                    workbench_right_bar:
+                      {}
+                    workbench_table_base_link:
+                      workbench_table_leg1:
+                        {}
+                      workbench_table_leg2:
+                        {}
+                      workbench_table_leg3:
+                        {}
+                      workbench_table_top:
+                        workbench_table_top_origin:
+                          base_fixture_base_link:
+                            base_fixture_piston:
+                              base_fixture_piston_head:
+                                base_fixture_head_base_link:
+                                  base_fixture_head_tip_link:
+                                    {}
+                            base_fixture_tip_link:
+                              {}
+                          workbench_front_border:
+                            {}
+                          workbench_holder_link:
+                            base/base_link:
+                              base/big_hole_1:
+                                {}
+                              base/big_hole_2:
+                                {}
+                              base/big_hole_3:
+                                {}
+                              base/big_hole_4:
+                                {}
+                              base/cable_pin1:
+                                {}
+                              base/cable_pin2:
+                                {}
+                              base/cable_pin3:
+                                {}
+                              base/cable_pin4:
+                                {}
+                              base/corner_1:
+                                {}
+                              base/corner_2:
+                                {}
+                              base/corner_3:
+                                {}
+                              base/corner_4:
+                                {}
+                              base/default_grasp:
+                                {}
+                              base/panel_bearing_screw_hole_1:
+                                {}
+                              base/panel_bearing_screw_hole_2:
+                                {}
+                              base/panel_motor_screw_hole_1:
+                                {}
+                              base/panel_motor_screw_hole_2:
+                                {}
+                              base/terminal_top:
+                                {}
+                              panel_bearing/base_link:
+                                panel_bearing/base_screw_hole_1:
+                                  {}
+                                panel_bearing/base_screw_hole_2:
+                                  {}
+                                panel_bearing/base_screw_hole_aligner_1:
+                                  {}
+                                panel_bearing/base_screw_hole_aligner_2:
+                                  {}
+                                panel_bearing/bearing_screw_hole_1:
+                                  {}
+                                panel_bearing/bearing_screw_hole_2:
+                                  {}
+                                panel_bearing/bearing_screw_hole_3:
+                                  {}
+                                panel_bearing/bearing_screw_hole_4:
+                                  {}
+                                panel_bearing/bottom_corner_1:
+                                  {}
+                                panel_bearing/bottom_corner_2:
+                                  {}
+                                panel_bearing/default_grasp:
+                                  {}
+                                panel_bearing/front_hole:
+                                  {}
+                                panel_bearing/pulley_ridge_bottom:
+                                  {}
+                                panel_bearing/pulley_ridge_middle:
+                                  {}
+                                panel_bearing/pulley_ridge_top:
+                                  {}
+                              panel_motor/base_link:
+                                panel_motor/back_hole:
+                                  {}
+                                panel_motor/back_hole_bottom:
+                                  {}
+                                panel_motor/base_screw_hole_1:
+                                  {}
+                                panel_motor/base_screw_hole_2:
+                                  {}
+                                panel_motor/base_screw_hole_aligner_1:
+                                  {}
+                                panel_motor/base_screw_hole_aligner_2:
+                                  {}
+                                panel_motor/bottom_corner_1:
+                                  {}
+                                panel_motor/bottom_corner_2:
+                                  {}
+                                panel_motor/center:
+                                  {}
+                                panel_motor/default_grasp:
+                                  {}
+                                panel_motor/motor_screw_hole_1:
+                                  {}
+                                panel_motor/motor_screw_hole_2:
+                                  {}
+                                panel_motor/motor_screw_hole_3:
+                                  {}
+                                panel_motor/motor_screw_hole_4:
+                                  {}
+                                panel_motor/motor_screw_hole_5:
+                                  {}
+                                panel_motor/motor_screw_hole_6:
+                                  {}
+                                panel_motor/motor_screw_hole_aligner_1:
+                                  {}
+                                panel_motor/motor_screw_hole_aligner_2:
+                                  {}
+                                panel_motor/motor_screw_hole_aligner_3:
+                                  {}
+                                panel_motor/motor_screw_hole_aligner_4:
+                                  {}
+                                panel_motor/motor_screw_hole_aligner_5:
+                                  {}
+                                panel_motor/motor_screw_hole_aligner_6:
+                                  {}
+                          workbench_right_border:
+                            {}
+                          workbench_table_top_center:
+                            {}
+              cage_lower_right_bar:
+                {}
+              cage_upper_back_bar:
+                {}
+              cage_upper_front_bar:
+                {}
+              cage_upper_left_bar:
+                {}
+              cage_upper_right_bar:
+                {}
+            workspace_center:
+              a_motioncam_link:
+                a_motioncam_reference:
+                  a_motioncam_sensor:
+                    a_motioncam_color_camera_frame:
+                      {}
+              live_camera_optical_frame:
+                {}
+              plate:
+                plate_lower_left_corner:
+                  bin_1_part_16:
+                    bin_1_part_16_bottom_back_left_corner:
+                      {}
+                    bin_1_part_16_bottom_back_right_corner:
+                      {}
+                    bin_1_part_16_bottom_front_left_corner:
+                      {}
+                    bin_1_part_16_bottom_front_right_corner:
+                      {}
+                    bin_1_part_16_top_back_left_corner:
+                      {}
+                    bin_1_part_16_top_back_right_corner:
+                      {}
+                    bin_1_part_16_top_front_left_corner:
+                      {}
+                    bin_1_part_16_top_front_right_corner:
+                      {}
+                  bin_1_part_17:
+                    bin_1_part_17_bottom_back_left_corner:
+                      {}
+                    bin_1_part_17_bottom_back_right_corner:
+                      {}
+                    bin_1_part_17_bottom_front_left_corner:
+                      {}
+                    bin_1_part_17_bottom_front_right_corner:
+                      {}
+                    bin_1_part_17_top_back_left_corner:
+                      {}
+                    bin_1_part_17_top_back_right_corner:
+                      {}
+                    bin_1_part_17_top_front_left_corner:
+                      {}
+                    bin_1_part_17_top_front_right_corner:
+                      {}
+                  bin_1_part_5:
+                    bin_1_part_5_bottom_back_left_corner:
+                      {}
+                    bin_1_part_5_bottom_back_right_corner:
+                      {}
+                    bin_1_part_5_bottom_front_left_corner:
+                      {}
+                    bin_1_part_5_bottom_front_right_corner:
+                      {}
+                    bin_1_part_5_top_back_left_corner:
+                      {}
+                    bin_1_part_5_top_back_right_corner:
+                      {}
+                    bin_1_part_5_top_front_left_corner:
+                      {}
+                    bin_1_part_5_top_front_right_corner:
+                      {}
+                  bin_2_part_4:
+                    bin_2_part_4_bottom_back_left_corner:
+                      {}
+                    bin_2_part_4_bottom_back_right_corner:
+                      {}
+                    bin_2_part_4_bottom_front_left_corner:
+                      {}
+                    bin_2_part_4_bottom_front_right_corner:
+                      {}
+                    bin_2_part_4_top_back_left_corner:
+                      {}
+                    bin_2_part_4_top_back_right_corner:
+                      {}
+                    bin_2_part_4_top_front_left_corner:
+                      {}
+                    bin_2_part_4_top_front_right_corner:
+                      {}
+                  bin_2_part_7:
+                    bin_2_part_7_bottom_back_left_corner:
+                      {}
+                    bin_2_part_7_bottom_back_right_corner:
+                      {}
+                    bin_2_part_7_bottom_front_left_corner:
+                      {}
+                    bin_2_part_7_bottom_front_right_corner:
+                      {}
+                    bin_2_part_7_top_back_left_corner:
+                      {}
+                    bin_2_part_7_top_back_right_corner:
+                      {}
+                    bin_2_part_7_top_front_left_corner:
+                      {}
+                    bin_2_part_7_top_front_right_corner:
+                      {}
+                  bin_2_part_8:
+                    bin_2_part_8_bottom_back_left_corner:
+                      {}
+                    bin_2_part_8_bottom_back_right_corner:
+                      {}
+                    bin_2_part_8_bottom_front_left_corner:
+                      {}
+                    bin_2_part_8_bottom_front_right_corner:
+                      {}
+                    bin_2_part_8_top_back_left_corner:
+                      {}
+                    bin_2_part_8_top_back_right_corner:
+                      {}
+                    bin_2_part_8_top_front_left_corner:
+                      {}
+                    bin_2_part_8_top_front_right_corner:
+                      {}
+                  tray_2:
+                    tray_2_divider2:
+                      {}
+                    tray_2_partition_1:
+                      tray_2_partition_1_pickup:
+                        {}
+                    tray_2_partition_2:
+                      tray_2_partition_2_pickup:
+                        {}
+                    tray_2_partition_3:
+                      tray_2_partition_3_pickup:
+                        {}
+                    tray_2_partition_4:
+                      tray_2_partition_4_pickup:
+                        {}
+                    tray_2_partition_5:
+                      tray_2_partition_5_pickup:
+                        {}
+                    tray_2_partition_6:
+                      tray_2_partition_6_pickup:
+                        {}
+                    tray_2_partition_7:
+                      tray_2_partition_7_pickup:
+                        {}
+                    tray_2_partition_8:
+                      tray_2_partition_8_pickup_1:
+                        {}
+                      tray_2_partition_8_pickup_2:
+                        {}
+                    tray_2_screw_holder:
+                      {}
+                    tray_2_screw_m3_1:
+                      {}
+                    tray_2_screw_m3_2:
+                      {}
+                    tray_2_screw_m3_3:
+                      {}
+                    tray_2_screw_m3_4:
+                      {}
+                    tray_2_screw_m3_5:
+                      {}
+                    tray_2_screw_m3_6:
+                      {}
+                    tray_2_screw_m4_1:
+                      {}
+                    tray_2_screw_m4_2:
+                      {}
+                    tray_2_screw_m4_3:
+                      {}
+                    tray_2_screw_m4_4:
+                      {}
+                    tray_2_screw_m4_5:
+                      {}
+                    tray_2_screw_m4_6:
+                      {}
+                    tray_2_screw_m4_7:
+                      {}
+                    tray_2_screw_m4_8:
+                      {}
+                    tray_2_screw_m4_9:
+                      {}
+              virtual_screen:
+                {}
+            workspace_table_base_link:
+              workspace_table_leg1:
+                {}
+              workspace_table_leg2:
+                {}
+              workspace_table_leg3:
+                {}
+              workspace_table_top:
+                workspace_table_top_origin:
+                  workspace_table_top_center:
+                    {}
       Update Interval: 0
-      Value: false
+      Value: true
     - Class: rviz/Image
       Enabled: true
       Image Topic: /visual_tracker/result_image
@@ -2505,6 +3849,14 @@ Visualization Manager:
       Torque Color: 204; 204; 51
       Unreliable: false
       Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /move_group/display_contacts
+      Name: DisplayContacts
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -2533,7 +3885,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.275023341178894
+      Distance: 0.19725053012371063
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -2541,17 +3893,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.015197575092315674
-        Y: -0.013977885246276855
-        Z: 0.7727575898170471
+        X: -0.3617633879184723
+        Y: 0.10018396377563477
+        Z: 0.840276300907135
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.8957917094230652
+      Pitch: 0.5480337142944336
       Target Frame: <Fixed Frame>
-      Yaw: 5.628432273864746
+      Yaw: 1.357306718826294
     Saved: ~
 Window Geometry:
   Displays:

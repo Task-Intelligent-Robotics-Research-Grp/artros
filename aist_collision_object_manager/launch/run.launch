@@ -2,7 +2,7 @@
 <launch>
 
   <arg name="ns"		default=""/>
-  <arg name="synchronous"	default="true"/>
+  <arg name="synchronous"	default="false"/>
 
   <!-- Start collision_object_manager -->
   <node name="collision_object_manager"
