@@ -52,7 +52,8 @@ from aist_msgs.srv          import (ManageCollisionObject,
                                     ManageCollisionObjectResponse,
                                     GetMeshResource, GetMeshResourceResponse)
 from aist_msgs.msg          import CollisionObjectInfo
-from moveit_msgs.msg        import CollisionObject, AttachedCollisionObject
+from moveit_msgs.msg        import (CollisionObject, AttachedCollisionObject,
+                                    PlanningSceneComponents, PlanningScene)
 from moveit_commander       import planning_scene_interface as psi
 
 try:
@@ -330,6 +331,10 @@ class CollisionObjectManager(object):
             elif req.op == ManageCollisionObjectRequest \
                           .GET_ATTACHED_CHILD_OBJECT_INFO:
                 res.info = self._get_attached_child_object_info(req.frame_id)
+            elif req.op == ManageCollisionObjectRequest.ALLOW_COLLISION:
+                self._set_collision_allowed(req.object_id, req.frame_id, True)
+            elif req.op == ManageCollisionObjectRequest.DISALLOW_COLLISION:
+                self._set_collision_allowed(req.object_id, req.frame_id, False)
             else:
                 raise Exception('unknown operation[%d]' % req.op)
         except Exception as e:
@@ -442,6 +447,9 @@ class CollisionObjectManager(object):
         # Store object info.
         with self._lock:
             self._instance_props_dict[object_id] = instance_props
+
+        # Add object to AllowedCollisionMatrix(acm)
+        self._set_acm_allowed(object_id, None, False)
 
         rospy.loginfo("(CollisionObjectManager) created '%s' of type[%s]",
                       co.id, object_type)
@@ -618,6 +626,25 @@ class CollisionObjectManager(object):
                 return info
         return None
 
+    def _set_collision_allowed(self, object_id, frame_id, allow):
+        if frame_id is None:
+            others = None
+        else:
+            other_id, _ = _decompose_link_name(frame_id)
+            others = [other_id] if other_id != '' else \
+                     self._get_touch_links(frame_id)
+        self._set_acm_allowed(object_id, others, allow=allow)
+
+        # acm = self._psi.get_planning_scene(
+        #            PlanningSceneComponents.ALLOWED_COLLISION_MATRIX) \
+        #           .allowed_collision_matrix
+        # for entry_name, entry_value in zip(acm.entry_names, acm.entry_values):
+        #     print('--- %s ---' % entry_name)
+        #     for other_name, enabled in zip(acm.entry_names,
+        #                                    entry_value.enabled):
+        #         if enabled:
+        #             print('%s <-> %s' % (entry_name, other_name))
+
     #
     # Utilities
     #
@@ -769,6 +796,36 @@ class CollisionObjectManager(object):
         with self._lock:
             del self._instance_props_dict[object_id]
         rospy.loginfo("(CollisionObjectManager) removed '%s'", object_id)
+
+    def _set_acm_allowed(self, object_id, others, allow):
+        acm = self._get_acm()
+        if others is None:
+            acm.set_allowed(object_id, None, allow=allow)
+        else:
+            for other in others:
+                acm.set_allowed(object_id, other, allow=allow)
+        self._apply_acm(acm)
+
+        if others is None:
+            rospy.loginfo("(CollisionObjectManager) %s collision against '%s' in default",
+                          'allow' if allow else 'disallow', object_id)
+        else:
+            rospy.loginfo("(CollisionObjectManager) %s collision between '%s' and %s",
+                          'allow' if allow else 'disallow',
+                          object_id, str(others))
+
+    def _get_acm(self):
+        return self._psi.get_planning_scene(
+                        PlanningSceneComponents.ALLOWED_COLLISION_MATRIX) \
+                   .allowed_collision_matrix
+
+    def _apply_acm(self, acm):
+        scene = PlanningScene()
+        scene.allowed_collision_matrix = acm
+        scene.is_diff = True
+        scene.robot_state.is_diff = True
+        self._psi.apply_planning_scene(scene)
+
 
 #########################################################################
 #  Entry point                                                          #

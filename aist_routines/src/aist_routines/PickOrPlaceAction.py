@@ -150,6 +150,7 @@ class PickOrPlace(SimpleActionClient):
             if goal.pick:
                 gripper.pregrasp()  # Pregrasp (not wait)
                 gripper.wait()      # Wait for pregrasp completed
+                com.allow_collision(object_id, gripper.tip_link)
             elif object_id != '':
                 com.append_touch_links(object_id, goal.pose.header.frame_id)
 
@@ -247,6 +248,7 @@ class PickOrPlace(SimpleActionClient):
                          'Pick' if goal.pick else 'Place', err)
         finally:
             if object_id != '':
+                #com.disallow_collision(object_id, gripper.tip_link)
                 com.reset_touch_links()
 
     def _preempt_cb(self):
