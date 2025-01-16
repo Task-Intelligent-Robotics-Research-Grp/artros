@@ -20,7 +20,7 @@
     <node name="$(arg prefix)controller_spawner"
 	  pkg="controller_manager" type="spawner"
 	  respawn="false" output="screen"
-	  args="$(arg namespace)/scaled_pos_joint_traj_controller"/>
+	  args="$(arg namepsace)/scaled_pos_joint_traj_controller"/>
     <node name="$(arg prefix)stopped_spawner"
 	  pkg="controller_manager" type="spawner"
 	  respawn="false" output="screen"
@@ -28,20 +28,24 @@
   </group>
 
   <group unless="$(arg sim)" ns="$(arg namespace)">
+    <remap from="/$(arg namespace)/cartesian_compliance_controller/ft_sensor_wrench"
+    	   to="/$(arg namespace)/wrench"/>
     <node name="controller_spawner" pkg="controller_manager" type="spawner"
-	  respawn="false" output="screen"
-	  args="scaled_pos_joint_traj_controller
+    	  respawn="false" output="screen"
+    	  args="scaled_pos_joint_traj_controller
 		joint_state_controller
-		speed_scaling_state_controller
-		aist_ftsensor_controller
-		robot_status_controller"/>
+    		speed_scaling_state_controller
+		force_torque_sensor_controller
+    		robot_status_controller"/>
 
     <!-- Load other controllers -->
     <node name="stopped_spawner" pkg="controller_manager" type="spawner"
     	  respawn="false" output="screen"
     	  args="--stopped
-		scaled_vel_joint_traj_controller
-		joint_group_pos_controller joint_group_vel_controller"/>
+		cartesian_compliance_controller
+    		scaled_vel_joint_traj_controller
+		joint_group_pos_controller
+		joint_group_vel_controller"/>
 
     <node name="controller_stopper"
 	  pkg="ur_robot_driver" type="controller_stopper_node"
@@ -51,7 +55,7 @@
       <rosparam param="consistent_controllers" subst_value="true">
           - "joint_state_controller"
           - "speed_scaling_state_controller"
-          - "aist_ftsensor_controller"
+          - "force_torque_sensor_controller"
           - "robot_status_controller"
       </rosparam>
     </node>

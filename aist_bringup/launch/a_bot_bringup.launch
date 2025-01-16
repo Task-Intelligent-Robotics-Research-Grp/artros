@@ -3,6 +3,7 @@
 
   <arg name="sim"			default="false"/>
   <arg name="scene"			default=""/>
+  <arg name="vis"			default="true"/>
   <arg name="joint_state_frequency"	default="50"/>
   <arg name="robot_state_frequency"	default="50"/>
 
@@ -42,6 +43,7 @@
   <include file="$(dirname)/include/move_group.launch">
     <arg name="robot_state_frequency"	value="$(arg robot_state_frequency)"/>
     <arg name="moveit_config"		value="$(find a_bot_moveit_config)"/>
+    <arg name="vis"			value="$(arg vis)"/>
   </include>
 
   <!-- Launch precision tool controller -->
@@ -52,26 +54,7 @@
     <arg name="publish_joint_states"	value="false"/>
   </include>
 
-  <!-- Launch nodelet manager, camera multiplexer and Realsense cameras -->
-  <!-- <arg name="camera_names"		default="a_bot_inside_camera -->
-  <!-- 						 a_bot_outside_camera"/> -->
-  <!-- <arg name="active_camera_name"	default="a_bot_inside_camera"/> -->
-  <!-- <arg name="manager"			default="camera_manager"/> -->
-  <!-- <arg name="manager_threads"		default="4"/> -->
-
-  <!-- <node name="$(arg manager)" -->
-  <!-- 	pkg ="nodelet" type="nodelet" args="manager" output="screen"> -->
-  <!--   <param name="num_worker_threads"	value="$(arg manager_threads)"/> -->
-  <!-- </node> -->
-
-  <!-- <include file="$(find aist_camera_multiplexer)/launch/realsense.launch"> -->
-  <!--   <arg name="camera_names"		value="$(arg camera_names)"/> -->
-  <!--   <arg name="active_camera_name"	value="$(arg active_camera_name)"/> -->
-  <!--   <arg name="manager"		value="$(arg manager)"/> -->
-  <!--   <arg name="sim"			value="$(arg sim)"/> -->
-  <!-- </include> -->
-
-  <!-- Launch calibration publisher and other hardware drivers -->
+  <!-- Launch other hardware drivers -->
   <group unless="$(arg sim)">
 
     <!-- Launch Zivid camera -->
@@ -80,6 +63,32 @@
     <!--   <arg name="external_manager"	value="false"/> -->
     <!--   <arg name="manager"		value="$(arg manager)"/> -->
     <!-- </include> -->
+
+    <!-- Load calibration parameters for FT sensor controllers -->
+    <arg name="ftsensor_calib_dir"	value="$(env HOME
+					       )/.ros/aist_ftsensor"/>
+    <rosparam ns="a_bot/aist_ftsensor_controller/sensors"
+    	      file="$(arg ftsensor_calib_dir
+		    )/a_bot/aist_ftsensor_controller.yaml"/>
+    <rosparam ns="b_bot/aist_ftsensor_controller/sensors"
+    	      file="$(arg ftsensor_calib_dir
+		    )/b_bot/aist_ftsensor_controller.yaml"/>
+
+    <!-- Launch suction tool controllers -->
+    <include file="$(find aist_fastening_tools
+    		   )/launch/suction_tool_controllers.launch">
+      <arg name="driver_ns"		value="b_bot/ur_hardware_interface"/>
+      <arg name="tool_names"		value="screw_tool_m3 screw_tool_m4
+      					       suction_tool base_fixture"/>
+    </include>
+
+    <!-- Launch screw tool controllers -->
+    <include file="$(find aist_fastening_tools
+    		   )/launch/screw_tool_controllers.launch">
+      <arg name="driver_ns"		value="dynamixel_driver"/>
+      <arg name="tool_names"		value="screw_tool_m3 screw_tool_m4"/>
+      <arg name="usb_port"		value="/dev/ttyUSB1"/>
+    </include>
 
   </group>
 
