@@ -115,27 +115,14 @@
     <origin xyz="0 0 0 " rpy="0 0 0"/>
   </joint>
 
-  <gazebo reference="a_bot_wrist_2_link">
-    <gravity>true</gravity>
-  </gazebo>
-  <gazebo reference="a_bot_wrist_3_link">
-    <gravity>true</gravity>
-  </gazebo>
-  <gazebo reference="a_bot_wrist_3_joint">
-    <provideFeedback>true</provideFeedback>
-  </gazebo>
-  <gazebo>
-    <plugin name="a_bot_ftsensor" filename="libgazebo_ros_ft_sensor.so">
-      <updateRate>500.0</updateRate>
-      <topicName>/a_bot/wrench</topicName>
-      <jointName>a_bot_wrist_3_joint</jointName>
-      <noise>
-	<type>gaussian</type>
-	<mean>0.0</mean>
-	<stddev>0.003</stddev>
-      </noise>
-    </plugin>
-  </gazebo>
+  <!-- Set gazebo plugin for FT-sensors -->
+  <xacro:include filename="$(find aist_description
+			   )/devices/urdf/gazebo_ftsensor.urdf.xacro"/>
+  <xacro:gazebo_ftsensor name="a_bot_ftsensor"
+			 parent="a_bot_wrist_2_link"
+			 child="a_bot_wrist_3_link"
+			 joint="a_bot_wrist_3_joint"
+			 wrench="/a_bot/wrench"/>
 
   <!-- Spawn and attach gripper -->
   <xacro:include filename="$(find aist_robotiq

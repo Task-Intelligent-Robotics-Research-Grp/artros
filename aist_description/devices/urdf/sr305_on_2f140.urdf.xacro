@@ -11,9 +11,8 @@
     <xacro:include filename="$(find aist_description
 			     )/devices/urdf/_sr305.urdf.xacro"/>
 
-    <!-- Add the holder and two SR305 cameras -->
-    <xacro:property name="mount_mesh_file"
-		    value="package://aist_description/devices/meshes/sr305_mount_2f140.stl"/>
+    <xacro:property name="mesh_dir"
+		    value="package://aist_description/devices/meshes"/>
 
     <link name="${prefix}camera_mount">
       <inertial>
@@ -24,16 +23,18 @@
       <visual>
         <origin rpy="${pi} 0 ${pi/2}" xyz="0 0 0.0"/>
         <geometry>
-          <mesh filename="${mount_mesh_file}" scale=".001 .001 .001"/>
+          <mesh filename="${mesh_dir}/sr305_mount_2f140.stl"
+		scale=".001 .001 .001"/>
         </geometry>
         <material name="white">
           <color rgba="1 1 1 1"/>
         </material>
       </visual>
       <collision>
-        <origin rpy="0 0 0" xyz="-.01 0.0 .035"/>
+        <origin rpy="${pi} 0 ${pi/2}" xyz="0 0 0.0"/>
         <geometry>
-          <box size=".03 .12 .08"/>
+          <mesh filename="${mesh_dir}/collision/sr305_mount_2f140.stl"
+		scale=".001 .001 .001"/>
         </geometry>
       </collision>
     </link>
