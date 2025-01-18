@@ -23,6 +23,15 @@
 				       50001, 50002, 50003, 50004, 0;
 				       urcap, 163.220.51.110" />
 
+  <remap from="a_bot/motion_control_handle/target_frame"
+	 to="a_bot/target_frame" />
+  <remap from="a_bot/cartesian_compliance_controller/target_frame"
+	 to="a_bot/target_frame" />
+  <remap from="a_bot/cartesian_compliance_controller/target_wrench"
+	 to="a_bot/target_wrench" />
+  <remap from="a_bot/cartesian_compliance_controller/ft_sensor_wrench"
+	 to="a_bot/wrench" />
+
   <!-- Bringup robots -->
   <include file="$(dirname)/include/connect_robots.launch">
     <arg name="robot_description_file"

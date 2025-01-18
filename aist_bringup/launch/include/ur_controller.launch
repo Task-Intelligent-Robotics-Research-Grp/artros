@@ -20,23 +20,26 @@
     <node name="$(arg prefix)controller_spawner"
 	  pkg="controller_manager" type="spawner"
 	  respawn="false" output="screen"
-	  args="$(arg namepsace)/scaled_pos_joint_traj_controller"/>
+	  args="$(arg namespace)/scaled_pos_joint_traj_controller
+		$(arg namespace)/aist_ftsensor_controller
+		$(arg namespace)/motion_control_handle"/>
     <node name="$(arg prefix)stopped_spawner"
 	  pkg="controller_manager" type="spawner"
 	  respawn="false" output="screen"
-    	  args="--stopped $(arg namespace)/joint_group_pos_controller"/>
+    	  args="--stopped
+		$(arg namespace)/joint_group_pos_controller
+		$(arg namespace)/cartesian_compliance_controller"/>
   </group>
 
   <group unless="$(arg sim)" ns="$(arg namespace)">
-    <remap from="/$(arg namespace)/cartesian_compliance_controller/ft_sensor_wrench"
-    	   to="/$(arg namespace)/wrench"/>
     <node name="controller_spawner" pkg="controller_manager" type="spawner"
     	  respawn="false" output="screen"
     	  args="scaled_pos_joint_traj_controller
 		joint_state_controller
     		speed_scaling_state_controller
-		force_torque_sensor_controller
-    		robot_status_controller"/>
+		aist_ftsensor_controller
+    		robot_status_controller
+		motion_control_handle"/>
 
     <!-- Load other controllers -->
     <node name="stopped_spawner" pkg="controller_manager" type="spawner"
