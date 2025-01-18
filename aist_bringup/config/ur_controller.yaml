@@ -209,10 +209,10 @@ cartesian_force_controller:
 
 cartesian_compliance_controller:
   type:                "position_controllers/CartesianComplianceController"
-  end_effector_link:   $(arg prefix)tool0
+  end_effector_link:   $(arg prefix)gripper_tip_link
   robot_base_link:     $(arg prefix)base_link
-  ft_sensor_ref_link:  $(arg prefix)tool0
-  compliance_ref_link: $(arg prefix)tool0
+  ft_sensor_ref_link:  $(arg prefix)flange
+  compliance_ref_link: $(arg prefix)flange
   joints:              *robot_joints
   stiffness:  # w.r.t. compliance_ref_link
     trans_x: 500
@@ -240,6 +240,6 @@ cartesian_compliance_controller:
 
 motion_control_handle:
   type:              "cartesian_controllers/MotionControlHandle"
-  end_effector_link: $(arg prefix)tool0
+  end_effector_link: $(arg prefix)gripper_tip_link
   robot_base_link:   $(arg prefix)base_link
   joints:            *robot_joints
