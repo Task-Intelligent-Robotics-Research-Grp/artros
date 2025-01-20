@@ -177,7 +177,7 @@ robot_status_controller:
 
 cartesian_motion_controller:
   type:              "velocity_controllers/CartesianMotionController"
-  end_effector_link: $(arg prefix)tool0
+  end_effector_link: $(arg prefix)gripper_tip_link
   joints:            *robot_joints
   solver:
     error_scale: 0.5
@@ -192,7 +192,7 @@ cartesian_motion_controller:
 
 cartesian_force_controller:
   type:               "position_controllers/CartesianForceController"
-  end_effector_link:  $(arg prefix)tool0
+  end_effector_link:  $(arg prefix)gripper_tip_link
   robot_base_link:    $(arg prefix)base_link
   ft_sensor_ref_link: $(arg prefix)tool0
   joints:             *robot_joints
