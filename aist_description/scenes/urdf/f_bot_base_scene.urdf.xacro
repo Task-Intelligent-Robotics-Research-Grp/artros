@@ -63,8 +63,8 @@
 
   <!-- Attach force sensor -->
   <xacro:include filename="$(find aist_robotiq)/urdf/ft300.urdf.xacro"/>
-  <xacro:ft300 prefix="f_bot_ftsensor_" parent="f_bot_flange">
-    <origin xyz="0 0 0" rpy="${pi} 0 0"/>
+  <xacro:ft300 prefix="f_bot_ftsensor_" parent="f_bot_tool0">
+    <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi/2}"/>
   </xacro:ft300>
 
   <!-- Attach gripper -->

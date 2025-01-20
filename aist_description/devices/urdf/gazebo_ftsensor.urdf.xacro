@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<robot name="gazebo_ftsensor" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:macro name="gazebo_ftsensor" params="name parent child joint wrench">
+    <gazebo reference="${parent}">
+      <gravity>true</gravity>
+    </gazebo>
+    <gazebo reference="${child}">
+      <gravity>true</gravity>
+    </gazebo>
+    <gazebo reference="${joint}">
+      <provideFeedback>true</provideFeedback>
+    </gazebo>
+    <gazebo>
+      <plugin name="${name}" filename="libgazebo_ros_ft_sensor.so">
+	<updateRate>500.0</updateRate>
+	<topicName>${wrench}</topicName>
+	<jointName>${joint}</jointName>
+	<noise>
+	  <type>gaussian</type>
+	  <mean>0.0</mean>
+	  <stddev>0.003</stddev>
+	</noise>
+      </plugin>
+    </gazebo>
+  </xacro:macro>
+
+</robot>

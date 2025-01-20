@@ -115,12 +115,21 @@
     <origin xyz="0 0 0 " rpy="0 0 0"/>
   </joint>
 
+  <!-- Set gazebo plugin for FT-sensors -->
+  <xacro:include filename="$(find aist_description
+			   )/devices/urdf/gazebo_ftsensor.urdf.xacro"/>
+  <xacro:gazebo_ftsensor name="a_bot_ftsensor"
+			 parent="a_bot_wrist_2_link"
+			 child="a_bot_wrist_3_link"
+			 joint="a_bot_wrist_3_joint"
+			 wrench="/a_bot/wrench"/>
+
   <!-- Spawn and attach gripper -->
   <xacro:include filename="$(find aist_robotiq
 			   )/urdf/robotiq_arg2f_coupling.urdf.xacro"/>
   <xacro:robotiq_arg2f_coupling prefix="a_bot_gripper_coupling_"
-				parent="a_bot_flange">
-    <origin xyz="0 0 0" rpy="${pi} 0 0"/>
+				parent="a_bot_tool0">
+    <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi/2}"/>
   </xacro:robotiq_arg2f_coupling>
 
   <xacro:include filename="$(find aist_robotiq
