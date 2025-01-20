@@ -56,8 +56,8 @@
   <xacro:include filename="$(find aist_robotiq
 			   )/urdf/robotiq_dual_bracket.urdf.xacro"/>
   <xacro:robotiq_dual_bracket prefix="d_bot_dual_bracket_"
-			      parent="d_bot_flange">
-    <origin xyz="0 0 0" rpy="${pi} 0 0"/>
+			      parent="d_bot_tool0">
+    <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi/2}"/>
   </xacro:robotiq_dual_bracket>
 
   <xacro:include filename="$(find aist_robotiq
