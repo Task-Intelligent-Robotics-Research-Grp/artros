@@ -37,7 +37,7 @@
     	  args="scaled_pos_joint_traj_controller
 		joint_state_controller
     		speed_scaling_state_controller
-		aist_ftsensor_controller
+		force_torque_sensor_controller
     		robot_status_controller
 		motion_control_handle"/>
 
