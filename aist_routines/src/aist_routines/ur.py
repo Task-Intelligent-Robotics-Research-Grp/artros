@@ -122,33 +122,42 @@ class URRobot(object):
                in ('position_controllers/ScaledJointTrajectoryController',
                    'velocity_controllers/ScaledJointTrajectoryController',
                    'position_controllers/JointGroupPositionController',
-                   'velocity_controllers/JointGroupVelocityController') and \
+                   'velocity_controllers/JointGroupVelocityController',
+                   'velocity_controllers/CartesianMotionController',
+                   'position_controllers/CartesianForceController',
+                   'position_controllers/CartesianComplianceController') and \
                controller.state == 'running':
                 return controller
         return None
 
     def switch_controller(self, controller_name):
         current_controller = self.current_controller()
-        if current_controller is not None and \
-           current_controller.name == controller_name:
-            return True
         for controller in self.list_controllers():
             if controller.name == controller_name:
-                if controller.state == 'initialized':
-                    # Force restart
-                    rospy.logwarn('Force restart of controller')
+                if controller.state == 'running':
+                    rospy.logwarn('Already running[%s]', controller_name)
+                    return True
+                elif controller.state == 'initialized' or \
+                   controller.state == 'stopped':
                     req = SwitchControllerRequest()
                     req.start_controllers = [controller_name]
                     req.stop_controllers  = [] if current_controller is None \
                                             else [current_controller.name]
-                    req.strictness        = SwitchControllerRequest.BEST_EFFORT
+                    req.strictness        = SwitchControllerRequest.STRICT
                     req.start_asap        = True
                     req.timeout           = 1.0
                     res = self._switch_controller(req)
-                    rospy.sleep(1)
+                    rospy.sleep(0.5)
+                    if res.ok:
+                        rospy.loginfo('Succesfully switched to controller[%s]',
+                                      controller_name)
+                    else:
+                        rospy.logerr('Failed to switch tocontroller[%s]',
+                                      controller_name)
                     return res.ok
                 else:
-                    rospy.loginfo('Controller state is ' + controller.state + ', returning True.')
+                    rospy.logwarn("Controller state is '%', returning True.",
+                                  controller.state)
                     return True
         rospy.logerr('Specified controller[%s] not found', controller_name)
         return False
