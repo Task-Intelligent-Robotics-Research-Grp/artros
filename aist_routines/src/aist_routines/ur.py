@@ -134,7 +134,6 @@ class URRobot(object):
         return None
 
     def switch_controller(self, controller_name):
-        current_controller = self.current_controller()
         for controller in self.list_controllers():
             if controller.name == controller_name:
                 if controller.state == 'running':
@@ -142,6 +141,7 @@ class URRobot(object):
                     return True
                 elif controller.state == 'initialized' or \
                      controller.state == 'stopped':
+                    current_controller = self.current_controller()
                     req = SwitchControllerRequest()
                     req.start_controllers = [controller_name]
                     req.stop_controllers  = [] if current_controller is None \
