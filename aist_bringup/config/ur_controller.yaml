@@ -182,6 +182,7 @@ cartesian_motion_controller:
   solver:
     error_scale: 0.5
     iterations:  1
+    publish_state_feedback: true
   pd_gains:
     trans_x: {p: 10.0}
     trans_y: {p: 10.0}
@@ -199,6 +200,7 @@ cartesian_force_controller:
   solver:
     error_scale: 0.0 # 0.7 is nice in contact
     iterations: 1
+    publish_state_feedback: true
   pd_gains:
     trans_x: {p: 0.05}
     trans_y: {p: 0.05}
@@ -224,6 +226,7 @@ cartesian_compliance_controller:
   solver:
     error_scale: 1.5  # up to 2.0 was nice in free space
     iterations:  1
+    publish_state_feedback: true
   pd_gains:
 #    trans_x: {p: 0.05}
 #    trans_y: {p: 0.05}

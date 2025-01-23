@@ -367,7 +367,10 @@ class URRoutines(AISTBaseRoutines):
             controllers = self._ur_robots[robot_name].list_controllers()
             print('  available controllers:')
             for n, controller in enumerate(controllers):
-                print('    %2d. %s' % (n, controller.name))
+                if controller.state == 'running':
+                    print('   *%2d. %s' % (n, controller.name))
+                else:
+                    print('    %2d. %s' % (n, controller.name))
             n = int(raw_input('  controller #? '))
             self._ur_robots[robot_name].switch_controller(controllers[n].name)
         else:
