@@ -51,6 +51,16 @@ from aist_utility.compat             import *
 #  class URRobot                                                     #
 ######################################################################
 class URRobot(object):
+    ControllerTypes = ('position_controllers/JointTrajectoryController',
+                       'velocity_controllers/JointTrajectoryController',
+                       'position_controllers/ScaledJointTrajectoryController',
+                       'velocity_controllers/ScaledJointTrajectoryController',
+                       'position_controllers/JointGroupPositionController',
+                       'velocity_controllers/JointGroupVelocityController',
+                       'velocity_controllers/CartesianMotionController',
+                       'position_controllers/CartesianForceController',
+                       'position_controllers/CartesianComplianceController')
+
     def __init__(self, robot_name):
         super().__init__()
 
@@ -114,19 +124,12 @@ class URRobot(object):
     ###  Switching controller stuffs
     ###
     def list_controllers(self):
-        return self._list_controllers().controller
+        return list(filter(lambda x: x.type in URRobot.ControllerTypes,
+                           self._list_controllers().controller))
 
     def current_controller(self):
         for controller in self.list_controllers():
-            if controller.type \
-               in ('position_controllers/ScaledJointTrajectoryController',
-                   'velocity_controllers/ScaledJointTrajectoryController',
-                   'position_controllers/JointGroupPositionController',
-                   'velocity_controllers/JointGroupVelocityController',
-                   'velocity_controllers/CartesianMotionController',
-                   'position_controllers/CartesianForceController',
-                   'position_controllers/CartesianComplianceController') and \
-               controller.state == 'running':
+            if controller.state == 'running':
                 return controller
         return None
 
@@ -363,10 +366,10 @@ class URRoutines(AISTBaseRoutines):
         elif key == 'switch':
             controllers = self._ur_robots[robot_name].list_controllers()
             print('  available controllers:')
-            for controller in controllers:
-                print('    ' + controller.name)
-            controller_name = raw_input('  controller name? ')
-            self._ur_robots[robot_name].switch_controller(controller_name)
+            for n, controller in enumerate(controllers):
+                print('    %2d. %s' % (n, controller.name))
+            n = int(raw_input('  controller #? '))
+            self._ur_robots[robot_name].switch_controller(controllers[n].name)
         else:
             return super().interactive(key, robot_name, axis, speed)
         return robot_name, axis, speed
