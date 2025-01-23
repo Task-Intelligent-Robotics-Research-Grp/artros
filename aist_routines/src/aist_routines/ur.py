@@ -141,7 +141,7 @@ class URRobot(object):
                     rospy.logwarn('Already running[%s]', controller_name)
                     return True
                 elif controller.state == 'initialized' or \
-                   controller.state == 'stopped':
+                     controller.state == 'stopped':
                     req = SwitchControllerRequest()
                     req.start_controllers = [controller_name]
                     req.stop_controllers  = [] if current_controller is None \
