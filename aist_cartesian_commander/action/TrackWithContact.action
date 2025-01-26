@@ -1,0 +1,13 @@
+# Goal
+geometry_msgs/Vector3Stamped moving_direction
+geometry_msgs/WrenchStamped  target_wrench     # w.r.t. end_effector_link
+---
+# Result
+bool                        in_contact
+geometry_msgs/PoseStamped   current_pose
+geometry_msgs/WrenchStamped current_wrench
+---
+# Feedback
+bool                        in_contact
+geometry_msgs/PoseStamped   current_pose
+geometry_msgs/WrenchStamped current_wrench
