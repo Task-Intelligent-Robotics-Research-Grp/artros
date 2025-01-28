@@ -12,12 +12,18 @@
     <origin xyz="0.163 0.0 0.0215" rpy="0 0 ${pi/2}"/>
   </xacro:ar_marker>
 
-  <xacro:ar_marker prefix="workspace_"
-		   parent="workspace_center"
-		   marker_id="17_26_32_256"
-		   width="0.150" height="0.150" margin="0.005"
-		   thickness="0.001">
-    <origin xyz="0.0 0.0 0.0005" rpy="0 0 0"/>
+  <!-- <xacro:ar_marker prefix="workspace_" -->
+  <!-- 		   parent="workspace_center" -->
+  <!-- 		   marker_id="17_26_32_256" -->
+  <!-- 		   width="0.150" height="0.150" margin="0.005" -->
+  <!-- 		   thickness="0.001"> -->
+  <!--   <origin xyz="0.0 0.0 0.0005" rpy="0 0 0"/> -->
+  <xacro:ar_marker prefix="workbench_"
+		   parent="workbench_table_top_origin"
+		   marker_id="100_101_102_103"
+		   width="0.105" height="0.105" margin="0.007"
+		   thickness="0.010">
+    <origin xyz="0.130 0.120 0.010" rpy="0 0 0"/>
   </xacro:ar_marker>
 
 </robot>
