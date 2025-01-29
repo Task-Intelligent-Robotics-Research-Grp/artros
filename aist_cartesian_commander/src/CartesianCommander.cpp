@@ -53,26 +53,29 @@ namespace aist_cartesian_commander
 CartesianCommander::CartesianCommander(ros::NodeHandle& nh,
 				       const std::string& nodelet_name)
     :_nodelet_name(nodelet_name),
-     _deviation_sub(nh.subscribe<vector3_t>("/deviation", 1,
-					    &CartesianCommander::deviation_cb,
-					    this)),
-     _pose_sub( nh, "/current_pose",  1),
-     _twist_sub(nh, "/current_twist", 1),
-     _sync(_pose_sub, _twist_sub, 1),
+     _target_twist_sub(nh.subscribe<twist_t>("/target_twist", 1,
+					     &CartesianCommander::twist_cb,
+					     this)),
+     _current_pose_sub( nh, "/current_pose",  1),
+     _current_twist_sub(nh, "/current_twist", 1),
+     _sync(_current_pose_sub, _current_twist_sub, 1),
      _target_frame_pub( nh.advertise<pose_t>(  "target_frame",  1)),
      _target_wrench_pub(nh.advertise<wrench_t>("target_wrench", 1)),
      _track_srv(nh, "track_with_contact", false),
      _current_goal(nullptr),
      _tf2_buffer(),
      _listener(_tf2_buffer),
+     _ddr(nh),
+     _control_period(0.002),
      _current_pose(nullptr),
      _current_twist(nullptr),
      _mtx(),
      _target_frame(),
      _target_wrench()
 {
+  // Setup frames for pose and wrench commands
     _target_frame.header.frame_id  = nh.param<std::string>("robot_base_link",
-							   "robot_base_link");
+							   "base_link");
     _target_wrench.header.frame_id = nh.param<std::string>("end_effector_link",
 							   "tool0");
 
@@ -85,6 +88,12 @@ CartesianCommander::CartesianCommander(ros::NodeHandle& nh,
 					   &CartesianCommander::preempt_cb,
 					   this));
     _track_srv.start();
+
+  // Setup ddynamic_reconfigure server
+    _ddr.registerVariable<double>("control_period", &_control_period,
+				  "Period for integrating twist(sec)",
+				  0.001, 0.05);
+    _ddr.publishServicesTopicsAndUpdateConfigData();
 }
 
 void
@@ -113,7 +122,7 @@ CartesianCommander::preempt_cb()
 }
 
 void
-CartesianCommander::deviation_cb(const vector3_cp& deviation)
+CartesianCommander::twist_cb(const twist_cp& target_twist)
 {
     const std::lock_guard<std::mutex>	lock(_mtx);
 
@@ -127,7 +136,7 @@ CartesianCommander::deviation_cb(const vector3_cp& deviation)
 	    _Tb = boost::make_shared<transform_t>(
 		      _tf2_buffer.lookupTransform(
 			  _target_frame.header.frame_id,
-			  deviation->header.frame_id,
+			  target_twist->header.frame_id,
 			  ros::Time(0), ros::Duration(1.0)));
 	    _tf2_buffer.transform(_current_goal->target_wrench, _target_wrench,
 				  _target_wrench.header.frame_id,
@@ -142,13 +151,13 @@ CartesianCommander::deviation_cb(const vector3_cp& deviation)
 	}
     }
 
-    vector3_t	d;
-    tf2::doTransform(*deviation, d, *_Tb);
+    twist_t	twist;
+    tf2::doTransform(*target_twist, twist, *_Tb);
 
 
-    _target_frame.header.stamp  = deviation->header.stamp;
+    _target_frame.header.stamp = target_twist->header.stamp;
     _target_frame_pub.publish(_target_frame);
-    _target_wrench.header.stamp = deviation->header.stamp;
+    _target_wrench.header.stamp = target_twist->header.stamp;
     _target_wrench_pub.publish(_target_wrench);
 
 }

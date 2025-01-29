@@ -1,23 +1,37 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="robot_name"	default="a_bot"/>
+  <arg name="robot_names"	default="a_bot"/>
   <arg name="manager"		default=""/>
+  <arg name="robot_no"		default="0"/>
 
   <arg if="$(eval manager == '')"	name="command"	value="standalone"/>
   <arg unless="$(eval manager == '')"	name="command"	value="load"/>
 
-  <node name="cartesian_commander" pkg="nodelet" type="nodelet" output="screen"
-  	args="$(arg command) aist_cartesian_commander/aist_cartesian_commander
-	      $(arg manager)">
-    <remap from="/deviation"
-	   to="/$(arg robot_name)_feature_tracker/deviation"/>
-    <remap from="/current_pose"
-	   to="/$(arg robot_name
-	       )/cartesian_compliance_controller/current_pose"/>
-    <remap from="/current_twist"
-	   to="/$(arg robot_name
-	       )/cartesian_compliance_controller/current_twist"/>
-  </node>
+  <group unless="$(eval robot_no == len(robot_names.split()))">
+    <!-- Get robot name and its serial number -->
+    <arg name="robot_name"	value="$(eval robot_names.split()[robot_no])"/>
+
+    <node name="$(arg robot_name)_cartesian_commander"
+	  pkg="nodelet" type="nodelet" output="screen"
+  	  args="$(arg command) aist_cartesian_commander/aist_cartesian_commander
+		$(arg manager)">
+      <remap from="/target_twist"
+	     to="/$(arg robot_name)_feature_tracker/target_twist"/>
+      <remap from="/current_pose"
+	     to="/$(arg robot_name
+		 )/cartesian_compliance_controller/current_pose"/>
+      <remap from="/current_twist"
+	     to="/$(arg robot_name
+		 )/cartesian_compliance_controller/current_twist"/>
+    </node>
+
+    <!-- Recursively call myself for launching remaining commanders -->
+    <include file="$(dirname)/run.launch">
+      <arg name="robot_names"	value="$(arg robot_names)"/>
+      <arg name="manager"	value="$(arg manager)"/>
+      <arg name="robot_no"	value="$(eval robot_no + 1)"/>
+    </include>
+  </group>
 
 </launch>

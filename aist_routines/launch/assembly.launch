@@ -1,6 +1,8 @@
 <?xml version="1.0" ?>
 <launch>
 
+  <arg name="robot_names"	default="a_bot b_bot"/>
+  <arg name="manager"		default=""/>
   <arg name="sim"		default="false"/>
   <arg name="rviz_config"	default="$(dirname)/assembly.rviz"/>
 
@@ -11,6 +13,12 @@
 
   <!-- Start collision_object_manager -->
   <include file="$(find aist_collision_object_manager)/launch/run.launch"/>
+
+  <!-- Start cartesian_commander -->
+  <include file="$(find aist_cartesian_commander)/launch/run.launch">
+    <arg name="robot_names"	value="$(arg robot_names)"/>
+    <arg name="manager"		value="$(arg manager)"/>
+  </include>
 
   <!-- Start rviz -->
   <include file="$(find aist_bringup)/launch/include/rviz.launch">

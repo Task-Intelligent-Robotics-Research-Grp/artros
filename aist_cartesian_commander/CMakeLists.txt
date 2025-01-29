@@ -18,6 +18,7 @@ find_package(
     roscpp
     geometry_msgs
     tf2_geometry_msgs
+    ddynamic_reconfigure
     genmsg
     message_generation
     actionlib_msgs
