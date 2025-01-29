@@ -87,6 +87,8 @@ class CartesianCommander
     void	twist_cb(const twist_cp& target_twist)			;
     void	controller_state_cb(const pose_cp&  current_pose,
 				    const twist_cp& current_twist)	;
+    pose_t	compute_target_frame(const pose_t& current_pose,
+				     const twist_t& twist)	const	;
 
   private:
     const std::string				_nodelet_name;
@@ -107,7 +109,7 @@ class CartesianCommander
 
     ddynamic_reconfigure::DDynamicReconfigure	_ddr;
     double					_control_period;
-    
+
     pose_cp					_current_pose;
     twist_cp					_current_twist;
     transform_cp				_Tb;

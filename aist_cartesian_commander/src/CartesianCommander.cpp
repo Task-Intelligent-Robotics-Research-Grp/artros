@@ -39,6 +39,7 @@
  *  \brief	ROS node for tracking corners in 2D images
  */
 #include <nodelet/nodelet.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include "CartesianCommander.h"
 
 namespace aist_cartesian_commander
@@ -69,6 +70,7 @@ CartesianCommander::CartesianCommander(ros::NodeHandle& nh,
      _control_period(0.002),
      _current_pose(nullptr),
      _current_twist(nullptr),
+     _Tb(nullptr),
      _mtx(),
      _target_frame(),
      _target_wrench()
@@ -133,11 +135,16 @@ CartesianCommander::twist_cb(const twist_cp& target_twist)
     {
 	try
 	{
+	  // Get a transform from the frame describing incoming twist
+	  // to the base link of the robot.
 	    _Tb = boost::make_shared<transform_t>(
 		      _tf2_buffer.lookupTransform(
 			  _target_frame.header.frame_id,
 			  target_twist->header.frame_id,
 			  ros::Time(0), ros::Duration(1.0)));
+
+	  // Transform the wrench value given in the goal to the one
+	  // w.r.t. the end-effector link.
 	    _tf2_buffer.transform(_current_goal->target_wrench, _target_wrench,
 				  _target_wrench.header.frame_id,
 				  ros::Duration(1.0));
@@ -153,7 +160,7 @@ CartesianCommander::twist_cb(const twist_cp& target_twist)
 
     twist_t	twist;
     tf2::doTransform(*target_twist, twist, *_Tb);
-
+    const auto	target_frame = compute_target_frame(*_current_pose, twist);
 
     _target_frame.header.stamp = target_twist->header.stamp;
     _target_frame_pub.publish(_target_frame);
@@ -173,6 +180,25 @@ CartesianCommander::controller_state_cb(const pose_cp&  current_pose,
 
     // std::cerr << current_pose->header.frame_id << ", "
     // 	      << current_twist->header.frame_id << std::endl;
+}
+
+CartesianCommander::pose_t
+CartesianCommander::compute_target_frame(const pose_t& current_pose,
+					 const twist_t& twist) const
+{
+    tf2::Transform	tf2_pose;
+    tf2::fromMsg(current_pose.pose, tf2_pose);
+    tf2::Transform	tf2_delta(tf2::Quaternion(),
+				  {twist.twist.linear.x * _control_period,
+				   twist.twist.linear.y * _control_period,
+				   twist.twist.linear.z * _control_period});
+    tf2_pose *= tf2_delta;
+
+    pose_t	target_frame;
+    target_frame.header = current_pose.header;
+    tf2::toMsg(tf2_pose, target_frame.pose);
+
+    return target_frame;
 }
 
 }	// namespace aist_cartesian_commander
