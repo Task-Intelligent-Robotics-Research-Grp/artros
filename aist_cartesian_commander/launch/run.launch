@@ -2,6 +2,7 @@
 <launch>
 
   <arg name="robot_names"	default="a_bot"/>
+  <arg name="control_period"	default="0.002"/>
   <arg name="manager"		default=""/>
   <arg name="robot_no"		default="0"/>
 
@@ -22,10 +23,10 @@
   	    args="$(arg command)
 		  aist_cartesian_commander/aist_cartesian_commander
 		  $(arg manager)">
-	<param name="end_effector_link"
-	       value="$(arg robot_name)_gripper_tip_link"/>
-	<remap from="/target_twist"
-	       to="feature_tracker/target_twist"/>
+	<param name="end_effector_link"	value="$(arg robot_name
+					       )_gripper_tip_link"/>
+	<param name="control_period"	value="$(arg control_period)"/>
+	<remap from="/target_twist"	to="feature_tracker/target_twist"/>
 	<remap from="/current_pose"
 	       to="cartesian_compliance_controller/current_pose"/>
 	<remap from="/current_twist"
