@@ -14,6 +14,11 @@
   <!-- Start collision_object_manager -->
   <include file="$(find aist_collision_object_manager)/launch/run.launch"/>
 
+  <node if="$(arg sim)"
+	name="controller_manager"
+	pkg="rqt_controller_manager" type="rqt_controller_manager"
+	output="screen"/>
+
   <!-- Start cartesian_commander -->
   <include file="$(find aist_cartesian_commander)/launch/run.launch">
     <arg name="robot_names"	value="$(arg robot_names)"/>

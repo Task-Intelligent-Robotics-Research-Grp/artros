@@ -9,22 +9,29 @@
   <arg unless="$(eval manager == '')"	name="command"	value="load"/>
 
   <group unless="$(eval robot_no == len(robot_names.split()))">
-    <!-- Get robot name and its serial number -->
+
+    <!-- Get robot name -->
     <arg name="robot_name"	value="$(eval robot_names.split()[robot_no])"/>
 
-    <node name="$(arg robot_name)_cartesian_commander"
-	  pkg="nodelet" type="nodelet" output="screen"
-  	  args="$(arg command) aist_cartesian_commander/aist_cartesian_commander
-		$(arg manager)">
-      <remap from="/target_twist"
-	     to="/$(arg robot_name)_feature_tracker/target_twist"/>
-      <remap from="/current_pose"
-	     to="/$(arg robot_name
-		 )/cartesian_compliance_controller/current_pose"/>
-      <remap from="/current_twist"
-	     to="/$(arg robot_name
-		 )/cartesian_compliance_controller/current_twist"/>
-    </node>
+    <group ns="$(arg robot_name)">
+      <remap from="cartesian_commander/target_frame"	to="target_frame"/>
+      <remap from="cartesian_commander/target_wrench"	to="target_wrench"/>
+
+      <node name="cartesian_commander"
+	    pkg="nodelet" type="nodelet" output="screen"
+  	    args="$(arg command)
+		  aist_cartesian_commander/aist_cartesian_commander
+		  $(arg manager)">
+	<param name="end_effector_link"
+	       value="$(arg robot_name)_gripper_tip_link"/>
+	<remap from="/target_twist"
+	       to="feature_tracker/target_twist"/>
+	<remap from="/current_pose"
+	       to="cartesian_compliance_controller/current_pose"/>
+	<remap from="/current_twist"
+	       to="cartesian_compliance_controller/current_twist"/>
+      </node>
+    </group>
 
     <!-- Recursively call myself for launching remaining commanders -->
     <include file="$(dirname)/run.launch">

@@ -39,14 +39,13 @@
  *  \brief	ROS node for tracking corners in 2D images
  */
 #include <ros/ros.h>
+#include <realtime_tools/realtime_publisher.h>
 #include <geometry_msgs/Vector3Stamped.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/WrenchStamped.h>
 #include <message_filters/subscriber.h>
-#include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
-#include <message_filters/sync_policies/approximate_time.h>
 #include <actionlib/server/simple_action_server.h>
 #include <tf2_ros/transform_listener.h>
 #include <ddynamic_reconfigure/ddynamic_reconfigure.h>
@@ -70,6 +69,10 @@ class CartesianCommander
     using transform_t	  = geometry_msgs::TransformStamped;
     using transform_cp	  = geometry_msgs::TransformStampedConstPtr;
 
+    using pose_pub_t	  = realtime_tools::RealtimePublisher<pose_t>;
+    using pose_pub_p	  = std::shared_ptr<pose_pub_t>;
+    using wrench_pub_t	  = realtime_tools::RealtimePublisher<wrench_t>;
+    using wrench_pub_p	  = std::shared_ptr<wrench_pub_t>;
     using action_server_t = actionlib::SimpleActionServer<
 				TrackWithContactAction>;
     using sync_t	  = message_filters::TimeSynchronizer<pose_t, twist_t>;
@@ -87,8 +90,6 @@ class CartesianCommander
     void	twist_cb(const twist_cp& target_twist)			;
     void	controller_state_cb(const pose_cp&  current_pose,
 				    const twist_cp& current_twist)	;
-    pose_t	compute_target_frame(const pose_t& current_pose,
-				     const twist_t& twist)	const	;
 
   private:
     const std::string				_nodelet_name;
@@ -98,8 +99,8 @@ class CartesianCommander
     message_filters::Subscriber<twist_t>	_current_twist_sub;
     sync_t					_sync;
 
-    const ros::Publisher			_target_frame_pub;
-    const ros::Publisher			_target_wrench_pub;
+    const pose_pub_p				_target_frame_pub;
+    const wrench_pub_p				_target_wrench_pub;
 
     action_server_t				_track_srv;
     TrackWithContactGoalConstPtr		_current_goal;
@@ -110,12 +111,12 @@ class CartesianCommander
     ddynamic_reconfigure::DDynamicReconfigure	_ddr;
     double					_control_period;
 
-    pose_cp					_current_pose;
-    twist_cp					_current_twist;
-    transform_cp				_Tb;
+    pose_t					_current_pose;
+    twist_t					_current_twist;
+    bool					_ready;
     mutable std::mutex				_mtx;
 
-    pose_t					_target_frame;
+    transform_cp				_Tet;
     wrench_t					_target_wrench;
 };
 

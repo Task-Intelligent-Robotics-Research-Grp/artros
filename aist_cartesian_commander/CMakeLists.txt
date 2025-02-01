@@ -16,6 +16,7 @@ find_package(
   catkin REQUIRED
   COMPONENTS
     roscpp
+    realtime_tools
     geometry_msgs
     tf2_geometry_msgs
     ddynamic_reconfigure
@@ -53,6 +54,7 @@ catkin_package(
   CATKIN_DEPENDS
     roscpp
     message_runtime
+    actionlib_msgs
     tf2_geometry_msgs
     pluginlib
     nodelet
@@ -88,4 +90,10 @@ install(
     DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+catkin_install_python(
+  PROGRAMS
+    scripts/test_cartesian_commander.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

@@ -22,16 +22,19 @@ class CartesianCommanderClient(SimpleActionClient):
         SimpleActionClient.__init__(self, server + '/track_with_contact',
                                     TrackWithContactAction)
 
-        if not self.wait_for_server(timeout=rospy.Duration(10.0)):
-            rospy.logerr('(CartesianCommanderClient) failed to connect to server[%s]',
-                          server + '/track_with_contact')
-            raise
+        self.wait_for_server()
+        # if not self.wait_for_server(timeout=rospy.Duration(10.0)):
+        #     rospy.logerr('(CartesianCommanderClient) failed to connect to server[%s]',
+        #                   server + '/track_with_contact')
+        #     raise
         rospy.loginfo('(CartesianCommanderClient) connected to server[%s]',
                       server + '/track_with_contact')
 
     # TrackWithContact action stuffs
-    def send_goal(self, target_wrench,
+    def send_goal(self, twist_link, target_wrench,
                   done_cb=None, active_cb=None, feedback_cb=None):
-        SimpleActionClient.send_goal(self, TrackWithContactGoal(target_wrench),
+        SimpleActionClient.send_goal(self,
+                                     TrackWithContactGoal(twist_link,
+                                                          target_wrench),
                                      done_cb=done_cb, active_cb=active_cb,
                                      feedback_cb=feedback_cb)
