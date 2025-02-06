@@ -155,7 +155,7 @@ class URRobot(object):
                         rospy.loginfo('Succesfully switched to controller[%s]',
                                       controller_name)
                     else:
-                        rospy.logerr('Failed to switch tocontroller[%s]',
+                        rospy.logerr('Failed to switch to controller[%s]',
                                       controller_name)
                     return res.ok
                 else:
@@ -163,6 +163,31 @@ class URRobot(object):
                                   controller.state)
                     return True
         rospy.logerr('Specified controller[%s] not found', controller_name)
+        return False
+
+    def toggle_control_handle(self):
+        controller_name = 'motion_control_handle'
+        for controller in self._list_controllers().controller:
+            if controller.name == controller_name:
+                req = SwitchControllerRequest()
+                if controller.state == 'running':
+                    req.start_controllers = []
+                    req.stop_controllers  = [controller_name]
+                    message = 'stopped ' + controller_name
+                else:
+                    req.start_controllers = [controller_name]
+                    req.stop_controllers  = []
+                    message = 'started ' + controller_name
+                req.strictness        = SwitchControllerRequest.STRICT
+                req.start_asap        = True
+                req.timeout           = 1.0
+                res = self._switch_controller(req)
+                rospy.sleep(0.5)
+                if res.ok:
+                    rospy.loginfo('Succesfully %s' % message)
+                else:
+                    rospy.logerr('Failed to %s' % message)
+                return res.ok
         return False
 
     ###
@@ -349,6 +374,7 @@ class URRoutines(AISTBaseRoutines):
         print('  connect:     Connect dashboard')
         print('  disconnect:  Disconnect dashboard')
         print('  switch:      Switch controller')
+        print('  toggle:      Toggle motion control handle')
 
     def interactive(self, key, robot_name, axis, speed=1.0):
         if key == 'activate':
@@ -373,6 +399,8 @@ class URRoutines(AISTBaseRoutines):
                     print('    %2d. %s' % (n, controller.name))
             n = int(raw_input('  controller #? '))
             self._ur_robots[robot_name].switch_controller(controllers[n].name)
+        elif key == 'toggle':
+            self._ur_robots[robot_name].toggle_control_handle()
         else:
             return super().interactive(key, robot_name, axis, speed)
         return robot_name, axis, speed

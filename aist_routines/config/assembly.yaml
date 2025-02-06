@@ -9,13 +9,13 @@ initial_object_config:
     parent_link: suction_tool_holder_link
   base:
     parent_link: workbench_holder_link
-    subframe:    fixture_grasp
-  panel_motor:
-    parent_link: base/panel_motor_screw_hole_1
-    subframe:    base_screw_hole_aligner_1
-  panel_bearing:
-    parent_link: base/panel_bearing_screw_hole_1
-    subframe:    base_screw_hole_aligner_1
+#    subframe:    fixture_grasp
+#  panel_motor:
+#    parent_link: base/panel_motor_screw_hole_1
+#    subframe:    base_screw_hole_aligner_1
+#  panel_bearing:
+#    parent_link: base/panel_bearing_screw_hole_1
+#    subframe:    base_screw_hole_aligner_1
 
 placing_parameters:
   precision_tool_holder_link:
