@@ -115,12 +115,12 @@
         <joint name="b_bot_wrist_3_joint" value="-3.85554010072817"/>
     </group_state>
     <group_state name="fasten_screw_m4_ready" group="b_bot">
-        <joint name="b_bot_elbow_joint" value="1.5960763136493128"/>
-        <joint name="b_bot_shoulder_lift_joint" value="-1.7262684307494105"/>
-        <joint name="b_bot_shoulder_pan_joint" value="0.8751618266105652"/>
-        <joint name="b_bot_wrist_1_joint" value="-1.574881216088766"/>
-        <joint name="b_bot_wrist_2_joint" value="-1.453789536152975"/>
-        <joint name="b_bot_wrist_3_joint" value="-3.8287349382983606"/>
+        <joint name="b_bot_elbow_joint" value="1.659039322529928"/>
+        <joint name="b_bot_shoulder_lift_joint" value="-1.6479436359801234"/>
+        <joint name="b_bot_shoulder_pan_joint" value="1.0156359672546387"/>
+        <joint name="b_bot_wrist_1_joint" value="-1.7304569683470667"/>
+        <joint name="b_bot_wrist_2_joint" value="-1.4739206472979944"/>
+        <joint name="b_bot_wrist_3_joint" value="-3.68833834329714"/>
     </group_state>
     <group_state name="home" group="all_bots">
         <joint name="a_bot_elbow_joint" value="1.4"/>
