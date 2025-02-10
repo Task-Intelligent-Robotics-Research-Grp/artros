@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
+  <arg name="file_name"		default="b_bot-pick_screw_m4"/>
   <arg name="image_topic"	default="camera_multiplexer/image"/>
   <arg name="encoding"		default="bgr8"/>
 
@@ -8,7 +9,7 @@
 	pkg="image_view" type="image_saver" output="screen">
     <remap from="image"			to="$(arg image_topic)"/>
     <param name="encoding"		value="$(arg encoding)"/>
-    <param name="filename_format"	value="frame%04i.jpg"/>
+    <param name="filename_format"	value="$(arg file_name).png"/>
     <param name="save_all_image"	value="false"/>
   </node>
 
