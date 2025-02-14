@@ -14,8 +14,10 @@
     <arg name="joint_gui"	value="false"/>
   </include>
 
+  <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure"/>
+
   <node name="rosbag_play" pkg="rosbag" type="play" output="log"
-	args="-l -r $(arg rosbag_rate)
+	args="--loop --quiet --wait-for-subscribers --rate=$(arg rosbag_rate)
 	      $(dirname)/../../../../data/$(arg file_name).bag"/>
 
 </launch>
