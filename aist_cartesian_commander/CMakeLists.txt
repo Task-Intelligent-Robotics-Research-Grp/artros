@@ -37,9 +37,8 @@ add_action_files(
 
 generate_messages(
   DEPENDENCIES
-    actionlib_msgs
-    actionlib
     geometry_msgs
+    actionlib_msgs
 )
 
 ###########

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5.0)
 project(aist_aruco_ros)
 
 ## Compile as C++11, supported in ROS Kinetic and newer

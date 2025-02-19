@@ -6,7 +6,8 @@
   <arg name="file_name"		default="servo_test-feeder-2"/>
   <arg name="rosbag_rate"	default="0.5"/>
   <arg name="rvizconfig"	default="$(dirname)/rosbag_play.rviz"/>
-
+  <arg name="wait"		default="false"/>
+  
   <include file="$(find aist_description)/launch/display_scene.launch">
     <arg name="config"		value="$(arg config)"/>
     <arg name="scene"		value="$(arg scene)"/>
