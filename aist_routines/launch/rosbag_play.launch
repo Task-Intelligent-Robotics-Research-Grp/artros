@@ -5,7 +5,13 @@
   <arg name="scene"		default=""/>
   <arg name="file_name"		default="servo_test-feeder-2"/>
   <arg name="rosbag_rate"	default="0.5"/>
+  <arg name="wait"		default="false"/>
   <arg name="rvizconfig"	default="$(dirname)/rosbag_play.rviz"/>
+
+  <arg if="$(arg wait)"
+       name="wait_arg"		value="--wait-for-subscribers"/>
+  <arg unless="$(arg wait)"
+       name="wait_arg"		value=""/>
 
   <include file="$(find aist_description)/launch/display_scene.launch">
     <arg name="config"		value="$(arg config)"/>
@@ -14,10 +20,8 @@
     <arg name="joint_gui"	value="false"/>
   </include>
 
-  <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure"/>
-
   <node name="rosbag_play" pkg="rosbag" type="play" output="log"
-	args="--loop --quiet --wait-for-subscribers --rate=$(arg rosbag_rate)
+	args="--loop --quiet $(arg wait_arg) --rate=$(arg rosbag_rate)
 	      $(dirname)/../../../../data/$(arg file_name).bag"/>
 
 </launch>

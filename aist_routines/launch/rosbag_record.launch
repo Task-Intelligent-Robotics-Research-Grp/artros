@@ -2,17 +2,21 @@
 <launch>
 
   <arg name="file_name"		default="servo_test"/>
+  <arg name="record_tf"		default="false"/>
 
   <arg name="depth_topic"	value="/camera_multiplexer/depth"/>
   <arg name="image_topic"	value="/camera_multiplexer/image"/>
   <arg name="cinfo_topic"	value="/camera_multiplexer/camera_info"/>
+  <arg if="$(arg record_tf)"
+       name="state_topic"	value="/tf"/>
+  <arg unless="$(arg record_tf)"
+       name="state_topic"	value="/joint_states"/>
 
   <node name="rosbag_record" pkg="rosbag" type="record" output="screen"
   	args="$(arg depth_topic) $(arg cinfo_topic) $(arg image_topic)
-	      /joint_states
-	      /tf
+	      $(arg state_topic)
 	      /a_bot/wrench /b_bot/wrench
 	      /collision_object_manager/collision_marker
-	      -o $(env HOME)/catkin_ws/data/$(arg file_name)"/>
+	      -o $(dirname)/../../../../data/$(arg file_name)"/>
 
 </launch>
