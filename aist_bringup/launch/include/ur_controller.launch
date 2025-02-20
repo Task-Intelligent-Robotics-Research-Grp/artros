@@ -38,8 +38,7 @@
 		joint_state_controller
     		speed_scaling_state_controller
 		force_torque_sensor_controller
-    		robot_status_controller
-		motion_control_handle"/>
+    		robot_status_controller"/>
 
     <!-- Load other controllers -->
     <node name="stopped_spawner" pkg="controller_manager" type="spawner"
@@ -48,7 +47,8 @@
 		cartesian_compliance_controller
     		scaled_vel_joint_traj_controller
 		joint_group_pos_controller
-		joint_group_vel_controller"/>
+		joint_group_vel_controller
+		motion_control_handle"/>
 
     <node name="controller_stopper"
 	  pkg="ur_robot_driver" type="controller_stopper_node"
