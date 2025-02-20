@@ -16,11 +16,17 @@
   	pkg="aist_routines" type="hmi_server.py" output="screen"/>
 
   <!-- Start mesh generator -->
+  <!-- <include file="$(find aist_visualization)/launch/mesh_generator.launch"> -->
+  <!--   <arg name="screen_frame"	  value="virtual_screen"/> -->
+  <!--   <arg name="reference_frame"	  value="world"/> -->
+  <!--   <arg name="camera_info_topic" value="/live_camera/camera_info"/> -->
+  <!-- </include> -->
+
+  <!-- Start mesh generator -->
   <include file="$(find aist_visualization)/launch/mesh_generator.launch">
-    <arg name="screen_frame"	  value="virtual_screen"/>
+    <arg name="screen_frame"	  value="workbench_table_top_center"/>
     <arg name="reference_frame"	  value="world"/>
-    <arg name="camera_info_topic" value="/live_camera/camera_info"/>
-    <!-- <arg name="camera_info_topic" value="/a_motioncam/color/camera_info"/> -->
+    <arg name="camera_info_topic" value="/camera_multiplexer/camera_info"/>
   </include>
 
   <!-- Start rosbridge server -->
@@ -30,7 +36,7 @@
 
   <!-- Start nep_bridge server -->
   <include file="$(find nep_bridge)/launch/run.launch">
-    <arg name="config_file"	value="$(dirname)/../config/nep_bridge.yaml"/>
+    <arg name="config_file"	value="$(dirname)/../config/nep_bridge_assembly.yaml"/>
   </include>
 
 </launch>
