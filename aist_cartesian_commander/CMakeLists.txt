@@ -16,11 +16,11 @@ find_package(
   catkin REQUIRED
   COMPONENTS
     roscpp
+    rospy
     realtime_tools
     geometry_msgs
     tf2_geometry_msgs
     ddynamic_reconfigure
-    genmsg
     message_generation
     actionlib_msgs
     actionlib
@@ -37,8 +37,20 @@ add_action_files(
 
 generate_messages(
   DEPENDENCIES
-    geometry_msgs
     actionlib_msgs
+    geometry_msgs
+)
+
+catkin_package(
+  CATKIN_DEPENDS
+    roscpp
+    rospy
+    actionlib_msgs
+    geometry_msgs
+    tf2_geometry_msgs
+    message_runtime
+    pluginlib
+    nodelet
 )
 
 ###########
@@ -46,17 +58,6 @@ generate_messages(
 ###########
 include_directories(
   ${catkin_INCLUDE_DIRS}
-  src
-)
-
-catkin_package(
-  CATKIN_DEPENDS
-    roscpp
-    message_runtime
-    actionlib_msgs
-    tf2_geometry_msgs
-    pluginlib
-    nodelet
 )
 
 add_library(

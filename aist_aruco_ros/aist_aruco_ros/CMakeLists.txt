@@ -69,7 +69,6 @@ add_library(aruco_multi_detector
 add_dependencies(aruco_multi_detector
   ${${PREOJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
-  ${PROJECT_NAME}_generate_messages_cpp
 )
 
 target_link_libraries(aruco_multi_detector
