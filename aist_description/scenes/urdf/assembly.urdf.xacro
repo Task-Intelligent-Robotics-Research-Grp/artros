@@ -35,4 +35,28 @@
     <origin xyz="0 ${screw_feeder_width} 0" rpy="0 0 0"/>
   </xacro:screw_feeder>
 
+  <!-- additional trays -->
+  <xacro:include filename="$(find aist_description
+			   )/wrc/urdf/kitting_trays.urdf.xacro" />
+  <xacro:kitting_tray trayname="tray_1" parent="workbench_base_link">
+    <origin xyz="${workbench_bar_width - tray_width} 0 0"
+	    rpy="0 0 ${-pi/2}"/>
+  </xacro:kitting_tray>
+
+  <!-- frames on tray_1 -->
+  <link name="tray_1_frame_1"/>
+  <joint name="tray1_frame_1_joint" type="fixed">
+    <parent link="tray_1"/>
+    <child  link="tray_1_frame_1"/>
+    <origin xyz="0.080 0.050 0.0075" rpy="0 0 ${-pi/2}"/>
+  </joint>
+
+  <link name="tray_1_frame_2"/>
+  <joint name="tray1_frame_2_joint" type="fixed">
+    <parent link="tray_1"/>
+    <child  link="tray_1_frame_2"/>
+    <origin xyz="0.150 0.050 0.0075" rpy="0 0 ${-pi/2}"/>
+  </joint>
+
+
 </robot>
