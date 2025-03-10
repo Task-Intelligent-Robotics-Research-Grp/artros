@@ -36,3 +36,8 @@ workbench_holder_link:
   - workbench_front_border
   - workbench_right_border
   - base_fixture_piston
+tray_1_frame_1:
+  - tray_1
+tray_1_frame_2:
+  - tray_1
+  
