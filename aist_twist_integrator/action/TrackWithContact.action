@@ -1,0 +1,11 @@
+# Goal
+string			    twist_link     #
+geometry_msgs/WrenchStamped target_wrench  # w.r.t. end_effector_link
+---
+# Result
+geometry_msgs/PoseStamped  current_pose
+geometry_msgs/TwistStamped current_twist
+---
+# Feedback
+geometry_msgs/PoseStamped  current_pose
+geometry_msgs/TwistStamped current_twist
