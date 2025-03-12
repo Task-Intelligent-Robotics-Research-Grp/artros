@@ -21,7 +21,6 @@ find_package(
     tf2_geometry_msgs
     ddynamic_reconfigure
     genmsg
-    message_generation
     actionlib_msgs
     actionlib
     pluginlib
@@ -29,17 +28,6 @@ find_package(
 )
 
 catkin_python_setup()
-
-add_action_files(
-  FILES
-    TrackWithContact.action
-)
-
-generate_messages(
-  DEPENDENCIES
-    geometry_msgs
-    actionlib_msgs
-)
 
 ###########
 ## Build ##

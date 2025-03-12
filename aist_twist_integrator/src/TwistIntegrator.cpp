@@ -110,7 +110,6 @@ TwistIntegrator::TwistIntegrator(ros::NodeHandle& nh,
      _control_period(0.002),
      _current_pose(),
      _current_twist(),
-     _ready(false),
      _mtx(),
      _Tet(nullptr),
      _target_wrench()
@@ -145,20 +144,9 @@ TwistIntegrator::twist_cb(const twist_cp& target_twist)
 			   _target_wrench.header.frame_id,
 			   target_twist->header.frame_id,
 			   ros::Time(0), ros::Duration(1.0)));
-
-	  // Transform the wrench value given in the goal to the one
-	  // w.r.t. the end-effector link.
-	    _tf2_buffer.transform(_current_goal->target_wrench, _target_wrench,
-				  _target_wrench.header.frame_id,
-				  ros::Duration(1.0));
 	}
 	catch (const std::exception& err)
 	{
-	    TrackWithContactResult	result;
-	    result.current_pose  = _current_pose;
-	    result.current_twist = _current_twist;
-	    _track_srv.setAborted(result);
-
 	    NODELET_ERROR_STREAM("(twist_integrator) goal ABORTED["
 				 << err.what() << ']');
 	    return;
@@ -167,10 +155,10 @@ TwistIntegrator::twist_cb(const twist_cp& target_twist)
 
   // Update current pose by incoming twist and publish.
     pose_t	target_frame;
-    target_frame.pose	= update_pose(_current_pose.pose,
-				      transform_twist(target_twist->twist,
-						      _Tet->transform),
-				      _control_period);
+    target_frame.pose = update_pose(_current_pose.pose,
+				    transform_twist(target_twist->twist,
+						    _Tet->transform),
+				    _control_period);
     target_frame.header.frame_id = _current_pose.header.frame_id;
     target_frame.header.stamp    = ros::Time::now();
     if (_target_frame_pub->trylock())
@@ -186,12 +174,6 @@ TwistIntegrator::twist_cb(const twist_cp& target_twist)
 	_target_wrench_pub->msg_ = _target_wrench;
 	_target_wrench_pub->unlockAndPublish();
     }
-
-  // Publish feedback.
-    TrackWithContactFeedback	feedback;
-    feedback.current_pose  = _current_pose;
-    feedback.current_twist = _current_twist;
-    _track_srv.publishFeedback(feedback);
 }
 
 void
@@ -202,7 +184,6 @@ TwistIntegrator::controller_state_cb(const pose_cp&  current_pose,
 
     _current_pose  = *current_pose;
     _current_twist = *current_twist;
-    _ready = true;
 }
 
 }	// namespace aist_twist_integrator

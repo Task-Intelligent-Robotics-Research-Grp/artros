@@ -107,7 +107,6 @@ class TwistIntegrator
 
     pose_t					_current_pose;
     twist_t					_current_twist;
-    bool					_ready;
     mutable std::mutex				_mtx;
 
     transform_cp				_Tet;
