@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<robot name="aaa" xmlns:xacro="http://wiki.ros.org/xacro">
+  <xacro:include filename="$(find aist_description)/devices/urdf/conveni_suction_gripper.urdf.xacro" />
+
+  <link name ="world"/>
+
+  <xacro:conveni_suction_gripper prefix="" parent="world">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </xacro:conveni_suction_gripper>
+</robot>

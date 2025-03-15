@@ -4,7 +4,7 @@ robots:
 
 grippers:
   g_bot_gripper:
-    type:          RobotiqGripper
+    type:          SuctionGripper
     controller_ns: g_bot_gripper_controller
 
 cameras:

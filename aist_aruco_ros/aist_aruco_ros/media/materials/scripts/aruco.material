@@ -181,7 +181,7 @@ material Aruco/aruco-100_101_102_103-72x72-4
   }
 }
 
-material Aruco/aruco-100_101_102_103-119x119-7
+material Aruco/aruco-100_101_102_103-105x105-7
 {
   technique
   {
