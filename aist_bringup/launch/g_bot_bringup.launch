@@ -14,13 +14,12 @@
   				       -J g_bot_wrist_1_joint -0.85
   				       -J g_bot_wrist_2_joint -1.5708
   				       -J g_bot_wrist_3_joint 0.0"/>
-  <arg name="prefixes"		value="g_bot_, g_bot_gripper_"/>
-  <arg name="devices"		value="ur5e, robotiq_140"/>
-  <arg name="controllers"	value="ur, cmodel"/>
-  <arg name="drivers"		value="ur, cmodel"/>
+  <arg name="prefixes"		value="g_bot_"/>
+  <arg name="devices"		value="ur5e"/>
+  <arg name="controllers"	value="ur"/>
+  <arg name="drivers"		value="ur"/>
   <arg name="driver_args"	value="172.16.58.20,
-				       50001, 50002, 50003, 50004, 0;
-				       urcap, 172.16.58.20" />
+				       50001, 50002, 50003, 50004, 0" />
 
   <!-- Bringup robots -->
   <include file="$(dirname)/include/connect_robots.launch">
