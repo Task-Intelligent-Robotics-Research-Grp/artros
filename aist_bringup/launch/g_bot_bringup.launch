@@ -47,30 +47,12 @@
   <!-- Launch other hardware drivers -->
   <group unless="$(arg sim)">
 
-    <!-- Launch Realsense camera -->
-    <arg name="camera_name"		default="g_bot_camera"/>
-    <arg name="camera_width"		default="640"/>
-    <arg name="camera_height"		default="480"/>
-    <arg name="fps"			default="30"/>
-    <arg name="manager"			default=""/>
-    <include file="$(find realsense2_camera)/launch/rs_camera.launch">
-      <arg name="camera"		value="$(arg camera_name)"/>
-      <arg name="tf_prefix"		value="$(arg camera_name)"/>
-      <arg name="publish_tf"		value="false"/>
-      <arg name="enable_depth"		value="true"/>
-      <arg name="enable_pointcloud"	value="true"/>
-      <arg name="align_depth"		value="true"/>
-      <arg name="depth_width"		value="$(arg camera_width)"/>
-      <arg name="depth_height"		value="$(arg camera_height)"/>
-      <arg name="depth_fps"		value="$(arg fps)"/>
-      <arg name="infra_width"		value="$(arg camera_width)"/>
-      <arg name="infra_height"		value="$(arg camera_height)"/>
-      <arg name="infra_fps"		value="$(arg fps)"/>
-      <arg name="color_width"		value="$(arg camera_width)"/>
-      <arg name="color_height"		value="$(arg camera_height)"/>
-      <arg name="color_fps"		value="$(arg fps)"/>
-      <arg name="manager"		value="$(arg manager)"
-    	   unless="$(eval manager == '')"/>
+    <!-- Launch suction tool controllers -->
+    <include file="$(find aist_fastening_tools
+    		   )/launch/conveni_suction_gripper_controller.launch">
+      <arg name="gripper_name"		value="g_bot_gripper"/>
+      <arg name="usb_port"		value="/dev/ttyUSB0"/>
+      <arg name="baud_rate"		value="9600"/>
     </include>
 
   </group>
