@@ -60,7 +60,7 @@ class ConveniSuctionGripperController(object):
         except (OSError, serial.SerialException):
             rospy.logerr('(%s) failed to open serial port: %s',
                          self._name, serial_port)
-            rospy.shutdown()
+            rospy.signal_shutdown('failed to open serial port')
 
         # Create an action server for processing commands to suction tools.
         self._server = SimpleActionServer('~command', SuctionToolCommandAction,
