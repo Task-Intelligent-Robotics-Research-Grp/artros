@@ -97,7 +97,7 @@ class ConveniSuctionGripperController(object):
         start_time = rospy.get_rostime()
         while (rospy.get_rostime() - start_time) < hold_time:
             self._serial.write(cmd.encode())
-            time.sleep(0.1)
+            rospy.sleep(0.1)
             pass
 
     def _read(self):
