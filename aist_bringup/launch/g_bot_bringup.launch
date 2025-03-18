@@ -13,7 +13,7 @@
   				       -J g_bot_elbow_joint 1.4
   				       -J g_bot_wrist_1_joint -0.85
   				       -J g_bot_wrist_2_joint -1.5708
-  				       -J g_bot_wrist_3_joint 0.0"/>
+  				       -J g_bot_wrist_3_joint 3.14159"/>
   <arg name="prefixes"		value="g_bot_"/>
   <arg name="devices"		value="ur5e"/>
   <arg name="controllers"	value="ur"/>
