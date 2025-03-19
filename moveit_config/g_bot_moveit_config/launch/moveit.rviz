@@ -6,12 +6,10 @@ Panels:
       Expanded:
         - /MotionPlanning1/Scene Robot1
         - /MotionPlanning1/Planning Request1
-        - /TF1/Frames1
         - /TF1/Tree1
-        - /ColorImage1
         - /DepthCloud1/Auto Size1
-      Splitter Ratio: 0.5768463015556335
-    Tree Height: 423
+      Splitter Ratio: 0.7884231805801392
+    Tree Height: 371
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -261,11 +259,6 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          workspace_ar_marker:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
           workspace_center:
             Alpha: 1
             Show Axes: false
@@ -298,7 +291,7 @@ Visualization Manager:
         Interactive Marker Size: 0.20000000298023224
         Joint Violation Color: 255; 0; 255
         Planning Group: g_bot
-        Query Goal State: true
+        Query Goal State: false
         Query Start State: false
         Show Workspace: false
         Start State Alpha: 1
@@ -512,11 +505,6 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          workspace_ar_marker:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
           workspace_center:
             Alpha: 1
             Show Axes: false
@@ -563,12 +551,14 @@ Visualization Manager:
           Value: false
         g_bot_base_link_inertia:
           Value: false
+        g_bot_camera_aligned_depth_to_color_frame:
+          Value: false
         g_bot_camera_bottom_screw_frame:
           Value: false
         g_bot_camera_color_frame:
           Value: false
         g_bot_camera_color_optical_frame:
-          Value: false
+          Value: true
         g_bot_camera_depth_frame:
           Value: false
         g_bot_camera_depth_optical_frame:
@@ -584,7 +574,7 @@ Visualization Manager:
         g_bot_camera_link:
           Value: false
         g_bot_flange:
-          Value: true
+          Value: false
         g_bot_forearm_link:
           Value: false
         g_bot_gripper_base_link:
@@ -594,6 +584,8 @@ Visualization Manager:
         g_bot_shoulder_link:
           Value: false
         g_bot_tool0:
+          Value: false
+        g_bot_tool0_controller:
           Value: false
         g_bot_upper_arm_link:
           Value: false
@@ -606,9 +598,9 @@ Visualization Manager:
         ground:
           Value: false
         left_wall:
-          Value: true
+          Value: false
         mounter_table_base_link:
-          Value: true
+          Value: false
         mounter_table_leg1:
           Value: false
         mounter_table_leg2:
@@ -618,19 +610,17 @@ Visualization Manager:
         mounter_table_top:
           Value: false
         mounter_table_top_center:
-          Value: true
+          Value: false
         mounter_table_top_origin:
           Value: false
         right_wall:
-          Value: true
-        workspace_ar_marker:
-          Value: true
+          Value: false
         workspace_center:
           Value: true
         world:
           Value: false
       Marker Alpha: 1
-      Marker Scale: 0.4000000059604645
+      Marker Scale: 0.20000000298023224
       Name: TF
       Show Arrows: false
       Show Axes: true
@@ -658,7 +648,8 @@ Visualization Manager:
                 {}
             g_bot_base_link:
               g_bot_base:
-                {}
+                g_bot_tool0_controller:
+                  {}
               g_bot_base_link_inertia:
                 g_bot_shoulder_link:
                   g_bot_upper_arm_link:
@@ -671,9 +662,11 @@ Visualization Manager:
                                 g_bot_gripper_base_link:
                                   g_bot_camera_bottom_screw_frame:
                                     g_bot_camera_link:
-                                      g_bot_camera_color_frame:
+                                      g_bot_camera_aligned_depth_to_color_frame:
                                         g_bot_camera_color_optical_frame:
                                           {}
+                                      g_bot_camera_color_frame:
+                                        {}
                                       g_bot_camera_depth_frame:
                                         g_bot_camera_depth_optical_frame:
                                           {}
@@ -697,8 +690,7 @@ Visualization Manager:
                   mounter_table_top_center:
                     {}
             workspace_center:
-              workspace_ar_marker:
-                {}
+              {}
       Update Interval: 0
       Value: true
     - Alpha: 0.5
@@ -756,21 +748,6 @@ Visualization Manager:
       Unreliable: false
       Value: true
     - Alpha: 1
-      Arrow Width: 0.5
-      Class: rviz/WrenchStamped
-      Enabled: true
-      Force Arrow Scale: 0.10000000149011612
-      Force Color: 204; 51; 51
-      Hide Small Values: true
-      History Length: 1
-      Name: g_bot_ftsensor
-      Queue Size: 10
-      Topic: /g_bot_ftsensor/wrench
-      Torque Arrow Scale: 1
-      Torque Color: 204; 204; 51
-      Unreliable: false
-      Value: true
-    - Alpha: 1
       Auto Size:
         Auto Size Factor: 1
         Value: true
@@ -806,33 +783,28 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /visualization_marker
+      Name: Graspabilities
+      Namespaces:
+        markers: true
+      Queue Size: 100
+      Value: true
     - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: RGB8
-      Decay Time: 0
+      Arrow Width: 0.5
+      Class: rviz/WrenchStamped
       Enabled: false
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Min Color: 0; 0; 0
-      Name: PointCloud2
-      Position Transformer: XYZ
+      Force Arrow Scale: 0.10000000149011612
+      Force Color: 204; 51; 51
+      Hide Small Values: true
+      History Length: 1
+      Name: g_bot_ftsensor
       Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.009999999776482582
-      Style: Flat Squares
-      Topic: /g_bot_camera/depth/color/points
+      Topic: /g_bot/wrench
+      Torque Arrow Scale: 1
+      Torque Color: 204; 204; 51
       Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
       Value: false
   Enabled: true
   Global Options:
@@ -862,7 +834,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.600877285003662
+      Distance: 0.7191532850265503
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -870,24 +842,24 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.01988959312438965
-        Y: -0.17345011234283447
-        Z: 0.7910834550857544
+        X: 0.21633636951446533
+        Y: -0.04118168354034424
+        Z: 0.9449245929718018
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.4790809154510498
+      Pitch: 0.603234589099884
       Target Frame: <Fixed Frame>
-      Yaw: 5.390640735626221
+      Yaw: 4.189699649810791
     Saved: ~
 Window Geometry:
   ColorImage:
     collapsed: false
   Displays:
     collapsed: false
-  Height: 1536
+  Height: 1403
   Hide Left Dock: false
   Hide Right Dock: true
   MotionPlanning:
@@ -896,7 +868,7 @@ Window Geometry:
     collapsed: false
   NormalImage:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000400000000000001f7000005aafc020000000ffb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000b0fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afc0000003b000001fd000001840100001afa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001ca00fffffffb000000100044006900730070006c0061007900730100000000000002ad0000015600fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb000000120020002d00200053006c00690064006500720000000000ffffffff0000000000000000fb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c00690064006500720000000000ffffffff0000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016fb000000180066005f0062006f0074005f00630061006d006500720061010000037d000000e80000000000000000fb000000180061007200750063006f005f0072006500730075006c0074010000023e0000012a0000001600fffffffb000000140043006f006c006f00720049006d006100670065010000036e0000013a0000001600fffffffb00000016004e006f0072006d0061006c0049006d00610067006501000004ae000001370000001600ffffff000000010000010f000003ccfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003a000003cc000000a000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000074f0000003efc0100000002fb0000000800540069006d006500000000000000074f0000035c00fffffffb0000000800540069006d00650100000000000004500000000000000000000007c9000005aa00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000001f700000521fc020000000ffb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000b0fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afc0000003d000001cd0000019a0100001cfa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001f300fffffffb000000100044006900730070006c0061007900730100000000000002ad0000015600fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb000000120020002d00200053006c00690064006500720000000000ffffffff0000000000000000fb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c00690064006500720000000000ffffffff0000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016fb000000180066005f0062006f0074005f00630061006d006500720061010000037d000000e80000000000000000fb000000180061007200750063006f005f0072006500730075006c007401000002100000010d0000001600fffffffb000000140043006f006c006f00720049006d00610067006501000003230000011c0000001600fffffffb00000016004e006f0072006d0061006c0049006d0061006700650100000445000001190000001600ffffff000000010000010f000003ccfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003a000003cc000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000074f0000003efc0100000002fb0000000800540069006d006500000000000000074f0000041800fffffffb0000000800540069006d00650100000000000004500000000000000000000008030000052100000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -905,8 +877,8 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: true
-  Width: 2502
-  X: 58
-  Y: 27
+  Width: 2560
+  X: 0
+  Y: 0
   aruco_result:
     collapsed: false
