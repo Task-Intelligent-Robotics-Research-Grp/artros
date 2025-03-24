@@ -53,7 +53,7 @@ class ConveniSuctionGripperController(object):
         self._name = rospy.get_name()
 
         # Initialize ur_control table
-        serial_port = rospy.get_param('~usb_port', '/dev/ttyUSB0')
+        serial_port = rospy.get_param('~usb_port', '/dev/ttyACM0')
         baud_rate   = rospy.get_param('~baud_rate', 9600)
         try:
             self._serial = serial.Serial(serial_port, baud_rate, timeout=1)

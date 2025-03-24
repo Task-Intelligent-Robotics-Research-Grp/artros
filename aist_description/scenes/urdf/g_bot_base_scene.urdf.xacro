@@ -5,14 +5,14 @@
 
   <xacro:arg name="scene" default=""/>
 
-  <xacro:property name="g_bot_x"   value="0"/>
-  <xacro:property name="g_bot_y"   value="-0.9"/>
-  <xacro:property name="g_bot_z"   value="0.700"/>
+  <xacro:property name="g_bot_x"   value="0.050"/>
+  <xacro:property name="g_bot_y"   value="-0.900"/>
+  <xacro:property name="g_bot_z"   value="0.698"/>
   <xacro:property name="cabinet_w" value="0.900"/>
   <xacro:property name="cabinet_l" value="0.400"/>
   <xacro:property name="cabinet_b" value="0.100"/>
   <xacro:property name="shelf1_h"  value="0.600"/>
-  <xacro:property name="shelf2_h"  value="0.790"/>
+  <xacro:property name="shelf2_h"  value="0.940"/>
   <xacro:property name="back_h"    value="1.500"/>
   <xacro:property name="wall_t"    value="0.012"/>
   <xacro:property name="mounter_w" value="0.200"/>
@@ -87,7 +87,7 @@
   <xacro:include filename="$(find aist_description
 			   )/devices/urdf/conveni_suction_gripper.urdf.xacro"/>
   <xacro:conveni_suction_gripper prefix="g_bot_gripper_" parent="g_bot_tool0">
-    <origin xyz="0 0 0" rpy="0 ${-pi/2} ${-pi/2}"/>
+    <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi/2}"/>
   </xacro:conveni_suction_gripper>
 
   <!-- Attach RealSense camera -->

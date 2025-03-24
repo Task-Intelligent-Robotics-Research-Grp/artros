@@ -13,12 +13,12 @@
   				       -J g_bot_elbow_joint 1.4
   				       -J g_bot_wrist_1_joint -0.85
   				       -J g_bot_wrist_2_joint -1.5708
-  				       -J g_bot_wrist_3_joint 0.0"/>
+  				       -J g_bot_wrist_3_joint 3.14159"/>
   <arg name="prefixes"		value="g_bot_"/>
   <arg name="devices"		value="ur5e"/>
   <arg name="controllers"	value="ur"/>
   <arg name="drivers"		value="ur"/>
-  <arg name="driver_args"	value="172.16.58.20,
+  <arg name="driver_args"	value="192.168.11.4,
 				       50001, 50002, 50003, 50004, 0" />
 
   <!-- Bringup robots -->
@@ -51,7 +51,7 @@
     <include file="$(find aist_fastening_tools
     		   )/launch/conveni_suction_gripper_controller.launch">
       <arg name="gripper_name"		value="g_bot_gripper"/>
-      <arg name="usb_port"		value="/dev/ttyUSB0"/>
+      <arg name="usb_port"		value="/dev/ttyACM0"/>
       <arg name="baud_rate"		value="9600"/>
     </include>
 

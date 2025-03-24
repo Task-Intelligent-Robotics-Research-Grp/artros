@@ -2,9 +2,9 @@
 <launch>
 
     <arg name="camera_name"	default="g_bot_camera"/>
-    <arg name="manager"		default=""/>
+    <arg name="manager"		default="camera_manager"/>
     <arg name="rviz_config"	default="$(dirname)/conveni_picking.rviz"/>
-    <arg name="vis"		default="true"/>
+    <arg name="vis"		default="false"/>
 
   <!-- Launch realsense camera, depth_filter and graspability server -->
   <include file="$(find aist_graspability)/launch/realsense.launch">
