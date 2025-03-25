@@ -73,7 +73,8 @@ class ConveniSuctionGripperController(object):
     def _goal_cb(self):
         goal = self._server.accept_new_goal()
 
-        rospy.loginfo('(%s) new goal ACCEPTED', self._name)
+        rospy.loginfo('(%s) new goal ACCEPTED[%s]', self._name,
+                      'suck' if goal.suck else 'blow')
 
         # Check that preempt has not been requested by the client
         if self._server.is_preempt_requested():
@@ -83,7 +84,7 @@ class ConveniSuctionGripperController(object):
             return
 
         # Set states of suck and blow ports.
-        self._send_command('1' if goal.suck else '0', goal.min_period)
+        self._send_command('1' if goal.suck else '0')
 
         self._server.set_succeeded(SuctionToolCommandResult(goal.suck))
         rospy.loginfo('(%s) goal SUCCEEDED', self._name)
@@ -93,12 +94,8 @@ class ConveniSuctionGripperController(object):
         self._server.set_preempted(SuctionToolCommandResult(False))
         rospy.logwarn('(%s) active goal CANCELED by client', self._name)
 
-    def _send_command(self, cmd, hold_time):
-        start_time = rospy.get_rostime()
-        while (rospy.get_rostime() - start_time) < hold_time:
-            self._serial.write(cmd.encode())
-            rospy.sleep(0.1)
-            pass
+    def _send_command(self, cmd):
+        self._serial.write(cmd.encode())
 
     def _read(self):
         return self._serial.read(8)
