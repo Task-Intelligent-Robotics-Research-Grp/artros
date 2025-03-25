@@ -35,15 +35,13 @@
 #
 import rospy
 
-from math              import radians
-from geometry_msgs.msg import (PoseStamped, QuaternionStamped,
-                               Transform, Vector3, Quaternion)
+from geometry_msgs.msg import PoseStamped
 from actionlib         import SimpleActionServer, SimpleActionClient
 from aist_msgs.msg     import (PickOrPlaceResult, PickOrPlaceFeedback,
                                ConveniPickAction, ConveniPickGoal)
 
 ######################################################################
-#  class ConveniPick                                                  #
+#  class ConveniPick                                                 #
 ######################################################################
 class ConveniPick(SimpleActionClient):
     def __init__(self, routines):
@@ -77,12 +75,10 @@ class ConveniPick(SimpleActionClient):
         self._server.__del__()
 
     def _execute_cb(self, goal):
-        try_next     = True
-        poses        = None
+        try_next = True
         self._clear_fail_poses()
         while try_next:
-            try_next, poses = self._conveni_pick(goal.item_id, poses,
-                                                 goal.max_attempts)
+            try_next = self._conveni_pick(goal.item_id, goal.max_attempts)
             if not self._server.is_active():
                 return
             if not goal.pick_all:
@@ -90,7 +86,7 @@ class ConveniPick(SimpleActionClient):
         self._server.set_succeeded()
         rospy.loginfo('(ConveniPick) SUCCEEDED')
 
-    def _conveni_pick(self, item_id, poses, max_attempts):
+    def _conveni_pick(self, item_id, max_attempts):
         routines = self._routines
         try:
             item_props = routines._item_props[item_id]
@@ -99,17 +95,16 @@ class ConveniPick(SimpleActionClient):
             print(e)
             self._server.set_aborted()
             rospy.logerr('(ConveniPick) Unknown item_id[%s]', item_id)
-            return False, None  # (no items remained, no graspabilities)
+            return False  # no items remained
 
-        # Move to 0.15m above the bin if the camera is mounted on the robot.
+        # Move to observation pose.
         routines.go_to_named_pose(robot_name, 'ready')
 
         # Search for graspabilities.
-        if poses is None:
-            poses = routines.search_graspabilities(item_id).poses
+        poses = routines.search_graspabilities(item_id).poses
 
         if not self._server.is_active():
-            return False, None  # (no items remained, no graspabilities)
+            return False  # no items remained
 
         # Attempt to pick the item.
         nattempts = 0
@@ -124,7 +119,7 @@ class ConveniPick(SimpleActionClient):
             # Perform picking.
             pick_result = routines.pick(robot_name, pose, item_id)
             if not self._server.is_active():
-                return False, None
+                return False
 
             # 1. Pick succeeded
             if pick_result == PickOrPlaceResult.SUCCESS:
@@ -136,12 +131,9 @@ class ConveniPick(SimpleActionClient):
                 routines.pick_or_place_wait_for_stage(
                     PickOrPlaceFeedback.APPROACHING)
 
-                # Search graspabilities for the next try.
-                poses = routines.search_graspabilities(item_id).poses
-
                 # Wait until placing finished.
                 place_result = routines.pick_or_place_wait_for_result()
-                return place_result == PickOrPlaceResult.SUCCESS, poses
+                return place_result == PickOrPlaceResult.SUCCESS
 
             # 2. Pick failed due to error in moving to approach/pick pose
             elif pick_result in (PickOrPlaceResult.MOVE_FAILURE,
@@ -152,14 +144,14 @@ class ConveniPick(SimpleActionClient):
             elif pick_result == PickOrPlaceResult.DEPARTURE_FAILURE:
                 self._server.set_aborted()
                 rospy.logerr('(ConveniPick) Failed to depart from pick/place pose')
-                return False, None
+                return False
 
             # 4. Pick failed due to error in grasping
             elif pick_result == PickOrPlaceResult.GRASP_FAILURE:
                 self._fail_poses.append(pose)
                 nattempts += 1
 
-        return False, None
+        return False
 
     def _preempt_cb(self):
         self._routines.pick_or_place_cancel_goal()

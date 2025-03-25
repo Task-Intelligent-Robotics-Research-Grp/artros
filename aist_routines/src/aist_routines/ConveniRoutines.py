@@ -37,9 +37,6 @@
 import rospy
 from aist_routines.ur                import URRoutines
 from aist_routines.ConveniPickAction import ConveniPick
-from aist_msgs.msg                   import (PickOrPlaceResult,
-                                             PickOrPlaceFeedback,
-                                             ConveniPickAction, ConveniPickGoal)
 from aist_utility.compat             import *
 
 ######################################################################

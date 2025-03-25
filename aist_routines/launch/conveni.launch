@@ -1,25 +1,66 @@
 <?xml version="1.0"?>
 <launch>
 
-    <arg name="camera_name"	default="g_bot_camera"/>
-    <arg name="manager"		default="camera_manager"/>
-    <arg name="rviz_config"	default="$(dirname)/conveni.rviz"/>
-    <arg name="vis"		default="false"/>
+  <arg name="camera_name"	default="g_bot_camera"/>
+  <arg name="camera_width"	default="640"/>
+  <arg name="camera_height"	default="480"/>
+  <arg name="fps"		default="30"/>
+  <arg name="manager"		default="camera_manager"/>
+  <arg name="rviz_config"	default="$(dirname)/conveni.rviz"/>
+  <arg name="sim"		default="false"/>
+  <arg name="vis"		default="false"/>
 
-  <!-- Launch realsense camera, depth_filter and graspability server -->
-  <include file="$(find aist_graspability)/launch/realsense.launch">
-    <arg name="subscribe_normal"	value="true"/>
-    <arg name="debug"			value="false"/>
-    <arg name="camera_name"		value="$(arg camera_name)"/>
-    <arg name="manager"			value="$(arg manager)"/>
-    <arg name="vis"			value="false"/>
+  <node if="$(eval manager != '')"
+	name="$(arg manager)" pkg="nodelet" type="nodelet"
+	args="manager" output="screen" respawn="false"/>
+
+  <!-- Launch realsense camera -->
+  <include unless="$(arg sim)"
+	   file="$(find realsense2_camera)/launch/rs_camera.launch">
+    <arg name="camera"			value="$(arg camera_name)"/>
+    <arg name="tf_prefix"		value="$(arg camera_name)"/>
+    <arg name="publish_tf"		value="true"/>
+    <arg name="enable_depth"		value="true"/>
+    <arg name="enable_infra1"		value="true"/>
+    <arg name="enable_infra2"		value="false"/>
+    <arg name="enable_pointcloud"	value="false"/>
+    <arg name="align_depth"		value="true"/>
+    <arg name="depth_width"		value="$(arg camera_width)"/>
+    <arg name="depth_height"		value="$(arg camera_height)"/>
+    <arg name="depth_fps"		value="$(arg fps)"/>
+    <arg name="infra_width"		value="$(arg camera_width)"/>
+    <arg name="infra_height"		value="$(arg camera_height)"/>
+    <arg name="infra_fps"		value="$(arg fps)"/>
+    <arg name="color_width"		value="$(arg camera_width)"/>
+    <arg name="color_height"		value="$(arg camera_height)"/>
+    <arg name="color_fps"		value="$(arg fps)"/>
+    <arg name="external_manager"	value="$(eval manager != '')"/>
+    <arg name="manager"			value="/$(arg manager)"
+	 if="$(eval manager != '')"/>
+  </include>
+
+  <!-- Launch depth_filter -->
+  <include file="$(find aist_depth_filter)/launch/run.launch">
+    <arg name="camera_info_topic" value="$(arg camera_name
+					 )/color/camera_info"/>
+    <arg name="image_topic"	  value="$(arg camera_name)/color/image_raw"/>
+    <arg name="depth_topic"	  value="$(arg camera_name
+					 )/aligned_depth_to_color/image_raw"/>
+    <arg name="manager"		  value="$(arg manager)"/>
+  </include>
+
+  <!-- Launch graspability server -->
+  <include file="$(find aist_graspability)/launch/run.launch">
+    <arg name="camera_info_topic"	value="depth_filter/camera_info"/>
+    <arg name="image_topic"		value="depth_filter/image"/>
+    <arg name="depth_topic"		value="depth_filter/depth"/>
+    <arg name="normal_topic"		value="depth_filter/normal"/>
   </include>
 
   <!-- Start rviz -->
-  <arg name="moveit_config"	value="$(find g_bot_moveit_config)"/>
   <include if="$(arg vis)"
 	   file="$(find aist_bringup)/launch/include/rviz.launch">
-    <arg name="moveit_config"	value="$(arg moveit_config)"/>
+    <arg name="moveit_config"	value="$(find g_bot_moveit_config)"/>
     <arg name="rviz_config"	value="$(arg rviz_config)"/>
   </include>
 
