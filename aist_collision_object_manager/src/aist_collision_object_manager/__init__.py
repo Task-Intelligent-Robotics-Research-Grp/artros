@@ -69,12 +69,12 @@ class CollisionObjectManagerClient(object):
         req.frame_id  = frame_id
         return self._send(req).success
 
-    def attach_object(self, object_id, parent_link):
+    def attach_object(self, object_id, parent_link, leaf_id=''):
         req = ManageCollisionObjectRequest()
         req.op        = ManageCollisionObjectRequest.ATTACH_OBJECT
         req.object_id = object_id
         req.frame_id  = parent_link
-        req.leaf_id   = ''
+        req.leaf_id   = leaf_id
         res = self._send(req)
         return res.info if res.success else None
 
@@ -130,3 +130,17 @@ class CollisionObjectManagerClient(object):
         req.frame_id = frame_id
         res = self._send(req)
         return res.info if res.success else None
+
+    def allow_collision(self, object_id, frame_id):
+        req           = ManageCollisionObjectRequest()
+        req.op        = ManageCollisionObjectRequest.ALLOW_COLLISION
+        req.object_id = object_id
+        req.frame_id  = frame_id
+        return self._send(req).success
+
+    def disallow_collision(self, object_id, frame_id):
+        req           = ManageCollisionObjectRequest()
+        req.op        = ManageCollisionObjectRequest.DISALLOW_COLLISION
+        req.object_id = object_id
+        req.frame_id  = frame_id
+        return self._send(req).success

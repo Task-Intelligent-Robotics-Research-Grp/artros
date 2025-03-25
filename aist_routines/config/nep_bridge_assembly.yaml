@@ -1,0 +1,36 @@
+nep_ip: 163.220.51.108
+rate:   10.0
+ros_to_nep:
+  - from: /tf
+    to:   Kitting/transforms
+  - from: /mesh_generator/mesh
+    to:   Kitting/screen_mesh
+  - from: /live_camera/image_raw
+    to:   Kitting/image
+  - from: /help
+    to:   Kitting/request_help
+  - from: /collision_object_manager/collision_marker
+    to:   Kitting/collision_marker
+  - from: /a_bot/cartesian_compliance_controller/current_pose
+    to:   Kitting/actual_robot_pose
+  - from: /a_bot_camera/color/image_raw
+    to:   Kitting/monitor_image
+
+nep_to_ros:
+  - from: Kitting/pointing
+    to:   /pointing
+    type: aist_msgs/Pointing
+  - from: Kitting/desired_robot_pose
+    to:   /a_bot/target_frame
+    type: geometry_msgs/PoseStamped
+
+services:
+  - name:     /robot_description_provider/get_links
+    request:  Kitting/get_links
+    response: Kitting/links
+  - name:     /collision_object_manager/get_mesh_resource
+    request:  Kitting/get_mesh_resource
+    response: Kitting/mesh_resource
+  - name:     /a_bot/controller_manager/switch_controller
+    request:  Kitting/switch_controller
+    response: Kitting/switch_controller_ok

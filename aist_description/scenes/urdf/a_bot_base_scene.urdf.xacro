@@ -7,7 +7,7 @@
 
   <xacro:property name="a_bot_x"	value="0"/>
   <xacro:property name="a_bot_y"	value="-0.4875"/>
-  <xacro:property name="a_bot_z"	value="0.770"/>
+  <xacro:property name="a_bot_z"	value="0.766"/>
   <xacro:property name="table_h"	value="0.770"/>
 
   <!-- ground -->
@@ -40,7 +40,7 @@
 
   <!-- workspace -->
   <xacro:property name="table_w"	value="0.900"/>
-  <xacro:property name="table_l"	value="0.700"/>
+  <xacro:property name="table_l"	value="0.750"/>
   <xacro:include filename="$(find aist_description
 			   )/objects/urdf/table.urdf.xacro"/>
   <xacro:table prefix="workspace_table_"
@@ -57,7 +57,7 @@
   </joint>
 
   <!-- tables for mounting robot arms -->
-  <xacro:property name="bot_table_size"	value="0.275"/>
+  <xacro:property name="bot_table_size"	value="0.225"/>
   <xacro:table prefix="a_bot_table_"
 	       width="${bot_table_size}" length="${bot_table_size}"
 	       height="${a_bot_z}" parent="ground">
@@ -115,12 +115,21 @@
     <origin xyz="0 0 0 " rpy="0 0 0"/>
   </joint>
 
+  <!-- Set gazebo plugin for FT-sensors -->
+  <xacro:include filename="$(find aist_description
+			   )/devices/urdf/gazebo_ftsensor.urdf.xacro"/>
+  <xacro:gazebo_ftsensor name="a_bot_ftsensor"
+			 parent="a_bot_wrist_2_link"
+			 child="a_bot_wrist_3_link"
+			 joint="a_bot_wrist_3_joint"
+			 wrench="/a_bot/wrench"/>
+
   <!-- Spawn and attach gripper -->
   <xacro:include filename="$(find aist_robotiq
 			   )/urdf/robotiq_arg2f_coupling.urdf.xacro"/>
   <xacro:robotiq_arg2f_coupling prefix="a_bot_gripper_coupling_"
-				parent="a_bot_flange">
-    <origin xyz="0 0 0" rpy="${pi} 0 0"/>
+				parent="a_bot_tool0">
+    <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi/2}"/>
   </xacro:robotiq_arg2f_coupling>
 
   <xacro:include filename="$(find aist_robotiq

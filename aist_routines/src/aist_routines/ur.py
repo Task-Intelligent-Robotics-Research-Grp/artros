@@ -51,6 +51,16 @@ from aist_utility.compat             import *
 #  class URRobot                                                     #
 ######################################################################
 class URRobot(object):
+    ControllerTypes = ('position_controllers/JointTrajectoryController',
+                       'velocity_controllers/JointTrajectoryController',
+                       'position_controllers/ScaledJointTrajectoryController',
+                       'velocity_controllers/ScaledJointTrajectoryController',
+                       'position_controllers/JointGroupPositionController',
+                       'velocity_controllers/JointGroupVelocityController',
+                       'velocity_controllers/CartesianMotionController',
+                       'position_controllers/CartesianForceController',
+                       'position_controllers/CartesianComplianceController')
+
     def __init__(self, robot_name):
         super().__init__()
 
@@ -114,43 +124,70 @@ class URRobot(object):
     ###  Switching controller stuffs
     ###
     def list_controllers(self):
-        return self._list_controllers().controller
+        return list(filter(lambda x: x.type in URRobot.ControllerTypes,
+                           self._list_controllers().controller))
 
     def current_controller(self):
         for controller in self.list_controllers():
-            if controller.type \
-               in ('position_controllers/ScaledJointTrajectoryController',
-                   'velocity_controllers/ScaledJointTrajectoryController',
-                   'position_controllers/JointGroupPositionController',
-                   'velocity_controllers/JointGroupVelocityController') and \
-               controller.state == 'running':
+            if controller.state == 'running':
                 return controller
         return None
 
     def switch_controller(self, controller_name):
-        current_controller = self.current_controller()
-        if current_controller is not None and \
-           current_controller.name == controller_name:
-            return True
         for controller in self.list_controllers():
             if controller.name == controller_name:
-                if controller.state == 'initialized':
-                    # Force restart
-                    rospy.logwarn('Force restart of controller')
+                if controller.state == 'running':
+                    rospy.logwarn('Already running[%s]', controller_name)
+                    return True
+                elif controller.state == 'initialized' or \
+                     controller.state == 'stopped':
+                    current_controller = self.current_controller()
                     req = SwitchControllerRequest()
                     req.start_controllers = [controller_name]
                     req.stop_controllers  = [] if current_controller is None \
                                             else [current_controller.name]
-                    req.strictness        = SwitchControllerRequest.BEST_EFFORT
+                    req.strictness        = SwitchControllerRequest.STRICT
                     req.start_asap        = True
                     req.timeout           = 1.0
                     res = self._switch_controller(req)
-                    rospy.sleep(1)
+                    rospy.sleep(0.5)
+                    if res.ok:
+                        rospy.loginfo('Succesfully switched to controller[%s]',
+                                      controller_name)
+                    else:
+                        rospy.logerr('Failed to switch to controller[%s]',
+                                      controller_name)
                     return res.ok
                 else:
-                    rospy.loginfo('Controller state is ' + controller.state + ', returning True.')
+                    rospy.logwarn("Controller state is '%', returning True.",
+                                  controller.state)
                     return True
         rospy.logerr('Specified controller[%s] not found', controller_name)
+        return False
+
+    def toggle_control_handle(self):
+        controller_name = 'motion_control_handle'
+        for controller in self._list_controllers().controller:
+            if controller.name == controller_name:
+                req = SwitchControllerRequest()
+                if controller.state == 'running':
+                    req.start_controllers = []
+                    req.stop_controllers  = [controller_name]
+                    message = 'stopped ' + controller_name
+                else:
+                    req.start_controllers = [controller_name]
+                    req.stop_controllers  = []
+                    message = 'started ' + controller_name
+                req.strictness        = SwitchControllerRequest.STRICT
+                req.start_asap        = True
+                req.timeout           = 1.0
+                res = self._switch_controller(req)
+                rospy.sleep(0.5)
+                if res.ok:
+                    rospy.loginfo('Succesfully %s' % message)
+                else:
+                    rospy.logerr('Failed to %s' % message)
+                return res.ok
         return False
 
     ###
@@ -337,6 +374,7 @@ class URRoutines(AISTBaseRoutines):
         print('  connect:     Connect dashboard')
         print('  disconnect:  Disconnect dashboard')
         print('  switch:      Switch controller')
+        print('  toggle:      Toggle motion control handle')
 
     def interactive(self, key, robot_name, axis, speed=1.0):
         if key == 'activate':
@@ -354,10 +392,15 @@ class URRoutines(AISTBaseRoutines):
         elif key == 'switch':
             controllers = self._ur_robots[robot_name].list_controllers()
             print('  available controllers:')
-            for controller in controllers:
-                print('    ' + controller.name)
-            controller_name = raw_input('  controller name? ')
-            self._ur_robots[robot_name].switch_controller(controller_name)
+            for n, controller in enumerate(controllers):
+                if controller.state == 'running':
+                    print('   *%2d. %s' % (n, controller.name))
+                else:
+                    print('    %2d. %s' % (n, controller.name))
+            n = int(raw_input('  controller #? '))
+            self._ur_robots[robot_name].switch_controller(controllers[n].name)
+        elif key == 'toggle':
+            self._ur_robots[robot_name].toggle_control_handle()
         else:
             return super().interactive(key, robot_name, axis, speed)
         return robot_name, axis, speed

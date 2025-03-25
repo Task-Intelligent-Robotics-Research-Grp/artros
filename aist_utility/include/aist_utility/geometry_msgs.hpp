@@ -102,6 +102,24 @@ zero(geometry_msgs::msg::Vector3)
     return ret;
 }
 
+inline double
+dot(const geometry_msgs::msg::Vector3& p, const geometry_msgs::msg::Vector3& q)
+{
+    return p.x * q.x + p.y * q.y + p.z * q.z;
+}
+
+inline geometry_msgs::msg::Vector3
+cross(const geometry_msgs::msg::Vector3& p,
+      const geometry_msgs::msg::Vector3& q)
+{
+    geometry_msgs::msg::Vector3	ret;
+    ret.x = p.y * q.z - p.z * q.y;
+    ret.y = p.z * q.x - p.x * q.z;
+    ret.z = p.x * q.y - p.y * q.x;
+
+    return ret;
+}
+
 /*
  *  Arithmetic operators on Point
  */
@@ -686,4 +704,3 @@ operator >>(const YAML::Node& node, geometry_msgs::msg::PoseArray& poses)
 }
 
 }	// namespace aist_utility
-

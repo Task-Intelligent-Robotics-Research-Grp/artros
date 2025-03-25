@@ -6,7 +6,7 @@ Panels:
       Expanded:
         - /MotionPlanning1/Planning Request1
         - /TF1/Frames1
-      Splitter Ratio: 0.5198618173599243
+      Splitter Ratio: 0.6116700172424316
     Tree Height: 441
   - Class: rviz/Help
     Name: Help
@@ -217,6 +217,39 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          a_bot_table_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_table_leg1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_table_leg2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_table_leg3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_table_top:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_table_top_center:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_table_top_origin:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           a_bot_tool0:
             Alpha: 1
             Show Axes: false
@@ -275,6 +308,15 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          base_fixture_head_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          base_fixture_head_tip_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           base_fixture_piston:
             Alpha: 1
             Show Axes: false
@@ -585,7 +627,7 @@ Visualization Manager:
         Goal State Color: 250; 128; 0
         Interactive Marker Size: 0
         Joint Violation Color: 255; 0; 255
-        Planning Group: a_bot_gripper
+        Planning Group: a_bot
         Query Goal State: false
         Query Start State: false
         Show Workspace: false
@@ -753,6 +795,39 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          a_bot_table_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_table_leg1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_table_leg2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_table_leg3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_table_top:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_table_top_center:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_table_top_origin:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           a_bot_tool0:
             Alpha: 1
             Show Axes: false
@@ -811,6 +886,15 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          base_fixture_head_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          base_fixture_head_tip_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           base_fixture_piston:
             Alpha: 1
             Show Axes: false
@@ -1104,222 +1188,12 @@ Visualization Manager:
       Value: true
       Velocity_Scaling_Factor: 0.1
     - Class: rviz/TF
-      Enabled: true
+      Enabled: false
       Filter (blacklist): ""
       Filter (whitelist): ""
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        a_bot_base:
-          Value: false
-        a_bot_base_link:
-          Value: false
-        a_bot_base_link_inertia:
-          Value: false
-        a_bot_camera_color_frame:
-          Value: false
-        a_bot_camera_color_optical_frame:
-          Value: true
-        a_bot_camera_connector_link:
-          Value: false
-        a_bot_camera_depth_frame:
-          Value: false
-        a_bot_camera_depth_optical_frame:
-          Value: false
-        a_bot_camera_left_ir_frame:
-          Value: false
-        a_bot_camera_left_ir_optical_frame:
-          Value: false
-        a_bot_camera_link:
-          Value: false
-        a_bot_camera_mount:
-          Value: false
-        a_bot_camera_right_ir_frame:
-          Value: false
-        a_bot_camera_right_ir_optical_frame:
-          Value: false
-        a_bot_flange:
-          Value: false
-        a_bot_forearm_link:
-          Value: false
-        a_bot_gripper_base_link:
-          Value: false
-        a_bot_gripper_coupling_base_link:
-          Value: false
-        a_bot_gripper_coupling_flange_link:
-          Value: false
-        a_bot_gripper_left_inner_finger:
-          Value: false
-        a_bot_gripper_left_inner_finger_pad:
-          Value: false
-        a_bot_gripper_left_inner_knuckle:
-          Value: false
-        a_bot_gripper_left_outer_finger:
-          Value: false
-        a_bot_gripper_left_outer_knuckle:
-          Value: false
-        a_bot_gripper_right_inner_finger:
-          Value: false
-        a_bot_gripper_right_inner_finger_pad:
-          Value: false
-        a_bot_gripper_right_inner_knuckle:
-          Value: false
-        a_bot_gripper_right_outer_finger:
-          Value: false
-        a_bot_gripper_right_outer_knuckle:
-          Value: false
-        a_bot_gripper_robotiq_arg2f_base_link:
-          Value: false
-        a_bot_gripper_tip_link:
-          Value: true
-        a_bot_shoulder_link:
-          Value: false
-        a_bot_tool0:
-          Value: false
-        a_bot_upper_arm_link:
-          Value: false
-        a_bot_usb_repeater_base_link:
-          Value: true
-        a_bot_usb_repeater_body:
-          Value: true
-        a_bot_usb_repeater_front_leg:
-          Value: true
-        a_bot_usb_repeater_left_leg:
-          Value: true
-        a_bot_usb_repeater_plate:
-          Value: true
-        a_bot_usb_repeater_right_leg:
-          Value: true
-        a_bot_wrist_1_link:
-          Value: false
-        a_bot_wrist_2_link:
-          Value: false
-        a_bot_wrist_3_link:
-          Value: false
-        base_fixture_base_link:
-          Value: false
-        base_fixture_piston:
-          Value: false
-        base_fixture_piston_head:
-          Value: true
-        base_fixture_tip_link:
-          Value: true
-        cage_back_left_pillar:
-          Value: false
-        cage_back_right_pillar:
-          Value: false
-        cage_front_left_pillar:
-          Value: false
-        cage_front_right_pillar:
-          Value: false
-        cage_lower_back_bar:
-          Value: false
-        cage_lower_front_bar:
-          Value: false
-        cage_lower_left_bar:
-          Value: false
-        cage_lower_right_bar:
-          Value: false
-        cage_tool_bar:
-          Value: false
-        cage_upper_back_bar:
-          Value: false
-        cage_upper_front_bar:
-          Value: false
-        cage_upper_left_bar:
-          Value: false
-        cage_upper_right_bar:
-          Value: false
-        cage_workspace_bar:
-          Value: false
-        ground:
-          Value: true
-        precision_tool_holder_base_link:
-          Value: false
-        precision_tool_holder_link:
-          Value: false
-        screw_feeder_m3_base_link:
-          Value: false
-        screw_feeder_m3_front_left_side:
-          Value: true
-        screw_feeder_m3_front_right_side:
-          Value: true
-        screw_feeder_m3_gap:
-          Value: false
-        screw_feeder_m3_inlet_link:
-          Value: false
-        screw_feeder_m3_outlet_link:
-          Value: true
-        screw_feeder_m4_base_link:
-          Value: false
-        screw_feeder_m4_front_left_side:
-          Value: true
-        screw_feeder_m4_front_right_side:
-          Value: true
-        screw_feeder_m4_gap:
-          Value: false
-        screw_feeder_m4_inlet_link:
-          Value: false
-        screw_feeder_m4_outlet_link:
-          Value: true
-        screw_tool_m3_holder_base_link:
-          Value: false
-        screw_tool_m3_holder_link:
-          Value: false
-        screw_tool_m4_holder_base_link:
-          Value: false
-        screw_tool_m4_holder_link:
-          Value: false
-        suction_tool_holder_base_link:
-          Value: false
-        suction_tool_holder_link:
-          Value: true
-        workbench_back_bar:
-          Value: false
-        workbench_base_link:
-          Value: false
-        workbench_center_bar:
-          Value: false
-        workbench_front_border:
-          Value: false
-        workbench_holder_link:
-          Value: true
-        workbench_right_bar:
-          Value: false
-        workbench_right_border:
-          Value: false
-        workbench_table_base_link:
-          Value: false
-        workbench_table_leg1:
-          Value: false
-        workbench_table_leg2:
-          Value: false
-        workbench_table_leg3:
-          Value: false
-        workbench_table_top:
-          Value: false
-        workbench_table_top_center:
-          Value: false
-        workbench_table_top_origin:
-          Value: true
-        workspace_center:
-          Value: false
-        workspace_table_base_link:
-          Value: false
-        workspace_table_leg1:
-          Value: false
-        workspace_table_leg2:
-          Value: false
-        workspace_table_leg3:
-          Value: false
-        workspace_table_top:
-          Value: false
-        workspace_table_top_center:
-          Value: false
-        workspace_table_top_origin:
-          Value: false
-        world:
-          Value: false
       Marker Alpha: 1
       Marker Scale: 0.15000000596046448
       Name: TF
@@ -1327,166 +1201,9 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        world:
-          ground:
-            a_bot_base_link:
-              a_bot_base:
-                {}
-              a_bot_base_link_inertia:
-                a_bot_shoulder_link:
-                  a_bot_upper_arm_link:
-                    a_bot_forearm_link:
-                      a_bot_wrist_1_link:
-                        a_bot_wrist_2_link:
-                          a_bot_usb_repeater_base_link:
-                            a_bot_usb_repeater_front_leg:
-                              {}
-                            a_bot_usb_repeater_left_leg:
-                              {}
-                            a_bot_usb_repeater_plate:
-                              a_bot_usb_repeater_body:
-                                {}
-                            a_bot_usb_repeater_right_leg:
-                              {}
-                          a_bot_wrist_3_link:
-                            a_bot_flange:
-                              a_bot_gripper_coupling_base_link:
-                                a_bot_gripper_coupling_flange_link:
-                                  a_bot_gripper_base_link:
-                                    a_bot_camera_connector_link:
-                                      a_bot_camera_link:
-                                        a_bot_camera_depth_frame:
-                                          a_bot_camera_color_frame:
-                                            a_bot_camera_color_optical_frame:
-                                              {}
-                                          a_bot_camera_depth_optical_frame:
-                                            {}
-                                          a_bot_camera_left_ir_frame:
-                                            a_bot_camera_left_ir_optical_frame:
-                                              {}
-                                          a_bot_camera_right_ir_frame:
-                                            a_bot_camera_right_ir_optical_frame:
-                                              {}
-                                    a_bot_camera_mount:
-                                      {}
-                                    a_bot_gripper_robotiq_arg2f_base_link:
-                                      a_bot_gripper_left_inner_knuckle:
-                                        {}
-                                      a_bot_gripper_left_outer_knuckle:
-                                        a_bot_gripper_left_outer_finger:
-                                          a_bot_gripper_left_inner_finger:
-                                            a_bot_gripper_left_inner_finger_pad:
-                                              {}
-                                      a_bot_gripper_right_inner_knuckle:
-                                        {}
-                                      a_bot_gripper_right_outer_knuckle:
-                                        a_bot_gripper_right_outer_finger:
-                                          a_bot_gripper_right_inner_finger:
-                                            a_bot_gripper_right_inner_finger_pad:
-                                              {}
-                                    a_bot_gripper_tip_link:
-                                      {}
-                              a_bot_tool0:
-                                {}
-            cage_front_left_pillar:
-              cage_back_left_pillar:
-                {}
-              cage_back_right_pillar:
-                {}
-              cage_front_right_pillar:
-                {}
-              cage_lower_back_bar:
-                {}
-              cage_lower_front_bar:
-                {}
-              cage_lower_left_bar:
-                cage_workspace_bar:
-                  cage_tool_bar:
-                    precision_tool_holder_base_link:
-                      precision_tool_holder_link:
-                        {}
-                    screw_tool_m3_holder_base_link:
-                      screw_tool_m3_holder_link:
-                        {}
-                    screw_tool_m4_holder_base_link:
-                      screw_tool_m4_holder_link:
-                        {}
-                    suction_tool_holder_base_link:
-                      suction_tool_holder_link:
-                        {}
-                  workbench_base_link:
-                    screw_feeder_m3_base_link:
-                      screw_feeder_m3_front_left_side:
-                        screw_feeder_m3_gap:
-                          screw_feeder_m3_outlet_link:
-                            {}
-                      screw_feeder_m3_front_right_side:
-                        {}
-                      screw_feeder_m3_inlet_link:
-                        {}
-                      screw_feeder_m4_base_link:
-                        screw_feeder_m4_front_left_side:
-                          screw_feeder_m4_gap:
-                            screw_feeder_m4_outlet_link:
-                              {}
-                        screw_feeder_m4_front_right_side:
-                          {}
-                        screw_feeder_m4_inlet_link:
-                          {}
-                    workbench_back_bar:
-                      {}
-                    workbench_center_bar:
-                      {}
-                    workbench_right_bar:
-                      {}
-                    workbench_table_base_link:
-                      workbench_table_leg1:
-                        {}
-                      workbench_table_leg2:
-                        {}
-                      workbench_table_leg3:
-                        {}
-                      workbench_table_top:
-                        workbench_table_top_origin:
-                          base_fixture_base_link:
-                            base_fixture_piston:
-                              base_fixture_piston_head:
-                                {}
-                            base_fixture_tip_link:
-                              {}
-                          workbench_front_border:
-                            {}
-                          workbench_holder_link:
-                            {}
-                          workbench_right_border:
-                            {}
-                          workbench_table_top_center:
-                            {}
-              cage_lower_right_bar:
-                {}
-              cage_upper_back_bar:
-                {}
-              cage_upper_front_bar:
-                {}
-              cage_upper_left_bar:
-                {}
-              cage_upper_right_bar:
-                {}
-            workspace_center:
-              {}
-            workspace_table_base_link:
-              workspace_table_leg1:
-                {}
-              workspace_table_leg2:
-                {}
-              workspace_table_leg3:
-                {}
-              workspace_table_top:
-                workspace_table_top_origin:
-                  workspace_table_top_center:
-                    {}
+        {}
       Update Interval: 0
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -1571,6 +1288,23 @@ Visualization Manager:
         {}
       Queue Size: 100
       Value: false
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /move_group/display_contacts
+      Name: DisplayContacts
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
+    - Class: rviz/InteractiveMarkers
+      Enable Transparency: true
+      Enabled: true
+      Name: ABotMotionControlHandle
+      Show Axes: false
+      Show Descriptions: true
+      Show Visual Aids: false
+      Update Topic: /a_bot/motion_control_handle/update
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -1588,7 +1322,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.0348082780838013
+      Distance: 1.5192487239837646
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -1596,17 +1330,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.75
       Focal Point:
-        X: -0.42501774430274963
-        Y: -0.2111632525920868
-        Z: 0.9935421943664551
+        X: -0.4189968705177307
+        Y: -0.1662120670080185
+        Z: 0.9018338322639465
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.26102083921432495
+      Pitch: 0.6660206913948059
       Target Frame: world
-      Yaw: 1.0740234851837158
+      Yaw: 0.2990235984325409
     Saved: ~
 Window Geometry:
   ABotCameraImage:

@@ -5,10 +5,10 @@
 
   <xacro:property name="a_bot_x"	value="0"/>
   <xacro:property name="a_bot_y"	value="-0.4875"/>
-  <xacro:property name="a_bot_z"	value="0.770"/>
-  <xacro:property name="b_bot_x"	value="0"/>
-  <xacro:property name="b_bot_y"	value="0.4875"/>
-  <xacro:property name="b_bot_z"	value="0.770"/>
+  <xacro:property name="a_bot_z"	value="0.766"/>
+  <xacro:property name="b_bot_x"	value="-0.003"/>
+  <xacro:property name="b_bot_y"	value="0.4876"/>
+  <xacro:property name="b_bot_z"	value="0.768"/>
   <xacro:property name="b_bot_theta"	value="${pi}"/>
   <xacro:property name="table_h"	value="0.770"/>
   <xacro:property name="screen_z"	value="0.048"/>
@@ -43,7 +43,7 @@
 
   <!-- workspace -->
   <xacro:property name="table_w"	value="0.900"/>
-  <xacro:property name="table_l"	value="0.700"/>
+  <xacro:property name="table_l"	value="0.750"/>
   <xacro:include filename="$(find aist_description
 			   )/objects/urdf/table.urdf.xacro"/>
   <xacro:table prefix="workspace_table_"
@@ -60,7 +60,7 @@
   </joint>
 
   <!-- tables for mounting robot arms -->
-  <xacro:property name="bot_table_size"	value="0.275"/>
+  <xacro:property name="bot_table_size"	value="0.225"/>
   <xacro:table prefix="a_bot_table_"
 	       width="${bot_table_size}" length="${bot_table_size}"
 	       height="${a_bot_z}" parent="ground">
@@ -99,7 +99,7 @@
 			   )/objects/urdf/suction_tool_holder.urdf.xacro"/>
   <xacro:suction_tool_holder prefix="suction_tool_holder_"
 			   parent="cage_tool_bar">
-    <origin xyz="0 ${suction_tool_holder_y} ${cage_t}" rpy="0 0 0"/>
+    <origin xyz="-0.003 ${suction_tool_holder_y} ${cage_t}" rpy="0 0 0"/>
   </xacro:suction_tool_holder>
 
   <!-- robot arms -->
@@ -176,8 +176,8 @@
   <xacro:include filename="$(find aist_robotiq
 			   )/urdf/robotiq_arg2f_coupling.urdf.xacro"/>
   <xacro:robotiq_arg2f_coupling prefix="a_bot_gripper_coupling_"
-				parent="a_bot_flange">
-    <origin xyz="0 0 0" rpy="${pi} 0 0"/>
+				parent="a_bot_tool0">
+    <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi/2}"/>
   </xacro:robotiq_arg2f_coupling>
 
   <xacro:include filename="$(find aist_robotiq
@@ -188,8 +188,8 @@
   </xacro:robotiq_140_gripper>
 
   <xacro:robotiq_arg2f_coupling prefix="b_bot_gripper_coupling_"
-				parent="b_bot_flange">
-    <origin xyz="0 0 0" rpy="${pi} 0 0"/>
+				parent="b_bot_tool0">
+    <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi/2}"/>
   </xacro:robotiq_arg2f_coupling>
 
   <xacro:include filename="$(find aist_robotiq

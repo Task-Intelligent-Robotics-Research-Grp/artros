@@ -2,7 +2,7 @@
 min_gap: 0.000
 max_gap: 0.140
 
-# Gripper position in radians [0.70, 0,00]
+# Gripper position in radians [0.69, 0,00]
 min_position: 0.69
 max_position: 0.00
 

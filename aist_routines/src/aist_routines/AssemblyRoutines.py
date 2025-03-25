@@ -173,7 +173,7 @@ class AssemblyRoutines(URRoutines):
         return True
 
     def place_screw(self, robot_name):
-        screw_id    = self._grasped_object_id(robot_name)
+        screw_id = self._grasped_object_id(robot_name)
         if screw_id is None:
             return False
         screw_type  = screw_id.rsplit('_', 1)[0]

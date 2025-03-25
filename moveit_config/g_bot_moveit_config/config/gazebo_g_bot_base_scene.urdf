@@ -6,7 +6,6 @@
 <robot name="g_bot_base_scene">
     <!-- This is the main file defining our robot arrangement and physical environment. -->
     <link name="ground" />
-    <!-- This creates a box with the origin in the bottom corner, fixed to the world link. -->
     <link name="cabinet_base">
         <!-- w is in x, l is in y, h is in z -->
         <visual>
@@ -14,7 +13,7 @@
             <geometry>
                 <box size="0.9 0.388 0.1" />
             </geometry>
-            <material name="Grey">
+            <material name="aist_color">
                 <color rgba="0.7 0.7 0.7 1" />
             </material>
         </visual>
@@ -33,8 +32,8 @@
         </inertial>
     </link>
     <gazebo reference="cabinet_base">
-        <material>Gazebo/Grey</material>
-        <plugin name="gazebo_ros_control">
+        <material>Gazebo/aist_color</material>
+        <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
             <robotNamespace>/</robotNamespace>
         </plugin>
     </gazebo>
@@ -43,7 +42,6 @@
         <child link="cabinet_base" />
         <origin rpy="0 0 0" xyz="-0.45 -0.2 0" />
     </joint>
-    <!-- This creates a box with the origin in the bottom corner, fixed to the world link. -->
     <link name="cabinet_back">
         <!-- w is in x, l is in y, h is in z -->
         <visual>
@@ -51,7 +49,7 @@
             <geometry>
                 <box size="0.9 0.012 1.5" />
             </geometry>
-            <material name="Grey">
+            <material name="aist_color">
                 <color rgba="0.7 0.7 0.7 1" />
             </material>
         </visual>
@@ -70,14 +68,13 @@
         </inertial>
     </link>
     <gazebo reference="cabinet_back">
-        <material>Gazebo/Grey</material>
+        <material>Gazebo/aist_color</material>
     </gazebo>
     <joint name="cabinet_back" type="fixed">
         <parent link="cabinet_base" />
         <child link="cabinet_back" />
         <origin rpy="0 0 0" xyz="0 0.388 0" />
     </joint>
-    <!-- This creates a box with the origin in the bottom corner, fixed to the world link. -->
     <link name="cabinet_shelf1">
         <!-- w is in x, l is in y, h is in z -->
         <visual>
@@ -85,7 +82,7 @@
             <geometry>
                 <box size="0.9 0.388 0.012" />
             </geometry>
-            <material name="Grey">
+            <material name="aist_color">
                 <color rgba="0.7 0.7 0.7 1" />
             </material>
         </visual>
@@ -104,14 +101,13 @@
         </inertial>
     </link>
     <gazebo reference="cabinet_shelf1">
-        <material>Gazebo/Grey</material>
+        <material>Gazebo/aist_color</material>
     </gazebo>
     <joint name="cabinet_shelf1" type="fixed">
         <parent link="cabinet_base" />
         <child link="cabinet_shelf1" />
         <origin rpy="0 0 0" xyz="0 0 0.588" />
     </joint>
-    <!-- This creates a box with the origin in the bottom corner, fixed to the world link. -->
     <link name="cabinet_shelf2">
         <!-- w is in x, l is in y, h is in z -->
         <visual>
@@ -119,7 +115,7 @@
             <geometry>
                 <box size="0.9 0.388 0.012" />
             </geometry>
-            <material name="Grey">
+            <material name="aist_color">
                 <color rgba="0.7 0.7 0.7 1" />
             </material>
         </visual>
@@ -138,12 +134,12 @@
         </inertial>
     </link>
     <gazebo reference="cabinet_shelf2">
-        <material>Gazebo/Grey</material>
+        <material>Gazebo/aist_color</material>
     </gazebo>
     <joint name="cabinet_shelf2" type="fixed">
         <parent link="cabinet_base" />
         <child link="cabinet_shelf2" />
-        <origin rpy="0 0 0" xyz="0 0 0.778" />
+        <origin rpy="0 0 0" xyz="0 0 0.9279999999999999" />
     </joint>
     <!-- <xacro:aist_box name="${prefix}cabinet_shelf3" -->
     <!-- 		    width="${width}" -->
@@ -199,9 +195,8 @@
     <joint name="ground_to_workspace" type="fixed">
         <parent link="ground" />
         <child link="workspace_center" />
-        <origin rpy="0 0 0" xyz="0 0 0.79" />
+        <origin rpy="0 0 0" xyz="0 0 0.94" />
     </joint>
-    <!-- This creates a box with the origin in the bottom corner, fixed to the world link. -->
     <link name="left_wall">
         <!-- w is in x, l is in y, h is in z -->
         <visual>
@@ -209,7 +204,7 @@
             <geometry>
                 <box size="0.012 0.4 1.5" />
             </geometry>
-            <material name="Grey">
+            <material name="aist_color">
                 <color rgba="0.7 0.7 0.7 1" />
             </material>
         </visual>
@@ -228,14 +223,13 @@
         </inertial>
     </link>
     <gazebo reference="left_wall">
-        <material>Gazebo/Grey</material>
+        <material>Gazebo/aist_color</material>
     </gazebo>
     <joint name="left_wall" type="fixed">
         <parent link="cabinet_base" />
         <child link="left_wall" />
         <origin rpy="0 0 0" xyz="-0.012 0 0" />
     </joint>
-    <!-- This creates a box with the origin in the bottom corner, fixed to the world link. -->
     <link name="right_wall">
         <!-- w is in x, l is in y, h is in z -->
         <visual>
@@ -243,7 +237,7 @@
             <geometry>
                 <box size="0.012 0.4 1.5" />
             </geometry>
-            <material name="Grey">
+            <material name="aist_color">
                 <color rgba="0.7 0.7 0.7 1" />
             </material>
         </visual>
@@ -262,29 +256,28 @@
         </inertial>
     </link>
     <gazebo reference="right_wall">
-        <material>Gazebo/Grey</material>
+        <material>Gazebo/aist_color</material>
     </gazebo>
     <joint name="right_wall" type="fixed">
         <parent link="cabinet_base" />
         <child link="right_wall" />
         <origin rpy="0 0 0" xyz="0.9 0 0" />
     </joint>
-    <!-- This creates a box with the origin in the bottom corner, fixed to the world link. -->
-    <link name="mounter_table_leg0">
+    <link name="mounter_table_base_link">
         <!-- w is in x, l is in y, h is in z -->
         <visual>
-            <origin rpy="0 0 0" xyz="0.025 0.025 0.33999999999999997" />
+            <origin rpy="0 0 0" xyz="0.025 0.025 0.33899999999999997" />
             <geometry>
-                <box size="0.05 0.05 0.6799999999999999" />
+                <box size="0.05 0.05 0.6779999999999999" />
             </geometry>
-            <material name="Grey">
+            <material name="mounter_table_table_color">
                 <color rgba="0.7 0.7 0.7 1" />
             </material>
         </visual>
         <collision>
-            <origin rpy="0 0 0" xyz="0.025 0.025 0.33999999999999997" />
+            <origin rpy="0 0 0" xyz="0.025 0.025 0.33899999999999997" />
             <geometry>
-                <box size="0.05 0.05 0.6799999999999999" />
+                <box size="0.05 0.05 0.6779999999999999" />
             </geometry>
         </collision>
         <!-- This is required for Gazebo. -->
@@ -295,30 +288,29 @@
             <origin xyz="0 0 0" rpy="0 0 0" />
         </inertial>
     </link>
-    <gazebo reference="mounter_table_leg0">
-        <material>Gazebo/Grey</material>
+    <gazebo reference="mounter_table_base_link">
+        <material>Gazebo/mounter_table_table_color</material>
     </gazebo>
-    <joint name="mounter_table_leg0" type="fixed">
+    <joint name="mounter_table_base_link" type="fixed">
         <parent link="ground" />
-        <child link="mounter_table_leg0" />
-        <origin rpy="0 0 0" xyz="-0.1 -0.725 0" />
+        <child link="mounter_table_base_link" />
+        <origin rpy="0 0 0" xyz="-0.05 -1.0 0" />
     </joint>
-    <!-- This creates a box with the origin in the bottom corner, fixed to the world link. -->
     <link name="mounter_table_leg1">
         <!-- w is in x, l is in y, h is in z -->
         <visual>
-            <origin rpy="0 0 0" xyz="0.025 0.025 0.33999999999999997" />
+            <origin rpy="0 0 0" xyz="0.025 0.025 0.33899999999999997" />
             <geometry>
-                <box size="0.05 0.05 0.6799999999999999" />
+                <box size="0.05 0.05 0.6779999999999999" />
             </geometry>
-            <material name="Grey">
+            <material name="mounter_table_table_color">
                 <color rgba="0.7 0.7 0.7 1" />
             </material>
         </visual>
         <collision>
-            <origin rpy="0 0 0" xyz="0.025 0.025 0.33999999999999997" />
+            <origin rpy="0 0 0" xyz="0.025 0.025 0.33899999999999997" />
             <geometry>
-                <box size="0.05 0.05 0.6799999999999999" />
+                <box size="0.05 0.05 0.6779999999999999" />
             </geometry>
         </collision>
         <!-- This is required for Gazebo. -->
@@ -330,29 +322,28 @@
         </inertial>
     </link>
     <gazebo reference="mounter_table_leg1">
-        <material>Gazebo/Grey</material>
+        <material>Gazebo/mounter_table_table_color</material>
     </gazebo>
     <joint name="mounter_table_leg1" type="fixed">
-        <parent link="mounter_table_leg0" />
+        <parent link="mounter_table_base_link" />
         <child link="mounter_table_leg1" />
         <origin rpy="0 0 0" xyz="0.15000000000000002 0 0" />
     </joint>
-    <!-- This creates a box with the origin in the bottom corner, fixed to the world link. -->
     <link name="mounter_table_leg2">
         <!-- w is in x, l is in y, h is in z -->
         <visual>
-            <origin rpy="0 0 0" xyz="0.025 0.025 0.33999999999999997" />
+            <origin rpy="0 0 0" xyz="0.025 0.025 0.33899999999999997" />
             <geometry>
-                <box size="0.05 0.05 0.6799999999999999" />
+                <box size="0.05 0.05 0.6779999999999999" />
             </geometry>
-            <material name="Grey">
+            <material name="mounter_table_table_color">
                 <color rgba="0.7 0.7 0.7 1" />
             </material>
         </visual>
         <collision>
-            <origin rpy="0 0 0" xyz="0.025 0.025 0.33999999999999997" />
+            <origin rpy="0 0 0" xyz="0.025 0.025 0.33899999999999997" />
             <geometry>
-                <box size="0.05 0.05 0.6799999999999999" />
+                <box size="0.05 0.05 0.6779999999999999" />
             </geometry>
         </collision>
         <!-- This is required for Gazebo. -->
@@ -364,29 +355,28 @@
         </inertial>
     </link>
     <gazebo reference="mounter_table_leg2">
-        <material>Gazebo/Grey</material>
+        <material>Gazebo/mounter_table_table_color</material>
     </gazebo>
     <joint name="mounter_table_leg2" type="fixed">
-        <parent link="mounter_table_leg0" />
+        <parent link="mounter_table_base_link" />
         <child link="mounter_table_leg2" />
         <origin rpy="0 0 0" xyz="0 0.15000000000000002 0" />
     </joint>
-    <!-- This creates a box with the origin in the bottom corner, fixed to the world link. -->
     <link name="mounter_table_leg3">
         <!-- w is in x, l is in y, h is in z -->
         <visual>
-            <origin rpy="0 0 0" xyz="0.025 0.025 0.33999999999999997" />
+            <origin rpy="0 0 0" xyz="0.025 0.025 0.33899999999999997" />
             <geometry>
-                <box size="0.05 0.05 0.6799999999999999" />
+                <box size="0.05 0.05 0.6779999999999999" />
             </geometry>
-            <material name="Grey">
+            <material name="mounter_table_table_color">
                 <color rgba="0.7 0.7 0.7 1" />
             </material>
         </visual>
         <collision>
-            <origin rpy="0 0 0" xyz="0.025 0.025 0.33999999999999997" />
+            <origin rpy="0 0 0" xyz="0.025 0.025 0.33899999999999997" />
             <geometry>
-                <box size="0.05 0.05 0.6799999999999999" />
+                <box size="0.05 0.05 0.6779999999999999" />
             </geometry>
         </collision>
         <!-- This is required for Gazebo. -->
@@ -398,14 +388,13 @@
         </inertial>
     </link>
     <gazebo reference="mounter_table_leg3">
-        <material>Gazebo/Grey</material>
+        <material>Gazebo/mounter_table_table_color</material>
     </gazebo>
     <joint name="mounter_table_leg3" type="fixed">
-        <parent link="mounter_table_leg0" />
+        <parent link="mounter_table_base_link" />
         <child link="mounter_table_leg3" />
         <origin rpy="0 0 0" xyz="0.15000000000000002      0.15000000000000002      0" />
     </joint>
-    <!-- This creates a box with the origin in the bottom corner, fixed to the world link. -->
     <link name="mounter_table_top">
         <!-- w is in x, l is in y, h is in z -->
         <visual>
@@ -413,7 +402,7 @@
             <geometry>
                 <box size="0.2 0.2 0.02" />
             </geometry>
-            <material name="Grey">
+            <material name="mounter_table_table_color">
                 <color rgba="0.7 0.7 0.7 1" />
             </material>
         </visual>
@@ -432,25 +421,25 @@
         </inertial>
     </link>
     <gazebo reference="mounter_table_top">
-        <material>Gazebo/Grey</material>
+        <material>Gazebo/mounter_table_table_color</material>
     </gazebo>
     <joint name="mounter_table_top" type="fixed">
-        <parent link="mounter_table_leg0" />
+        <parent link="mounter_table_base_link" />
         <child link="mounter_table_top" />
-        <origin rpy="0 0 0" xyz="0 0 0.6799999999999999" />
+        <origin rpy="0 0 0" xyz="0 0 0.6779999999999999" />
     </joint>
-    <joint name="mounter_table_top_origin" type="fixed">
+    <joint name="mounter_table_top_origin_joint" type="fixed">
         <parent link="mounter_table_top" />
         <child link="mounter_table_top_origin" />
         <origin rpy="0 0 0" xyz="0 0 0.02" />
     </joint>
     <link name="mounter_table_top_origin" />
-    <joint name="mounter_table_top_origin_center" type="fixed">
+    <joint name="mounter_table_top_center_joint" type="fixed">
         <parent link="mounter_table_top_origin" />
-        <child link="mounter_table_top_origin_center" />
+        <child link="mounter_table_top_center" />
         <origin rpy="0 0 0" xyz="0.1 0.1 0" />
     </joint>
-    <link name="mounter_table_top_origin_center" />
+    <link name="mounter_table_top_center" />
     <!--
     Main xacro macro definition of the "Gazebo robot" model.
 
@@ -500,7 +489,7 @@
 
     This file models the base kinematic chain of a UR robot, which then gets
     parameterised by various configuration files to convert it into a UR3(e),
-    UR5(e), UR10(e) or UR16e.
+    UR5(e), UR10(e), UR16e, UR20 or UR30.
 
     NOTE: the default kinematic parameters (ie: link lengths, frame locations,
     offets, etc) do not correspond to any particular robot. They are defaults
@@ -881,450 +870,46 @@
     <joint name="ground_g_bot_joint" type="fixed">
         <parent link="ground" />
         <child link="g_bot_base_link" />
-        <origin rpy="0 0 0" xyz="0 -0.625 0.7" />
+        <origin rpy="0 0 0" xyz="0.05 -0.9 0.698" />
     </joint>
-    <link name="g_bot_gripper_coupling_base_link">
-        <inertial>
-            <origin rpy="0 0 0" xyz="8.625E-08 -4.6583E-06 0.03145" />
-            <mass value="0.22652" />
-            <inertia ixx="0.00020005" ixy="-4.2442E-10" ixz="-2.9069E-10" iyy="0.00017832" iyz="-3.4402E-08" izz="0.00013478" />
-        </inertial>
+    <!-- A link representing the gripper and a joint attaching it to parnet -->
+    <link name="g_bot_gripper_base_link">
         <visual>
-            <origin rpy="1.5707963267948966 0 1.5707963267948966" xyz="0.00555 0 0" />
+            <origin rpy="0 0 1.5707963267948966" xyz="0.088 0 0.340" />
             <geometry>
-                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_coupling.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://aist_description/devices/meshes/conveni_suction_gripper.stl" scale="0.001 0.001 0.001" />
             </geometry>
-            <material name="">
-                <color rgba="0.1 0.1 0.1 1" />
+            <material name="light_grey">
+                <color rgba="0.8 0.8 0.8 1" />
             </material>
         </visual>
         <collision>
-            <origin rpy="0 1.5707963267948966 0" xyz="0.00555 0 0" />
+            <!-- avoid collision -->
+            <!-- <origin xyz="0.188 -0.035 -0.035" rpy="0 0 ${pi/2}"/> -->
+            <origin rpy="0 0 1.5707963267948966" xyz="0.088 0 0.340" />
             <geometry>
-                <cylinder length="0.0111" radius="0.0375" />
+                <mesh filename="package://aist_description/devices/meshes/collision/conveni_suction_gripper-coarse.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </collision>
+        <inertial>
+            <mass value="0.3" />
+            <inertia ixx="0.4" ixy="0.0" ixz="0.0" iyy="0.4" iyz="0.0" izz="0.2" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+        </inertial>
     </link>
-    <gazebo reference="g_bot_gripper_coupling_base_link">
-        <material>Gazebo/Black</material>
-    </gazebo>
-    <joint name="g_bot_gripper_coupling_base_joint" type="fixed">
-        <parent link="g_bot_flange" />
-        <child link="g_bot_gripper_coupling_base_link" />
-        <origin rpy="3.141592653589793 0 0" xyz="0 0 0" />
-    </joint>
-    <link name="g_bot_gripper_coupling_flange_link" />
-    <joint name="g_bot_gripper_coupling_flange_joint" type="fixed">
-        <parent link="g_bot_gripper_coupling_base_link" />
-        <child link="g_bot_gripper_coupling_flange_link" />
-        <origin rpy="0 0 0" xyz="0.0111 0 0" />
-    </joint>
     <joint name="g_bot_gripper_base_joint" type="fixed">
-        <parent link="g_bot_gripper_coupling_flange_link" />
+        <parent link="g_bot_tool0" />
         <child link="g_bot_gripper_base_link" />
-        <origin rpy="0 0 0" xyz="0 0 0" />
+        <origin rpy="0 -1.5707963267948966 1.5707963267948966" xyz="0 0 0" />
     </joint>
-    <link name="g_bot_gripper_base_link" />
-    <joint name="g_bot_gripper_robotiq_arg2f_base_joint" type="fixed">
-        <parent link="g_bot_gripper_base_link" />
-        <child link="g_bot_gripper_robotiq_arg2f_base_link" />
-        <origin rpy="3.141592653589793 -1.5707963267948966 0" xyz="0 0 0" />
-    </joint>
-    <joint name="g_bot_gripper_tip_link_joint" type="fixed">
+    <!-- A link representing the tip of the pad and a joint attaching
+	 it to the gripper -->
+    <link name="g_bot_gripper_tip_link" />
+    <joint name="g_bot_gripper_tip_joint" type="fixed">
         <parent link="g_bot_gripper_base_link" />
         <child link="g_bot_gripper_tip_link" />
-        <origin rpy="0.0 -1.5707963267948966 0.0" xyz=".2328 0.0 0.0" />
+        <origin rpy="3.141592653589793 1.5707963267948966 0" xyz="0.280 0 0" />
     </joint>
-    <link name="g_bot_gripper_tip_link" />
-    <link name="g_bot_gripper_robotiq_arg2f_base_link">
-        <inertial>
-            <origin rpy="0 0 0" xyz="8.625E-08 -4.6583E-06 0.03145" />
-            <mass value="0.22652" />
-            <inertia ixx="0.00020005" ixy="-4.2442E-10" ixz="-2.9069E-10" iyy="0.00017832" iyz="-3.4402E-08" izz="0.00013478" />
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0" />
-            <geometry>
-                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_base_link.stl" />
-            </geometry>
-            <material name="">
-                <color rgba="0.1 0.1 0.1 1" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0" />
-            <geometry>
-                <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_base_link.stl" />
-            </geometry>
-        </collision>
-    </link>
-    <gazebo reference="g_bot_gripper_robotiq_arg2f_base_link">
-        <material>Gazebo/Black</material>
-    </gazebo>
-    <link name="g_bot_gripper_left_outer_knuckle">
-        <inertial>
-            <origin rpy="0 0 0" xyz="-0.000200000000003065        0.0199435877845359        0.0292245259211331" />
-            <mass value="0.00853198276973456" />
-            <inertia ixx="2.89328108496468E-06" ixy="-1.57935047237397E-19" ixz="-1.93980378593255E-19" iyy="1.86719750325683E-06" iyz="-1.21858577871576E-06" izz="1.21905238907251E-06" />
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0" />
-            <geometry>
-                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_140_outer_knuckle.stl" />
-            </geometry>
-            <material name="">
-                <color rgba="0.792156862745098          0.819607843137255          0.933333333333333 1" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0" />
-            <geometry>
-                <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_140_outer_knuckle.stl" />
-            </geometry>
-        </collision>
-    </link>
-    <gazebo reference="g_bot_gripper_left_outer_knuckle">
-        <material>Gazebo/White</material>
-    </gazebo>
-    <link name="g_bot_gripper_left_outer_finger">
-        <inertial>
-            <origin rpy="0 0 0" xyz="0.00030115855001899        0.0373907951953854        -0.0208027427000385" />
-            <mass value="0.022614240507152" />
-            <inertia ixx="1.52518312458174E-05" ixy="9.76583423954399E-10" ixz="-5.43838577022588E-10" iyy="6.17694243867776E-06" iyz="6.78636130740228E-06" izz="1.16494917907219E-05" />
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0" />
-            <geometry>
-                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_140_outer_finger.stl" />
-            </geometry>
-            <material name="">
-                <color rgba="0.1 0.1 0.1 1" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0" />
-            <geometry>
-                <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_140_outer_finger.stl" />
-            </geometry>
-        </collision>
-    </link>
-    <gazebo reference="g_bot_gripper_left_outer_finger">
-        <material>Gazebo/Black</material>
-    </gazebo>
-    <link name="g_bot_gripper_left_inner_finger">
-        <inertial>
-            <origin rpy="0 0 0" xyz="0.000299999999999317        0.0160078233491243        -0.0136945669206257" />
-            <mass value="0.0104003125914103" />
-            <inertia ixx="2.71909453810972E-06" ixy="1.35402465472579E-21" ixz="-7.1817349065269E-22" iyy="7.69100314106116E-07" iyz="6.74715432769696E-07" izz="2.30315190420171E-06" />
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0" />
-            <geometry>
-                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_140_inner_finger.stl" />
-            </geometry>
-            <material name="">
-                <color rgba="0.1 0.1 0.1 1" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0" />
-            <geometry>
-                <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_140_inner_finger.stl" />
-            </geometry>
-        </collision>
-    </link>
-    <gazebo reference="g_bot_gripper_left_inner_finger">
-        <material>Gazebo/White</material>
-    </gazebo>
-    <link name="g_bot_gripper_left_inner_finger_pad">
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0" />
-            <geometry>
-                <box size="0.027 0.065 0.0075" />
-            </geometry>
-            <material name="">
-                <color rgba="0.9 0.9 0.9 1" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0" />
-            <geometry>
-                <box size="0.03 0.07 0.0075" />
-            </geometry>
-            <material name="">
-                <color rgba="0.9 0.0 0.0 1" />
-            </material>
-        </collision>
-        <inertial>
-            <mass value="0.1" />
-            <origin xyz="0 0 0" rpy="0 0 0" />
-            <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
-        </inertial>
-    </link>
-    <gazebo reference="g_bot_gripper_left_inner_finger_pad">
-        <material>Gazebo/Black</material>
-    </gazebo>
-    <link name="g_bot_gripper_left_inner_knuckle">
-        <inertial>
-            <origin rpy="0 0 0" xyz="0.000123011831763771        0.0507850843201817        0.00103968640075166" />
-            <mass value="0.0271177346495152" />
-            <inertia ixx="2.61910379223783E-05" ixy="-2.43616858946494E-07" ixz="-6.37789906117123E-09" iyy="2.8270243746167E-06" iyz="-5.37200748039765E-07" izz="2.83695868220296E-05" />
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0" />
-            <geometry>
-                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_140_inner_knuckle.stl" />
-            </geometry>
-            <material name="">
-                <color rgba="0.1 0.1 0.1 1" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0" />
-            <geometry>
-                <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_140_inner_knuckle.stl" />
-            </geometry>
-        </collision>
-    </link>
-    <gazebo reference="g_bot_gripper_left_inner_knuckle">
-        <material>Gazebo/Black</material>
-    </gazebo>
-    <link name="g_bot_gripper_right_outer_knuckle">
-        <inertial>
-            <origin rpy="0 0 0" xyz="-0.000200000000003065        0.0199435877845359        0.0292245259211331" />
-            <mass value="0.00853198276973456" />
-            <inertia ixx="2.89328108496468E-06" ixy="-1.57935047237397E-19" ixz="-1.93980378593255E-19" iyy="1.86719750325683E-06" iyz="-1.21858577871576E-06" izz="1.21905238907251E-06" />
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0" />
-            <geometry>
-                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_140_outer_knuckle.stl" />
-            </geometry>
-            <material name="">
-                <color rgba="0.792156862745098          0.819607843137255          0.933333333333333 1" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0" />
-            <geometry>
-                <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_140_outer_knuckle.stl" />
-            </geometry>
-        </collision>
-    </link>
-    <gazebo reference="g_bot_gripper_right_outer_knuckle">
-        <material>Gazebo/White</material>
-    </gazebo>
-    <link name="g_bot_gripper_right_outer_finger">
-        <inertial>
-            <origin rpy="0 0 0" xyz="0.00030115855001899        0.0373907951953854        -0.0208027427000385" />
-            <mass value="0.022614240507152" />
-            <inertia ixx="1.52518312458174E-05" ixy="9.76583423954399E-10" ixz="-5.43838577022588E-10" iyy="6.17694243867776E-06" iyz="6.78636130740228E-06" izz="1.16494917907219E-05" />
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0" />
-            <geometry>
-                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_140_outer_finger.stl" />
-            </geometry>
-            <material name="">
-                <color rgba="0.1 0.1 0.1 1" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0" />
-            <geometry>
-                <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_140_outer_finger.stl" />
-            </geometry>
-        </collision>
-    </link>
-    <gazebo reference="g_bot_gripper_right_outer_finger">
-        <material>Gazebo/Black</material>
-    </gazebo>
-    <link name="g_bot_gripper_right_inner_finger">
-        <inertial>
-            <origin rpy="0 0 0" xyz="0.000299999999999317        0.0160078233491243        -0.0136945669206257" />
-            <mass value="0.0104003125914103" />
-            <inertia ixx="2.71909453810972E-06" ixy="1.35402465472579E-21" ixz="-7.1817349065269E-22" iyy="7.69100314106116E-07" iyz="6.74715432769696E-07" izz="2.30315190420171E-06" />
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0" />
-            <geometry>
-                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_140_inner_finger.stl" />
-            </geometry>
-            <material name="">
-                <color rgba="0.1 0.1 0.1 1" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0" />
-            <geometry>
-                <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_140_inner_finger.stl" />
-            </geometry>
-        </collision>
-    </link>
-    <gazebo reference="g_bot_gripper_right_inner_finger">
-        <material>Gazebo/White</material>
-    </gazebo>
-    <link name="g_bot_gripper_right_inner_finger_pad">
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0" />
-            <geometry>
-                <box size="0.027 0.065 0.0075" />
-            </geometry>
-            <material name="">
-                <color rgba="0.9 0.9 0.9 1" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0" />
-            <geometry>
-                <box size="0.03 0.07 0.0075" />
-            </geometry>
-            <material name="">
-                <color rgba="0.9 0.0 0.0 1" />
-            </material>
-        </collision>
-        <inertial>
-            <mass value="0.1" />
-            <origin xyz="0 0 0" rpy="0 0 0" />
-            <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
-        </inertial>
-    </link>
-    <gazebo reference="g_bot_gripper_right_inner_finger_pad">
-        <material>Gazebo/Black</material>
-    </gazebo>
-    <link name="g_bot_gripper_right_inner_knuckle">
-        <inertial>
-            <origin rpy="0 0 0" xyz="0.000123011831763771        0.0507850843201817        0.00103968640075166" />
-            <mass value="0.0271177346495152" />
-            <inertia ixx="2.61910379223783E-05" ixy="-2.43616858946494E-07" ixz="-6.37789906117123E-09" iyy="2.8270243746167E-06" iyz="-5.37200748039765E-07" izz="2.83695868220296E-05" />
-        </inertial>
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0" />
-            <geometry>
-                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_140_inner_knuckle.stl" />
-            </geometry>
-            <material name="">
-                <color rgba="0.1 0.1 0.1 1" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 0" />
-            <geometry>
-                <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_140_inner_knuckle.stl" />
-            </geometry>
-        </collision>
-    </link>
-    <gazebo reference="g_bot_gripper_right_inner_knuckle">
-        <material>Gazebo/Black</material>
-    </gazebo>
-    <joint name="g_bot_gripper_finger_joint" type="revolute">
-        <origin rpy="2.2957963267948966 0 0" xyz="0 -0.030601 0.054905" />
-        <parent link="g_bot_gripper_robotiq_arg2f_base_link" />
-        <child link="g_bot_gripper_left_outer_knuckle" />
-        <axis xyz="-1 0 0" />
-        <limit effort="1000" lower="0" upper="0.7" velocity="2.0" />
-    </joint>
-    <joint name="g_bot_gripper_left_outer_finger_joint" type="fixed">
-        <origin rpy="0 0 0" xyz="0 0.01821998610742 0.0260018192872234" />
-        <parent link="g_bot_gripper_left_outer_knuckle" />
-        <child link="g_bot_gripper_left_outer_finger" />
-        <axis xyz="1 0 0" />
-    </joint>
-    <joint name="g_bot_gripper_left_inner_knuckle_joint" type="revolute">
-        <origin rpy="2.2957963267948966 0 0.0" xyz="0 -0.0127 0.06142" />
-        <parent link="g_bot_gripper_robotiq_arg2f_base_link" />
-        <child link="g_bot_gripper_left_inner_knuckle" />
-        <axis xyz="-1 0 0" />
-        <limit effort="1000" lower="-0.8757" upper="0.8757" velocity="2.0" />
-        <mimic joint="g_bot_gripper_finger_joint" multiplier="1" offset="0" />
-    </joint>
-    <joint name="g_bot_gripper_left_inner_finger_joint" type="revolute">
-        <origin rpy="-0.725 0 0" xyz="0 0.0817554015893473 -0.0282203446692936" />
-        <parent link="g_bot_gripper_left_outer_finger" />
-        <child link="g_bot_gripper_left_inner_finger" />
-        <axis xyz="-1 0 0" />
-        <limit effort="1000" lower="-0.8757" upper="0.8757" velocity="2.0" />
-        <mimic joint="g_bot_gripper_finger_joint" multiplier="-1" offset="0" />
-    </joint>
-    <joint name="g_bot_gripper_left_inner_finger_pad_joint" type="fixed">
-        <origin rpy="0 0 0" xyz="0 0.0457554015893473 -0.0272203446692936" />
-        <parent link="g_bot_gripper_left_inner_finger" />
-        <child link="g_bot_gripper_left_inner_finger_pad" />
-        <axis xyz="0 0 1" />
-    </joint>
-    <joint name="g_bot_gripper_right_outer_knuckle_joint" type="revolute">
-        <origin rpy="2.2957963267948966 0 3.141592653589793" xyz="0 0.030601 0.054905" />
-        <parent link="g_bot_gripper_robotiq_arg2f_base_link" />
-        <child link="g_bot_gripper_right_outer_knuckle" />
-        <axis xyz="-1 0 0" />
-        <limit effort="1000" lower="-0.725" upper="0.725" velocity="2.0" />
-        <mimic joint="g_bot_gripper_finger_joint" multiplier="1" offset="0" />
-    </joint>
-    <joint name="g_bot_gripper_right_outer_finger_joint" type="fixed">
-        <origin rpy="0 0 0" xyz="0 0.01821998610742 0.0260018192872234" />
-        <parent link="g_bot_gripper_right_outer_knuckle" />
-        <child link="g_bot_gripper_right_outer_finger" />
-        <axis xyz="1 0 0" />
-    </joint>
-    <joint name="g_bot_gripper_right_inner_knuckle_joint" type="revolute">
-        <origin rpy="2.2957963267948966 0 -3.141592653589793" xyz="0 0.0127 0.06142" />
-        <parent link="g_bot_gripper_robotiq_arg2f_base_link" />
-        <child link="g_bot_gripper_right_inner_knuckle" />
-        <axis xyz="-1 0 0" />
-        <limit effort="1000" lower="-0.8757" upper="0.8757" velocity="2.0" />
-        <mimic joint="g_bot_gripper_finger_joint" multiplier="1" offset="0" />
-    </joint>
-    <joint name="g_bot_gripper_right_inner_finger_joint" type="revolute">
-        <origin rpy="-0.725 0 0" xyz="0 0.0817554015893473 -0.0282203446692936" />
-        <parent link="g_bot_gripper_right_outer_finger" />
-        <child link="g_bot_gripper_right_inner_finger" />
-        <axis xyz="-1 0 0" />
-        <limit effort="1000" lower="-0.8757" upper="0.8757" velocity="2.0" />
-        <mimic joint="g_bot_gripper_finger_joint" multiplier="-1" offset="0" />
-    </joint>
-    <joint name="g_bot_gripper_right_inner_finger_pad_joint" type="fixed">
-        <origin rpy="0 0 0" xyz="0 0.0457554015893473 -0.0272203446692936" />
-        <parent link="g_bot_gripper_right_inner_finger" />
-        <child link="g_bot_gripper_right_inner_finger_pad" />
-        <axis xyz="0 0 1" />
-    </joint>
-    <transmission name="g_bot_gripper_finger_joint_trans">
-        <type>transmission_interface/SimpleTransmission</type>
-        <joint name="g_bot_gripper_finger_joint">
-            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
-        </joint>
-        <actuator name="g_bot_gripper_finger_joint_motor">
-            <mechanicalReduction>1</mechanicalReduction>
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-        </actuator>
-    </transmission>
-    <!-- Mimic joints -->
-    <gazebo>
-        <plugin filename="libgazebo_mimic_joint_plugin.so" name="g_bot_gripper_mimic_right_outer_knuckle_joint">
-            <joint>g_bot_gripper_finger_joint</joint>
-            <mimicJoint>g_bot_gripper_right_outer_knuckle_joint</mimicJoint>
-        </plugin>
-        <plugin filename="libgazebo_mimic_joint_plugin.so" name="g_bot_gripper_mimic_left_inner_knuckle_joint">
-            <joint>g_bot_gripper_finger_joint</joint>
-            <mimicJoint>g_bot_gripper_left_inner_knuckle_joint</mimicJoint>
-        </plugin>
-        <plugin filename="libgazebo_mimic_joint_plugin.so" name="g_bot_gripper_mimic_right_inner_knuckle_joint">
-            <joint>g_bot_gripper_finger_joint</joint>
-            <mimicJoint>g_bot_gripper_right_inner_knuckle_joint</mimicJoint>
-        </plugin>
-        <plugin filename="libgazebo_mimic_joint_plugin.so" name="g_bot_gripper_mimic_left_inner_finger_joint">
-            <joint>g_bot_gripper_finger_joint</joint>
-            <mimicJoint>g_bot_gripper_left_inner_finger_joint</mimicJoint>
-            <multiplier>-1.0</multiplier>
-            <offset>0.0</offset>
-        </plugin>
-        <plugin filename="libgazebo_mimic_joint_plugin.so" name="g_bot_gripper_mimic_right_inner_finger_joint">
-            <joint>g_bot_gripper_finger_joint</joint>
-            <mimicJoint>g_bot_gripper_right_inner_finger_joint</mimicJoint>
-            <multiplier>-1.0</multiplier>
-            <offset>0.0</offset>
-        </plugin>
-    </gazebo>
     <material name="aluminum">
         <color rgba="0.5 0.5 0.5 1" />
     </material>
@@ -1333,33 +918,33 @@
     </material>
     <!-- camera body, with origin at bottom screw mount -->
     <joint name="g_bot_camera_joint" type="fixed">
-        <origin rpy="0.0 1.309 -1.57" xyz="0.0 0.18 0.45" />
-        <parent link="workspace_center" />
+        <origin rpy="3.141592 0 0" xyz="0.048 0.035 -0.048" />
+        <parent link="g_bot_gripper_base_link" />
         <child link="g_bot_camera_bottom_screw_frame" />
     </joint>
     <link name="g_bot_camera_bottom_screw_frame" />
     <joint name="g_bot_camera_link_joint" type="fixed">
-        <origin rpy="0 0 0" xyz="0 0.02 0.0115" />
+        <origin rpy="0 0 0" xyz="0.010600000000000002 0.0175 0.0125" />
         <parent link="g_bot_camera_bottom_screw_frame" />
         <child link="g_bot_camera_link" />
     </joint>
     <link name="g_bot_camera_link">
         <visual>
-            <origin rpy="1.5707963267948966 0 1.5707963267948966" xyz="0.00987 -0.02 0" />
+            <!-- the mesh origin is at front plate in between the two infrared camera axes -->
+            <origin rpy="1.5707963267948966 0 1.5707963267948966" xyz="0.0043 -0.0175 0" />
             <geometry>
-                <mesh filename="package://realsense2_description/meshes/d415.stl" />
+                <mesh filename="package://realsense2_description/meshes/d435.dae" />
             </geometry>
-            <material name="aluminum" />
         </visual>
         <collision>
-            <origin rpy="0 0 0" xyz="0 -0.02 0" />
+            <origin rpy="0 0 0" xyz="-0.0085 -0.0175 0" />
             <geometry>
-                <box size="0.02005 0.099 0.023" />
+                <box size="0.02505 0.09 0.025" />
             </geometry>
         </collision>
         <inertial>
-            <mass value="0.072" />
             <!-- The following are not reliable values, and should not be used for modeling -->
+            <mass value="0.072" />
             <origin xyz="0 0 0" rpy="0 0 0" />
             <inertia ixx="0.003881243" ixy="0.0" ixz="0.0" iyy="0.000498940" iyz="0.0" izz="0.003879257" />
         </inertial>
@@ -1392,7 +977,7 @@
     <link name="g_bot_camera_infra1_optical_frame" />
     <!-- camera right IR joints and links -->
     <joint name="g_bot_camera_infra2_joint" type="fixed">
-        <origin rpy="0 0 0" xyz="0 -0.055 0" />
+        <origin rpy="0 0 0" xyz="0 -0.05 0" />
         <parent link="g_bot_camera_link" />
         <child link="g_bot_camera_infra2_frame" />
     </joint>
@@ -1442,7 +1027,7 @@
                 </clip>
             </camera>
             <plugin filename="libgazebo_ros_openni_kinect.so" name="g_bot_camera_controller">
-                <baseline>0.055</baseline>
+                <baseline>0.050</baseline>
                 <alwaysOn>true</alwaysOn>
                 <updateRate>10.0</updateRate>
                 <cameraName>g_bot_camera</cameraName>
@@ -1473,55 +1058,5 @@
         <child link="ground" />
         <origin rpy="0 0 0" xyz="0 0 0" />
     </joint>
-    <transmission name="trans_g_bot_gripper_left_inner_knuckle_joint">
-        <type>transmission_interface/SimpleTransmission</type>
-        <joint name="g_bot_gripper_left_inner_knuckle_joint">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-        </joint>
-        <actuator name="g_bot_gripper_left_inner_knuckle_joint_motor">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-            <mechanicalReduction>1</mechanicalReduction>
-        </actuator>
-    </transmission>
-    <transmission name="trans_g_bot_gripper_left_inner_finger_joint">
-        <type>transmission_interface/SimpleTransmission</type>
-        <joint name="g_bot_gripper_left_inner_finger_joint">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-        </joint>
-        <actuator name="g_bot_gripper_left_inner_finger_joint_motor">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-            <mechanicalReduction>1</mechanicalReduction>
-        </actuator>
-    </transmission>
-    <transmission name="trans_g_bot_gripper_right_outer_knuckle_joint">
-        <type>transmission_interface/SimpleTransmission</type>
-        <joint name="g_bot_gripper_right_outer_knuckle_joint">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-        </joint>
-        <actuator name="g_bot_gripper_right_outer_knuckle_joint_motor">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-            <mechanicalReduction>1</mechanicalReduction>
-        </actuator>
-    </transmission>
-    <transmission name="trans_g_bot_gripper_right_inner_knuckle_joint">
-        <type>transmission_interface/SimpleTransmission</type>
-        <joint name="g_bot_gripper_right_inner_knuckle_joint">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-        </joint>
-        <actuator name="g_bot_gripper_right_inner_knuckle_joint_motor">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-            <mechanicalReduction>1</mechanicalReduction>
-        </actuator>
-    </transmission>
-    <transmission name="trans_g_bot_gripper_right_inner_finger_joint">
-        <type>transmission_interface/SimpleTransmission</type>
-        <joint name="g_bot_gripper_right_inner_finger_joint">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-        </joint>
-        <actuator name="g_bot_gripper_right_inner_finger_joint_motor">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-            <mechanicalReduction>1</mechanicalReduction>
-        </actuator>
-    </transmission>
 </robot>
 

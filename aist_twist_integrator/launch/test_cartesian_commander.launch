@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="robot_name"	default="a_bot"/>
+
+  <arg name="twist_link"	value="$(arg robot_name
+				       )_camera_color_optical_frame"/>
+  <arg name="robot_base_link"	value="$(arg robot_name)_base_link"/>
+  <arg name="wrench_link"	value="$(arg robot_name)_gripper_tip_link"/>
+
+  <node ns="$(arg robot_name)" name="feature_tracker"
+	pkg="aist_twist_integrator" type="test_twist_integrator.py"
+	output="screen">
+    <param name="twist_link"		value="$(arg twist_link)"/>
+    <param name="robot_base_link"	value="$(arg robot_base_link)"/>
+    <param name="wrench_link"		value="$(arg wrench_link)"/>
+  </node>
+
+  <include file="$(dirname)/plot.launch">
+    <arg name="robot_name"	value="$(arg robot_name)"/>
+  </include>
+
+</launch>

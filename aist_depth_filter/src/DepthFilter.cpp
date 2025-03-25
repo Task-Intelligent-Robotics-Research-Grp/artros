@@ -123,16 +123,16 @@ DepthFilter::DepthFilter(ros::NodeHandle& nh)
      _depth_bg(nullptr),
      _depth(),
      _normal(),
-     _threshBG(nh.param("thresh_bg", 0.0)),
-     _near(nh.param("near", 0.0)),
-     _far(nh.param("far", 4.0)),
-     _top(nh.param("top", 0)),
-     _bottom(nh.param("bottom", 2048)),
-     _left(nh.param("left", 0)),
-     _right(nh.param("right", 3072)),
-     _scale(nh.param("scale", 1.0)),
-     _window_radius(nh.param("window_radius", 0)),
-     _threshPlane(nh.param("thresh_plane", 0.001))
+     _threshBG(0.0),
+     _near(0.0),
+     _far(4.0),
+     _top(0),
+     _bottom(2048),
+     _left(0),
+     _right(3072),
+     _scale(1.0),
+     _window_radius(2),
+     _threshPlane(0.001)
 {
   // Setup DetectPlane action server.
     _detect_plane_srv.registerPreemptCallback(
@@ -194,7 +194,7 @@ DepthFilter::DepthFilter(ros::NodeHandle& nh)
 	_sync2.registerCallback(&DepthFilter::filter_without_normal_cb, this);
     }
 
-    _ddr.publishServicesTopics();
+    _ddr.publishServicesTopicsAndUpdateConfigData();
 }
 
 template <class T> void

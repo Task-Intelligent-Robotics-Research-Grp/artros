@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<launch>
+
+  <arg name="gripper_name"	default="conveni_suction_gripper"/>
+  <arg name="usb_port"		default="/dev/ttyACM0"/>
+  <arg name="baud_rate"		default="9600"/>
+
+  <node name="$(arg gripper_name)_controller"
+  	pkg="aist_fastening_tools" type="conveni_suction_gripper_controller.py"
+  	output="screen">
+    <param name="usb_port"	value="$(arg usb_port)"/>
+    <param name="baud_rate"	value="$(arg baud_rate)"/>
+  </node>
+
+</launch>

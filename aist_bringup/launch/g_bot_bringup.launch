@@ -13,14 +13,13 @@
   				       -J g_bot_elbow_joint 1.4
   				       -J g_bot_wrist_1_joint -0.85
   				       -J g_bot_wrist_2_joint -1.5708
-  				       -J g_bot_wrist_3_joint 0.0"/>
-  <arg name="prefixes"		value="g_bot_, g_bot_gripper_"/>
-  <arg name="devices"		value="ur5e, robotiq_140"/>
-  <arg name="controllers"	value="ur, cmodel"/>
-  <arg name="drivers"		value="ur, cmodel"/>
-  <arg name="driver_args"	value="172.16.58.20,
-				       50001, 50002, 50003, 50004, 0;
-				       urcap, 172.16.58.20" />
+  				       -J g_bot_wrist_3_joint 3.14159"/>
+  <arg name="prefixes"		value="g_bot_"/>
+  <arg name="devices"		value="ur5e"/>
+  <arg name="controllers"	value="ur"/>
+  <arg name="drivers"		value="ur"/>
+  <arg name="driver_args"	value="192.168.11.4,
+				       50001, 50002, 50003, 50004, 0" />
 
   <!-- Bringup robots -->
   <include file="$(dirname)/include/connect_robots.launch">
@@ -48,30 +47,12 @@
   <!-- Launch other hardware drivers -->
   <group unless="$(arg sim)">
 
-    <!-- Launch Realsense camera -->
-    <arg name="camera_name"		default="g_bot_camera"/>
-    <arg name="camera_width"		default="640"/>
-    <arg name="camera_height"		default="480"/>
-    <arg name="fps"			default="30"/>
-    <arg name="manager"			default=""/>
-    <include file="$(find realsense2_camera)/launch/rs_camera.launch">
-      <arg name="camera"		value="$(arg camera_name)"/>
-      <arg name="tf_prefix"		value="$(arg camera_name)"/>
-      <arg name="publish_tf"		value="false"/>
-      <arg name="enable_depth"		value="true"/>
-      <arg name="enable_pointcloud"	value="true"/>
-      <arg name="align_depth"		value="true"/>
-      <arg name="depth_width"		value="$(arg camera_width)"/>
-      <arg name="depth_height"		value="$(arg camera_height)"/>
-      <arg name="depth_fps"		value="$(arg fps)"/>
-      <arg name="infra_width"		value="$(arg camera_width)"/>
-      <arg name="infra_height"		value="$(arg camera_height)"/>
-      <arg name="infra_fps"		value="$(arg fps)"/>
-      <arg name="color_width"		value="$(arg camera_width)"/>
-      <arg name="color_height"		value="$(arg camera_height)"/>
-      <arg name="color_fps"		value="$(arg fps)"/>
-      <arg name="manager"		value="$(arg manager)"
-    	   unless="$(eval manager == '')"/>
+    <!-- Launch suction tool controllers -->
+    <include file="$(find aist_fastening_tools
+    		   )/launch/conveni_suction_gripper_controller.launch">
+      <arg name="gripper_name"		value="g_bot_gripper"/>
+      <arg name="usb_port"		value="/dev/ttyACM0"/>
+      <arg name="baud_rate"		value="9600"/>
     </include>
 
   </group>

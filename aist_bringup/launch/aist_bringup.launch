@@ -32,6 +32,24 @@
   				       urcap, 163.220.51.110;
 				       urcap, 163.220.51.111" />
 
+  <!-- Remapping for controllers must be done before starting driver -->
+  <remap from="/a_bot/motion_control_handle/target_frame"
+	 to="/a_bot/target_frame" />
+  <remap from="/a_bot/cartesian_compliance_controller/target_frame"
+	 to="/a_bot/target_frame" />
+  <remap from="/a_bot/cartesian_compliance_controller/target_wrench"
+	 to="/a_bot/target_wrench" />
+  <remap from="/a_bot/cartesian_compliance_controller/ft_sensor_wrench"
+	 to="/a_bot/wrench" />
+  <remap from="/b_bot/motion_control_handle/target_frame"
+	 to="/b_bot/target_frame" />
+  <remap from="/b_bot/cartesian_compliance_controller/target_frame"
+	 to="/b_bot/target_frame" />
+  <remap from="/b_bot/cartesian_compliance_controller/target_wrench"
+	 to="/b_bot/target_wrench" />
+  <remap from="/b_bot/cartesian_compliance_controller/ft_sensor_wrench"
+	 to="/b_bot/wrench" />
+
   <!-- Bringup robots -->
   <include file="$(dirname)/include/connect_robots.launch">
     <arg name="robot_description_file"
@@ -56,12 +74,12 @@
   </include>
 
   <!-- Launch precision tool controller -->
-  <include file="$(find aist_precision_gripper)/launch/run.launch">
-    <arg name="prefix"			value="precision_tool_"/>
-    <arg name="sim"			value="$(arg sim)"/>
-    <arg name="usb_port"		value="/dev/ttyUSB0"/>
-    <arg name="publish_joint_states"	value="false"/>
-  </include>
+  <!-- <include file="$(find aist_precision_gripper)/launch/run.launch"> -->
+  <!--   <arg name="prefix"			value="precision_tool_"/> -->
+  <!--   <arg name="sim"			value="$(arg sim)"/> -->
+  <!--   <arg name="usb_port"		value="/dev/ttyUSB0"/> -->
+  <!--   <arg name="publish_joint_states"	value="false"/> -->
+  <!-- </include> -->
 
   <!-- Launch other hardware drivers -->
   <group unless="$(arg sim)">

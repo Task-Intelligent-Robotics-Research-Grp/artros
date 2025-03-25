@@ -173,9 +173,12 @@ class CModelController(Node):
             self._server.set_preempted()
             return
 
-        self._goal_r_pr = self._send_move_command(goal.command.position,
-                                                  self._velocity,
-                                                  goal.command.max_effort)
+        self._goal_rPR = self._send_move_command(goal.command.position,
+                                                 self._velocity,
+                                                 goal.command.max_effort)
+        rospy.loginfo('(%s) sent move command[position=%f, velocity=%f, max_effort=%f]',
+                      self._name, goal.command.position, self._velocity,
+                      goal.command.max_effort)
 
     def _handle_accepted_cb(self, goal_handle):
         with self._goal_lock:
@@ -235,15 +238,13 @@ class CModelController(Node):
         # After the goal accepted in _goal_cb(), status.g_pr does not
         # correctly reflects the requested position if _status_cb() is
         # called before _send_move_command(). Thus we have to use
-        # self._goal_r_pr instead of status.g_pr.
-        return (status.g_obj == 1 and status.g_po > self._goal_r_pr) or \
-               (status.g_obj == 2 and status.g_po < self._goal_r_ptr)
+        # self._goal_rPR instead of status.gPR.
+        return (status.gOBJ == 1 and status.gPO > self._goal_rPR + 1) or \
+               (status.gOBJ == 2 and status.gPO + 1 < self._goal_rPR)
 
     def _reached_goal(self, status):
         # ibid
-        # return abs(status.gPO - self._goal_rPR) <= 1
-        # return status.gPO == self._goal_rPR
-        return status.gOBJ == 3
+        return status.gOBJ == 3 and abs(status.gPO - self._goal_rPR) <= 1
 
     def _status_values(self, status):
         return self._position(status), self._effort(status), \

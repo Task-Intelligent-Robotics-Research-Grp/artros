@@ -1,7 +1,7 @@
 ##########################################################################
 # Set minimum required version of cmake, project name and compile options
 ##########################################################################
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5.0)
 project(aist_fastening_tools)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
@@ -102,5 +102,6 @@ catkin_install_python(
     scripts/screw_tool_test.py
     scripts/suction_tool_controller.py
     scripts/suction_tool_test.py
+    scripts/conveni_suction_gripper_controller.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

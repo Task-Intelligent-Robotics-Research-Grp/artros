@@ -9,11 +9,14 @@ initial_object_config:
     parent_link: suction_tool_holder_link
   base:
     parent_link: workbench_holder_link
+#    subframe:    fixture_grasp
   panel_motor:
-    parent_link: base/panel_motor_screw_hole_1
+#    parent_link: base/panel_motor_screw_hole_1
+    parent_link: tray_1_frame_1
     subframe:    base_screw_hole_aligner_1
   panel_bearing:
-    parent_link: base/panel_bearing_screw_hole_1
+#    parent_link: base/panel_bearing_screw_hole_1
+    parent_link: tray_1_frame_2
     subframe:    base_screw_hole_aligner_1
 
 placing_parameters:
@@ -30,9 +33,9 @@ placing_parameters:
     place_offset:     [ 0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
     departure_offset: [ 0.140, 0.000, 0.002, 0.0, 0.0, 0.0]
   suction_tool_holder_link:
-    approach_offset:  [-0.002, 0.000, 0.055, 0.0, 0.0, 0.0]
+    approach_offset:  [-0.002, 0.000, 0.050, 0.0, 0.0, 0.0]
     place_offset:     [ 0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
-    departure_offset: [-0.002, 0.000, 0.055, 0.0, 0.0, 0.0]
+    departure_offset: [-0.010, 0.000, 0.050, 0.0, 0.0, 0.0]
   screw_feeder_m3_inlet_link:
     approach_offset:  [0.000, 0.000, 0.030, 0.0, 0.0, 0.0]
     place_offset:     [0.000, 0.000, 0.005, 0.0, 0.0, 0.0]
@@ -49,7 +52,7 @@ placing_parameters:
 picking_parameters:
   precision_tool:
     approach_offset:  [-0.007, 0.000,  0.050, 0.0, 15.0, 0.0]
-    pick_offset:      [-0.007, 0.000, -0.035, 0.0, 15.0, 0.0]
+    pick_offset:      [-0.007, 0.000, -0.033, 0.0, 15.0, 0.0]
     departure_offset: [-0.007, 0.000,  0.050, 0.0, 15.0, 0.0]
     speed_fast:       1.0
     speed_slow:       0.1
@@ -59,7 +62,7 @@ picking_parameters:
       max_effort:       20.0
   screw_tool_m3:
     approach_offset:  [ 0.140, 0.000, 0.010, 0.0, 15.0, 0.0]
-    pick_offset:      [-0.005, 0.000, 0.008, 0.0, 15.0, 0.0]
+    pick_offset:      [-0.005, 0.000, 0.005, 0.0, 15.0, 0.0]
     departure_offset: [ 0.140, 0.000, 0.010, 0.0, 15.0, 0.0]
     speed_fast:       1.0
     speed_slow:       0.1
@@ -69,7 +72,7 @@ picking_parameters:
       max_effort:       20.0
   screw_tool_m4:
     approach_offset:  [ 0.140, 0.000, 0.010, 0.0, 10.0, 0.0]
-    pick_offset:      [-0.005, 0.000, 0.008, 0.0, 10.0, 0.0]
+    pick_offset:      [-0.005, 0.000, 0.005, 0.0, 10.0, 0.0]
     departure_offset: [ 0.140, 0.000, 0.010, 0.0, 10.0, 0.0]
     speed_fast:       1.0
     speed_slow:       0.1
@@ -79,7 +82,7 @@ picking_parameters:
       max_effort:       20.0
   suction_tool:
     approach_offset:  [-0.002, 0.000, 0.055, 0.0, 0.0, 0.0]
-    pick_offset:      [ 0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
+    pick_offset:      [ 0.000, 0.000, 0.006, 0.0, 0.0, 0.0]
     departure_offset: [-0.002, 0.000, 0.055, 0.0, 0.0, 0.0]
     speed_fast:       1.0
     speed_slow:       0.1
@@ -99,9 +102,9 @@ picking_parameters:
       release_position: 0.140
       max_effort:       30.0
   panel_motor:
-    approach_offset:  [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
-    pick_offset:      [0.000, 0.000, -0.020, 0.0, 0.0, 0.0]
-    departure_offset: [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
+    approach_offset:  [0.000, 0.000,  0.120, 0.0, -20.0, 0.0]
+    pick_offset:      [0.000, 0.000, -0.020, 0.0, -20.0, 0.0]
+    departure_offset: [0.000, 0.000,  0.120, 0.0, -20.0, 0.0]
     speed_fast:       0.1
     speed_slow:       0.1
     gripper_parameters:
@@ -109,9 +112,9 @@ picking_parameters:
       release_position: 0.025
       max_effort:       30.0
   panel_bearing:
-    approach_offset:  [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
-    pick_offset:      [0.000, 0.000, -0.020, 0.0, 0.0, 0.0]
-    departure_offset: [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
+    approach_offset:  [0.000, 0.000,  0.120, 0.0, -20.0, 0.0]
+    pick_offset:      [0.000, 0.000, -0.020, 0.0, -20.0, 0.0]
+    departure_offset: [0.000, 0.000,  0.120, 0.0, -20.0, 0.0]
     speed_fast:       0.1
     speed_slow:       0.1
     gripper_parameters:
@@ -119,14 +122,14 @@ picking_parameters:
       release_position: 0.025
       max_effort:       30.0
   screw_m3:
-    approach_offset:  [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
-    pick_offset:      [0.000, 0.000,  0.000, 0.0, 0.0, 0.0]
-    departure_offset: [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
+    approach_offset:  [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
+    pick_offset:      [0.000, 0.000, -0.003, 0.0, 0.0, 0.0]
+    departure_offset: [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
     speed_fast:       0.1
     speed_slow:       0.01
   screw_m4:
-    approach_offset:  [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
-    pick_offset:      [0.000, 0.000,  0.000, 0.0, 0.0, 0.0]
-    departure_offset: [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
+    approach_offset:  [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
+    pick_offset:      [0.000, 0.000,  0.002, 0.0, 0.0, 0.0]
+    departure_offset: [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
     speed_fast:       0.1
     speed_slow:       0.01

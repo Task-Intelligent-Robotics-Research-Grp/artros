@@ -5,14 +5,14 @@
 
   <xacro:arg name="scene" default=""/>
 
-  <xacro:property name="g_bot_x"   value="0"/>
-  <xacro:property name="g_bot_y"   value="-0.625"/>
-  <xacro:property name="g_bot_z"   value="0.700"/>
+  <xacro:property name="g_bot_x"   value="0.050"/>
+  <xacro:property name="g_bot_y"   value="-0.900"/>
+  <xacro:property name="g_bot_z"   value="0.698"/>
   <xacro:property name="cabinet_w" value="0.900"/>
   <xacro:property name="cabinet_l" value="0.400"/>
   <xacro:property name="cabinet_b" value="0.100"/>
   <xacro:property name="shelf1_h"  value="0.600"/>
-  <xacro:property name="shelf2_h"  value="0.790"/>
+  <xacro:property name="shelf2_h"  value="0.940"/>
   <xacro:property name="back_h"    value="1.500"/>
   <xacro:property name="wall_t"    value="0.012"/>
   <xacro:property name="mounter_w" value="0.200"/>
@@ -84,19 +84,11 @@
   </joint>
 
   <!-- Attach gripper -->
-  <xacro:include filename="$(find aist_robotiq
-			   )/urdf/robotiq_arg2f_coupling.urdf.xacro"/>
-  <xacro:robotiq_arg2f_coupling prefix="g_bot_gripper_coupling_"
-				parent="g_bot_flange">
-    <origin xyz="0 0 0" rpy="${pi} 0 0"/>
-  </xacro:robotiq_arg2f_coupling>
-
-  <xacro:include filename="$(find aist_robotiq
-			   )/urdf/robotiq_140_gripper.urdf.xacro"/>
-  <xacro:robotiq_140_gripper prefix="g_bot_gripper_"
-			     parent="g_bot_gripper_coupling_flange_link">
-    <origin xyz="0 0 0" rpy="0 0 0"/>
-  </xacro:robotiq_140_gripper>
+  <xacro:include filename="$(find aist_description
+			   )/devices/urdf/conveni_suction_gripper.urdf.xacro"/>
+  <xacro:conveni_suction_gripper prefix="g_bot_gripper_" parent="g_bot_tool0">
+    <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi/2}"/>
+  </xacro:conveni_suction_gripper>
 
   <!-- Attach RealSense camera -->
   <xacro:include filename="$(find aist_description
@@ -104,12 +96,12 @@
   <xacro:load_calibration filename="$(find aist_handeye_calibration
 				    )/calib/g_bot_camera.yaml"/>
   <xacro:include filename="$(find aist_description
-			   )/devices/urdf/_d415.urdf.xacro"/>
-  <xacro:sensor_d415 name="g_bot_camera" parent="workspace_center"
+			   )/devices/urdf/_d435.urdf.xacro"/>
+  <xacro:sensor_d435 name="g_bot_camera" parent="g_bot_gripper_base_link"
 		     use_nominal_extrinsics="true">
     <origin xyz="${origin[0]} ${origin[1]} ${origin[2]}"
     	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/>
-  </xacro:sensor_d415>
+  </xacro:sensor_d435>
 
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
   <link name="world"/>

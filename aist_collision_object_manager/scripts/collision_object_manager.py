@@ -52,7 +52,8 @@ from aist_msgs.srv          import (ManageCollisionObject,
                                     ManageCollisionObjectResponse,
                                     GetMeshResource, GetMeshResourceResponse)
 from aist_msgs.msg          import CollisionObjectInfo
-from moveit_msgs.msg        import CollisionObject, AttachedCollisionObject
+from moveit_msgs.msg        import (CollisionObject, AttachedCollisionObject,
+                                    PlanningSceneComponents, PlanningScene)
 from moveit_commander       import planning_scene_interface as psi
 
 try:
@@ -170,7 +171,7 @@ class CollisionObjectManager(object):
         def parent_link(self):
             return self.subframe_transforms[0].header.frame_id
 
-    def __init__(self, ns='', synchronous=True):
+    def __init__(self):
         """Initialize collision object manager
 
         - Load object properties from parameter '~object_properties'
@@ -235,7 +236,9 @@ class CollisionObjectManager(object):
             self._obj_props_dict[type] = obj_props
             rospy.loginfo('(CollisionObjectManager) loaded properties of type[%s]', type)
 
-        self._psi                 = psi.PlanningSceneInterface(ns, synchronous)
+        self._psi                 = psi.PlanningSceneInterface(
+                                        rospy.get_param('~ns', ''),
+                                        rospy.get_param('~synchronus', True))
         self._instance_props_dict = {}
         self._touch_links         = rospy.get_param('~touch_links', {})
         self._marker_id_min       = 0
@@ -307,7 +310,7 @@ class CollisionObjectManager(object):
                 self._remove_object(req.object_id, req.frame_id)
             elif req.op == ManageCollisionObjectRequest.ATTACH_OBJECT:
                 res.info = self._get_object_info(req.object_id)
-                self._attach_object(req.object_id, req.frame_id)
+                self._attach_object(req.object_id, req.frame_id, req.leaf_id)
             elif req.op == ManageCollisionObjectRequest.DETACH_OBJECT:
                 res.info = self._get_object_info(req.object_id)
                 self._detach_object(req.object_id, req.frame_id, req.leaf_id)
@@ -328,6 +331,10 @@ class CollisionObjectManager(object):
             elif req.op == ManageCollisionObjectRequest \
                           .GET_ATTACHED_CHILD_OBJECT_INFO:
                 res.info = self._get_attached_child_object_info(req.frame_id)
+            elif req.op == ManageCollisionObjectRequest.ALLOW_COLLISION:
+                self._set_collision_allowed(req.object_id, req.frame_id, True)
+            elif req.op == ManageCollisionObjectRequest.DISALLOW_COLLISION:
+                self._set_collision_allowed(req.object_id, req.frame_id, False)
             else:
                 raise Exception('unknown operation[%d]' % req.op)
         except Exception as e:
@@ -441,6 +448,9 @@ class CollisionObjectManager(object):
         with self._lock:
             self._instance_props_dict[object_id] = instance_props
 
+        # Add object to AllowedCollisionMatrix(acm)
+        self._set_acm_allowed(object_id, None, False)
+
         rospy.loginfo("(CollisionObjectManager) created '%s' of type[%s]",
                       co.id, object_type)
 
@@ -462,7 +472,7 @@ class CollisionObjectManager(object):
         self._psi.remove_attached_object(frame_id, object_id)
         self._psi.remove_world_object(object_id)
 
-    def _attach_object(self, object_id, parent_link):
+    def _attach_object(self, object_id, parent_link, leaf_id):
         """Attach collision object
         Args:
           object_id   (str):  unique ID of the object to be attached/detached
@@ -473,7 +483,7 @@ class CollisionObjectManager(object):
             raise Exception("unknown collision object '%s'" % object_id)
 
         # Make this object root of the tree attached to link.
-        old_root_id, old_parent_link = self._rotate_tree(co)
+        old_root_id, old_parent_link = self._rotate_tree(co, leaf_id)
 
         # If 'parent_link' is a subframe of another collision object,
         # get frame ID its 'base_link'.
@@ -616,10 +626,29 @@ class CollisionObjectManager(object):
                 return info
         return None
 
+    def _set_collision_allowed(self, object_id, frame_id, allow):
+        if frame_id is None:
+            others = None
+        else:
+            other_id, _ = _decompose_link_name(frame_id)
+            others = [other_id] if other_id != '' else \
+                     self._get_touch_links(frame_id)
+        self._set_acm_allowed(object_id, others, allow=allow)
+
+        # acm = self._psi.get_planning_scene(
+        #            PlanningSceneComponents.ALLOWED_COLLISION_MATRIX) \
+        #           .allowed_collision_matrix
+        # for entry_name, entry_value in zip(acm.entry_names, acm.entry_values):
+        #     print('--- %s ---' % entry_name)
+        #     for other_name, enabled in zip(acm.entry_names,
+        #                                    entry_value.enabled):
+        #         if enabled:
+        #             print('%s <-> %s' % (entry_name, other_name))
+
     #
     # Utilities
     #
-    def _rotate_tree(self, co, leaf_id=''):
+    def _rotate_tree(self, co, leaf_id):
         def _inverse_transform(transform):
             T = tfs.inverse_matrix(
                     tfs.translation_matrix(
@@ -637,21 +666,22 @@ class CollisionObjectManager(object):
                        Transform(Vector3(*tfs.translation_from_matrix(T)),
                                  Quaternion(*tfs.quaternion_from_matrix(T))))
 
-        old_root_id     = co.id
-        old_parent_link = self._get_parent_link(co.id)
-
-        # If 'co' is attached to any other collision object,
-        # reverse parent-child relation between them.
-        if self._get_attached_object(co.id) is not None:
-            parent_co = self._get_any_object(self._get_parent_id(co.id))
-            if parent_co is not None and parent_co.id != leaf_id:
-                old_root_id, old_parent_link = self._rotate_tree(parent_co,
-                                                                 leaf_id)
-                self._instance_props_dict[parent_co.id].subframe_transforms[0]\
-                    = _inverse_transform(self._instance_props_dict[co.id]\
-                                             .subframe_transforms[0])
-        else:  # Reached the root! Convert 'co' to attached collision object.
+        # If 'co' is not attached to any links, we have reached root!
+        if self._get_attached_object(co.id) is None:
             self._psi.attach_object(co, co.header.frame_id)
+            return co.id, self._get_parent_link(co.id)
+
+        # If 'co' is not attached to any other collision object or attached
+        # to an object with ID of 'leaf_id', we have reached root!
+        parent_co = self._get_any_object(self._get_parent_id(co.id))
+        if parent_co is None or parent_co.id == leaf_id:
+            return co.id, self._get_parent_link(co.id)
+
+        # Reverse parent-child relation between 'co' and its parent.
+        old_root_id, old_parent_link = self._rotate_tree(parent_co, leaf_id)
+        self._instance_props_dict[parent_co.id].subframe_transforms[0] \
+            = _inverse_transform(
+                    self._instance_props_dict[co.id].subframe_transforms[0])
         return old_root_id, old_parent_link
 
     def _attach_descendants(self, co, attach_link, T):
@@ -767,6 +797,36 @@ class CollisionObjectManager(object):
             del self._instance_props_dict[object_id]
         rospy.loginfo("(CollisionObjectManager) removed '%s'", object_id)
 
+    def _set_acm_allowed(self, object_id, others, allow):
+        acm = self._get_acm()
+        if others is None:
+            acm.set_allowed(object_id, None, allow=allow)
+        else:
+            for other in others:
+                acm.set_allowed(object_id, other, allow=allow)
+        self._apply_acm(acm)
+
+        if others is None:
+            rospy.loginfo("(CollisionObjectManager) %s collision against '%s' in default",
+                          'allow' if allow else 'disallow', object_id)
+        else:
+            rospy.loginfo("(CollisionObjectManager) %s collision between '%s' and %s",
+                          'allow' if allow else 'disallow',
+                          object_id, str(others))
+
+    def _get_acm(self):
+        return self._psi.get_planning_scene(
+                        PlanningSceneComponents.ALLOWED_COLLISION_MATRIX) \
+                   .allowed_collision_matrix
+
+    def _apply_acm(self, acm):
+        scene = PlanningScene()
+        scene.allowed_collision_matrix = acm
+        scene.is_diff = True
+        scene.robot_state.is_diff = True
+        self._psi.apply_planning_scene(scene)
+
+
 #########################################################################
 #  Entry point                                                          #
 #########################################################################
@@ -774,5 +834,5 @@ if __name__ == '__main__':
 
   rospy.init_node('collision_object_manager', anonymous=True)
 
-  server = CollisionObjectManager(synchronous=False)
+  server = CollisionObjectManager()
   rospy.spin()

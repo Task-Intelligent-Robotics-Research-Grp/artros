@@ -34,9 +34,9 @@
 # Author: Toshio Ueshiba
 #
 import os, sys, rospkg, rospy, tf
-import std_msgs.msg
-import ur_msgs.msg
-from tf import transformations as tfs
+from std_msgs.msg import String
+from ur_msgs.msg  import RobotModeDataMsg
+from tf           import transformations as tfs
 
 ######################################################################
 #  class URScriptPublisher                                           #
@@ -49,8 +49,8 @@ class URScriptPublisher(object):
         self._robot_name = robot_name
         self._listener   = tf.TransformListener()
         self._publisher  = rospy.Publisher('/' + robot_name +
-                                           'ur_hardware_interface/script_command',
-                                           std_msgs.msg.String, queue_size=1)
+                                           '/ur_hardware_interface/script_command',
+                                           String, queue_size=1)
         self._movej_template \
             = self._read_template('movej.script')
         self._movel_template \
@@ -184,7 +184,7 @@ class URScriptPublisher(object):
         rospy.loginfo('Sending UR robot program ')
         # rospy.logdebug('Program is:')
         # rospy.logdebug(program)
-        program_msg = std_msgs.msg.String()
+        program_msg = String()
         program_msg.data = template.format(*args)
         print(program_msg.data)
         self._publisher.publish(program_msg)
@@ -211,7 +211,7 @@ class URScriptPublisher(object):
     def _is_program_running(self):
         msg = rospy.wait_for_message('/' + self._robot_name +
                                      '/ur_hardware_interface/robot_mode_state',
-                                     ur_msgs.msg.RobotModeDataMsg)
+                                     RobotModeDataMsg)
         if msg:
             return msg.is_program_running
         else:

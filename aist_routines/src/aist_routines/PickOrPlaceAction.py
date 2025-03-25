@@ -150,6 +150,7 @@ class PickOrPlace(SimpleActionClient):
             if goal.pick:
                 gripper.pregrasp()  # Pregrasp (not wait)
                 gripper.wait()      # Wait for pregrasp completed
+                com.allow_collision(object_id, gripper.tip_link)
             elif object_id != '':
                 com.append_touch_links(object_id, goal.pose.header.frame_id)
 
@@ -218,9 +219,6 @@ class PickOrPlace(SimpleActionClient):
                                           original_object_info.parent_link,
                                           PickOrPlace._get_object_id(
                                               gripper.tip_link))
-                        com.move_object(object_id, original_object_info.pose,
-                                        PickOrPlace._get_subframe(
-                                            goal.pose.header.frame_id))
                 raise PickOrPlace.Error(PickOrPlaceResult.DEPARTURE_FAILURE,
                                         'Failed to depart from target')
 
@@ -250,6 +248,7 @@ class PickOrPlace(SimpleActionClient):
                          'Pick' if goal.pick else 'Place', err)
         finally:
             if object_id != '':
+                #com.disallow_collision(object_id, gripper.tip_link)
                 com.reset_touch_links()
 
     def _preempt_cb(self):

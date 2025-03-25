@@ -6,9 +6,9 @@
   <xacro:ar_marker prefix="workspace_"
 		   parent="workspace_center"
 		   marker_id="17_26_32_256"
-		   width="0.150" height="0.150" margin="0.005"
+		   width="0.105" height="0.105" margin="0.007"
 		   thickness="0.001">
-    <origin xyz="0.0 0.0 0.0005" rpy="0 0 0"/>
+    <origin xyz="0.0 0.0 0.0001" rpy="0 0 0"/>
   </xacro:ar_marker>
 
 </robot>

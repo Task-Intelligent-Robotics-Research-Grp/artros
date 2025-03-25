@@ -33,5 +33,6 @@ catkin_install_python(
     scripts/base_interactive.py
     scripts/fetch_interactive.py
     scripts/test_wrist_cameras.py
+    scripts/target_wrench.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

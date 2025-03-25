@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="robot_name"	default="a_bot"/>
+
+  <arg name="plot_args"
+       value="/$(arg robot_name)/target_frame/pose/position/x
+	      /$(arg robot_name)/target_frame/pose/position/y
+	      /$(arg robot_name)/target_frame/pose/position/z
+	      /$(arg robot_name
+	      )/cartesian_compliance_controller/current_pose/pose/position/x
+	      /$(arg robot_name
+	      )/cartesian_compliance_controller/current_pose/pose/position/y
+	      /$(arg robot_name
+	      )/cartesian_compliance_controller/current_pose/pose/position/z"/>
+
+  <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot"
+	clear_params="true" args="$(arg plot_args)"/>
+
+</launch>
