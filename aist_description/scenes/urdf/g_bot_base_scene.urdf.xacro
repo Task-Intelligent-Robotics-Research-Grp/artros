@@ -5,18 +5,23 @@
 
   <xacro:arg name="scene" default=""/>
 
-  <xacro:property name="g_bot_x"   value="0.050"/>
-  <xacro:property name="g_bot_y"   value="-0.900"/>
-  <xacro:property name="g_bot_z"   value="0.698"/>
-  <xacro:property name="cabinet_w" value="0.900"/>
-  <xacro:property name="cabinet_l" value="0.400"/>
-  <xacro:property name="cabinet_b" value="0.100"/>
-  <xacro:property name="shelf1_h"  value="0.600"/>
-  <xacro:property name="shelf2_h"  value="0.940"/>
-  <xacro:property name="back_h"    value="1.500"/>
-  <xacro:property name="wall_t"    value="0.012"/>
-  <xacro:property name="mounter_w" value="0.200"/>
-  <xacro:property name="mounter_l" value="0.200"/>
+  <xacro:property name="g_bot_x"	value="0.050"/>
+  <xacro:property name="g_bot_y"	value="-0.900"/>
+  <xacro:property name="g_bot_z"	value="0.698"/>
+  <xacro:property name="cabinet_w"	value="0.900"/>
+  <xacro:property name="cabinet_l"	value="0.400"/>
+  <xacro:property name="cabinet_b"	value="0.100"/>
+  <xacro:property name="shelf1_h"	value="0.600"/>
+  <xacro:property name="shelf2_h"	value="0.940"/>
+  <xacro:property name="back_h"		value="1.500"/>
+  <xacro:property name="wall_t"		value="0.012"/>
+  <xacro:property name="mounter_w"	value="0.200"/>
+  <xacro:property name="mounter_l"	value="0.200"/>
+  <xacro:property name="box_w"		value="0.465"/>
+  <xacro:property name="box_l"		value="0.340"/>
+  <xacro:property name="box_h"		value="0.245"/>
+  <xacro:property name="box_bottom_t"	value="0.010"/>
+  <xacro:property name="box_side_t"	value="0.020"/>
 
   <link name="ground"/>
 
@@ -102,6 +107,15 @@
     <origin xyz="${origin[0]} ${origin[1]} ${origin[2]}"
     	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/>
   </xacro:sensor_d435>
+
+  <!-- Box -->
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/tray.urdf.xacro"/>
+  <xacro:tray prefix=""
+  	      width="${box_w}" length="${box_l}" height="${box_h}"
+	      parent="mounter_table_base_link">
+    <origin xyz="-0.330 0 0.4" rpy="0 0 ${pi/2}"/>
+  </xacro:tray>
 
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
   <link name="world"/>

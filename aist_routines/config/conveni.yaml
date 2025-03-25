@@ -1,0 +1,23 @@
+item_props:
+  default:
+    name: DefaultItem
+    robot_name: g_bot
+    camera_name: g_bot_camera
+    destination: tray_bottom_center
+
+picking_parameters:
+  default:
+    approach_offset: [0.0, 0.0, 0.10]
+    pick_offset: [0.0, 0.0, -0.001]
+    place_offset: [0.0, 0.0, 0.05]
+    departure_offset: [0.0, 0.0, 0.10]
+    speed_fast: 1.0
+    speed_slow: 0.1
+
+graspability_parameters:
+  default:
+    ns: 3
+    nz: 0.7
+    object_size: 15
+    min_distance: 50
+    contact_radius: 25

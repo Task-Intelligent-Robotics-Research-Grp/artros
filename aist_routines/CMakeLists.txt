@@ -27,6 +27,7 @@ catkin_install_python(
     scripts/run_kitting.py
     scripts/run_assembly.py
     scripts/run_hmi_demo.py
+    scripts/run_conveni.py
     scripts/hmi_server.py
     scripts/interactive.py
     scripts/iiwa_interactive.py

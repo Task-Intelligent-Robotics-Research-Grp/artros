@@ -42,6 +42,8 @@ from aist_fastening_tools.msg import (SuctionToolCommandAction,
                                       SuctionToolCommandGoal,
                                       SuctionToolCommandResult,
                                       SuctionToolCommandFeedback)
+from std_msgs.msg             import Bool
+
 
 #########################################################################
 #  class ConveniSuctionGripperController                                #
@@ -61,6 +63,12 @@ class ConveniSuctionGripperController(object):
             rospy.logerr('(%s) failed to open serial port: %s',
                          self._name, serial_port)
             rospy.signal_shutdown('failed to open serial port')
+
+        # Create a pubisher for suntion status.
+        self._suction_pub = rospy.Publisher('~suctioned', Bool,
+                                              queue_size=1)
+        self._suctioned   = False
+        self._timer       = rospy.Timer(rospy.Duration(0.1), self._timer_cb)
 
         # Create an action server for processing commands to suction tools.
         self._server = SimpleActionServer('~command', SuctionToolCommandAction,
@@ -85,6 +93,7 @@ class ConveniSuctionGripperController(object):
 
         # Set states of suck and blow ports.
         self._send_command('1' if goal.suck else '0')
+        self._suctioned = goal.suck
 
         self._server.set_succeeded(SuctionToolCommandResult(goal.suck))
         rospy.loginfo('(%s) goal SUCCEEDED', self._name)
@@ -100,6 +109,8 @@ class ConveniSuctionGripperController(object):
     def _read(self):
         return self._serial.read(8)
 
+    def _timer_cb(self, event):
+        self._suction_pub.publish(Bool(self._suctioned))
 
 #########################################################################
 #  Entry point                                                          #
