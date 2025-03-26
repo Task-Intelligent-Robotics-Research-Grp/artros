@@ -42,6 +42,8 @@ from aist_fastening_tools.msg import (SuctionToolCommandAction,
                                       SuctionToolCommandGoal,
                                       SuctionToolCommandResult,
                                       SuctionToolCommandFeedback)
+from std_msgs.msg             import Bool
+
 
 #########################################################################
 #  class ConveniSuctionGripperController                                #
@@ -62,6 +64,12 @@ class ConveniSuctionGripperController(object):
                          self._name, serial_port)
             rospy.signal_shutdown('failed to open serial port')
 
+        # Create a pubisher for suntion status.
+        self._suction_pub = rospy.Publisher('~suctioned', Bool,
+                                              queue_size=1)
+        self._suctioned   = False
+        self._timer       = rospy.Timer(rospy.Duration(0.1), self._timer_cb)
+
         # Create an action server for processing commands to suction tools.
         self._server = SimpleActionServer('~command', SuctionToolCommandAction,
                                           auto_start=False)
@@ -73,7 +81,8 @@ class ConveniSuctionGripperController(object):
     def _goal_cb(self):
         goal = self._server.accept_new_goal()
 
-        rospy.loginfo('(%s) new goal ACCEPTED', self._name)
+        rospy.loginfo('(%s) new goal ACCEPTED[%s]', self._name,
+                      'suck' if goal.suck else 'blow')
 
         # Check that preempt has not been requested by the client
         if self._server.is_preempt_requested():
@@ -83,7 +92,11 @@ class ConveniSuctionGripperController(object):
             return
 
         # Set states of suck and blow ports.
-        self._send_command('1' if goal.suck else '0', goal.min_period)
+        self._send_command('1' if goal.suck else '0')
+
+        # Wait goal.min_period.
+        rospy.sleep(goal.min_period)
+        self._suctioned = goal.suck
 
         self._server.set_succeeded(SuctionToolCommandResult(goal.suck))
         rospy.loginfo('(%s) goal SUCCEEDED', self._name)
@@ -93,16 +106,18 @@ class ConveniSuctionGripperController(object):
         self._server.set_preempted(SuctionToolCommandResult(False))
         rospy.logwarn('(%s) active goal CANCELED by client', self._name)
 
-    def _send_command(self, cmd, hold_time):
-        start_time = rospy.get_rostime()
-        while (rospy.get_rostime() - start_time) < hold_time:
-            self._serial.write(cmd.encode())
-            rospy.sleep(0.1)
-            pass
+    def _send_command(self, cmd, hold_time=rospy.Duration(0.1)):
+        self._serial.write(cmd.encode())
+        # start_time = rospy.get_rostime()
+        # while (rospy.get_rostime() - start_time) < hold_time:
+        #     self._serial.write(cmd.encode())
+        #     rospy.sleep(0.01)
 
     def _read(self):
         return self._serial.read(8)
 
+    def _timer_cb(self, event):
+        self._suction_pub.publish(Bool(self._suctioned))
 
 #########################################################################
 #  Entry point                                                          #
