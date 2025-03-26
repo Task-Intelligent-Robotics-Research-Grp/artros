@@ -34,7 +34,9 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy
+import rospy, numpy as np
+from tf                              import transformations as tfs
+from geometry_msgs.msg               import Quaternion
 from aist_routines.ur                import URRoutines
 from aist_routines.ConveniPickAction import ConveniPick
 from aist_utility.compat             import *
@@ -77,10 +79,12 @@ class ConveniRoutines(URRoutines):
     def print_help_messages(self):
         super().print_help_messages()
         print('=== Conveni picking commands ===')
-        print('  s: Search graspabilities')
-        print('  a: Attempt to pick and place')
-        print('  A: Repeat attempts to pick and place')
-        print('  c: Cancel attempts to pick and place')
+        print('  s:           Search graspabilities')
+        print('  a:           Attempt to pick and place')
+        print('  A:           Repeat attempts to pick and place')
+        print('  c:           Cancel attempts to pick and place')
+        print('  pick_ready:  Go to pick_ready pose')
+        print('  place_ready: Go to place_ready pose')
 
     def interactive(self, key, robot_name, axis, speed):
         if key == 's':
@@ -101,6 +105,10 @@ class ConveniRoutines(URRoutines):
             self._conveni_pick.send_goal(item_id, True, 5, self._done_cb)
         elif key == 'c':
             self._conveni_pick.cancel_goal()
+        elif key == 'pick_ready':
+            self.go_to_named_pose(self.current_robot_name, 'pick_ready')
+        elif key == 'place_ready':
+            self.go_to_named_pose(self.current_robot_name, 'place_ready')
         elif robot_name:
             return super().interactive(key, robot_name, axis, speed)
         return robot_name, axis, speed
@@ -110,9 +118,27 @@ class ConveniRoutines(URRoutines):
         item_props = self._item_props[item_id]
         self.graspability_send_goal(item_props['robot_name'], item_id, 0)
         self.camera(item_props['camera_name']).trigger_frame()
-        return self.graspability_wait_for_result('workspace_center')
+        return self.graspability_wait_for_result('workspace_center',
+                                                 lambda pose:
+                                                 self._pose_filter(pose))
 
     # Utilities
     def _done_cb(self, state, result):
         rospy.sleep(1)          # Pause required after cancelling arm motion
         self.go_to_named_pose(self.current_robot_name, 'home')
+
+    def _pose_filter(self, pose):
+        T = tfs.quaternion_matrix((pose.orientation.x, pose.orientation.y,
+                                   pose.orientation.z, pose.orientation.w))
+        r = np.array((-T[1, 2], T[0, 2], 0))
+        if r[0] > 0:
+            r = -r
+        R = np.identity(4, dtype=np.float32)
+        R[0:3, 2] = T[0:3, 2]
+        R[0:3, 1] = self._normalize(r)
+        R[0:3, 0] = np.cross(R[0:3, 1], R[0:3, 2])
+        pose.orientation = Quaternion(*tfs.quaternion_from_matrix(R))
+        return pose
+
+    def _normalize(self, x):
+        return x / np.sqrt(np.dot(x, x))

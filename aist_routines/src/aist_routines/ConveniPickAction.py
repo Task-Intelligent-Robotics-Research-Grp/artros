@@ -98,7 +98,7 @@ class ConveniPick(SimpleActionClient):
             return False  # no items remained
 
         # Move to observation pose.
-        routines.go_to_named_pose(robot_name, 'ready')
+        routines.go_to_named_pose(robot_name, 'pick_ready')
 
         # Search for graspabilities.
         poses = routines.search_graspabilities(item_id).poses
@@ -123,7 +123,8 @@ class ConveniPick(SimpleActionClient):
 
             # 1. Pick succeeded
             if pick_result == PickOrPlaceResult.SUCCESS:
-                routines.go_to_named_pose(robot_name, 'home')
+                routines.go_to_named_pose(robot_name, 'pick_ready')
+                routines.go_to_named_pose(robot_name, 'place_ready')
 
                 # Begin placing and wait until reaching approach pose.
                 routines.place_at_frame(robot_name, item_props['destination'],

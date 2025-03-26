@@ -7,12 +7,15 @@ item_props:
 
 picking_parameters:
   default:
-    approach_offset: [0.0, 0.0, 0.10]
+    approach_offset: [0.0, 0.0, 0.20]
     pick_offset: [0.0, 0.0, -0.001]
-    place_offset: [0.0, 0.0, 0.05]
-    departure_offset: [0.0, 0.0, 0.10]
+    place_offset: [0.0, 0.0, 0.20]
+    departure_offset: [0.0, 0.0, 0.20]
     speed_fast: 1.0
     speed_slow: 0.1
+    gripper_parameters:
+      suck_min_period: 0.5
+      blow_min_period: 5.0
 
 graspability_parameters:
   default:
@@ -20,4 +23,4 @@ graspability_parameters:
     nz: 0.7
     object_size: 15
     min_distance: 50
-    contact_radius: 25
+    contact_radius: 30
