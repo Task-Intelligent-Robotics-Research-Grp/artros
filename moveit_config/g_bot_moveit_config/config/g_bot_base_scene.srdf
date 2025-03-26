@@ -27,13 +27,21 @@
         <joint name="g_bot_wrist_2_joint" value="-1.5708"/>
         <joint name="g_bot_wrist_3_joint" value="3.14159"/>
     </group_state>
-    <group_state name="ready" group="g_bot">
+    <group_state name="pick_ready" group="g_bot">
         <joint name="g_bot_elbow_joint" value="2.3836"/>
         <joint name="g_bot_shoulder_lift_joint" value="-1.9025"/>
         <joint name="g_bot_shoulder_pan_joint" value="1.1005"/>
         <joint name="g_bot_wrist_1_joint" value="-3.26199"/>
         <joint name="g_bot_wrist_2_joint" value="-1.12677"/>
         <joint name="g_bot_wrist_3_joint" value="2.98089"/>
+    </group_state>
+    <group_state name="place_ready" group="g_bot">
+        <joint name="g_bot_elbow_joint" value="1.65620"/>
+        <joint name="g_bot_shoulder_lift_joint" value="-1.22449"/>
+        <joint name="g_bot_shoulder_pan_joint" value="2.70233"/>
+        <joint name="g_bot_wrist_1_joint" value="-2.00251"/>
+        <joint name="g_bot_wrist_2_joint" value="-1.56476"/>
+        <joint name="g_bot_wrist_3_joint" value="4.28978"/>
     </group_state>
     <group_state name="back" group="g_bot">
         <joint name="g_bot_elbow_joint" value="1"/>
@@ -49,6 +57,7 @@
     <disable_collisions link1="cabinet_back" link2="g_bot_base_link_inertia" reason="Never"/>
     <disable_collisions link1="cabinet_back" link2="g_bot_camera_link" reason="Never"/>
     <disable_collisions link1="cabinet_back" link2="g_bot_forearm_link" reason="Never"/>
+    <disable_collisions link1="cabinet_back" link2="g_bot_gripper_coupling_base_link" reason="Never"/>
     <disable_collisions link1="cabinet_back" link2="g_bot_shoulder_link" reason="Never"/>
     <disable_collisions link1="cabinet_back" link2="g_bot_upper_arm_link" reason="Never"/>
     <disable_collisions link1="cabinet_back" link2="g_bot_wrist_1_link" reason="Never"/>
@@ -61,11 +70,17 @@
     <disable_collisions link1="cabinet_back" link2="mounter_table_leg3" reason="Never"/>
     <disable_collisions link1="cabinet_back" link2="mounter_table_top" reason="Never"/>
     <disable_collisions link1="cabinet_back" link2="right_wall" reason="Default"/>
+    <disable_collisions link1="cabinet_back" link2="tray_bottom" reason="Never"/>
+    <disable_collisions link1="cabinet_back" link2="tray_wall0" reason="Never"/>
+    <disable_collisions link1="cabinet_back" link2="tray_wall1" reason="Never"/>
+    <disable_collisions link1="cabinet_back" link2="tray_wall2" reason="Never"/>
+    <disable_collisions link1="cabinet_back" link2="tray_wall3" reason="Never"/>
     <disable_collisions link1="cabinet_base" link2="cabinet_shelf1" reason="Adjacent"/>
     <disable_collisions link1="cabinet_base" link2="cabinet_shelf2" reason="Adjacent"/>
     <disable_collisions link1="cabinet_base" link2="g_bot_base_link_inertia" reason="Adjacent"/>
     <disable_collisions link1="cabinet_base" link2="g_bot_camera_link" reason="Never"/>
     <disable_collisions link1="cabinet_base" link2="g_bot_forearm_link" reason="Never"/>
+    <disable_collisions link1="cabinet_base" link2="g_bot_gripper_coupling_base_link" reason="Never"/>
     <disable_collisions link1="cabinet_base" link2="g_bot_shoulder_link" reason="Never"/>
     <disable_collisions link1="cabinet_base" link2="g_bot_upper_arm_link" reason="Never"/>
     <disable_collisions link1="cabinet_base" link2="g_bot_wrist_1_link" reason="Never"/>
@@ -78,6 +93,11 @@
     <disable_collisions link1="cabinet_base" link2="mounter_table_leg3" reason="Never"/>
     <disable_collisions link1="cabinet_base" link2="mounter_table_top" reason="Never"/>
     <disable_collisions link1="cabinet_base" link2="right_wall" reason="Adjacent"/>
+    <disable_collisions link1="cabinet_base" link2="tray_bottom" reason="Never"/>
+    <disable_collisions link1="cabinet_base" link2="tray_wall0" reason="Never"/>
+    <disable_collisions link1="cabinet_base" link2="tray_wall1" reason="Never"/>
+    <disable_collisions link1="cabinet_base" link2="tray_wall2" reason="Never"/>
+    <disable_collisions link1="cabinet_base" link2="tray_wall3" reason="Never"/>
     <disable_collisions link1="cabinet_shelf1" link2="cabinet_shelf2" reason="Never"/>
     <disable_collisions link1="cabinet_shelf1" link2="g_bot_base_link_inertia" reason="Never"/>
     <disable_collisions link1="cabinet_shelf1" link2="g_bot_shoulder_link" reason="Never"/>
@@ -89,16 +109,25 @@
     <disable_collisions link1="cabinet_shelf1" link2="mounter_table_leg3" reason="Never"/>
     <disable_collisions link1="cabinet_shelf1" link2="mounter_table_top" reason="Never"/>
     <disable_collisions link1="cabinet_shelf1" link2="right_wall" reason="Default"/>
+    <disable_collisions link1="cabinet_shelf1" link2="tray_bottom" reason="Never"/>
+    <disable_collisions link1="cabinet_shelf1" link2="tray_wall0" reason="Never"/>
+    <disable_collisions link1="cabinet_shelf1" link2="tray_wall1" reason="Never"/>
+    <disable_collisions link1="cabinet_shelf1" link2="tray_wall2" reason="Never"/>
+    <disable_collisions link1="cabinet_shelf1" link2="tray_wall3" reason="Never"/>
     <disable_collisions link1="cabinet_shelf2" link2="g_bot_base_link_inertia" reason="Never"/>
     <disable_collisions link1="cabinet_shelf2" link2="g_bot_shoulder_link" reason="Never"/>
     <disable_collisions link1="cabinet_shelf2" link2="g_bot_upper_arm_link" reason="Never"/>
-    <disable_collisions link1="cabinet_shelf2" link2="left_wall" reason="Never"/>
     <disable_collisions link1="cabinet_shelf2" link2="mounter_table_base_link" reason="Never"/>
     <disable_collisions link1="cabinet_shelf2" link2="mounter_table_leg1" reason="Never"/>
     <disable_collisions link1="cabinet_shelf2" link2="mounter_table_leg2" reason="Never"/>
     <disable_collisions link1="cabinet_shelf2" link2="mounter_table_leg3" reason="Never"/>
     <disable_collisions link1="cabinet_shelf2" link2="mounter_table_top" reason="Never"/>
     <disable_collisions link1="cabinet_shelf2" link2="right_wall" reason="Default"/>
+    <disable_collisions link1="cabinet_shelf2" link2="tray_bottom" reason="Never"/>
+    <disable_collisions link1="cabinet_shelf2" link2="tray_wall0" reason="Never"/>
+    <disable_collisions link1="cabinet_shelf2" link2="tray_wall1" reason="Never"/>
+    <disable_collisions link1="cabinet_shelf2" link2="tray_wall2" reason="Never"/>
+    <disable_collisions link1="cabinet_shelf2" link2="tray_wall3" reason="Never"/>
     <disable_collisions link1="g_bot_base_link_inertia" link2="g_bot_shoulder_link" reason="Adjacent"/>
     <disable_collisions link1="g_bot_base_link_inertia" link2="left_wall" reason="Never"/>
     <disable_collisions link1="g_bot_base_link_inertia" link2="mounter_table_base_link" reason="Adjacent"/>
@@ -107,7 +136,13 @@
     <disable_collisions link1="g_bot_base_link_inertia" link2="mounter_table_leg3" reason="Never"/>
     <disable_collisions link1="g_bot_base_link_inertia" link2="mounter_table_top" reason="Default"/>
     <disable_collisions link1="g_bot_base_link_inertia" link2="right_wall" reason="Never"/>
+    <disable_collisions link1="g_bot_base_link_inertia" link2="tray_bottom" reason="Never"/>
+    <disable_collisions link1="g_bot_base_link_inertia" link2="tray_wall0" reason="Never"/>
+    <disable_collisions link1="g_bot_base_link_inertia" link2="tray_wall1" reason="Never"/>
+    <disable_collisions link1="g_bot_base_link_inertia" link2="tray_wall2" reason="Never"/>
+    <disable_collisions link1="g_bot_base_link_inertia" link2="tray_wall3" reason="Never"/>
     <disable_collisions link1="g_bot_camera_link" link2="g_bot_gripper_base_link" reason="Adjacent"/>
+    <disable_collisions link1="g_bot_camera_link" link2="g_bot_gripper_coupling_base_link" reason="Never"/>
     <disable_collisions link1="g_bot_camera_link" link2="g_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="g_bot_camera_link" link2="g_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="g_bot_camera_link" link2="g_bot_wrist_3_link" reason="Never"/>
@@ -115,9 +150,16 @@
     <disable_collisions link1="g_bot_forearm_link" link2="g_bot_wrist_1_link" reason="Adjacent"/>
     <disable_collisions link1="g_bot_forearm_link" link2="g_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="g_bot_forearm_link" link2="left_wall" reason="Never"/>
-    <disable_collisions link1="g_bot_gripper_base_link" link2="g_bot_wrist_1_link" reason="Default"/>
+    <disable_collisions link1="g_bot_forearm_link" link2="tray_bottom" reason="Never"/>
+    <disable_collisions link1="g_bot_forearm_link" link2="tray_wall2" reason="Never"/>
+    <disable_collisions link1="g_bot_gripper_base_link" link2="g_bot_gripper_coupling_base_link" reason="Adjacent"/>
     <disable_collisions link1="g_bot_gripper_base_link" link2="g_bot_wrist_2_link" reason="Default"/>
-    <disable_collisions link1="g_bot_gripper_base_link" link2="g_bot_wrist_3_link" reason="Adjacent"/>
+    <disable_collisions link1="g_bot_gripper_base_link" link2="g_bot_wrist_3_link" reason="Never"/>
+    <disable_collisions link1="g_bot_gripper_coupling_base_link" link2="g_bot_wrist_1_link" reason="Never"/>
+    <disable_collisions link1="g_bot_gripper_coupling_base_link" link2="g_bot_wrist_2_link" reason="Never"/>
+    <disable_collisions link1="g_bot_gripper_coupling_base_link" link2="g_bot_wrist_3_link" reason="Adjacent"/>
+    <disable_collisions link1="g_bot_gripper_coupling_base_link" link2="tray_bottom" reason="Never"/>
+    <disable_collisions link1="g_bot_gripper_coupling_base_link" link2="tray_wall2" reason="Never"/>
     <disable_collisions link1="g_bot_shoulder_link" link2="g_bot_upper_arm_link" reason="Adjacent"/>
     <disable_collisions link1="g_bot_shoulder_link" link2="left_wall" reason="Never"/>
     <disable_collisions link1="g_bot_shoulder_link" link2="mounter_table_base_link" reason="Never"/>
@@ -126,28 +168,89 @@
     <disable_collisions link1="g_bot_shoulder_link" link2="mounter_table_leg3" reason="Never"/>
     <disable_collisions link1="g_bot_shoulder_link" link2="mounter_table_top" reason="Never"/>
     <disable_collisions link1="g_bot_shoulder_link" link2="right_wall" reason="Never"/>
+    <disable_collisions link1="g_bot_shoulder_link" link2="tray_bottom" reason="Never"/>
+    <disable_collisions link1="g_bot_shoulder_link" link2="tray_wall0" reason="Never"/>
+    <disable_collisions link1="g_bot_shoulder_link" link2="tray_wall1" reason="Never"/>
+    <disable_collisions link1="g_bot_shoulder_link" link2="tray_wall2" reason="Never"/>
+    <disable_collisions link1="g_bot_shoulder_link" link2="tray_wall3" reason="Never"/>
     <disable_collisions link1="g_bot_upper_arm_link" link2="left_wall" reason="Never"/>
     <disable_collisions link1="g_bot_upper_arm_link" link2="right_wall" reason="Never"/>
+    <disable_collisions link1="g_bot_upper_arm_link" link2="tray_bottom" reason="Never"/>
+    <disable_collisions link1="g_bot_upper_arm_link" link2="tray_wall0" reason="Never"/>
+    <disable_collisions link1="g_bot_upper_arm_link" link2="tray_wall1" reason="Never"/>
+    <disable_collisions link1="g_bot_upper_arm_link" link2="tray_wall2" reason="Never"/>
+    <disable_collisions link1="g_bot_upper_arm_link" link2="tray_wall3" reason="Never"/>
     <disable_collisions link1="g_bot_wrist_1_link" link2="g_bot_wrist_2_link" reason="Adjacent"/>
     <disable_collisions link1="g_bot_wrist_1_link" link2="g_bot_wrist_3_link" reason="Never"/>
+    <disable_collisions link1="g_bot_wrist_1_link" link2="tray_bottom" reason="Never"/>
+    <disable_collisions link1="g_bot_wrist_1_link" link2="tray_wall2" reason="Never"/>
     <disable_collisions link1="g_bot_wrist_2_link" link2="g_bot_wrist_3_link" reason="Adjacent"/>
+    <disable_collisions link1="g_bot_wrist_2_link" link2="tray_bottom" reason="Never"/>
+    <disable_collisions link1="g_bot_wrist_2_link" link2="tray_wall2" reason="Never"/>
+    <disable_collisions link1="g_bot_wrist_3_link" link2="tray_bottom" reason="Never"/>
+    <disable_collisions link1="g_bot_wrist_3_link" link2="tray_wall2" reason="Never"/>
     <disable_collisions link1="left_wall" link2="mounter_table_base_link" reason="Never"/>
     <disable_collisions link1="left_wall" link2="mounter_table_leg1" reason="Never"/>
     <disable_collisions link1="left_wall" link2="mounter_table_leg2" reason="Never"/>
     <disable_collisions link1="left_wall" link2="mounter_table_leg3" reason="Never"/>
     <disable_collisions link1="left_wall" link2="mounter_table_top" reason="Never"/>
     <disable_collisions link1="left_wall" link2="right_wall" reason="Never"/>
+    <disable_collisions link1="left_wall" link2="tray_bottom" reason="Never"/>
+    <disable_collisions link1="left_wall" link2="tray_wall0" reason="Never"/>
+    <disable_collisions link1="left_wall" link2="tray_wall1" reason="Never"/>
+    <disable_collisions link1="left_wall" link2="tray_wall2" reason="Never"/>
+    <disable_collisions link1="left_wall" link2="tray_wall3" reason="Never"/>
     <disable_collisions link1="mounter_table_base_link" link2="mounter_table_leg1" reason="Adjacent"/>
     <disable_collisions link1="mounter_table_base_link" link2="mounter_table_leg2" reason="Adjacent"/>
     <disable_collisions link1="mounter_table_base_link" link2="mounter_table_leg3" reason="Adjacent"/>
     <disable_collisions link1="mounter_table_base_link" link2="mounter_table_top" reason="Adjacent"/>
     <disable_collisions link1="mounter_table_base_link" link2="right_wall" reason="Never"/>
+    <disable_collisions link1="mounter_table_base_link" link2="tray_bottom" reason="Adjacent"/>
+    <disable_collisions link1="mounter_table_base_link" link2="tray_wall0" reason="Never"/>
+    <disable_collisions link1="mounter_table_base_link" link2="tray_wall1" reason="Never"/>
+    <disable_collisions link1="mounter_table_base_link" link2="tray_wall2" reason="Never"/>
+    <disable_collisions link1="mounter_table_base_link" link2="tray_wall3" reason="Never"/>
     <disable_collisions link1="mounter_table_leg1" link2="mounter_table_leg2" reason="Never"/>
     <disable_collisions link1="mounter_table_leg1" link2="mounter_table_leg3" reason="Never"/>
-    <disable_collisions link1="mounter_table_leg1" link2="mounter_table_top" reason="Always"/>
     <disable_collisions link1="mounter_table_leg1" link2="right_wall" reason="Never"/>
+    <disable_collisions link1="mounter_table_leg1" link2="tray_bottom" reason="Never"/>
+    <disable_collisions link1="mounter_table_leg1" link2="tray_wall0" reason="Never"/>
+    <disable_collisions link1="mounter_table_leg1" link2="tray_wall1" reason="Never"/>
+    <disable_collisions link1="mounter_table_leg1" link2="tray_wall2" reason="Never"/>
+    <disable_collisions link1="mounter_table_leg1" link2="tray_wall3" reason="Never"/>
     <disable_collisions link1="mounter_table_leg2" link2="mounter_table_leg3" reason="Never"/>
+    <disable_collisions link1="mounter_table_leg2" link2="mounter_table_top" reason="Default"/>
     <disable_collisions link1="mounter_table_leg2" link2="right_wall" reason="Never"/>
+    <disable_collisions link1="mounter_table_leg2" link2="tray_bottom" reason="Never"/>
+    <disable_collisions link1="mounter_table_leg2" link2="tray_wall0" reason="Never"/>
+    <disable_collisions link1="mounter_table_leg2" link2="tray_wall1" reason="Never"/>
+    <disable_collisions link1="mounter_table_leg2" link2="tray_wall2" reason="Never"/>
+    <disable_collisions link1="mounter_table_leg2" link2="tray_wall3" reason="Never"/>
     <disable_collisions link1="mounter_table_leg3" link2="right_wall" reason="Never"/>
+    <disable_collisions link1="mounter_table_leg3" link2="tray_bottom" reason="Never"/>
+    <disable_collisions link1="mounter_table_leg3" link2="tray_wall0" reason="Never"/>
+    <disable_collisions link1="mounter_table_leg3" link2="tray_wall1" reason="Never"/>
+    <disable_collisions link1="mounter_table_leg3" link2="tray_wall2" reason="Never"/>
+    <disable_collisions link1="mounter_table_leg3" link2="tray_wall3" reason="Never"/>
     <disable_collisions link1="mounter_table_top" link2="right_wall" reason="Never"/>
+    <disable_collisions link1="mounter_table_top" link2="tray_bottom" reason="Never"/>
+    <disable_collisions link1="mounter_table_top" link2="tray_wall0" reason="Never"/>
+    <disable_collisions link1="mounter_table_top" link2="tray_wall1" reason="Never"/>
+    <disable_collisions link1="mounter_table_top" link2="tray_wall2" reason="Never"/>
+    <disable_collisions link1="mounter_table_top" link2="tray_wall3" reason="Never"/>
+    <disable_collisions link1="right_wall" link2="tray_bottom" reason="Never"/>
+    <disable_collisions link1="right_wall" link2="tray_wall0" reason="Never"/>
+    <disable_collisions link1="right_wall" link2="tray_wall1" reason="Never"/>
+    <disable_collisions link1="right_wall" link2="tray_wall2" reason="Never"/>
+    <disable_collisions link1="right_wall" link2="tray_wall3" reason="Never"/>
+    <disable_collisions link1="tray_bottom" link2="tray_wall0" reason="Adjacent"/>
+    <disable_collisions link1="tray_bottom" link2="tray_wall1" reason="Adjacent"/>
+    <disable_collisions link1="tray_bottom" link2="tray_wall2" reason="Adjacent"/>
+    <disable_collisions link1="tray_bottom" link2="tray_wall3" reason="Adjacent"/>
+    <disable_collisions link1="tray_wall0" link2="tray_wall1" reason="Never"/>
+    <disable_collisions link1="tray_wall0" link2="tray_wall2" reason="Never"/>
+    <disable_collisions link1="tray_wall0" link2="tray_wall3" reason="Never"/>
+    <disable_collisions link1="tray_wall1" link2="tray_wall2" reason="Never"/>
+    <disable_collisions link1="tray_wall1" link2="tray_wall3" reason="Never"/>
+    <disable_collisions link1="tray_wall2" link2="tray_wall3" reason="Never"/>
 </robot>
