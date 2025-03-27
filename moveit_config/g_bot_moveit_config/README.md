@@ -15,12 +15,12 @@ g_bot_moveit_config
 
 **g_bot**は，**cabinet**上の商品を**g_bot_camera**で観測してgraspabilityを検出し，**g_bot_gripper**によってピックして**tray**に入れる．
 
-**g_bot_camera**の位置・姿勢はURDFに記述される必要があり，その値はハンド=アイキャリブレーションによって推定される．しかし，キャリブレーション前にはその値は不明なので，以下のように仮の値をコピーする．
+**g_bot_camera**の位置・姿勢はURDFに記述される必要があり，その値はハンド=アイキャリブレーションによって推定される．しかし，キャリブレーション前にはその値は不明なので，以下のように[仮の値](../../aist_handeye_calibration/calib/g_bot_camera-nominal.yaml)をコピーする．
 ```
 $ cd catkin_ws/src/artros/aist_handeye_calibration/calib
 $ cp g_bot_camera-nominal.yaml g_bot_camera.yaml
 ```
-この後，キャリブレーションを実行すると，`g_bot_camera.yaml`の内容は推定値に置き換えられる．
+`MoveIt`は，`g_bot_camera.yaml`の内容をURDFにロードして`g_bot_camera`の仮の位置・姿勢を指定する．この後，キャリブレーションを実行すると，`g_bot_camera.yaml`の内容は推定値に置き換えられる．
 
 `g_bot_camera.yaml`が存在すれば，以下のコマンドによりシーンを可視化できる．
 ```bash
