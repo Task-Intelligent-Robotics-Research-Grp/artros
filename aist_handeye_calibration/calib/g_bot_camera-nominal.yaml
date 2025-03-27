@@ -6,4 +6,4 @@ origin:
 - 3.141592
 - 0
 - 0
-parent: g_bot_camera_base_link
+parent: g_bot_gripper_base_link
