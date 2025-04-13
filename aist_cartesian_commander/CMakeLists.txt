@@ -20,7 +20,6 @@ find_package(
     realtime_tools
     geometry_msgs
     tf2_geometry_msgs
-    ddynamic_reconfigure
     message_generation
     actionlib_msgs
     actionlib

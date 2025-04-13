@@ -1,5 +1,4 @@
 # Goal
-string			    twist_link     #
 geometry_msgs/WrenchStamped target_wrench  # w.r.t. end_effector_link
 ---
 # Result

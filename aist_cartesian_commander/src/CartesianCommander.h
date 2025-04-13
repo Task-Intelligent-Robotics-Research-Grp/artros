@@ -48,7 +48,6 @@
 #include <message_filters/time_synchronizer.h>
 #include <actionlib/server/simple_action_server.h>
 #include <tf2_ros/transform_listener.h>
-#include <ddynamic_reconfigure/ddynamic_reconfigure.h>
 #include <aist_cartesian_commander/TrackWithContactAction.h>
 
 namespace aist_cartesian_commander
@@ -59,8 +58,6 @@ namespace aist_cartesian_commander
 class CartesianCommander
 {
   private:
-    using vector3_t	  = geometry_msgs::Vector3Stamped;
-    using vector3_cp	  = geometry_msgs::Vector3StampedConstPtr;
     using pose_t	  = geometry_msgs::PoseStamped;
     using pose_cp	  = geometry_msgs::PoseStampedConstPtr;
     using twist_t	  = geometry_msgs::TwistStamped;
@@ -87,14 +84,14 @@ class CartesianCommander
 
     void	goal_cb()						;
     void	preempt_cb()						;
-    void	twist_cb(const twist_cp& target_twist)			;
+    void	pose_cb(const pose_cp& target_pose)			;
     void	controller_state_cb(const pose_cp&  current_pose,
 				    const twist_cp& current_twist)	;
 
   private:
     const std::string				_nodelet_name;
 
-    ros::Subscriber				_target_twist_sub;
+    ros::Subscriber				_target_pose_sub;
     message_filters::Subscriber<pose_t>		_current_pose_sub;
     message_filters::Subscriber<twist_t>	_current_twist_sub;
     sync_t					_sync;
@@ -107,9 +104,6 @@ class CartesianCommander
 
     tf2_ros::Buffer				_tf2_buffer;
     const tf2_ros::TransformListener		_listener;
-
-    ddynamic_reconfigure::DDynamicReconfigure	_ddr;
-    double					_control_period;
 
     pose_t					_current_pose;
     twist_t					_current_twist;

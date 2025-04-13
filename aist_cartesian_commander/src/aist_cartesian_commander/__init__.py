@@ -31,10 +31,9 @@ class CartesianCommanderClient(SimpleActionClient):
                       server + '/track_with_contact')
 
     # TrackWithContact action stuffs
-    def send_goal(self, twist_link, target_wrench,
+    def send_goal(self, target_wrench,
                   done_cb=None, active_cb=None, feedback_cb=None):
         SimpleActionClient.send_goal(self,
-                                     TrackWithContactGoal(twist_link,
-                                                          target_wrench),
+                                     TrackWithContactGoal(target_wrench),
                                      done_cb=done_cb, active_cb=active_cb,
                                      feedback_cb=feedback_cb)

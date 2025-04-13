@@ -2,7 +2,6 @@
 <launch>
 
   <arg name="robot_names"	default="a_bot"/>
-  <arg name="control_period"	default="0.002"/>
   <arg name="manager"		default=""/>
   <arg name="robot_no"		default="0"/>
 
@@ -25,7 +24,6 @@
 		  $(arg manager)">
 	<param name="end_effector_link"	value="$(arg robot_name
 					       )_gripper_tip_link"/>
-	<param name="control_period"	value="$(arg control_period)"/>
 	<remap from="/target_twist"	to="feature_tracker/target_twist"/>
 	<remap from="/current_pose"
 	       to="cartesian_compliance_controller/current_pose"/>

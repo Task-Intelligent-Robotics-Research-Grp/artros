@@ -13,7 +13,7 @@
 
 import rospy
 from actionlib_msgs.msg       import GoalStatus
-from geometry_msgs.msg        import TwistStamped, WrenchStamped, Vector3
+from geometry_msgs.msg        import PoseStamped, WrenchStamped, Vector3
 from aist_cartesian_commander import CartesianCommanderClient
 from aist_utility.compat      import *
 
@@ -24,13 +24,12 @@ class TestCartesianCommander(CartesianCommanderClient):
     def __init__(self, server='cartesian_commander'):
         CartesianCommanderClient.__init__(self, server)
 
-        self._twist_link = rospy.get_param('~twist_link',
-                                           'a_bot_camera_color_optical_frame')
-        self._target_twist = TwistStamped()
-        self._target_twist.header.frame_id \
-            = rospy.get_param('~robot_base_link', 'a_bot_base_link')
-        self._target_twist.twist.linear  = Vector3(0, 0, 0)
-        self._target_twist.twist.angular = Vector3(0, 0, 0)
+        self._target_pose = TwistStamped()
+        self._target_pose.header.frame_id \
+            = rospy.get_param('~robot_base_link',
+                              'a_bot_camera_color_optical_link')
+        self._target_pose.pose.position = Vector3(0, 0, 0)
+        self._target_pose.pose.orientation = Vector3(0, 0, 0)
 
         self._target_wrench = WrenchStamped()
         self._target_wrench.header.frame_id \
@@ -38,8 +37,8 @@ class TestCartesianCommander(CartesianCommanderClient):
         self._target_wrench.wrench.force  = Vector3(0, 0, 0)
         self._target_wrench.wrench.torque = Vector3(0, 0, 0)
 
-        self._twist_pub = rospy.Publisher('~target_twist', TwistStamped,
-                                          queue_size=1)
+        self._pose_pub = rospy.Publisher('~target_pose', PoseStamped,
+                                         queue_size=1)
         rospy.Timer(rospy.Duration(0.1), self._publish_cb)
 
     def run(self):
@@ -52,12 +51,12 @@ class TestCartesianCommander(CartesianCommanderClient):
 
             key = raw_input('>> ')
             if key == 't':
-                self._target_twist.twist.linear.z = float(raw_input('  vz: '))
+                self._target_pose.twist.linear.z = float(raw_input('  vz: '))
             elif key == 'w':
                 self._target_wrench.wrench.force.z = float(raw_input('  fz: '))
             elif key == '':
                 if self.get_state() != GoalStatus.ACTIVE:
-                    self.send_goal(self._twist_link, self._target_wrench,
+                    self.send_goal(self._target_wrench,
                                    feedback_cb=self._feedback_cb)
                 else:
                     self.cancel_goal()
@@ -65,8 +64,8 @@ class TestCartesianCommander(CartesianCommanderClient):
                 break
 
     def _publish_cb(self, event):
-        self._target_twist.header.stamp = rospy.Time.now()
-        self._twist_pub.publish(self._target_twist)
+        self._target_pose.header.stamp = rospy.Time.now()
+        self._twist_pub.publish(self._target_pose)
 
     def _feedback_cb(self, feedback):
         pass

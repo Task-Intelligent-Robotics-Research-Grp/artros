@@ -47,48 +47,24 @@ namespace aist_cartesian_commander
 /************************************************************************
 *  static functions							*
 ************************************************************************/
-static geometry_msgs::Twist
-transform_twist(const geometry_msgs::Twist& twist,
-		const geometry_msgs::Transform& transform)
-{
-    tf2::Vector3	tf2_linear;
-    tf2::fromMsg(twist.linear, tf2_linear);
-    tf2::Vector3	tf2_angular;
-    tf2::fromMsg(twist.angular, tf2_angular);
-    tf2::Transform	tf2_transform;
-    tf2::fromMsg(transform, tf2_transform);
-
-    tf2_angular	= tf2_transform(tf2_angular);
-    tf2_linear	= tf2_transform(tf2_linear)
-		+ tf2::tf2Cross(tf2_transform.getOrigin(), tf2_angular);
-
-    geometry_msgs::Twist	transformed_twist;
-    transformed_twist.linear  = tf2::toMsg(tf2_linear);
-    transformed_twist.angular = tf2::toMsg(tf2_angular);
-
-    return transformed_twist;
-}
-
 static geometry_msgs::Pose
-update_pose(const geometry_msgs::Pose& pose,
-	    const geometry_msgs::Twist& twist, tf2Scalar dt)
+update_pose(const geometry_msgs::Pose& pose, const geometry_msgs::Pose& delta,
+	    const geometry_msgs::Transform& transform)
 {
     tf2::Transform	tf2_pose;
-    tf2::fromMsg(pose, tf2_pose);
-    const tf2::Vector3	tf2_axis(twist.angular.x * dt,
-				 twist.angular.y * dt,
-				 twist.angular.z * dt);
-    tf2_pose *= tf2::Transform(tf2::Quaternion(tf2_axis, tf2_axis.length()),
-			       tf2::Vector3(twist.linear.x * dt,
-					    twist.linear.y * dt,
-					    twist.linear.z * dt));
+    fromMsg(pose, tf2_pose);
+    tf2::Transform	tf2_delta;
+    fromMsg(delta, tf2_delta);
+    tf2::Transform	tf2_transform;
+    fromMsg(transform, tf2_transform);
+
+    tf2_pose *= tf2_transform * tf2_delta * tf2_transform.inverse();
 
     geometry_msgs::Pose	updated_pose;
-    tf2::toMsg(tf2_pose, updated_pose);
+    toMsg(tf2_pose, updated_pose);
 
     return updated_pose;
 }
-
 
 /************************************************************************
 *  class CartesianCommander						*
@@ -96,9 +72,9 @@ update_pose(const geometry_msgs::Pose& pose,
 CartesianCommander::CartesianCommander(ros::NodeHandle& nh,
 				       const std::string& nodelet_name)
     :_nodelet_name(nodelet_name),
-     _target_twist_sub(nh.subscribe<twist_t>("/target_twist", 1,
-					     &CartesianCommander::twist_cb,
-					     this)),
+     _target_pose_sub(nh.subscribe<pose_t>("/target_pose", 1,
+					   &CartesianCommander::pose_cb,
+					   this)),
      _current_pose_sub( nh, "/current_pose",  1),
      _current_twist_sub(nh, "/current_twist", 1),
      _sync(_current_pose_sub, _current_twist_sub, 1),
@@ -108,8 +84,6 @@ CartesianCommander::CartesianCommander(ros::NodeHandle& nh,
      _current_goal(nullptr),
      _tf2_buffer(),
      _listener(_tf2_buffer),
-     _ddr(nh),
-     _control_period(0.002),
      _current_pose(),
      _current_twist(),
      _ready(false),
@@ -120,12 +94,6 @@ CartesianCommander::CartesianCommander(ros::NodeHandle& nh,
   // Setup frame_id for pose and wrench commands.
     _target_wrench.header.frame_id = nh.param<std::string>("end_effector_link",
 							   "tool0");
-
-  // Setup ddynamic_reconfigure server
-    _ddr.registerVariable<double>("control_period", &_control_period,
-				  "Period for integrating twist(sec)",
-				  0.001, 0.05);
-    _ddr.publishServicesTopicsAndUpdateConfigData();
 
   // Setup and start TrackWithContact action server
     _track_srv.registerGoalCallback(boost::bind(&CartesianCommander::goal_cb,
@@ -170,7 +138,7 @@ CartesianCommander::preempt_cb()
 }
 
 void
-CartesianCommander::twist_cb(const twist_cp& target_twist)
+CartesianCommander::pose_cb(const pose_cp& target_pose)
 {
     const std::lock_guard<std::mutex>	lock(_mtx);
 
@@ -181,12 +149,12 @@ CartesianCommander::twist_cb(const twist_cp& target_twist)
     {
 	try
 	{
-	  // Get a transform from the frame describing incoming twist
+	  // Get a transform from the frame describing incoming pose
 	  // to the end-effector link of the robot.
 	    _Tet = boost::make_shared<transform_t>(
 		       _tf2_buffer.lookupTransform(
-			   _target_wrench.header.frame_id,
-			   target_twist->header.frame_id,
+			   _target_wrench.header.frame_id,	// ee-link
+			   target_pose->header.frame_id,
 			   ros::Time(0), ros::Duration(1.0)));
 
 	  // Transform the wrench value given in the goal to the one
@@ -210,10 +178,8 @@ CartesianCommander::twist_cb(const twist_cp& target_twist)
 
   // Update current pose by incoming twist and publish.
     pose_t	target_frame;
-    target_frame.pose	= update_pose(_current_pose.pose,
-				      transform_twist(target_twist->twist,
-						      _Tet->transform),
-				      _control_period);
+    target_frame.pose = update_pose(_current_pose.pose, target_pose->pose,
+				    _Tet->transform);
     target_frame.header.frame_id = _current_pose.header.frame_id;
     target_frame.header.stamp    = ros::Time::now();
     if (_target_frame_pub->trylock())
@@ -247,5 +213,4 @@ CartesianCommander::controller_state_cb(const pose_cp&  current_pose,
     _current_twist = *current_twist;
     _ready = true;
 }
-
 }	// namespace aist_cartesian_commander
