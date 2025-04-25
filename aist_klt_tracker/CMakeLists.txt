@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(aist_visual_tracker)
+project(aist_klt_tracker)
 
 ## Compile as C++17, supported in ROS melodic and newer
 enable_language(CXX)

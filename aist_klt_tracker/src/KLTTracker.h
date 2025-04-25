@@ -47,7 +47,7 @@
 #include <ddynamic_reconfigure/ddynamic_reconfigure.h>
 #include "klt/klt.h"
 
-namespace aist_visual_tracker
+namespace aist_klt_tracker
 {
 /************************************************************************
 *  class KLTTracker							*
@@ -130,4 +130,4 @@ KLTTracker::operator [](size_t j) const
     return _featureTable->feature[j][_frame];
 }
 
-}	// namespace aist_visual_tracker
+}	// namespace aist_klt_tracker

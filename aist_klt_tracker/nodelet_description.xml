@@ -1,0 +1,8 @@
+<library path="lib/libaist_klt_tracker">
+  <class name="aist_klt_tracker/aist_klt_tracker"
+	 type="aist_klt_tracker::KLTTrackerNodelet"
+	 base_class_type="nodelet::Nodelet">
+    <description>
+    </description>
+  </class>
+</library>
