@@ -64,9 +64,10 @@ class URRobot(object):
     def __init__(self, robot_name):
         super().__init__()
 
-        controller_manager = '/' + robot_name + '/controller_manager/'
-        hw_interface       = '/' + robot_name + '/ur_hardware_interface/'
-        dashboard          = hw_interface + 'dashboard/'
+        controller_manager  = '/' + robot_name + '/controller_manager/'
+        hw_interface        = '/' + robot_name + '/ur_hardware_interface/'
+        dashboard           = hw_interface + 'dashboard/'
+        ftsensor_controller = '/' + robot_name + '/aist_ftsensor_controller/'
 
         self._urscript_publisher = URScriptPublisher(robot_name)
 
@@ -106,6 +107,8 @@ class URRobot(object):
                                                       Trigger)
         self._unlock_protective_stop \
             = rospy.ServiceProxy(dashboard + 'unlock_protective_stop', Trigger)
+        self._ftsensor_reset_bias \
+            = rospy.ServiceProxy(ftsensor_controller + 'reset_bias', Trrigger)
 
         self._safety_mode_sub \
             = rospy.Subscriber(hw_interface + 'safety_mode',
@@ -141,6 +144,9 @@ class URRobot(object):
                     return True
                 elif controller.state == 'initialized' or \
                      controller.state == 'stopped':
+                    if controller_name == 'position_controllers/CartesianForceController' or \
+                       controller_name == 'position_controllers/CartesianComplianceController':
+                        self.ftsensor_reset_bias()
                     current_controller = self.current_controller()
                     req = SwitchControllerRequest()
                     req.start_controllers = [controller_name]
@@ -189,6 +195,12 @@ class URRobot(object):
                     rospy.logerr('Failed to %s' % message)
                 return res.ok
         return False
+
+    ###
+    ### FTSensor stuffs
+    ###
+    def ftsensor_reset_bias(self):
+        return self._ftsensor_reset_bias().success
 
     ###
     ###  SafetyMode stuffs
