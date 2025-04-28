@@ -88,7 +88,13 @@ class AssemblyRoutines(URRoutines):
         print('  B:  Move all robots to back')
 
     def interactive(self, key, robot_name, axis, speed):
-        if key == 'pt':
+        if key == 'robot':
+            print('  current: %s' % robot_name)
+            new_robot_name = raw_input('  robot name? ')
+            if new_robot_name != '':
+                self.switch_camera(robot_name, new_robot_name)
+                robot_name = new_robot_name
+        elif key == 'pt':
             tool_name = raw_input('  tool name? ')
             self.pick_tool(robot_name, tool_name)
         elif key == 'PT':
@@ -139,6 +145,11 @@ class AssemblyRoutines(URRoutines):
         else:
             return super().interactive(key, robot_name, axis, speed)
         return robot_name, axis, speed
+
+    def switch_camera(self, current_robot_name, new_robot_name,
+                      laser_power=16):
+        self.camera(current_robot_name + '_camera').laser_power = 0
+        self.camera(new_robot_name + '_camera').laser_power = laser_power
 
     def pick_tool(self, robot_name, tool_name):
         if self.gripper(robot_name).name == tool_name:
