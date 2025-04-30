@@ -555,7 +555,7 @@ ForceTorqueSensorController::Sensor
     _ddr.registerVariable<double>(
 	"filter_cutoff_frequency", _filter.cutoff()/_pub_interval.toSec(),
 	boost::bind(&Sensor::set_filter_cutoff_frequency, this, _1),
-	"Cutoff frequency of input low pass filter", 0.5, pub_rate/2);
+	"Cutoff frequency of input low pass filter", 0.5, pub_rate);
     _ddr.registerVariable<bool>(
 	"compensate_gravity", &_compensate_gravity,
 	"Compensate gravity if true", false, true);

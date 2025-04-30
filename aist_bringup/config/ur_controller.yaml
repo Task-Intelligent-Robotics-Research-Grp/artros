@@ -19,7 +19,9 @@ aist_ftsensor_controller:
   gravity_frame: $(arg prefix)base_link
   sensors:
     wrench:
-      compensate_gravity: false
+      filter_half_order: 2
+      filter_cutoff_frequency: 250
+      compensate_gravity: true
 
 # Publish speed_scaling factor
 speed_scaling_state_controller:
