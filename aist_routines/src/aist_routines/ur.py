@@ -108,7 +108,7 @@ class URRobot(object):
         self._unlock_protective_stop \
             = rospy.ServiceProxy(dashboard + 'unlock_protective_stop', Trigger)
         self._ftsensor_reset_bias \
-            = rospy.ServiceProxy(ftsensor_controller + 'reset_bias', Trrigger)
+            = rospy.ServiceProxy(ftsensor_controller + 'reset_bias', Trigger)
 
         self._safety_mode_sub \
             = rospy.Subscriber(hw_interface + 'safety_mode',
@@ -144,8 +144,8 @@ class URRobot(object):
                     return True
                 elif controller.state == 'initialized' or \
                      controller.state == 'stopped':
-                    if controller_name == 'position_controllers/CartesianForceController' or \
-                       controller_name == 'position_controllers/CartesianComplianceController':
+                    if controller.type == 'position_controllers/CartesianForceController' or \
+                       controller.type == 'position_controllers/CartesianComplianceController':
                         self.ftsensor_reset_bias()
                     current_controller = self.current_controller()
                     req = SwitchControllerRequest()

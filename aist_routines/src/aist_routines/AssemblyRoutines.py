@@ -35,7 +35,7 @@
 # Author: Toshio Ueshiba
 #
 import rospy
-from geometry_msgs.msg       import PoseStamped WrenchStamped
+from geometry_msgs.msg       import PoseStamped, WrenchStamped, Vector3
 from aist_routines.ur        import URRoutines
 from cuda_feature_tracker_3d import FeatureTrackerClient
 from aist_utility.compat     import *
@@ -50,7 +50,7 @@ class AssemblyRoutines(URRoutines):
         super().__init__()
 
         self._feature_trackers = {}
-        for robot_name in rospy.get_param*('~robots').keys():
+        for robot_name in rospy.get_param('~robots').keys():
             self._feature_trackers[robot_name] \
                 = FeatureTrackerClient(robot_name + '/feature_tracker')
         self._initialize_collision_objects()
@@ -60,7 +60,7 @@ class AssemblyRoutines(URRoutines):
         axis       = 'Y'
         speed      = 1.0
 
-        for rname in rospy.get_param*('~robots').keys():
+        for rname in rospy.get_param('~robots').keys():
             self.camera(rname + '_camera').laser_power = 0
         self.camera(robot_name + '_camera').laser_power = 16
 
@@ -137,8 +137,8 @@ class AssemblyRoutines(URRoutines):
             if pose_name == '':
                 pose_name = 'fasten_screw_m4_ready'
             target_frame = raw_input('  target frame? ')
-            if target_name == '':
-                target_name = 'base/panel_motor_screw_hole_1'
+            if target_frame == '':
+                target_frame = 'base/panel_motor_screw_hole_1'
             self.approach_target(robot_name, pose_name, target_frame)
         elif key == 'AT':
             self.cancel_approach_target(robot_name)
@@ -247,9 +247,9 @@ class AssemblyRoutines(URRoutines):
                         pose_name, target_frame, target_force=(0, 0, -5)):
         self.go_to_named_pose(robot_name, pose_name)
         self._ur_robots[robot_name].switch_controller(
-            'position_controllers/CartesianComplianceController')
+            'cartesian_compliance_controller')
         feature_names = [self.gripper(robot_name).name + '/tip_link',
-                         target_name]
+                         target_frame]
         target_wrench = WrenchStamped()
         target_wrench.header.frame_id = robot_name + '_base_link'
         target_wrench.wrench.force  = Vector3(*target_force)
@@ -260,7 +260,7 @@ class AssemblyRoutines(URRoutines):
     def cancel_approach_target(self, robot_name):
         self._feature_trackers[robot_name].cancel_goal()
         self._ur_robots[robot_name].switch_controller(
-            'position_controllers/JointTrajectoryController')
+            'scaled_pos_joint_traj_controller')
 
     def _initialize_collision_objects(self):
         self.com.remove_object()
