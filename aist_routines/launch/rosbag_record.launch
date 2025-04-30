@@ -1,22 +1,28 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="file_name"		default="servo_test"/>
-  <arg name="record_tf"		default="false"/>
+  <arg name="file_name"		default="b_bot-fasten_screw_m4_ready"/>
+  <arg name="record_tf"		default="true"/>
 
-  <arg name="depth_topic"	value="/camera_multiplexer/depth"/>
-  <arg name="image_topic"	value="/camera_multiplexer/image"/>
-  <arg name="cinfo_topic"	value="/camera_multiplexer/camera_info"/>
+  <arg name="image_topic"	value="color/image_raw"/>
+  <arg name="depth_topic"	value="aligned_depth_to_color/image_raw"/>
+  <arg name="camera_info_topic"	value="color/camera_info"/>
   <arg if="$(arg record_tf)"
        name="state_topic"	value="/tf"/>
   <arg unless="$(arg record_tf)"
        name="state_topic"	value="/joint_states"/>
 
   <node name="rosbag_record" pkg="rosbag" type="record" output="screen"
-  	args="$(arg depth_topic) $(arg cinfo_topic) $(arg image_topic)
-	      $(arg state_topic)
-	      /a_bot/wrench /b_bot/wrench
+  	args="/a_bot_camera/$(arg image_topic)
+	      /a_bot_camera/$(arg depth_topic)
+	      /a_bot_camera/$(arg camera_info_topic)
+	      /b_bot_camera/$(arg image_topic)
+	      /b_bot_camera/$(arg depth_topic)
+	      /b_bot_camera/$(arg camera_info_topic)
+	      /a_bot/wrench
+	      /b_bot/wrench
 	      /collision_object_manager/collision_marker
+	      $(arg state_topic)
 	      -o $(dirname)/../../../../data/$(arg file_name)"/>
 
 </launch>
