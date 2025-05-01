@@ -180,7 +180,9 @@ class URRobot(object):
                     req.start_controllers = []
                     req.stop_controllers  = [controller_name]
                     message = 'stopped ' + controller_name
+                    self.switch_controller('scaled_pos_joint_traj_controller')
                 else:
+                    self.switch_controller('cartesian_compliance_controller')
                     req.start_controllers = [controller_name]
                     req.stop_controllers  = []
                     message = 'started ' + controller_name
