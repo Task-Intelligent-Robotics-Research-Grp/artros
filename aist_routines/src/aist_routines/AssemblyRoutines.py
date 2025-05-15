@@ -248,8 +248,12 @@ class AssemblyRoutines(URRoutines):
         self.go_to_named_pose(robot_name, pose_name)
         self._ur_robots[robot_name].switch_controller(
             'cartesian_compliance_controller')
-        feature_names = [self.gripper(robot_name).name + '/tip_link',
-                         target_frame]
+
+        gripper_tip_link = self.gripper(robot_name).tip_link
+        object_id = AssemblyRoutines._get_object_id(target_frame)
+        self.com.allow_collision(object_id, gripper_tip_link)
+
+        feature_names = [gripper_tip_link, target_frame]
         target_wrench = WrenchStamped()
         target_wrench.header.frame_id = robot_name + '_base_link'
         target_wrench.wrench.force  = Vector3(*target_force)
@@ -258,9 +262,14 @@ class AssemblyRoutines(URRoutines):
                                                      target_wrench)
 
     def cancel_approach_target(self, robot_name):
-        self._feature_trackers[robot_name].cancel_goal()
+        tracker = self._feature_trackers[robot_name]
+        tracker.cancel_goal()
         self._ur_robots[robot_name].switch_controller(
             'scaled_pos_joint_traj_controller')
+        if tracker.wait_for_result():
+            result = tracker.get_result()
+            self.go_to_named_pose(robot_name, result.pose_name)
+        self.com.reset_touch_links()
 
     def _initialize_collision_objects(self):
         self.com.remove_object()
@@ -314,3 +323,13 @@ class AssemblyRoutines(URRoutines):
         print('    object_id:   %s\n    type:        %s\n    parent_link: %s\n    attach_link: %s\n    touch_links: %s\n    pose:\n%s'
               % (info.object_id, info.object_type, info.parent_link,
                  info.attach_link, info.touch_links, info.pose))
+
+    @staticmethod
+    def _get_object_id(link_name):
+        tokens = link_name.rsplit('/', 1)
+        return tokens[0] if len(tokens) == 2 else ''
+
+    @staticmethod
+    def _get_subframe(link_name):
+        tokens = link_name.rsplit('/', 1)
+        return tokens[1] if len(tokens) == 2 else link_name
