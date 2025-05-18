@@ -6,7 +6,7 @@
 
   <arg name="image_topic"	value="color/image_raw"/>
   <arg name="depth_topic"	value="aligned_depth_to_color/image_raw"/>
-  <arg name="camera_info_topic"	value="color/camera_info"/>
+  <arg name="camera_info_topic"	value="aligned_depth_to_color/camera_info"/>
   <arg if="$(arg record_tf)"
        name="state_topic"	value="/tf"/>
   <arg unless="$(arg record_tf)"
