@@ -57,8 +57,9 @@ class SpiralSearch(SimpleActionClient):
         self.wait_for_server()
 
     # Client stuffs
-    def send_goal(self, robot_name, eef_link,
-                  angle_increment, radius_increment, radius_max, timeout):
+    def send_goal(self, robot_name, eef_link='',
+                  angle_increment=30.0, radius_increment=0.0001,
+                  radius_max=0.005, timeout=rospy.Duration(5.0)):
         SimpleActionClient.send_goal(self,
                                      SpiralSearchGoal(robot_name, eef_link,
                                                       angle_increment,
@@ -74,17 +75,15 @@ class SpiralSearch(SimpleActionClient):
     def _execute_cb(self, goal):
         rospy.loginfo("*** Do spiral_searching ***")
         routines = self._routines
-        path = routines.create_path(goal.robot_name,
-                                    self._create_waypoints(
-                                        eef_link,
-                                        goal.angle_increment,
-                                        goal.radius_increment,
-                                        goal.radius_max),
-                                    speed=goal.speed, accel=goal.accel,
-                                    end_effector_link=eef_link)
+        waypoints = self._create_waypoints(goal.eef_link,
+                                           goal.angle_increment,
+                                           goal.radius_increment,
+                                           goal.radius_max),
         timeout_time = rospy.get_rostime() + goal.timeout
         while rospy.get_rostime() < timeout_time:
-
+            routines.go_along_poses(goal.robot_name, wayoints,
+                                    speed=goal.speed, accel=goal.accel,
+                                    end_effector_link=eef_link)
 
         self._server.set_succeeded(result, "Succeeded")
 

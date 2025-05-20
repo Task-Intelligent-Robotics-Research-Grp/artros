@@ -35,10 +35,12 @@
 # Author: Toshio Ueshiba
 #
 import rospy
-from geometry_msgs.msg       import PoseStamped, WrenchStamped, Vector3
-from aist_routines.ur        import URRoutines
-from cuda_feature_tracker_3d import FeatureTrackerClient
-from aist_utility.compat     import *
+from geometry_msgs.msg                import (PoseStamped, WrenchStamped,
+                                              Vector3)
+from aist_routines.ur                 import URRoutines
+from aist_routines.SpiralSearchAction import SpiralSearch
+from cuda_feature_tracker_3d          import FeatureTrackerClient
+from aist_utility.compat              import *
 
 ######################################################################
 #  class AssemblyRoutines                                            #
@@ -56,6 +58,7 @@ class AssemblyRoutines(URRoutines):
                     = FeatureTrackerClient(robot_name + '/feature_tracker')
             except Exception as e:
                 print(e)
+        self._spiral_search = SpiralSearch(self)
         self._initialize_collision_objects()
 
     def run(self):
@@ -273,6 +276,9 @@ class AssemblyRoutines(URRoutines):
             result = tracker.get_result()
             self.go_to_named_pose(robot_name, result.pose_name)
         self.com.reset_touch_links()
+
+    def spiral_search(self, robot_name):
+        self._spiral_search(robot_name)
 
     def _initialize_collision_objects(self):
         self.com.remove_object()
