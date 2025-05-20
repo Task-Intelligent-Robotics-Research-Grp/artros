@@ -91,11 +91,11 @@
   <xacro:ur_robot_gazebo
       prefix="b_bot_"
       joint_limits_parameters_file="$(find ur_description
-				    )/config/ur5/joint_limits.yaml"
+				    )/config/ur5e/joint_limits.yaml"
       physical_parameters_file="$(find ur_description
-				)/config/ur5/physical_parameters.yaml"
+				)/config/ur5e/physical_parameters.yaml"
       visual_parameters_file="$(find ur_description
-			      )/config/ur5/visual_parameters.yaml"
+			      )/config/ur5e/visual_parameters.yaml"
       kinematics_parameters_file="$(find aist_bringup
 				  )/config/b_bot_calibration.yaml"
       transmission_hw_interface="hardware_interface/PositionJointInterface"
@@ -108,32 +108,46 @@
     <origin xyz="0 0 0 " rpy="0 0 ${b_bot_theta}"/>
   </joint>
 
-  <!-- Spawn and attach force sensor -->
-  <xacro:include filename="$(find aist_robotiq)/urdf/ft300.urdf.xacro"/>
-  <xacro:ft300 prefix="b_bot_ftsensor_" parent="b_bot_tool0">
-    <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi/2}"/>
-  </xacro:ft300>
-
   <!-- Spawn and attach gripper -->
-  <xacro:include filename="$(find aist_description
-			   )/devices/urdf/single_suction_gripper.urdf.xacro"/>
-  <xacro:single_suction_gripper prefix="b_bot_gripper_"
-  				parent="b_bot_ftsensor_flange_link">
-    <!-- <origin xyz="0 0 0" rpy="0 ${0.2*pi/180} ${-1.2*pi/180}"/> -->
-    <origin xyz="0 0 0" rpy="0 ${0.3*pi/180} ${0.2*pi/180}"/>
-  </xacro:single_suction_gripper>
+  <xacro:include filename="$(find aist_robotiq
+			   )/urdf/robotiq_arg2f_coupling.urdf.xacro"/>
+  <xacro:robotiq_arg2f_coupling prefix="b_bot_gripper_coupling_"
+				parent="b_bot_tool0">
+    <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi/2}"/>
+  </xacro:robotiq_arg2f_coupling>
+  <xacro:include filename="$(find aist_robotiq
+			   )/urdf/robotiq_85_gripper.urdf.xacro"/>
+  <xacro:robotiq_85_gripper prefix="b_bot_gripper_"
+			    parent="b_bot_gripper_coupling_flange_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_85_gripper>
 
-  <!-- Add PhoXi 3D scanner -->
+  <!-- Add USB repeaters -->
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/usb_repeater.urdf.xacro"/>
+  <xacro:usb_repeater prefix="b_bot_usb_repeater_"
+		      parent="b_bot_wrist_2_link">
+    <origin xyz="0.000 -0.051 0.000" rpy="${pi/2} ${-pi/2} 0"/>
+  </xacro:usb_repeater>
+
+  <!-- Add Motioncam-3D scanner -->
   <xacro:include filename="$(find aist_description
 			   )/scenes/urdf/load_calibration.urdf.xacro"/>
   <xacro:load_calibration filename="$(find aist_handeye_calibration
-				    )/calib/a_phoxi_m_camera.yaml"/>
+				    )/calib/a_motioncam.yaml"/>
   <xacro:include filename="$(find aist_phoxi_camera
-			   )/urdf/phoxi_m_camera.urdf.xacro"/>
-  <xacro:phoxi_m_camera name="a_phoxi_m_camera" parent="workspace_center">
+			   )/urdf/motioncam_m_camera.urdf.xacro"/>
+  <xacro:motioncam_m_camera name="a_motioncam" parent="workspace_center">
     <origin xyz="${origin[0]} ${origin[1]} ${origin[2]}"
     	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/>
-  </xacro:phoxi_m_camera>
+  </xacro:motioncam_m_camera>
+
+  <!-- Add RealSense cameras -->
+  <xacro:include filename="$(find aist_description
+  			   )/devices/urdf/sr305_on_2f85.urdf.xacro" />
+  <xacro:sr305_on_2f85 prefix="b_bot_"
+  		       parent="b_bot_gripper_base_link"
+  		       use_nominal_extrinsics="true"/>
 
   <!-- Add live camera -->
   <xacro:load_calibration filename="$(find aist_camera_calibration
@@ -161,6 +175,10 @@
     <child  link="ground"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </joint>
+
+  <!-- Import assembly scene -->
+  <xacro:include filename="$(find aist_description
+			   )/scenes/urdf/assembly.urdf.xacro"/>
 
   <!-- Include indivisual scene file -->
   <xacro:if value="${'$(arg scene)' != ''}">
