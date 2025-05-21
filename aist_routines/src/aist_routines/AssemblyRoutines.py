@@ -53,8 +53,11 @@ class AssemblyRoutines(URRoutines):
 
         self._feature_trackers = {}
         for robot_name in rospy.get_param('~robots').keys():
-            self._feature_trackers[robot_name] \
-                = FeatureTrackerClient(robot_name + '/feature_tracker')
+            try:
+                self._feature_trackers[robot_name] \
+                    = FeatureTrackerClient(robot_name + '/feature_tracker')
+            except Exception as e:
+                print(e)
         self._spiral_search = SpiralSearch(self)
         self._initialize_collision_objects()
 
