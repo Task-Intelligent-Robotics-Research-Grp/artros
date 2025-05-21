@@ -35,10 +35,12 @@
 # Author: Toshio Ueshiba
 #
 import rospy
-from geometry_msgs.msg       import PoseStamped, WrenchStamped, Vector3
-from aist_routines.ur        import URRoutines
-from cuda_feature_tracker_3d import FeatureTrackerClient
-from aist_utility.compat     import *
+from geometry_msgs.msg                import (PoseStamped, WrenchStamped,
+                                              Vector3)
+from aist_routines.ur                 import URRoutines
+from aist_routines.SpiralSearchAction import SpiralSearch
+from cuda_feature_tracker_3d          import FeatureTrackerClient
+from aist_utility.compat              import *
 
 ######################################################################
 #  class AssemblyRoutines                                            #
@@ -53,6 +55,7 @@ class AssemblyRoutines(URRoutines):
         for robot_name in rospy.get_param('~robots').keys():
             self._feature_trackers[robot_name] \
                 = FeatureTrackerClient(robot_name + '/feature_tracker')
+        self._spiral_search = SpiralSearch(self)
         self._initialize_collision_objects()
 
     def run(self):
@@ -91,6 +94,8 @@ class AssemblyRoutines(URRoutines):
         print('  FB: Release base')
         print('  at: Begin approaching target')
         print('  AT: Cancel approaching target action')
+        print('  ss: Spiral search')
+        print('  SS: Cancel spiral search')
         print('  I:  Initialize all collision objects')
         print('  i:  Show infomation on collision objects')
         print('  ci: Show infomation on child collision object of frame')
@@ -142,6 +147,10 @@ class AssemblyRoutines(URRoutines):
             self.approach_target(robot_name, pose_name, target_frame)
         elif key == 'AT':
             self.cancel_approach_target(robot_name)
+        elif key == 'ss':
+            self.spiral_search(robot_name)
+        elif key == 'SS':
+            self.cancel_spiral_search()
         elif key == 'I':
             self._initialize_collision_objects()
         elif key == 'i':
@@ -270,6 +279,12 @@ class AssemblyRoutines(URRoutines):
             result = tracker.get_result()
             self.go_to_named_pose(robot_name, result.pose_name)
         self.com.reset_touch_links()
+
+    def spiral_search(self, robot_name):
+        self._spiral_search.send_goal(robot_name)
+
+    def cancel_spiral_search(self):
+        self._spiral_search.cancel_goal()
 
     def _initialize_collision_objects(self):
         self.com.remove_object()

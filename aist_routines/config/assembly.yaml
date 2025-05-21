@@ -127,9 +127,23 @@ picking_parameters:
     departure_offset: [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
     speed_fast:       0.1
     speed_slow:       0.01
+    spiral_search_parameters:
+      angle_increment:  30.0
+      radius_increment: 0.00005
+      radius_max:       0.002
+      speed:            0.001
+      accel:            1.0
+      timeout:          60.0
   screw_m4:
     approach_offset:  [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
     pick_offset:      [0.000, 0.000,  0.002, 0.0, 0.0, 0.0]
     departure_offset: [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
     speed_fast:       0.1
     speed_slow:       0.01
+    spiral_search_parameters:
+      angle_increment:  30.0
+      radius_increment: 0.00005
+      radius_max:       0.002
+      speed:            0.001
+      accel:            1.0
+      timeout:          60.0
