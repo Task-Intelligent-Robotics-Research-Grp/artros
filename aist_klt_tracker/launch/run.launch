@@ -5,13 +5,13 @@
   <arg name="manager"		default=""/>
   <arg name="verbose"		default="0"/>
   <arg name="config_file"	default="$(dirname
-					 )/../config/visual_tracker.yaml"/>
+					 )/../config/klt_tracker.yaml"/>
 
   <arg name="command"
        value="$(eval 'standalone' if manager == '' else 'load')"/>
 
-  <node name="visual_tracker" pkg="nodelet" type="nodelet" output="screen"
-  	args="$(arg command) aist_visual_tracker/aist_visual_tracker
+  <node name="klt_tracker" pkg="nodelet" type="nodelet" output="screen"
+  	args="$(arg command) aist_klt_tracker/aist_klt_tracker
 	      $(arg manager)">
     <rosparam file="$(arg config_file)"/>
     <param name="verbose"	value="$(arg verbose)"/>

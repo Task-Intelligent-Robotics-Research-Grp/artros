@@ -14,13 +14,13 @@
   				       -J b_bot_wrist_1_joint -0.85
   				       -J b_bot_wrist_2_joint -1.5708
   				       -J b_bot_wrist_3_joint 0.0"/>
-  <arg name="prefixes"		value="b_bot_"/>
-  <arg name="devices"		value="ur5"/>
-  <arg name="controllers"	value="ur"/>
-  <arg name="drivers"		value="ur"/>
+  <arg name="prefixes"		value="b_bot_, b_bot_gripper_"/>
+  <arg name="devices"		value="ur5e, robotiq_85"/>
+  <arg name="controllers"	value="ur, cmodel"/>
+  <arg name="drivers"		value="ur, cmodel"/>
   <arg name="driver_args"	value="163.220.51.111,
 				       50005, 50006, 50007, 50008, 0;
-  				       urcap, 163.220.51.110" />
+  				       urcap, 163.220.51.111" />
 
   <!-- Bringup robots -->
   <include file="$(dirname)/include/connect_robots.launch">
@@ -45,31 +45,39 @@
     <arg name="vis"			value="$(arg sim)"/>
   </include>
 
+  <!-- Launch precision tool controller -->
+  <include file="$(find aist_precision_gripper)/launch/run.launch">
+    <arg name="prefix"			value="precision_tool_"/>
+    <arg name="sim"			value="$(arg sim)"/>
+    <arg name="usb_port"		value="/dev/ttyUSB0"/>
+    <arg name="publish_joint_states"	value="false"/>
+  </include>
+
   <!-- Launch other hardware drivers -->
   <group unless="$(arg sim)">
 
-    <!-- Drivers for the force sensors -->
-    <include ns="b_bot_ftsensor"
-    	     file="$(find aist_robotiq)/launch/ft300.launch">
-      <arg name="calib_file"		value="b_bot_ftsensor"/>
-      <arg name="frame_id"		value="b_bot_ftsensor_wrench_link"/>
-      <arg name="hostname"		value="b_bot"/>
-    </include>
+    <!-- Load calibration parameters for FT sensor controllers -->
+    <arg name="ftsensor_calib_dir"	value="$(env HOME
+					       )/.ros/aist_ftsensor"/>
+    <rosparam ns="b_bot/aist_ftsensor_controller/sensors"
+    	      file="$(arg ftsensor_calib_dir
+		    )/b_bot/aist_ftsensor_controller.yaml"/>
 
     <!-- Launch suction controller -->
     <include file="$(find aist_fastening_tools
 		   )/launch/suction_tool_controllers.launch">
       <arg name="driver_ns"	value="b_bot/ur_hardware_interface"/>
       <arg name="tool_names"	value="screw_tool_m3 screw_tool_m4
-				       b_bot_gripper base_fixture"/>
+				       suction_tool base_fixture"/>
     </include>
 
-    <!-- Launch precision gripper -->
-    <!-- <include file="$(find aist_precision_gripper)/launch/run.launch"> -->
-    <!--   <arg name="prefix"		value="a_bot_precision_"/> -->
-    <!--   <arg name="serial_port"		value="/dev/ttyUSB0"/> -->
-    <!--   <arg name="publish_rate"		value="50"/> -->
-    <!-- </include> -->
+    <!-- Launch screw tool controllers -->
+    <include file="$(find aist_fastening_tools
+    		   )/launch/screw_tool_controllers.launch">
+      <arg name="driver_ns"		value="dynamixel_driver"/>
+      <arg name="tool_names"		value="screw_tool_m3 screw_tool_m4"/>
+      <arg name="usb_port"		value="/dev/ttyUSB1"/>
+    </include>
 
   </group>
 

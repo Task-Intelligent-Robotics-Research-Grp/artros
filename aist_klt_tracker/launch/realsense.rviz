@@ -36,7 +36,7 @@ Visualization Manager:
   Displays:
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /visual_tracker/result_image
+      Image Topic: /klt_tracker/result_image
       Max Value: 1
       Median window: 5
       Min Value: 0

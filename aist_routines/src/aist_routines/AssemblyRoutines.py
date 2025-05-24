@@ -35,10 +35,12 @@
 # Author: Toshio Ueshiba
 #
 import rospy
-from std_msgs.msg                  import Header
-from geometry_msgs.msg             import PoseStamped
-from aist_routines.ur              import URRoutines
-from aist_utility.compat           import *
+from geometry_msgs.msg                import (PoseStamped, WrenchStamped,
+                                              Vector3)
+from aist_routines.ur                 import URRoutines
+from aist_routines.SpiralSearchAction import SpiralSearch
+from cuda_feature_tracker_3d          import FeatureTrackerClient
+from aist_utility.compat              import *
 
 ######################################################################
 #  class AssemblyRoutines                                            #
@@ -48,12 +50,25 @@ class AssemblyRoutines(URRoutines):
 
     def __init__(self):
         super().__init__()
+
+        self._feature_trackers = {}
+        for robot_name in rospy.get_param('~robots').keys():
+            try:
+                self._feature_trackers[robot_name] \
+                    = FeatureTrackerClient(robot_name + '/feature_tracker')
+            except Exception as e:
+                print(e)
+        self._spiral_search = SpiralSearch(self)
         self._initialize_collision_objects()
 
     def run(self):
         robot_name = list(rospy.get_param('~robots').keys())[0]
         axis       = 'Y'
         speed      = 1.0
+
+        for rname in rospy.get_param('~robots').keys():
+            self.camera(rname + '_camera').laser_power = 0
+        self.camera(robot_name + '_camera').laser_power = 16
 
         while not rospy.is_shutdown():
             prompt = '{:>5}:{}>> '.format(axis,
@@ -80,6 +95,10 @@ class AssemblyRoutines(URRoutines):
         print('  PP: Place part')
         print('  fb: Fix base')
         print('  FB: Release base')
+        print('  at: Begin approaching target')
+        print('  AT: Cancel approaching target action')
+        print('  ss: Spiral search')
+        print('  SS: Cancel spiral search')
         print('  I:  Initialize all collision objects')
         print('  i:  Show infomation on collision objects')
         print('  ci: Show infomation on child collision object of frame')
@@ -88,7 +107,13 @@ class AssemblyRoutines(URRoutines):
         print('  B:  Move all robots to back')
 
     def interactive(self, key, robot_name, axis, speed):
-        if key == 'pt':
+        if key == 'robot':
+            print('  current: %s' % robot_name)
+            new_robot_name = raw_input('  robot name? ')
+            if new_robot_name != '':
+                self.switch_camera(robot_name, new_robot_name)
+                robot_name = new_robot_name
+        elif key == 'pt':
             tool_name = raw_input('  tool name? ')
             self.pick_tool(robot_name, tool_name)
         elif key == 'PT':
@@ -115,6 +140,20 @@ class AssemblyRoutines(URRoutines):
             self.fix_part('base')
         elif key == 'FB':
             self.release_part('base')
+        elif key == 'at':
+            pose_name = raw_input('  viewing pose? ')
+            if pose_name == '':
+                pose_name = 'fasten_screw_m4_ready'
+            target_frame = raw_input('  target frame? ')
+            if target_frame == '':
+                target_frame = 'base/panel_motor_screw_hole_1'
+            self.approach_target(robot_name, pose_name, target_frame)
+        elif key == 'AT':
+            self.cancel_approach_target(robot_name)
+        elif key == 'ss':
+            self.spiral_search(robot_name)
+        elif key == 'SS':
+            self.cancel_spiral_search()
         elif key == 'I':
             self._initialize_collision_objects()
         elif key == 'i':
@@ -139,6 +178,11 @@ class AssemblyRoutines(URRoutines):
         else:
             return super().interactive(key, robot_name, axis, speed)
         return robot_name, axis, speed
+
+    def switch_camera(self, current_robot_name, new_robot_name,
+                      laser_power=16):
+        self.camera(current_robot_name + '_camera').laser_power = 0
+        self.camera(new_robot_name + '_camera').laser_power = laser_power
 
     def pick_tool(self, robot_name, tool_name):
         if self.gripper(robot_name).name == tool_name:
@@ -211,6 +255,40 @@ class AssemblyRoutines(URRoutines):
         gripper.release()
         self.com.detach_object(part_id, gripper.tip_link)
 
+    def approach_target(self, robot_name,
+                        pose_name, target_frame, target_force=(0, 0, -5)):
+        self.go_to_named_pose(robot_name, pose_name)
+        self._ur_robots[robot_name].switch_controller(
+            'cartesian_compliance_controller')
+
+        gripper_tip_link = self.gripper(robot_name).tip_link
+        object_id = AssemblyRoutines._get_object_id(target_frame)
+        self.com.allow_collision(object_id, gripper_tip_link)
+
+        feature_names = [gripper_tip_link, target_frame]
+        target_wrench = WrenchStamped()
+        target_wrench.header.frame_id = robot_name + '_base_link'
+        target_wrench.wrench.force  = Vector3(*target_force)
+        target_wrench.wrench.torque = Vector3(0, 0, 0)
+        self._feature_trackers[robot_name].send_goal(pose_name, feature_names,
+                                                     target_wrench)
+
+    def cancel_approach_target(self, robot_name):
+        tracker = self._feature_trackers[robot_name]
+        tracker.cancel_goal()
+        self._ur_robots[robot_name].switch_controller(
+            'scaled_pos_joint_traj_controller')
+        if tracker.wait_for_result():
+            result = tracker.get_result()
+            self.go_to_named_pose(robot_name, result.pose_name)
+        self.com.reset_touch_links()
+
+    def spiral_search(self, robot_name):
+        self._spiral_search.send_goal(robot_name)
+
+    def cancel_spiral_search(self):
+        self._spiral_search.cancel_goal()
+
     def _initialize_collision_objects(self):
         self.com.remove_object()
         for object_type, config \
@@ -263,3 +341,13 @@ class AssemblyRoutines(URRoutines):
         print('    object_id:   %s\n    type:        %s\n    parent_link: %s\n    attach_link: %s\n    touch_links: %s\n    pose:\n%s'
               % (info.object_id, info.object_type, info.parent_link,
                  info.attach_link, info.touch_links, info.pose))
+
+    @staticmethod
+    def _get_object_id(link_name):
+        tokens = link_name.rsplit('/', 1)
+        return tokens[0] if len(tokens) == 2 else ''
+
+    @staticmethod
+    def _get_subframe(link_name):
+        tokens = link_name.rsplit('/', 1)
+        return tokens[1] if len(tokens) == 2 else link_name

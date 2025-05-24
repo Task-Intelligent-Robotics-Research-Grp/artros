@@ -1,8 +1,0 @@
-<library path="lib/libaist_cartesian_commander">
-  <class name="aist_cartesian_commander/aist_cartesian_commander"
-	 type="aist_cartesian_commander::CartesianCommanderNodelet"
-	 base_class_type="nodelet::Nodelet">
-    <description>
-    </description>
-  </class>
-</library>

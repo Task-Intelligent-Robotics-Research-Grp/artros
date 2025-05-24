@@ -19,7 +19,9 @@ aist_ftsensor_controller:
   gravity_frame: $(arg prefix)base_link
   sensors:
     wrench:
-      compensate_gravity: false
+      filter_half_order: 2
+      filter_cutoff_frequency: 250
+      compensate_gravity: true
 
 # Publish speed_scaling factor
 speed_scaling_state_controller:
@@ -217,12 +219,18 @@ cartesian_compliance_controller:
   compliance_ref_link: $(arg prefix)tool0
   joints:              *robot_joints
   stiffness:  # w.r.t. compliance_ref_link
-    trans_x: 500
-    trans_y: 500
-    trans_z: 500
-    rot_x:    20
-    rot_y:    20
-    rot_z:    20
+#    trans_x: 500
+#    trans_y: 500
+#    trans_z: 500
+#    rot_x:    20
+#    rot_y:    20
+#    rot_z:    20
+    trans_x: 4000
+    trans_y: 4000
+    trans_z:  500
+    rot_x:    150
+    rot_y:    150
+    rot_z:    150
   solver:
     error_scale: 1.5  # up to 2.0 was nice in free space
     iterations:  1

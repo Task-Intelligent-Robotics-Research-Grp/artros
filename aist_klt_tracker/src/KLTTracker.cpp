@@ -43,7 +43,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include "KLTTracker.h"
 
-namespace aist_visual_tracker
+namespace aist_klt_tracker
 {
 /************************************************************************
 *  static functions							*
@@ -441,4 +441,4 @@ KLTTracker::trackFeatures(const image_t& image)
     KLTStoreFeatureList(_featureList, _featureTable, _frame);
 }
 
-}	// namespace aist_visual_tracker
+}	// namespace aist_klt_tracker

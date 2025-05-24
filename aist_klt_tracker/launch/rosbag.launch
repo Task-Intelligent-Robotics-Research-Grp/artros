@@ -2,8 +2,8 @@
 <launch>
 
   <arg name="config"		default="aist"/>
-  <arg name="scene"		default="assembly"/>
-  <arg name="file_name"		default="servo_test"/>
+  <arg name="scene"		default=""/>
+  <arg name="file_name"		default="b_bot-guide_screw_m4"/>
   <arg name="rosbag_rate"	default="0.5"/>
   <arg name="rvizconfig"	default="$(dirname)/rosbag.rviz"/>
 
@@ -13,6 +13,7 @@
     <arg name="file_name"	value="$(arg file_name)"/>
     <arg name="rosbag_rate"	value="$(arg rosbag_rate)"/>
     <arg name="rvizconfig"	value="$(arg rvizconfig)"/>
+    <arg name="wait"		value="false"/>
   </include>
 
   <include file="$(dirname)/run.launch">

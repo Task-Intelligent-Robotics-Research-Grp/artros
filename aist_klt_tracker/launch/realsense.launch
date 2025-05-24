@@ -25,14 +25,14 @@
   </include>
 
   <include file="$(dirname)/run.launch">
-    <arg name="config_file"	value="$(arg config_dir)/visual_tracker.yaml"/>
+    <arg name="config_file"	value="$(arg config_dir)/klt_tracker.yaml"/>
     <arg name="image_topic"	value="$(arg camera_name)/color/image_raw"/>
     <arg name="manager"		value="$(arg manager)"/>
     <arg name="verbose"		value="$(arg verbose)"/>
   </include>
 
   <node name="$(anon rviz)" pkg="rviz" type="rviz" output="screen"
-	args="-d $(find aist_visual_tracker)/launch/realsense.rviz"/>
+	args="-d $(find aist_klt_tracker)/launch/realsense.rviz"/>
 
   <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure"/>
 

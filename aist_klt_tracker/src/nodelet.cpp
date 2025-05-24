@@ -41,7 +41,7 @@
 #include <pluginlib/class_list_macros.h>
 #include "KLTTracker.h"
 
-namespace aist_visual_tracker
+namespace aist_klt_tracker
 {
 /************************************************************************
 *  class KLTTrackerNodelet						*
@@ -60,11 +60,11 @@ class KLTTrackerNodelet : public nodelet::Nodelet
 void
 KLTTrackerNodelet::onInit()
 {
-    NODELET_INFO("aist_visual_tracker::KLTTrackerNodelet::onInit()");
+    NODELET_INFO("aist_klt_tracker::KLTTrackerNodelet::onInit()");
     _node.reset(new KLTTracker(getPrivateNodeHandle()));
 }
 
 }	// namespace aist_depth_filter
 
-PLUGINLIB_EXPORT_CLASS(aist_visual_tracker::KLTTrackerNodelet,
+PLUGINLIB_EXPORT_CLASS(aist_klt_tracker::KLTTrackerNodelet,
 		       nodelet::Nodelet);

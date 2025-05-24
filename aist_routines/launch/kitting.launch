@@ -6,9 +6,7 @@
   <arg name="rviz_config"	default="$(dirname)/kitting.rviz"/>
 
   <!-- Start cameras -->
-  <include file="$(dirname)/aist_cameras.launch">
-    <arg name="sim"		value="$(arg sim)"/>
-  </include>
+  <include unless="$(arg sim)" file="$(dirname)/aist_cameras.launch"/>
 
   <!-- Start collision_object_manager -->
   <include file="$(find aist_collision_object_manager)/launch/run.launch"/>
@@ -20,6 +18,12 @@
     <arg name="image_topic"		value="$(arg camera_name)/texture"/>
     <arg name="depth_topic"		value="$(arg camera_name)/depth_map"/>
     <arg name="normal_topic"		value="$(arg camera_name)/normal_map"/>
+  </include>
+
+  <!-- Start feature tracker -->
+  <include file="$(find cuda_feature_tracker_3d)/launch/run.launch">
+    <arg name="robot_names"	value="a_bot b_bot"/>
+    <arg name="manager"		value="/camera_manager"/>
   </include>
 
   <!-- Start rviz -->

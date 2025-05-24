@@ -1,0 +1,14 @@
+# Goal
+string   robot_name
+string   eef_link
+uint32   npoints          # numver of waypoints
+float32  angle_increment  # angle increment per point
+float32  radius_x_max     # maximum radius in x-direction
+float32  radius_y_max     # maximum radius in y-direction
+float32  speed
+float32  accel
+duration timeout
+---
+# Result
+---
+# Feedback
