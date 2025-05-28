@@ -117,13 +117,15 @@ class GripperClient(object):
 #  class VoidGripper                                                 #
 ######################################################################
 class VoidGripper(GripperClient):
-    def __init__(self, name):
-        super().__init__(name, 'void')
-        rospy.loginfo('void_gripper initialized.')
+    def __init__(self, name, base_link=None, tip_link=None):
+        super().__init__(name, 'void', base_link, tip_link)
+        rospy.loginfo('void_gripper initialized with base_link[%s] and tip_link[%s]',
+                      base_link if base_link else 'None',
+                      tip_link if tip_link else 'None')
 
     @staticmethod
-    def simulated(name):
-        return VoidGripper(name)
+    def simulated(name, base_link=None, tip_link=None):
+        return VoidGripper(name, base_link, tip_link)
 
 ######################################################################
 #  class GenericGripper                                              #
