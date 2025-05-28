@@ -1,0 +1,5 @@
+simplify_solutions: true
+minimum_waypoint_count: 2
+maximum_waypoint_distance: 0.0
+link_for_exploration_tree: ""
+display_random_valid_states: false

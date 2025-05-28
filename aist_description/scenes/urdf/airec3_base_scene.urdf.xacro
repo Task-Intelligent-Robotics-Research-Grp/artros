@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="airec3_base_scene" >
+
+  <xacro:arg name="scene"	default=""/>
+  <xacro:arg name="path"	default="$(find torobo_description
+					 )/config/products/default.yaml"/>
+  <xacro:arg name="sim"		default="true"/>
+
+  <!-- Torobo robot (root = "world") -->
+  <xacro:include filename="$(find torobo_description
+			   )/urdf/load_robot.urdf.xacro"/>
+
+  <!-- Include indivisual scene file -->
+  <xacro:if value="${'$(arg scene)' != ''}">
+    <joint name="ground_joint" type="fixed">
+      <parent link="world"/>
+      <child  link="ground"/>
+    </joint>
+
+    <xacro:include filename="$(find aist_description
+			     )/scenes/urdf/$(arg scene).urdf.xacro"/>
+
+  </xacro:if>
+
+</robot>
