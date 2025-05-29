@@ -56,6 +56,7 @@ from aist_routines.CameraClient        import CameraClient
 from aist_routines.FasteningToolClient import FasteningToolClient
 from aist_routines.MarkerPublisher     import MarkerPublisher
 from aist_routines.PickOrPlaceAction   import PickOrPlace
+from aist_routines.SpiralMotionAction  import SpiralMotion
 from aist_collision_object_manager     import CollisionObjectManagerClient
 from aist_utility.compat               import *
 
@@ -147,6 +148,9 @@ class AISTBaseRoutines(object):
         else:
             self._pick_or_place = None
 
+        # Spiral motion action
+        self._spiral_motion = SpiralMotion(self)
+
         # Marker publisher
         self._markerPublisher = MarkerPublisher()
 
@@ -199,6 +203,8 @@ class AISTBaseRoutines(object):
         print('  speed:       set speed')
         print('  stop:        stop arm immediately')
         print('  jvalues:     get current joint values')
+        print('  sm:          spiral motion')
+        print('  SM:          cancel spiral motion')
         print('=== Gripper commands ===')
         print('  gripper:     assign gripper to current robot')
         print('  pregrasp:    pregrasp with the current gripper')
@@ -328,6 +334,10 @@ class AISTBaseRoutines(object):
             self.stop(robot_name)
         elif key == 'jvalues':
             print(self.get_current_joint_values(robot_name))
+        elif key == 'sm':
+            self.spiral_motion(robot_name)
+        elif key == 'SM':
+            self.cancel_spiral_motion()
 
         # Gripper stuffs
         elif key == 'gripper':
@@ -731,6 +741,21 @@ class AISTBaseRoutines(object):
 
     def pick_or_place_cancel_goal(self):
         self._pick_or_place.cancel_goal()
+
+    # Spiral motion action stuffs
+    def spiral_motion(self, robot_name, end_effector_link='',
+                      npoints=36, angle_increment=30.0,
+                      radius_x_max=0.005, radius_y_max=0.0005,
+                      speed=0.001, accel=1.0, timeout=rospy.Duration(30.0)):
+        if end_effector_link == '':
+            end_effector_link = self.gripper(robot_name).tip_link
+        self._spiral_motion.send_goal(robot_name, end_effector_link,
+                                      npoints, angle_increment,
+                                      radius_x_max, radius_y_max,
+                                      speed, accel, timeout)
+
+    def cancel_spiral_motion(self):
+        self._spiral_motion.cancel_goal()
 
     # Utility functions
     def transform_pose_to_target_frame(self, pose, offset=(), target_frame=''):

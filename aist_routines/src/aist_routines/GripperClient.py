@@ -261,13 +261,13 @@ class SuctionGripper(GripperClient):
                  suck_min_period=0.5, blow_min_period=0.2):
         super().__init__(name, 'suction', base_link, tip_link)
 
-        self._client     = SimpleActionClient(controller_ns + '/command',
-                                              SuctionToolCommandAction)
-        self._state_sub  = rospy.Subscriber(controller_ns + '/suctioned',
-                                            Bool, self._state_cb)
-        self._suctioned  = False
-        self._parameters = {'suck_min_period': suck_min_period,
-                            'blow_min_period': blow_min_period}
+        self._client        = SimpleActionClient(controller_ns + '/command',
+                                                 SuctionToolCommandAction)
+        self._state_sub     = rospy.Subscriber(controller_ns + '/suctioned',
+                                               Bool, self._state_cb)
+        self._suctioned     = False
+        self._parameters    = {'suck_min_period': suck_min_period,
+                               'blow_min_period': blow_min_period}
 
         if not self._client.wait_for_server(timeout=rospy.Duration(5)):
             self._client = None
@@ -283,9 +283,12 @@ class SuctionGripper(GripperClient):
         # Set goal.min_period to zero so that the goal succeeds immediately.
         self._send_command(True, rospy.Duration(0), rospy.Duration(-1))
 
-    def grasp(self, timeout=rospy.Duration()):
+    def grasp(self, timeout=rospy.Duration(-1)):
         rospy.sleep(0.5)
-        return self._send_command(True, rospy.Duration(0), rospy.Duration(-1))
+        return self._send_command(True,
+                                  rospy.Duration(
+                                      self._parameters['suck_min_period']),
+                                  timeout)
 
     def postgrasp(self):
         self.pregrasp()
@@ -310,7 +313,7 @@ class SuctionGripper(GripperClient):
         if self._client.get_state() in (GoalStatus.PENDING, GoalStatus.ACTIVE):
             self._client.cancel_goal()
 
-    def _send_command(self, suck, min_period, timeout=rospy.Duration()):
+    def _send_command(self, suck, min_period, timeout):
         self._client.send_goal(SuctionToolCommandGoal(suck, min_period))
         return self.wait(timeout)
 
