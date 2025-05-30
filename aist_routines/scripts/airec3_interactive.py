@@ -36,11 +36,40 @@
 # Author: Toshio Ueshiba
 #
 import rospy
-from aist_routines.ConveniRoutines import ConveniRoutines
+from aist_routines.airec3 import Airec3Routines
+from aist_utility.compat  import *
 
+######################################################################
+#  class Airec3InteractiveRoutines                                   #
+######################################################################
+class Airec3InteractiveRoutines(Airec3Routines):
+    def __init__(self):
+        super().__init__()
+
+    def run(self):
+        robot_name = list(rospy.get_param('~robots').keys())[0]
+        axis       = 'Y'
+        speed      = rospy.get_param('~speed', 0.1)
+
+        # Reset pose
+        self.print_help_messages()
+
+        while not rospy.is_shutdown():
+            prompt = '{:>5}:{}({})@{}>> ' \
+                   .format(axis,
+                           self.format_pose(self.get_current_pose(robot_name)),
+                           speed, robot_name)
+            key = raw_input(prompt)
+            robot_name, axis, speed = self.interactive(key, robot_name,
+                                                       axis, speed)
+
+
+######################################################################
+#  global functions                                                  #
+######################################################################
 if __name__ == '__main__':
 
-    rospy.init_node('conveni', anonymous=True)
+    rospy.init_node('airec3_interactive', anonymous=True)
 
-    conveni = ConveniRoutines()
-    conveni.run()
+    interactive = Airec3InteractiveRoutines()
+    interactive.run()

@@ -33,6 +33,7 @@ catkin_install_python(
     scripts/iiwa_interactive.py
     scripts/base_interactive.py
     scripts/fetch_interactive.py
+    scripts/airec3_interactive.py
     scripts/test_wrist_cameras.py
     scripts/target_wrench.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

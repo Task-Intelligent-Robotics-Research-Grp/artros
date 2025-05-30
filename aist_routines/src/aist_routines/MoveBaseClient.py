@@ -46,67 +46,73 @@ from tf                  import TransformListener, transformations as tfs
 #  class MoveBaseClient                                              #
 ######################################################################
 class MoveBaseClient(object):
-    def __init__(self):
+    def __init__(self, controller_ns=''):
         super(MoveBaseClient, self).__init__()
 
-        self._move_base = SimpleActionClient("/move_base",  MoveBaseAction)
+        self._move_base = SimpleActionClient('move_base',
+                                             MoveBaseAction)
         if self._move_base.wait_for_server(rospy.Duration(10)):
-            rospy.loginfo("(MoveBaseClient) Connected to move_base.")
+            rospy.loginfo('(MoveBaseClient) Connected to move_base.')
         else:
-            rospy.logerr("(MoveBaseClient) Failed to connect move_base action server")
+            rospy.logerr('(MoveBaseClient) Failed to connect move_base action server')
 
-        self._odom_sub                     = rospy.Subscriber("odom", Odometry,
-                                                              self._odom_cb)
+        self._odom_sub = rospy.Subscriber(controller_ns + '/odom', Odometry,
+                                          self._odom_cb)
         self._odom_recv_event              = threading.Event()
         self._current_odom                 = Odometry()
         self._current_odom.header.stamp    = rospy.Time.now()
-        self._current_odom.header.frame_id = "odom"
-        self._reference_frame              = "map"
+        self._current_odom.header.frame_id = 'odom'
+        self._reference_frame              = 'map'
         self._listener                     = TransformListener()
 
     @property
     def current_odom(self):
         return self._current_odom
 
-    def move_base(self, x, y, theta, frame="map", wait=True):
+    def move_base(self, x, y, theta, frame='map', wait=True):
+        pose = PoseStamped()
+        pose.header.frame_id  = frame
+        pose.pose.position    = Vector3(x, y, 0)
+        pose.pose.orientation = Quaternion(*tfs.quaternion_from_euler(0, 0,
+                                                                      theta))
         goal = MoveBaseGoal()
-        goal.target_pose.header.frame_id  = frame
-        goal.target_pose.pose.position    = Vector3(x, y, 0)
-        goal.target_pose.pose.orientation = Quaternion(
-            *tfs.quaternion_from_euler(0, 0, theta))
-        return self._move_base.send_goal_and_wait(goal)
+        goal.target_pose = self._transform_pose('odom', pose)
+        if wait:
+            self._move_base.send_goal_and_wait(goal)
+        else:
+            self._move_base.send_goal(goal)
 
     def move_base_to_frame(self, target_frame):
         return self.move_base(0, 0, 0, target_frame)
 
     def format_odom(self, odom):
         xyzrpy = self._xyz_rpy(odom)
-        return "[{:.4f}, {:.4f} ; {:.2f}]".format(xyzrpy[0], xyzrpy[1],
+        return '[{:.4f}, {:.4f} ; {:.2f}]'.format(xyzrpy[0], xyzrpy[1],
                                                   degrees(xyzrpy[5]))
 
     def _xyz_rpy(self, odom):
+        pose = PoseStamped()
+        pose.header = odom.header
+        pose.pose   = odom.pose.pose
+        pose = self._transform_pose(self._reference_frame, pose).pose
+        rpy  = tfs.euler_from_quaternion((pose.orientation.x,
+                                          pose.orientation.y,
+                                          pose.orientation.z,
+                                          pose.orientation.w))
+        return (pose.position.x, pose.position.y, pose.position.z,
+                rpy[0], rpy[1], rpy[2])
+
+    def _transform_pose(self, target_frame, pose):
         try:
-            pose = PoseStamped()
-            pose.header = odom.header
-            pose.pose   = odom.pose.pose
-            self._listener.waitForTransform(self._reference_frame,
+            self._listener.waitForTransform(target_frame,
                                             pose.header.frame_id,
                                             pose.header.stamp,
                                             rospy.Duration(10))
-            transformed_pose = self._listener.transformPose(
-                                self._reference_frame, pose).pose
+            transformed_pose = self._listener.transformPose(target_frame, pose)
         except Exception as e:
-            rospy.logerr("(MoveBaseClient) %s", e)
+            rospy.logerr('(MoveBaseClient) %s', e)
             raise e
-
-        rpy = tfs.euler_from_quaternion([transformed_pose.orientation.x,
-                                         transformed_pose.orientation.y,
-                                         transformed_pose.orientation.z,
-                                         transformed_pose.orientation.w])
-        return [transformed_pose.position.x,
-                transformed_pose.position.y,
-                transformed_pose.position.z,
-                rpy[0], rpy[1], rpy[2]]
+        return transformed_pose
 
     def _odom_cb(self, odom):
         self._odom_recv_event.clear()

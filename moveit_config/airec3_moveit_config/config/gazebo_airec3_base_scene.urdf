@@ -4778,7 +4778,7 @@
     <joint name="a_cabinet_base" type="fixed">
         <parent link="ground" />
         <child link="a_cabinet_base" />
-        <origin rpy="0 0 -1.5707963267948966" xyz="1.3800000000000001    0.42500000000000004    0" />
+        <origin rpy="0 0 -1.5707963267948966" xyz="0.5 0.4625 0" />
     </joint>
     <link name="a_cabinet_back">
         <!-- w is in x, l is in y, h is in z -->
@@ -4929,16 +4929,10 @@
         <origin rpy="0 0 0" xyz="0.4625 0.204 0" />
     </joint>
     <link name="a_cabinet_shelf2_origin_center" />
-    <link name="a_cabinet_standpoint" />
-    <joint name="a_cabinet_standpoint_joint" type="fixed">
-        <parent link="a_cabinet_base" />
-        <child link="a_cabinet_standpoint" />
-        <origin rpy="0 0 1.5707963267948966" xyz="0.4625 -0.9 0" />
-    </joint>
     <joint name="a_cabinet_ar_marker_joint" type="fixed">
-        <parent link="a_cabinet_shelf1_origin" />
+        <parent link="a_cabinet_shelf2_origin" />
         <child link="a_cabinet_ar_marker" />
-        <origin rpy="0 0 0" xyz="0.885 0.040 0.001" />
+        <origin rpy="0 0 0" xyz="0.4625 0.0595 0.001" />
     </joint>
     <link name="a_cabinet_ar_marker">
         <visual name="a_cabinet_ar_marker_visual">
@@ -4946,7 +4940,7 @@
             <origin rpy="0 0 1.5707963267948966" xyz="0 0 -0.0005" />
             <geometry>
                 <!-- Swap width and height for compensating 90 degrees rotation -->
-                <box size="0.08 0.08 0.001" />
+                <box size="0.119 0.119 0.001" />
             </geometry>
             <!-- <material name="${prefix}ar_marker"> -->
             <!--   <texture filename="package://aist_aruco_ros/media/materials/textures/${marker_name}.png"/> -->
@@ -4955,7 +4949,7 @@
         <collision name="a_cabinet_ar_marker_collision">
             <origin rpy="0 0 1.5707963267948966" xyz="0 0 -0.0005" />
             <geometry>
-                <box size="0.08 0.08 0.001" />
+                <box size="0.119 0.119 0.001" />
             </geometry>
         </collision>
         <inertial>
@@ -4968,7 +4962,20 @@
          aist_description/media/material. You also need to export
          gazebo_media_path in package.xml. -->
     <gazebo reference="a_cabinet_ar_marker">
-        <material>Aruco/aruco-17-70x70-5</material>
+        <material>Aruco/aruco-100_101_102_103-105x105-7</material>
     </gazebo>
+    <!-- Stand points -->
+    <link name="left_standpoint" />
+    <joint name="left_standpoint_joint" type="fixed">
+        <parent link="ground" />
+        <child link="left_standpoint" />
+        <origin rpy="0 0 -0.5235987755982988" xyz="-0.19999999999999996 0.8625 0" />
+    </joint>
+    <link name="right_standpoint" />
+    <joint name="right_standpoint_joint" type="fixed">
+        <parent link="ground" />
+        <child link="right_standpoint" />
+        <origin rpy="0 0 0.5235987755982988" xyz="-0.19999999999999996 -0.8625 0" />
+    </joint>
 </robot>
 

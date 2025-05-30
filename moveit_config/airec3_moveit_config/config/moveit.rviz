@@ -142,7 +142,7 @@ Visualization Manager:
         base/safety_signal_gpdi_port/link:
           Value: false
         base_footprint:
-          Value: false
+          Value: true
         base_front_left_wheel/link:
           Value: false
         base_front_left_wheel/link_inner_barrel_center:
@@ -180,7 +180,7 @@ Visualization Manager:
         dummy_base_link:
           Value: false
         ground:
-          Value: false
+          Value: true
         head/insta360/camera_color_frame:
           Value: false
         head/insta360/camera_color_optical_frame:
@@ -358,7 +358,7 @@ Visualization Manager:
         map:
           Value: false
         odom:
-          Value: false
+          Value: true
         right_arm/link_0:
           Value: false
         right_arm/link_1:
@@ -530,11 +530,11 @@ Visualization Manager:
         torso/waist_top_link:
           Value: false
         world:
-          Value: false
+          Value: true
         zmp:
           Value: false
       Marker Alpha: 1
-      Marker Scale: 0.5
+      Marker Scale: 0.699999988079071
       Name: TF
       Show Arrows: false
       Show Axes: true
@@ -3074,24 +3074,1035 @@ Visualization Manager:
     - Alpha: 0.5
       Class: rviz/RobotModel
       Collision Enabled: false
-      Enabled: false
+      Enabled: true
       Links:
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        a_cabinet_ar_marker:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        a_cabinet_back:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        a_cabinet_base:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        a_cabinet_base_origin:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        a_cabinet_base_origin_center:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        a_cabinet_shelf1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        a_cabinet_shelf1_origin:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        a_cabinet_shelf1_origin_center:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        a_cabinet_shelf2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        a_cabinet_shelf2_origin:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        a_cabinet_shelf2_origin_center:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/a_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/a_gpao_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/a_gpdi_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/a_gpdo_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/b_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/b_gpao_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/b_gpdi_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/b_gpdo_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/c_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/c_gpao_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/c_gpdi_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/c_gpdo_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/charger_signal_gpdi_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/d_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/d_gpao_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/d_gpdi_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/d_gpdo_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/e_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/e_gpao_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/e_gpdi_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/e_gpdo_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/f_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/f_gpao_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/f_gpdi_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/f_gpdo_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/g_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/g_gpao_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/g_gpdi_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/g_gpdo_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/h_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/h_gpao_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/h_gpdi_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/h_gpdo_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/link_tip:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/safety_reset_gpdo_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base/safety_signal_gpdi_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_footprint:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_front_left_wheel/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base_front_left_wheel/link_inner_barrel_center:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_front_left_wheel/link_outer_barrel_center:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_front_right_wheel/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base_front_right_wheel/link_inner_barrel_center:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_front_right_wheel/link_outer_barrel_center:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base_link_rot_yaw:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_link_trans_x:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_link_trans_y:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_rear_left_wheel/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base_rear_left_wheel/link_inner_barrel_center:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_rear_left_wheel/link_outer_barrel_center:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_rear_right_wheel/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base_rear_right_wheel/link_inner_barrel_center:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_rear_right_wheel/link_outer_barrel_center:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        dummy_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        ground:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        head/insta360/camera_color_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        head/insta360/camera_color_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        head/insta360/camera_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        head/link_0:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        head/link_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        head/link_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        head/link_3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        head/link_face_center:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        head/link_tip:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        head/see3cam_left/camera_color_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        head/see3cam_left/camera_color_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        head/see3cam_left/camera_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        head/see3cam_right/camera_color_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        head/see3cam_right/camera_color_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        head/see3cam_right/camera_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        head/sr300/camera_color_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        head/sr300/camera_color_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        head/sr300/camera_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_arm/link_0:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_arm/link_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_arm/link_1_a_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_arm/link_1_b_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_arm/link_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_arm/link_2_a_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_arm/link_2_b_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_arm/link_2_c_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_arm/link_3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_arm/link_3_a_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_arm/link_3_b_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_arm/link_3_c_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_arm/link_3_d_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_arm/link_3_e_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_arm/link_3_f_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_arm/link_4:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_arm/link_4_a_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_arm/link_4_b_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_arm/link_4_c_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_arm/link_4_d_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_arm/link_4_e_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_arm/link_4_f_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_arm/link_5:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_arm/link_5_a_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_arm/link_6:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_arm/link_6_a_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_arm/link_7:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_arm/link_load:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_arm/link_tip:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand/base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_hand/palm_a_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand/palm_b_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand/palm_c_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand/palm_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand_first_finger/link_0:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand_first_finger/link_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_hand_first_finger/link_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_hand_first_finger/link_tip:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand_first_finger/link_tip_a_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand_first_finger/link_tip_b_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand_first_finger/link_tip_c_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand_first_finger/link_tip_d_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand_second_finger/link_0:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand_second_finger/link_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_hand_second_finger/link_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_hand_second_finger/link_tip:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand_second_finger/link_tip_a_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand_second_finger/link_tip_b_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand_second_finger/link_tip_c_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand_second_finger/link_tip_d_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand_third_finger/link_0:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand_third_finger/link_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_hand_third_finger/link_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_hand_third_finger/link_tip:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand_third_finger/link_tip_a_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand_third_finger/link_tip_b_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand_third_finger/link_tip_c_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand_third_finger/link_tip_d_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand_thumb/link_0:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand_thumb/link_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_hand_thumb/link_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_hand_thumb/link_2_3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand_thumb/link_3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_hand_thumb/link_4:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_hand_thumb/link_tip:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand_thumb/link_tip_a_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand_thumb/link_tip_b_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand_thumb/link_tip_c_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_hand_thumb/link_tip_d_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_arm/link_0:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_arm/link_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_arm/link_1_a_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_arm/link_1_b_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_arm/link_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_arm/link_2_a_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_arm/link_2_b_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_arm/link_2_c_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_arm/link_3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_arm/link_3_a_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_arm/link_3_b_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_arm/link_3_c_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_arm/link_3_d_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_arm/link_3_e_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_arm/link_3_f_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_arm/link_4:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_arm/link_4_a_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_arm/link_4_b_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_arm/link_4_c_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_arm/link_4_d_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_arm/link_4_e_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_arm/link_4_f_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_arm/link_5:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_arm/link_5_a_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_arm/link_6:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_arm/link_6_a_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_arm/link_7:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_arm/link_load:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_arm/link_tip:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand/base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_hand/palm_a_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand/palm_b_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand/palm_c_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand/palm_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand_first_finger/link_0:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand_first_finger/link_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_hand_first_finger/link_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_hand_first_finger/link_tip:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand_first_finger/link_tip_a_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand_first_finger/link_tip_b_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand_first_finger/link_tip_c_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand_first_finger/link_tip_d_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand_second_finger/link_0:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand_second_finger/link_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_hand_second_finger/link_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_hand_second_finger/link_tip:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand_second_finger/link_tip_a_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand_second_finger/link_tip_b_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand_second_finger/link_tip_c_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand_second_finger/link_tip_d_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand_third_finger/link_0:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand_third_finger/link_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_hand_third_finger/link_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_hand_third_finger/link_tip:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand_third_finger/link_tip_a_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand_third_finger/link_tip_b_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand_third_finger/link_tip_c_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand_third_finger/link_tip_d_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand_thumb/link_0:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand_thumb/link_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_hand_thumb/link_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_hand_thumb/link_2_3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand_thumb/link_3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_hand_thumb/link_4:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_hand_thumb/link_tip:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand_thumb/link_tip_a_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand_thumb/link_tip_b_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand_thumb/link_tip_c_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_hand_thumb/link_tip_d_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        torso/a_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        torso/b_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        torso/c_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        torso/d_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        torso/e_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        torso/f_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        torso/g_fsr_gpai_port/link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        torso/left_shoulder_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        torso/link_0:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        torso/link_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        torso/link_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        torso/link_3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        torso/link_tip:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        torso/right_shoulder_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        torso/torso_plate_link_0:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        torso/waist_top_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        world:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
       Name: RobotModel
       Robot Description: /torobo/robot_description
       TF Prefix: ""
       Update Interval: 0
-      Value: false
+      Value: true
       Visual Enabled: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: base_link
+    Fixed Frame: world
     Frame Rate: 30
   Name: root
   Tools:
@@ -3103,7 +4114,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 3.184464931488037
+      Distance: 5.010817527770996
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -3119,9 +4130,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.3147963583469391
+      Pitch: 0.2847961187362671
       Target Frame: world
-      Yaw: 1.6949859857559204
+      Yaw: 2.4049856662750244
     Saved: ~
 Window Geometry:
   Displays:

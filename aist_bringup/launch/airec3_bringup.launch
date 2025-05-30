@@ -1,5 +1,8 @@
+<?xml version="1.0"?>
 <launch>
 
+  <!-- If static == true, transform from map to odom is provided
+       by static transform publisher -->
   <arg name="sim"	default="false"/>
   <arg name="scene"	default=""/>
   <arg name="product"	default="$(optenv PRODUCT default)"/>
@@ -11,7 +14,7 @@
 
   <!-- Simulation with gazebo -->
   <group if="$(arg sim)">
-    <arg name="verbose"	default="false" />
+    <arg name="verbose"		default="false" />
     <include file="$(find torobo_bringup)/launch/bringup_sim.launch">
       <arg name="product"	value="$(arg product)"/>
       <arg name="static"	value="$(arg static)"/>
@@ -21,17 +24,17 @@
       <arg name="verbose"	value="$(arg verbose)"/>
     </include>
 
-    <group unless="$(eval scene == '')" ns="torobo">
-      <!-- Load environment URDF to the parameter "environment_description"
-	   and set it to Gazebo. -->
-      <!-- <param name="environment_description" -->
-      <!-- 	     command="$(find xacro)/xacro '$(find aist_description -->
-      <!-- 		      )/scenes/urdf/$(arg scene).urdf.xacro'"/> -->
-      <!-- <node name="environment_spawner" pkg="gazebo_ros" type="spawn_model" -->
-      <!-- 	    respawn="false" output="screen" -->
-      <!-- 	    args="-urdf -param environment_description -->
-      <!-- 		  -model environment -unpause"/> -->
-    </group>
+    <!-- <group unless="$(eval scene == '')" ns="torobo"> -->
+    <!--   <!-\- Load environment URDF to the parameter "environment_description" -\-> -->
+    <!--   <!-\- 	   and set it to Gazebo. -\-> -->
+    <!--   <param name="environment_description" -->
+    <!-- 	     command="$(find xacro)/xacro '$(find aist_description -->
+    <!-- 		      )/scenes/urdf/$(arg scene).urdf.xacro'"/> -->
+    <!--   <node name="environment_spawner" pkg="gazebo_ros" type="spawn_model" -->
+    <!-- 	    respawn="false" output="screen" -->
+    <!-- 	    args="-urdf -param environment_description -->
+    <!-- 		  -model environment -unpause"/> -->
+    <!-- </group> -->
 
     <!-- Launch rviz -->
     <include file="$(find airec3_moveit_config)/launch/moveit_rviz.launch">
@@ -59,5 +62,19 @@
     <arg name="sim"	value="$(arg sim)"/>
     <arg name="scene"	value="$(arg scene)"/>
   </include>
+
+  <!-- Launch move_base server -->
+  <include ns="torobo"
+	   file="$(dirname)/include/move_base.launch">
+    <arg name="holonomic_robot"	value="true"/>
+    <arg name="base_controller"	value="base_controller"/>
+    <arg name="no_static_map"	value="true"/>
+  </include>
+
+  <!-- If static == false, transform from map to odom should be provided
+       by localization server -->
+  <group unless="$(arg static)">
+    <!-- Launch localization server here -->
+  </group>
 
 </launch>

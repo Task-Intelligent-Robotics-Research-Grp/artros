@@ -5,12 +5,32 @@
   <xacro:arg name="path"	default="$(find torobo_description
 					 )/config/products/default.yaml"/>
   <xacro:arg name="sim"		default="true"/>
+  <xacro:arg name="create_srdf"	default="false"/>
 
   <!-- Torobo robot (root = "world") -->
   <xacro:include filename="$(find torobo_description
 			   )/urdf/load_robot.urdf.xacro"/>
 
-  <!-- Include indivisual scene file -->
+  <xacro:if value="${'$(arg create_srdf)'}">
+    <joint name="map_joint" type="floating">
+      <parent link="world"/>
+      <child  link="map"/>
+    </joint>
+    <link name="map"/>
+
+    <joint name="odom_joint" type="floating">
+      <parent link="map"/>
+      <child  link="odom"/>
+    </joint>
+    <link name="odom"/>
+
+    <joint name="base_footprint_joint2" type="floating">
+      <parent link="odom"/>
+      <child  link="base_footprint"/>
+    </joint>
+  </xacro:if>
+
+  <!-- Import indivisual scene (root = "ground") -->
   <xacro:if value="${'$(arg scene)' != ''}">
     <joint name="ground_joint" type="fixed">
       <parent link="world"/>

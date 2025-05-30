@@ -30,9 +30,26 @@
   <!-- AR markers -->
   <xacro:include filename="$(find aist_aruco_ros)/urdf/ar_marker.urdf.xacro"/>
   <xacro:ar_marker prefix="a_cabinet_" parent="a_cabinet_shelf2_origin"
-		   marker_id="100_101_102_103" width="0.105" height="0.105"
-		   margin="0.007" thickness="0.001">
-    <origin xyz="${cabinet_width/2} 0.0595 0.001" rpy="0 0 0"/>
+		   marker_id="100_101_102_103" width="0.150" height="0.150"
+		   margin="0.005" thickness="0.001">
+    <origin xyz="${cabinet_width/2} 0.080 0.001" rpy="0 0 0"/>
   </xacro:ar_marker>
+
+  <!-- Stand points -->
+  <link name="left_standpoint"/>
+  <joint name="left_standpoint_joint" type="fixed">
+    <parent link="ground"/>
+    <child  link="left_standpoint"/>
+    <origin xyz="${cabinet_x - 0.7} ${cabinet_y + cabinet_width/2 + 0.4} 0"
+	    rpy="0 0 ${-pi/6}"/>
+  </joint>
+
+  <link name="right_standpoint"/>
+  <joint name="right_standpoint_joint" type="fixed">
+    <parent link="ground"/>
+    <child  link="right_standpoint"/>
+    <origin xyz="${cabinet_x - 0.7} ${cabinet_y - cabinet_width/2 - 0.4} 0"
+	    rpy="0 0 ${pi/6}"/>
+  </joint>
 
 </robot>

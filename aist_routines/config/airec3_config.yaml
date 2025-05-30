@@ -34,5 +34,5 @@ cameras:
   see3cam_right: AreaCamera
   insta360:      AreaCamera
 
-moveit_eef_step:             0.002
-moveit_pose_reference_frame: base_link
+moveit_eef_step:             0.01
+moveit_pose_reference_frame: base_footprint
