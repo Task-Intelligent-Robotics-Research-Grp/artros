@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="scene"	default=""/>
+  <arg name="product"	default="$(optenv PRODUCT aist)"/>
+
+  <!-- GDB functionality -->
+  <arg name="debug"	default="false" />
+
+  <!-- Simulation with gazebo -->
+  <arg name="verbose"		default="false" />
+  <arg name="gazebo_gui"	default="true"/>
+  <arg name="gazebo_world"	default="$(find torobo_gazebo
+					 )/worlds/ground_plane.world"/>
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name"	value="$(arg gazebo_world)"/>
+    <arg name="paused"		value="false"/>
+    <arg name="use_sim_time"	value="true"/>
+    <arg name="verbose"		value="$(arg verbose)"/>
+    <arg name="gui"		value="$(arg gazebo_gui)"/>
+    <arg name="headless"	value="false"/>
+    <arg name="debug"		value="$(arg debug)" />
+  </include>
+
+  <!-- Load robot URDF to the parameter 'robot_description'
+       and set it to Gazebo. -->
+  <param name="torobo/robot_description"
+	 command="xacro '$(find torobo_description
+		  )/urdf/load_robot.urdf.xacro'
+		  sim:=true
+		  path:=$(find torobo_description
+		  )/config/products/$(arg product).yaml"/>
+  <node name="airec3_spawner" pkg="gazebo_ros" type="spawn_model"
+	respawn="false" output="screen"
+        args="-urdf -model torobo -param torobo/robot_description -unpause"/>
+
+  <!-- If 'scene' is not empty, load environment URDF to the parameter
+       'environment_description' and set it to Gazebo. -->
+  <group unless="$(eval scene == '')">
+    <param name="environment_description"
+	   command="$(find xacro)/xacro '$(find aist_description
+		    )/scenes/urdf/$(arg scene)_environment.urdf.xacro'"/>
+    <node name="environment_spawner" pkg="gazebo_ros" type="spawn_model"
+	  respawn="false" output="screen"
+	  args="-urdf -model environment -param environment_description
+		-unpause"/>
+  </group>
+
+  <!-- Kill Gazebo quickly when SIGTERM is received -->
+  <node name="gazebo_killer"
+	pkg="torobo_gazebo" type="gazebo_killer" output="screen">
+    <param name="~before_kill_sleep_time"	value="1.0"/>
+    <param name="~after_kill_sleep_time"	value="0.2"/>
+  </node>
+
+</launch>

@@ -2,7 +2,7 @@ moveit_setup_assistant_config:
   URDF:
     package: aist_description
     relative_path: scenes/urdf/airec3_base_scene.urdf.xacro
-    xacro_args: scene:=conveni setup:=true
+    xacro_args: scene:=conveni
   SRDF:
     relative_path: config/airec3_base_scene.srdf
   CONFIG:

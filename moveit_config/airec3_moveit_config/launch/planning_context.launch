@@ -1,24 +1,117 @@
 <launch>
 
-  <arg name="product"/>
-  <arg name="sim"/>
-  <arg name="scene"/>
+  <arg name="scene"		default=""/>
+  <arg name="product"		default="$(optenv PRODUCT aist)"/>
+  <arg name="sim"		default="false"/>
+  <arg name="config_dir"	default="$(optenv TR_CONFIG_DIR /tmp/)"/>
 
   <!-- By default we do not overwrite the URDF. Change the following to true to change the default behavior -->
-  <arg name="load_robot_description" default="false"/>
+  <arg name="load_robot_description"	default="false"/>
 
   <!-- The name of the parameter under which the URDF is loaded -->
-  <arg name="robot_description" default="robot_description"/>
+  <arg name="robot_description"		default="robot_description"/>
 
   <!-- Load universal robot description format (URDF) -->
-  <param if="$(arg load_robot_description)" name="$(arg robot_description)"
+  <param if="$(arg load_robot_description)"
+	 name="$(arg robot_description)"
 	 command="xacro '$(find aist_description
 		  )/scenes/urdf/airec3_base_scene.urdf.xacro'
 		  scene:=$(arg scene) sim:=$(arg sim)
-		  product:=$(arg product)"/>
+		  path:=$(find torobo_description
+		  )/config/products/$(arg product).yaml"/>
 
-  <!-- The semantic description that corresponds to the URDF -->
+  <!-- The semantic description SRDF -->
+  <!-- In order to switch yaml, python code is in param's command.
+       The launching sequence works synchronously with this
+       param tag's command. -->
+  <param name="/dummy"
+	 command="$(find torobo_description)/scripts/load_srdf
+		  --model_dir=$(find torobo_description)/config/models
+		  --srdf=torobo.srdf
+		  --robot_config=$(find torobo_description
+		  )/config/products/$(arg product).yaml
+		  --kinematics_yaml=$(dirname)/../config/kinematics.yaml
+		  --dump_file=$(arg config_dir)/torobo.srdf"/>
   <param name="$(arg robot_description)_semantic"
-	 textfile="$(dirname)/../config/airec3_base_scene.srdf" />
+	 textfile="$(arg config_dir)/torobo.srdf"/>
+
+  <!-- load controllers_config -->
+  <param name="/dummy"
+	 command="$(find torobo_description)/scripts/load_controllers_config
+		  --model_dir=$(find torobo_description)/config/models
+		  --yaml=controllers.yaml
+		  --robot_config=$(find torobo_description
+		  )/config/products/$(arg product).yaml
+		  --dump_file=$(arg config_dir
+		  )/torobo_rosparam_controllers_config.yaml"/>
+  <rosparam file="$(arg config_dir)/torobo_rosparam_controllers_config.yaml"/>
+
+  <!-- load model_config -->
+  <param name="/dummy"
+	 command="$(find torobo_description)/scripts/load_model_config
+		  --model_dir=$(find torobo_description)/config/models
+		  --yaml=models.yaml
+		  --robot_config=$(find torobo_description
+		  )/config/products/$(arg product).yaml
+		  --dump_file=$(arg config_dir
+		  )/torobo_rosparam_model_config.yaml"/>
+  <rosparam file="$(arg config_dir)/torobo_rosparam_model_config.yaml"/>
+
+  <!-- load pid_controllers_config -->
+  <param name="/dummy"
+	 command="$(find torobo_description
+		  )/scripts/load_pid_controllers_config
+		  --model_dir=$(find torobo_description)/config/models
+		  --yaml=pid_controllers.yaml
+		  --robot_config=$(find torobo_description
+		  )/config/products/$(arg product).yaml
+		  --dump_file=$(arg config_dir
+		  )/torobo_rosparam_pid_controllers_config.yaml"/>
+  <rosparam file="$(arg config_dir
+		  )/torobo_rosparam_pid_controllers_config.yaml" />
+
+  <!-- load common_config -->
+  <param name="/dummy"
+	 command="$(find torobo_description)/scripts/load_common_config
+		  --model_dir=$(find torobo_description)/config/models
+		  --yaml=common.yaml
+		  --robot_config=$(find torobo_description
+		  )/config/products/$(arg product).yaml
+		  --dump_file=$(arg config_dir
+		  )/torobo_rosparam_common_config.yaml"/>
+  <rosparam file="$(arg config_dir)/torobo_rosparam_common_config.yaml"/>
+
+  <!-- Load updated joint limits (override information from URDF) -->
+  <group ns="$(arg robot_description)_planning">
+    <param name="/dummy"
+	   command="$(find torobo_moveit_config)/scripts/load_joint_limits
+		    --xacro=$(find torobo_description)/scripts/cached_xacro
+		    --urdf=$(find torobo_description
+		    )/urdf/load_robot.urdf.xacro
+		    --path=$(find torobo_description
+		    )/config/products/$(arg product).yaml
+		    --sim=$(arg sim)
+		    --dump_file=$(arg config_dir
+		    )/torobo_rosparam_robot_description_planning.yaml"/>
+    <rosparam file="$(arg config_dir
+		    )/torobo_rosparam_robot_description_planning.yaml"/>
+    <rosparam file="$(dirname)/../config/cartesian_limits.yaml"/>
+  </group>
+
+  <!-- Load default settings for kinematics; these settings are overridden
+       by settings in a node's namespace -->
+  <group ns="$(arg robot_description)_kinematics">
+    <param name="/dummy"
+	   command="$(find torobo_moveit_config)/scripts/load_kinematics
+		    --model_dir=$(find torobo_description)/config/models
+		    --srdf=torobo.srdf
+		    --robot_config=$(find torobo_description
+		    )/config/products/$(arg product).yaml
+		    --kinematics_yaml=$(dirname)/../config/kinematics.yaml
+		    --dump_file=$(arg config_dir
+		    )/torobo_rosparam_robot_description_kinematics.yaml"/>
+    <rosparam file="$(arg config_dir
+		    )/torobo_rosparam_robot_description_kinematics.yaml" />
+  </group>
 
 </launch>

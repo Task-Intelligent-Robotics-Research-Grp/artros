@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro"  name="conveni_environment">
+
+  <!-- Root frame -->
+  <link name="world"/>
+  <joint name="ground_joint" type="fixed">
+    <parent link="world"/>
+    <child  link="ground"/>
+  </joint>
+
+  <xacro:include filename="$(find aist_description
+			   )/scenes/urdf/conveni.urdf.xacro"/>
+
+</robot>

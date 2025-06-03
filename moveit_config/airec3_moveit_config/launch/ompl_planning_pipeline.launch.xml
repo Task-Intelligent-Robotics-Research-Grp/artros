@@ -47,7 +47,7 @@
   <param name="/dummy" command="
       $(find torobo_moveit_config)/scripts/load_ompl_planning
       --model_dir=$(find torobo_description)/config/models
-      --srdf=airec3_base_scene.srdf
+      --srdf=torobo.srdf
       --robot_config=$(find torobo_description)/config/products/$(arg product).yaml
       --kinematics_yaml=$(dirname)/../config/kinematics.yaml
       --ompl_planning_yaml=$(dirname)/../config/ompl_planning.yaml

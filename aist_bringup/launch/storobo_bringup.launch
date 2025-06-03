@@ -50,7 +50,7 @@
   </include>
 
   <!-- Spawn torobo_state_viewer -->
-  <include file="$(find torobo_gui)/launch/torobo_state_viewer.launch"/>
+  <!-- <include file="$(find torobo_gui)/launch/torobo_state_viewer.launch"/> -->
 
   <!-- launch torobo collision detector -->
   <!-- <include file="$(find torobo_collision_detector -->

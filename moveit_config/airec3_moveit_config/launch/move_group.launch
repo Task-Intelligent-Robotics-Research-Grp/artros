@@ -1,15 +1,17 @@
 <launch>
 
-  <arg name="product" />
-  <arg name="sim" />
-  <arg name="scene" />
-  <arg name="pipeline" default="ompl" />
+  <arg name="scene"		default=""/>
+  <arg name="product"		default="$(optenv PRODUCT aist)"/>
+  <arg name="sim"		default="false"/>
+  <arg name="robot_description"	default="robot_description"/>
+  <arg name="pipeline"		default="ompl" />
 
   <include file="$(dirname)/planning_context.launch">
+    <arg name="scene"			value="$(arg scene)"/>
     <arg name="product"			value="$(arg product)"/>
     <arg name="sim"			value="$(arg sim)"/>
-    <arg name="scene"			value="$(arg scene)"/>
     <arg name="load_robot_description"	value="true"/>
+    <arg name="robot_description"	value="$(arg robot_description)"/>
   </include>
 
   <!-- GDB Debug Option -->
@@ -61,7 +63,7 @@
   <!-- Sensors Functionality -->
   <include if="$(arg allow_trajectory_execution)"
 	   ns="move_group" file="$(dirname)/sensor_manager.launch.xml">
-    <arg name="moveit_sensor_manager" value="torobo" />
+    <arg name="moveit_sensor_manager" value="airec3_base_scene" />
   </include>
 
   <!-- moveit cartesian service transformer -->

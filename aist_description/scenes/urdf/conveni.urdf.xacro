@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://wiki.ros.org/xacro" name="ceatec">
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="conveni">
 
   <xacro:property name="cabinet_x"		value="0.500"/>
   <xacro:property name="cabinet_y"		value="0.000"/>

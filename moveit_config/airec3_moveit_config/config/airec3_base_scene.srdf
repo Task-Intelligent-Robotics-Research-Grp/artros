@@ -3,7 +3,7 @@
     This is a format for representing semantic information about the robot structure.
     A URDF file must exist for this robot as well, where the joints and the links that are referenced are defined
 -->
-<robot name="airec3_base_scene">
+<robot name="torobo">
     <!--GROUPS: Representation of a set of joints and links. This can be useful for specifying DOF to plan for, defining arms, end effectors, etc-->
     <!--LINKS: When a link is specified, the parent joint of that link (if it exists) is automatically included-->
     <!--JOINTS: When a joint is specified, the child link of that joint (which will always exist) is automatically included-->
@@ -246,50 +246,9 @@
     <disable_collisions link1="a_cabinet_ar_marker" link2="base_rear_left_wheel/link" reason="Never"/>
     <disable_collisions link1="a_cabinet_ar_marker" link2="base_rear_right_wheel/link" reason="Never"/>
     <disable_collisions link1="a_cabinet_ar_marker" link2="dummy_base_link" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="head/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="head/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="head/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="left_arm/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="left_arm/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="left_arm/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="left_arm/link_4" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="left_arm/link_5" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="left_arm/link_6" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="left_arm/link_7" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="left_hand/base_link" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="left_hand_first_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="left_hand_first_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="left_hand_second_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="left_hand_second_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="left_hand_third_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="left_hand_third_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="left_hand_thumb/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="left_hand_thumb/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="left_hand_thumb/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="left_hand_thumb/link_4" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="right_arm/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="right_arm/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="right_arm/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="right_arm/link_4" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="right_arm/link_5" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="right_arm/link_6" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="right_arm/link_7" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="right_hand/base_link" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="right_hand_first_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="right_hand_first_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="right_hand_second_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="right_hand_second_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="right_hand_third_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="right_hand_third_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="right_hand_thumb/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="right_hand_thumb/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="right_hand_thumb/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="right_hand_thumb/link_4" reason="Never"/>
     <disable_collisions link1="a_cabinet_ar_marker" link2="torso/link_0" reason="Never"/>
     <disable_collisions link1="a_cabinet_ar_marker" link2="torso/link_1" reason="Never"/>
     <disable_collisions link1="a_cabinet_ar_marker" link2="torso/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="torso/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_ar_marker" link2="torso/torso_plate_link_0" reason="Never"/>
     <disable_collisions link1="a_cabinet_back" link2="a_cabinet_base" reason="Adjacent"/>
     <disable_collisions link1="a_cabinet_back" link2="a_cabinet_shelf1" reason="Default"/>
     <disable_collisions link1="a_cabinet_back" link2="a_cabinet_shelf2" reason="Default"/>
@@ -301,43 +260,10 @@
     <disable_collisions link1="a_cabinet_back" link2="dummy_base_link" reason="Never"/>
     <disable_collisions link1="a_cabinet_back" link2="head/link_1" reason="Never"/>
     <disable_collisions link1="a_cabinet_back" link2="head/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="head/link_3" reason="Never"/>
     <disable_collisions link1="a_cabinet_back" link2="left_arm/link_1" reason="Never"/>
     <disable_collisions link1="a_cabinet_back" link2="left_arm/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="left_arm/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="left_arm/link_4" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="left_arm/link_5" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="left_arm/link_6" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="left_arm/link_7" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="left_hand/base_link" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="left_hand_first_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="left_hand_first_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="left_hand_second_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="left_hand_second_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="left_hand_third_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="left_hand_third_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="left_hand_thumb/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="left_hand_thumb/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="left_hand_thumb/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="left_hand_thumb/link_4" reason="Never"/>
     <disable_collisions link1="a_cabinet_back" link2="right_arm/link_1" reason="Never"/>
     <disable_collisions link1="a_cabinet_back" link2="right_arm/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="right_arm/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="right_arm/link_4" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="right_arm/link_5" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="right_arm/link_6" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="right_arm/link_7" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="right_hand/base_link" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="right_hand_first_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="right_hand_first_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="right_hand_second_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="right_hand_second_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="right_hand_third_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="right_hand_third_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="right_hand_thumb/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="right_hand_thumb/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="right_hand_thumb/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_back" link2="right_hand_thumb/link_4" reason="Never"/>
     <disable_collisions link1="a_cabinet_back" link2="torso/link_0" reason="Never"/>
     <disable_collisions link1="a_cabinet_back" link2="torso/link_1" reason="Never"/>
     <disable_collisions link1="a_cabinet_back" link2="torso/link_2" reason="Never"/>
@@ -353,43 +279,9 @@
     <disable_collisions link1="a_cabinet_base" link2="dummy_base_link" reason="Never"/>
     <disable_collisions link1="a_cabinet_base" link2="head/link_1" reason="Never"/>
     <disable_collisions link1="a_cabinet_base" link2="head/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="head/link_3" reason="Never"/>
     <disable_collisions link1="a_cabinet_base" link2="left_arm/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="left_arm/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="left_arm/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="left_arm/link_4" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="left_arm/link_5" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="left_arm/link_6" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="left_arm/link_7" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="left_hand/base_link" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="left_hand_first_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="left_hand_first_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="left_hand_second_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="left_hand_second_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="left_hand_third_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="left_hand_third_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="left_hand_thumb/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="left_hand_thumb/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="left_hand_thumb/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="left_hand_thumb/link_4" reason="Never"/>
     <disable_collisions link1="a_cabinet_base" link2="right_arm/link_1" reason="Never"/>
     <disable_collisions link1="a_cabinet_base" link2="right_arm/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="right_arm/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="right_arm/link_4" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="right_arm/link_5" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="right_arm/link_6" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="right_arm/link_7" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="right_hand/base_link" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="right_hand_first_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="right_hand_first_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="right_hand_second_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="right_hand_second_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="right_hand_third_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="right_hand_third_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="right_hand_thumb/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="right_hand_thumb/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="right_hand_thumb/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_base" link2="right_hand_thumb/link_4" reason="Never"/>
     <disable_collisions link1="a_cabinet_base" link2="torso/link_0" reason="Never"/>
     <disable_collisions link1="a_cabinet_base" link2="torso/link_1" reason="Never"/>
     <disable_collisions link1="a_cabinet_base" link2="torso/link_2" reason="Never"/>
@@ -402,100 +294,18 @@
     <disable_collisions link1="a_cabinet_shelf1" link2="base_rear_left_wheel/link" reason="Never"/>
     <disable_collisions link1="a_cabinet_shelf1" link2="base_rear_right_wheel/link" reason="Never"/>
     <disable_collisions link1="a_cabinet_shelf1" link2="dummy_base_link" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="head/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="head/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="head/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="left_arm/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="left_arm/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="left_arm/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="left_arm/link_4" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="left_arm/link_5" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="left_arm/link_6" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="left_arm/link_7" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="left_hand/base_link" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="left_hand_first_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="left_hand_first_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="left_hand_second_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="left_hand_second_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="left_hand_third_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="left_hand_third_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="left_hand_thumb/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="left_hand_thumb/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="left_hand_thumb/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="left_hand_thumb/link_4" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="right_arm/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="right_arm/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="right_arm/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="right_arm/link_4" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="right_arm/link_5" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="right_arm/link_6" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="right_arm/link_7" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="right_hand/base_link" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="right_hand_first_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="right_hand_first_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="right_hand_second_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="right_hand_second_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="right_hand_third_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="right_hand_third_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="right_hand_thumb/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="right_hand_thumb/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="right_hand_thumb/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="right_hand_thumb/link_4" reason="Never"/>
     <disable_collisions link1="a_cabinet_shelf1" link2="torso/link_0" reason="Never"/>
     <disable_collisions link1="a_cabinet_shelf1" link2="torso/link_1" reason="Never"/>
     <disable_collisions link1="a_cabinet_shelf1" link2="torso/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="torso/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf1" link2="torso/torso_plate_link_0" reason="Never"/>
     <disable_collisions link1="a_cabinet_shelf2" link2="base_front_left_wheel/link" reason="Never"/>
     <disable_collisions link1="a_cabinet_shelf2" link2="base_front_right_wheel/link" reason="Never"/>
     <disable_collisions link1="a_cabinet_shelf2" link2="base_link" reason="Never"/>
     <disable_collisions link1="a_cabinet_shelf2" link2="base_rear_left_wheel/link" reason="Never"/>
     <disable_collisions link1="a_cabinet_shelf2" link2="base_rear_right_wheel/link" reason="Never"/>
     <disable_collisions link1="a_cabinet_shelf2" link2="dummy_base_link" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="head/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="head/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="head/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="left_arm/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="left_arm/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="left_arm/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="left_arm/link_4" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="left_arm/link_5" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="left_arm/link_6" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="left_arm/link_7" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="left_hand/base_link" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="left_hand_first_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="left_hand_first_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="left_hand_second_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="left_hand_second_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="left_hand_third_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="left_hand_third_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="left_hand_thumb/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="left_hand_thumb/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="left_hand_thumb/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="left_hand_thumb/link_4" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="right_arm/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="right_arm/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="right_arm/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="right_arm/link_4" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="right_arm/link_5" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="right_arm/link_6" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="right_arm/link_7" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="right_hand/base_link" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="right_hand_first_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="right_hand_first_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="right_hand_second_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="right_hand_second_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="right_hand_third_finger/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="right_hand_third_finger/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="right_hand_thumb/link_1" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="right_hand_thumb/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="right_hand_thumb/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="right_hand_thumb/link_4" reason="Never"/>
     <disable_collisions link1="a_cabinet_shelf2" link2="torso/link_0" reason="Never"/>
     <disable_collisions link1="a_cabinet_shelf2" link2="torso/link_1" reason="Never"/>
     <disable_collisions link1="a_cabinet_shelf2" link2="torso/link_2" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="torso/link_3" reason="Never"/>
-    <disable_collisions link1="a_cabinet_shelf2" link2="torso/torso_plate_link_0" reason="Never"/>
     <disable_collisions link1="base_front_left_wheel/link" link2="base_front_right_wheel/link" reason="Never"/>
     <disable_collisions link1="base_front_left_wheel/link" link2="base_link" reason="Adjacent"/>
     <disable_collisions link1="base_front_left_wheel/link" link2="base_rear_left_wheel/link" reason="Never"/>
@@ -506,9 +316,10 @@
     <disable_collisions link1="base_front_left_wheel/link" link2="head/link_3" reason="Never"/>
     <disable_collisions link1="base_front_left_wheel/link" link2="left_arm/link_1" reason="Never"/>
     <disable_collisions link1="base_front_left_wheel/link" link2="left_arm/link_2" reason="Never"/>
+    <disable_collisions link1="base_front_left_wheel/link" link2="left_arm/link_3" reason="Never"/>
+    <disable_collisions link1="base_front_left_wheel/link" link2="left_arm/link_5" reason="Never"/>
     <disable_collisions link1="base_front_left_wheel/link" link2="left_arm/link_6" reason="Never"/>
     <disable_collisions link1="base_front_left_wheel/link" link2="left_arm/link_7" reason="Never"/>
-    <disable_collisions link1="base_front_left_wheel/link" link2="left_hand/base_link" reason="Never"/>
     <disable_collisions link1="base_front_left_wheel/link" link2="left_hand_first_finger/link_1" reason="Never"/>
     <disable_collisions link1="base_front_left_wheel/link" link2="left_hand_first_finger/link_2" reason="Never"/>
     <disable_collisions link1="base_front_left_wheel/link" link2="left_hand_second_finger/link_1" reason="Never"/>
@@ -522,9 +333,7 @@
     <disable_collisions link1="base_front_left_wheel/link" link2="right_arm/link_1" reason="Never"/>
     <disable_collisions link1="base_front_left_wheel/link" link2="right_arm/link_2" reason="Never"/>
     <disable_collisions link1="base_front_left_wheel/link" link2="right_arm/link_3" reason="Never"/>
-    <disable_collisions link1="base_front_left_wheel/link" link2="right_arm/link_4" reason="Never"/>
     <disable_collisions link1="base_front_left_wheel/link" link2="right_arm/link_5" reason="Never"/>
-    <disable_collisions link1="base_front_left_wheel/link" link2="right_arm/link_6" reason="Never"/>
     <disable_collisions link1="base_front_left_wheel/link" link2="right_arm/link_7" reason="Never"/>
     <disable_collisions link1="base_front_left_wheel/link" link2="right_hand/base_link" reason="Never"/>
     <disable_collisions link1="base_front_left_wheel/link" link2="right_hand_first_finger/link_1" reason="Never"/>
@@ -553,31 +362,31 @@
     <disable_collisions link1="base_front_right_wheel/link" link2="left_arm/link_2" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="left_arm/link_3" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="left_arm/link_4" reason="Never"/>
+    <disable_collisions link1="base_front_right_wheel/link" link2="left_arm/link_5" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="left_arm/link_6" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="left_arm/link_7" reason="Never"/>
-    <disable_collisions link1="base_front_right_wheel/link" link2="left_hand/base_link" reason="Never"/>
+    <disable_collisions link1="base_front_right_wheel/link" link2="left_hand_first_finger/link_1" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="left_hand_first_finger/link_2" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="left_hand_second_finger/link_1" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="left_hand_second_finger/link_2" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="left_hand_third_finger/link_1" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="left_hand_third_finger/link_2" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="left_hand_thumb/link_1" reason="Never"/>
-    <disable_collisions link1="base_front_right_wheel/link" link2="left_hand_thumb/link_2" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="left_hand_thumb/link_3" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="left_hand_thumb/link_4" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="right_arm/link_1" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="right_arm/link_2" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="right_arm/link_3" reason="Never"/>
-    <disable_collisions link1="base_front_right_wheel/link" link2="right_arm/link_4" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="right_arm/link_5" reason="Never"/>
+    <disable_collisions link1="base_front_right_wheel/link" link2="right_arm/link_6" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="right_arm/link_7" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="right_hand/base_link" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="right_hand_first_finger/link_1" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="right_hand_first_finger/link_2" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="right_hand_second_finger/link_1" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="right_hand_second_finger/link_2" reason="Never"/>
+    <disable_collisions link1="base_front_right_wheel/link" link2="right_hand_third_finger/link_1" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="right_hand_third_finger/link_2" reason="Never"/>
-    <disable_collisions link1="base_front_right_wheel/link" link2="right_hand_thumb/link_1" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="right_hand_thumb/link_2" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="right_hand_thumb/link_3" reason="Never"/>
     <disable_collisions link1="base_front_right_wheel/link" link2="right_hand_thumb/link_4" reason="Never"/>
@@ -613,6 +422,7 @@
     <disable_collisions link1="base_rear_left_wheel/link" link2="left_hand_first_finger/link_1" reason="Never"/>
     <disable_collisions link1="base_rear_left_wheel/link" link2="left_hand_first_finger/link_2" reason="Never"/>
     <disable_collisions link1="base_rear_left_wheel/link" link2="left_hand_second_finger/link_1" reason="Never"/>
+    <disable_collisions link1="base_rear_left_wheel/link" link2="left_hand_second_finger/link_2" reason="Never"/>
     <disable_collisions link1="base_rear_left_wheel/link" link2="left_hand_third_finger/link_1" reason="Never"/>
     <disable_collisions link1="base_rear_left_wheel/link" link2="left_hand_third_finger/link_2" reason="Never"/>
     <disable_collisions link1="base_rear_left_wheel/link" link2="left_hand_thumb/link_1" reason="Never"/>
@@ -659,6 +469,7 @@
     <disable_collisions link1="base_rear_right_wheel/link" link2="left_hand_second_finger/link_1" reason="Never"/>
     <disable_collisions link1="base_rear_right_wheel/link" link2="left_hand_second_finger/link_2" reason="Never"/>
     <disable_collisions link1="base_rear_right_wheel/link" link2="left_hand_third_finger/link_1" reason="Never"/>
+    <disable_collisions link1="base_rear_right_wheel/link" link2="left_hand_third_finger/link_2" reason="Never"/>
     <disable_collisions link1="base_rear_right_wheel/link" link2="left_hand_thumb/link_1" reason="Never"/>
     <disable_collisions link1="base_rear_right_wheel/link" link2="left_hand_thumb/link_2" reason="Never"/>
     <disable_collisions link1="base_rear_right_wheel/link" link2="left_hand_thumb/link_3" reason="Never"/>
@@ -733,7 +544,6 @@
     <disable_collisions link1="left_arm/link_1" link2="left_arm/link_5" reason="Never"/>
     <disable_collisions link1="left_arm/link_1" link2="left_arm/link_6" reason="Never"/>
     <disable_collisions link1="left_arm/link_1" link2="left_arm/link_7" reason="Never"/>
-    <disable_collisions link1="left_arm/link_1" link2="left_hand_thumb/link_1" reason="Never"/>
     <disable_collisions link1="left_arm/link_1" link2="right_arm/link_1" reason="Never"/>
     <disable_collisions link1="left_arm/link_1" link2="right_arm/link_2" reason="Never"/>
     <disable_collisions link1="left_arm/link_1" link2="right_arm/link_3" reason="Never"/>
@@ -748,13 +558,13 @@
     <disable_collisions link1="left_arm/link_2" link2="left_arm/link_5" reason="Never"/>
     <disable_collisions link1="left_arm/link_2" link2="left_arm/link_6" reason="Never"/>
     <disable_collisions link1="left_arm/link_2" link2="left_arm/link_7" reason="Never"/>
+    <disable_collisions link1="left_arm/link_2" link2="left_hand/base_link" reason="Never"/>
     <disable_collisions link1="left_arm/link_2" link2="left_hand_thumb/link_1" reason="Never"/>
-    <disable_collisions link1="left_arm/link_2" link2="left_hand_thumb/link_2" reason="Never"/>
     <disable_collisions link1="left_arm/link_2" link2="right_arm/link_1" reason="Never"/>
     <disable_collisions link1="left_arm/link_2" link2="right_arm/link_2" reason="Never"/>
     <disable_collisions link1="left_arm/link_2" link2="right_arm/link_3" reason="Never"/>
     <disable_collisions link1="left_arm/link_2" link2="right_arm/link_4" reason="Never"/>
-    <disable_collisions link1="left_arm/link_2" link2="right_arm/link_7" reason="Never"/>
+    <disable_collisions link1="left_arm/link_2" link2="right_arm/link_5" reason="Never"/>
     <disable_collisions link1="left_arm/link_2" link2="torso/link_0" reason="Never"/>
     <disable_collisions link1="left_arm/link_2" link2="torso/link_1" reason="Never"/>
     <disable_collisions link1="left_arm/link_2" link2="torso/link_2" reason="Never"/>
@@ -778,6 +588,8 @@
     <disable_collisions link1="left_arm/link_3" link2="right_arm/link_2" reason="Never"/>
     <disable_collisions link1="left_arm/link_3" link2="right_arm/link_3" reason="Never"/>
     <disable_collisions link1="left_arm/link_3" link2="right_arm/link_4" reason="Never"/>
+    <disable_collisions link1="left_arm/link_3" link2="right_arm/link_5" reason="Never"/>
+    <disable_collisions link1="left_arm/link_3" link2="right_arm/link_6" reason="Never"/>
     <disable_collisions link1="left_arm/link_3" link2="right_arm/link_7" reason="Never"/>
     <disable_collisions link1="left_arm/link_4" link2="left_arm/link_5" reason="Adjacent"/>
     <disable_collisions link1="left_arm/link_4" link2="left_arm/link_6" reason="Never"/>
@@ -809,10 +621,6 @@
     <disable_collisions link1="left_arm/link_5" link2="left_hand_thumb/link_2" reason="Default"/>
     <disable_collisions link1="left_arm/link_5" link2="left_hand_thumb/link_3" reason="Never"/>
     <disable_collisions link1="left_arm/link_5" link2="left_hand_thumb/link_4" reason="Never"/>
-    <disable_collisions link1="left_arm/link_5" link2="right_arm/link_7" reason="Never"/>
-    <disable_collisions link1="left_arm/link_5" link2="right_hand_second_finger/link_1" reason="Never"/>
-    <disable_collisions link1="left_arm/link_5" link2="right_hand_second_finger/link_2" reason="Never"/>
-    <disable_collisions link1="left_arm/link_5" link2="right_hand_third_finger/link_1" reason="Never"/>
     <disable_collisions link1="left_arm/link_6" link2="left_arm/link_7" reason="Adjacent"/>
     <disable_collisions link1="left_arm/link_6" link2="left_hand/base_link" reason="Default"/>
     <disable_collisions link1="left_arm/link_6" link2="left_hand_first_finger/link_1" reason="Never"/>
@@ -825,12 +633,7 @@
     <disable_collisions link1="left_arm/link_6" link2="left_hand_thumb/link_2" reason="Default"/>
     <disable_collisions link1="left_arm/link_6" link2="left_hand_thumb/link_3" reason="Never"/>
     <disable_collisions link1="left_arm/link_6" link2="left_hand_thumb/link_4" reason="Never"/>
-    <disable_collisions link1="left_arm/link_6" link2="right_hand_first_finger/link_1" reason="Never"/>
-    <disable_collisions link1="left_arm/link_6" link2="right_hand_first_finger/link_2" reason="Never"/>
-    <disable_collisions link1="left_arm/link_6" link2="right_hand_second_finger/link_1" reason="Never"/>
-    <disable_collisions link1="left_arm/link_6" link2="right_hand_second_finger/link_2" reason="Never"/>
-    <disable_collisions link1="left_arm/link_6" link2="right_hand_third_finger/link_1" reason="Never"/>
-    <disable_collisions link1="left_arm/link_6" link2="right_hand_third_finger/link_2" reason="Never"/>
+    <disable_collisions link1="left_arm/link_6" link2="right_arm/link_3" reason="Never"/>
     <disable_collisions link1="left_arm/link_7" link2="left_hand/base_link" reason="Adjacent"/>
     <disable_collisions link1="left_arm/link_7" link2="left_hand_first_finger/link_1" reason="Never"/>
     <disable_collisions link1="left_arm/link_7" link2="left_hand_first_finger/link_2" reason="Never"/>
@@ -842,13 +645,10 @@
     <disable_collisions link1="left_arm/link_7" link2="left_hand_thumb/link_2" reason="Never"/>
     <disable_collisions link1="left_arm/link_7" link2="left_hand_thumb/link_3" reason="Never"/>
     <disable_collisions link1="left_arm/link_7" link2="left_hand_thumb/link_4" reason="Never"/>
-    <disable_collisions link1="left_arm/link_7" link2="right_arm/link_2" reason="Never"/>
     <disable_collisions link1="left_arm/link_7" link2="right_arm/link_3" reason="Never"/>
-    <disable_collisions link1="left_arm/link_7" link2="right_hand_first_finger/link_1" reason="Never"/>
-    <disable_collisions link1="left_arm/link_7" link2="right_hand_second_finger/link_1" reason="Never"/>
-    <disable_collisions link1="left_arm/link_7" link2="right_hand_second_finger/link_2" reason="Never"/>
+    <disable_collisions link1="left_arm/link_7" link2="right_hand_first_finger/link_2" reason="Never"/>
     <disable_collisions link1="left_arm/link_7" link2="right_hand_third_finger/link_1" reason="Never"/>
-    <disable_collisions link1="left_arm/link_7" link2="right_hand_third_finger/link_2" reason="Never"/>
+    <disable_collisions link1="left_arm/link_7" link2="right_hand_thumb/link_4" reason="Never"/>
     <disable_collisions link1="left_hand/base_link" link2="left_hand_first_finger/link_1" reason="Adjacent"/>
     <disable_collisions link1="left_hand/base_link" link2="left_hand_second_finger/link_1" reason="Adjacent"/>
     <disable_collisions link1="left_hand/base_link" link2="left_hand_third_finger/link_1" reason="Adjacent"/>
@@ -860,9 +660,11 @@
     <disable_collisions link1="left_hand_first_finger/link_1" link2="left_hand_third_finger/link_2" reason="Never"/>
     <disable_collisions link1="left_hand_first_finger/link_1" link2="left_hand_thumb/link_1" reason="Never"/>
     <disable_collisions link1="left_hand_first_finger/link_1" link2="left_hand_thumb/link_2" reason="Never"/>
-    <disable_collisions link1="left_hand_first_finger/link_1" link2="right_arm/link_5" reason="Never"/>
+    <disable_collisions link1="left_hand_first_finger/link_1" link2="right_arm/link_7" reason="Never"/>
+    <disable_collisions link1="left_hand_first_finger/link_1" link2="right_hand/base_link" reason="Never"/>
+    <disable_collisions link1="left_hand_first_finger/link_1" link2="right_hand_first_finger/link_1" reason="Never"/>
+    <disable_collisions link1="left_hand_first_finger/link_1" link2="right_hand_first_finger/link_2" reason="Never"/>
     <disable_collisions link1="left_hand_first_finger/link_1" link2="right_hand_second_finger/link_1" reason="Never"/>
-    <disable_collisions link1="left_hand_first_finger/link_1" link2="right_hand_second_finger/link_2" reason="Never"/>
     <disable_collisions link1="left_hand_first_finger/link_1" link2="right_hand_third_finger/link_1" reason="Never"/>
     <disable_collisions link1="left_hand_first_finger/link_1" link2="right_hand_third_finger/link_2" reason="Never"/>
     <disable_collisions link1="left_hand_first_finger/link_1" link2="right_hand_thumb/link_1" reason="Never"/>
@@ -872,31 +674,31 @@
     <disable_collisions link1="left_hand_first_finger/link_2" link2="left_hand_second_finger/link_1" reason="Default"/>
     <disable_collisions link1="left_hand_first_finger/link_2" link2="left_hand_third_finger/link_1" reason="Never"/>
     <disable_collisions link1="left_hand_first_finger/link_2" link2="left_hand_third_finger/link_2" reason="Never"/>
+    <disable_collisions link1="left_hand_first_finger/link_2" link2="right_arm/link_6" reason="Never"/>
     <disable_collisions link1="left_hand_first_finger/link_2" link2="right_arm/link_7" reason="Never"/>
     <disable_collisions link1="left_hand_first_finger/link_2" link2="right_hand/base_link" reason="Never"/>
     <disable_collisions link1="left_hand_first_finger/link_2" link2="right_hand_first_finger/link_1" reason="Never"/>
+    <disable_collisions link1="left_hand_first_finger/link_2" link2="right_hand_first_finger/link_2" reason="Never"/>
     <disable_collisions link1="left_hand_first_finger/link_2" link2="right_hand_second_finger/link_1" reason="Never"/>
     <disable_collisions link1="left_hand_first_finger/link_2" link2="right_hand_second_finger/link_2" reason="Never"/>
     <disable_collisions link1="left_hand_first_finger/link_2" link2="right_hand_third_finger/link_1" reason="Never"/>
     <disable_collisions link1="left_hand_first_finger/link_2" link2="right_hand_third_finger/link_2" reason="Never"/>
     <disable_collisions link1="left_hand_first_finger/link_2" link2="right_hand_thumb/link_1" reason="Never"/>
+    <disable_collisions link1="left_hand_first_finger/link_2" link2="right_hand_thumb/link_3" reason="Never"/>
+    <disable_collisions link1="left_hand_first_finger/link_2" link2="right_hand_thumb/link_4" reason="Never"/>
     <disable_collisions link1="left_hand_second_finger/link_1" link2="left_hand_second_finger/link_2" reason="Adjacent"/>
     <disable_collisions link1="left_hand_second_finger/link_1" link2="left_hand_third_finger/link_1" reason="Default"/>
     <disable_collisions link1="left_hand_second_finger/link_1" link2="left_hand_third_finger/link_2" reason="Default"/>
     <disable_collisions link1="left_hand_second_finger/link_1" link2="left_hand_thumb/link_1" reason="Never"/>
     <disable_collisions link1="left_hand_second_finger/link_1" link2="left_hand_thumb/link_2" reason="Never"/>
     <disable_collisions link1="left_hand_second_finger/link_1" link2="left_hand_thumb/link_3" reason="Never"/>
-    <disable_collisions link1="left_hand_second_finger/link_1" link2="right_arm/link_5" reason="Never"/>
+    <disable_collisions link1="left_hand_second_finger/link_1" link2="right_hand_first_finger/link_1" reason="Never"/>
     <disable_collisions link1="left_hand_second_finger/link_1" link2="right_hand_second_finger/link_1" reason="Never"/>
-    <disable_collisions link1="left_hand_second_finger/link_1" link2="right_hand_second_finger/link_2" reason="Never"/>
-    <disable_collisions link1="left_hand_second_finger/link_1" link2="right_hand_third_finger/link_1" reason="Never"/>
-    <disable_collisions link1="left_hand_second_finger/link_1" link2="right_hand_third_finger/link_2" reason="Never"/>
     <disable_collisions link1="left_hand_second_finger/link_1" link2="right_hand_thumb/link_1" reason="Never"/>
-    <disable_collisions link1="left_hand_second_finger/link_1" link2="right_hand_thumb/link_2" reason="Never"/>
-    <disable_collisions link1="left_hand_second_finger/link_1" link2="right_hand_thumb/link_3" reason="Never"/>
-    <disable_collisions link1="left_hand_second_finger/link_1" link2="right_hand_thumb/link_4" reason="Never"/>
-    <disable_collisions link1="left_hand_second_finger/link_2" link2="right_arm/link_5" reason="Never"/>
+    <disable_collisions link1="left_hand_second_finger/link_2" link2="right_arm/link_7" reason="Never"/>
+    <disable_collisions link1="left_hand_second_finger/link_2" link2="right_hand/base_link" reason="Never"/>
     <disable_collisions link1="left_hand_second_finger/link_2" link2="right_hand_first_finger/link_1" reason="Never"/>
+    <disable_collisions link1="left_hand_second_finger/link_2" link2="right_hand_first_finger/link_2" reason="Never"/>
     <disable_collisions link1="left_hand_second_finger/link_2" link2="right_hand_second_finger/link_1" reason="Never"/>
     <disable_collisions link1="left_hand_second_finger/link_2" link2="right_hand_second_finger/link_2" reason="Never"/>
     <disable_collisions link1="left_hand_second_finger/link_2" link2="right_hand_third_finger/link_1" reason="Never"/>
@@ -905,60 +707,62 @@
     <disable_collisions link1="left_hand_third_finger/link_1" link2="left_hand_thumb/link_1" reason="Never"/>
     <disable_collisions link1="left_hand_third_finger/link_1" link2="left_hand_thumb/link_2" reason="Never"/>
     <disable_collisions link1="left_hand_third_finger/link_1" link2="left_hand_thumb/link_3" reason="Never"/>
+    <disable_collisions link1="left_hand_third_finger/link_1" link2="right_arm/link_7" reason="Never"/>
     <disable_collisions link1="left_hand_third_finger/link_1" link2="right_hand_first_finger/link_1" reason="Never"/>
-    <disable_collisions link1="left_hand_third_finger/link_1" link2="right_hand_first_finger/link_2" reason="Never"/>
-    <disable_collisions link1="left_hand_third_finger/link_1" link2="right_hand_third_finger/link_1" reason="Never"/>
-    <disable_collisions link1="left_hand_third_finger/link_1" link2="right_hand_third_finger/link_2" reason="Never"/>
-    <disable_collisions link1="left_hand_third_finger/link_1" link2="right_hand_thumb/link_1" reason="Never"/>
-    <disable_collisions link1="left_hand_third_finger/link_1" link2="right_hand_thumb/link_2" reason="Never"/>
-    <disable_collisions link1="left_hand_third_finger/link_1" link2="right_hand_thumb/link_3" reason="Never"/>
-    <disable_collisions link1="left_hand_third_finger/link_1" link2="right_hand_thumb/link_4" reason="Never"/>
+    <disable_collisions link1="left_hand_third_finger/link_1" link2="right_hand_second_finger/link_1" reason="Never"/>
+    <disable_collisions link1="left_hand_third_finger/link_1" link2="right_hand_second_finger/link_2" reason="Never"/>
     <disable_collisions link1="left_hand_third_finger/link_2" link2="left_hand_thumb/link_1" reason="Never"/>
     <disable_collisions link1="left_hand_third_finger/link_2" link2="left_hand_thumb/link_2" reason="Never"/>
+    <disable_collisions link1="left_hand_third_finger/link_2" link2="right_arm/link_7" reason="Never"/>
     <disable_collisions link1="left_hand_third_finger/link_2" link2="right_hand_first_finger/link_1" reason="Never"/>
-    <disable_collisions link1="left_hand_third_finger/link_2" link2="right_hand_first_finger/link_2" reason="Never"/>
+    <disable_collisions link1="left_hand_third_finger/link_2" link2="right_hand_second_finger/link_1" reason="Never"/>
+    <disable_collisions link1="left_hand_third_finger/link_2" link2="right_hand_second_finger/link_2" reason="Never"/>
     <disable_collisions link1="left_hand_third_finger/link_2" link2="right_hand_third_finger/link_1" reason="Never"/>
     <disable_collisions link1="left_hand_third_finger/link_2" link2="right_hand_third_finger/link_2" reason="Never"/>
-    <disable_collisions link1="left_hand_third_finger/link_2" link2="right_hand_thumb/link_1" reason="Never"/>
-    <disable_collisions link1="left_hand_third_finger/link_2" link2="right_hand_thumb/link_2" reason="Never"/>
-    <disable_collisions link1="left_hand_third_finger/link_2" link2="right_hand_thumb/link_3" reason="Never"/>
-    <disable_collisions link1="left_hand_third_finger/link_2" link2="right_hand_thumb/link_4" reason="Never"/>
     <disable_collisions link1="left_hand_thumb/link_1" link2="left_hand_thumb/link_2" reason="Adjacent"/>
     <disable_collisions link1="left_hand_thumb/link_1" link2="left_hand_thumb/link_3" reason="Default"/>
     <disable_collisions link1="left_hand_thumb/link_1" link2="left_hand_thumb/link_4" reason="Never"/>
+    <disable_collisions link1="left_hand_thumb/link_1" link2="right_arm/link_5" reason="Never"/>
+    <disable_collisions link1="left_hand_thumb/link_1" link2="right_arm/link_7" reason="Never"/>
+    <disable_collisions link1="left_hand_thumb/link_1" link2="right_hand_first_finger/link_1" reason="Never"/>
     <disable_collisions link1="left_hand_thumb/link_1" link2="right_hand_first_finger/link_2" reason="Never"/>
     <disable_collisions link1="left_hand_thumb/link_1" link2="right_hand_second_finger/link_1" reason="Never"/>
-    <disable_collisions link1="left_hand_thumb/link_1" link2="right_hand_second_finger/link_2" reason="Never"/>
-    <disable_collisions link1="left_hand_thumb/link_1" link2="right_hand_third_finger/link_2" reason="Never"/>
-    <disable_collisions link1="left_hand_thumb/link_1" link2="right_hand_thumb/link_3" reason="Never"/>
-    <disable_collisions link1="left_hand_thumb/link_1" link2="right_hand_thumb/link_4" reason="Never"/>
+    <disable_collisions link1="left_hand_thumb/link_1" link2="right_hand_third_finger/link_1" reason="Never"/>
     <disable_collisions link1="left_hand_thumb/link_2" link2="left_hand_thumb/link_3" reason="Adjacent"/>
     <disable_collisions link1="left_hand_thumb/link_2" link2="left_hand_thumb/link_4" reason="Default"/>
+    <disable_collisions link1="left_hand_thumb/link_2" link2="right_arm/link_5" reason="Never"/>
     <disable_collisions link1="left_hand_thumb/link_2" link2="right_arm/link_7" reason="Never"/>
+    <disable_collisions link1="left_hand_thumb/link_2" link2="right_hand_first_finger/link_1" reason="Never"/>
     <disable_collisions link1="left_hand_thumb/link_2" link2="right_hand_first_finger/link_2" reason="Never"/>
-    <disable_collisions link1="left_hand_thumb/link_2" link2="right_hand_second_finger/link_2" reason="Never"/>
-    <disable_collisions link1="left_hand_thumb/link_2" link2="right_hand_third_finger/link_2" reason="Never"/>
+    <disable_collisions link1="left_hand_thumb/link_2" link2="right_hand_second_finger/link_1" reason="Never"/>
+    <disable_collisions link1="left_hand_thumb/link_2" link2="right_hand_third_finger/link_1" reason="Never"/>
+    <disable_collisions link1="left_hand_thumb/link_2" link2="right_hand_thumb/link_1" reason="Never"/>
+    <disable_collisions link1="left_hand_thumb/link_2" link2="right_hand_thumb/link_3" reason="Never"/>
     <disable_collisions link1="left_hand_thumb/link_3" link2="left_hand_thumb/link_4" reason="Adjacent"/>
     <disable_collisions link1="left_hand_thumb/link_3" link2="right_arm/link_7" reason="Never"/>
     <disable_collisions link1="left_hand_thumb/link_3" link2="right_hand_first_finger/link_1" reason="Never"/>
     <disable_collisions link1="left_hand_thumb/link_3" link2="right_hand_first_finger/link_2" reason="Never"/>
     <disable_collisions link1="left_hand_thumb/link_3" link2="right_hand_second_finger/link_1" reason="Never"/>
-    <disable_collisions link1="left_hand_thumb/link_3" link2="right_hand_second_finger/link_2" reason="Never"/>
     <disable_collisions link1="left_hand_thumb/link_3" link2="right_hand_third_finger/link_1" reason="Never"/>
     <disable_collisions link1="left_hand_thumb/link_3" link2="right_hand_third_finger/link_2" reason="Never"/>
-    <disable_collisions link1="left_hand_thumb/link_3" link2="right_hand_thumb/link_4" reason="Never"/>
+    <disable_collisions link1="left_hand_thumb/link_3" link2="right_hand_thumb/link_1" reason="Never"/>
+    <disable_collisions link1="left_hand_thumb/link_3" link2="right_hand_thumb/link_2" reason="Never"/>
+    <disable_collisions link1="left_hand_thumb/link_3" link2="right_hand_thumb/link_3" reason="Never"/>
+    <disable_collisions link1="left_hand_thumb/link_4" link2="right_arm/link_7" reason="Never"/>
     <disable_collisions link1="left_hand_thumb/link_4" link2="right_hand_first_finger/link_1" reason="Never"/>
     <disable_collisions link1="left_hand_thumb/link_4" link2="right_hand_first_finger/link_2" reason="Never"/>
     <disable_collisions link1="left_hand_thumb/link_4" link2="right_hand_second_finger/link_1" reason="Never"/>
-    <disable_collisions link1="left_hand_thumb/link_4" link2="right_hand_second_finger/link_2" reason="Never"/>
     <disable_collisions link1="left_hand_thumb/link_4" link2="right_hand_third_finger/link_1" reason="Never"/>
     <disable_collisions link1="left_hand_thumb/link_4" link2="right_hand_third_finger/link_2" reason="Never"/>
+    <disable_collisions link1="left_hand_thumb/link_4" link2="right_hand_thumb/link_1" reason="Never"/>
+    <disable_collisions link1="left_hand_thumb/link_4" link2="right_hand_thumb/link_2" reason="Never"/>
     <disable_collisions link1="right_arm/link_1" link2="right_arm/link_2" reason="Adjacent"/>
     <disable_collisions link1="right_arm/link_1" link2="right_arm/link_3" reason="Never"/>
     <disable_collisions link1="right_arm/link_1" link2="right_arm/link_4" reason="Never"/>
     <disable_collisions link1="right_arm/link_1" link2="right_arm/link_5" reason="Never"/>
     <disable_collisions link1="right_arm/link_1" link2="right_arm/link_6" reason="Never"/>
     <disable_collisions link1="right_arm/link_1" link2="right_arm/link_7" reason="Never"/>
+    <disable_collisions link1="right_arm/link_1" link2="right_hand_thumb/link_1" reason="Never"/>
     <disable_collisions link1="right_arm/link_1" link2="torso/link_0" reason="Never"/>
     <disable_collisions link1="right_arm/link_1" link2="torso/link_1" reason="Never"/>
     <disable_collisions link1="right_arm/link_1" link2="torso/link_2" reason="Never"/>
@@ -970,6 +774,7 @@
     <disable_collisions link1="right_arm/link_2" link2="right_arm/link_6" reason="Never"/>
     <disable_collisions link1="right_arm/link_2" link2="right_arm/link_7" reason="Never"/>
     <disable_collisions link1="right_arm/link_2" link2="right_hand_thumb/link_1" reason="Never"/>
+    <disable_collisions link1="right_arm/link_2" link2="right_hand_thumb/link_3" reason="Never"/>
     <disable_collisions link1="right_arm/link_2" link2="torso/link_0" reason="Never"/>
     <disable_collisions link1="right_arm/link_2" link2="torso/link_1" reason="Never"/>
     <disable_collisions link1="right_arm/link_2" link2="torso/link_2" reason="Never"/>
@@ -1012,7 +817,6 @@
     <disable_collisions link1="right_arm/link_5" link2="right_hand_second_finger/link_2" reason="Never"/>
     <disable_collisions link1="right_arm/link_5" link2="right_hand_third_finger/link_1" reason="Never"/>
     <disable_collisions link1="right_arm/link_5" link2="right_hand_third_finger/link_2" reason="Never"/>
-    <disable_collisions link1="right_arm/link_5" link2="right_hand_thumb/link_1" reason="Never"/>
     <disable_collisions link1="right_arm/link_5" link2="right_hand_thumb/link_2" reason="Default"/>
     <disable_collisions link1="right_arm/link_5" link2="right_hand_thumb/link_3" reason="Never"/>
     <disable_collisions link1="right_arm/link_5" link2="right_hand_thumb/link_4" reason="Never"/>
@@ -1065,7 +869,6 @@
     <disable_collisions link1="right_hand_third_finger/link_1" link2="right_hand_thumb/link_3" reason="Never"/>
     <disable_collisions link1="right_hand_third_finger/link_2" link2="right_hand_thumb/link_1" reason="Never"/>
     <disable_collisions link1="right_hand_third_finger/link_2" link2="right_hand_thumb/link_2" reason="Never"/>
-    <disable_collisions link1="right_hand_third_finger/link_2" link2="right_hand_thumb/link_3" reason="Never"/>
     <disable_collisions link1="right_hand_thumb/link_1" link2="right_hand_thumb/link_2" reason="Adjacent"/>
     <disable_collisions link1="right_hand_thumb/link_1" link2="right_hand_thumb/link_3" reason="Default"/>
     <disable_collisions link1="right_hand_thumb/link_1" link2="right_hand_thumb/link_4" reason="Never"/>

@@ -94,7 +94,9 @@ class AISTBaseRoutines(object):
                                                 'workspace_center')
 
         # MoveIt RobotCommander and MoveGroup
-        self._cmd = moveit_commander.RobotCommander('robot_description')
+        self._cmd = moveit_commander.RobotCommander(
+                        rospy.get_param('~robot_description',
+                                        'robot_description'))
         for group_name in self._cmd.get_group_names():
             group = self._cmd.get_group(group_name)
             group.set_pose_reference_frame(self.reference_frame)
