@@ -14,7 +14,7 @@
 #    disclaimer in the documentation and/or other materials provided
 #    with the distribution.
 #  * Neither the name of National Institute of Advanced Industrial
-#    Science and Technology (AIST) nor the names of its contributors
+#    Science and Technolog (AIST) nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
 #
@@ -119,7 +119,7 @@ class GripperClient(object):
 class VoidGripper(GripperClient):
     def __init__(self, name, base_link=None, tip_link=None):
         super().__init__(name, 'void', base_link, tip_link)
-        rospy.loginfo('void_gripper initialized with base_link[%s] and tip_link[%s]',
+        rospy.loginfo('(VoidGripper) initialized with base_link[%s] and tip_link[%s]',
                       base_link if base_link else 'None',
                       tip_link if tip_link else 'None')
 
@@ -144,7 +144,7 @@ class GenericGripper(GripperClient):
             rospy.logerr('(GenericGripper) failed to connect to server[%s]',
                          action_ns)
 
-        rospy.loginfo('%s initialized.', action_ns)
+        rospy.loginfo('(GenericGripper) %s initialized.', action_ns)
 
     @staticmethod
     def simulated(name, action_ns, base_link=None, tip_link=None,
@@ -172,8 +172,8 @@ class GenericGripper(GripperClient):
             return False
         if not self._client.wait_for_result(timeout):
             self._client.cancel_goal()
-            rospy.logerr('goal CANCELED because timeout[%.1f] has expired.',
-                         timeout.to_sec())
+            rospy.logwarn('(GenericGripper) goal CANCELED because timeout[%.1f] has expired.',
+                          timeout.to_sec())
             return False
         return self._client.get_result().stalled
 
@@ -304,9 +304,11 @@ class SuctionGripper(GripperClient):
             return False
         if not self._client.wait_for_result(timeout):
             self._client.cancel_goal()
-            rospy.logerr('goal CANCELED because timeout[%.1f] has expired.',
-                         timeout.to_sec())
+            rospy.logwarn('(SuctionGripper) goal CANCELED because timeout[%.1f] has expired.',
+                          timeout.to_sec())
             return False
+        rospy.loginfo('(SuctionGripper) %s',
+                      'suctioned' if self._suctioned else 'not suctioned')
         return self._suctioned
 
     def cancel(self):
@@ -353,8 +355,8 @@ class Lecp6Gripper(GripperClient):
             return False
         if not self._client.wait_for_result(rospy.Duration(timeout)):
             self._client.cancel_goal()
-            rospy.logerr('goal CANCELED because timeout[%.1f] has expired.',
-                         timeout.to_sec())
+            rospy.logwarn('(Lecp6Gripper) goal CANCELED because timeout[%.1f] has expired.',
+                          timeout.to_sec())
             return False
         return self._client.get_result().reached_goal
 
@@ -428,8 +430,8 @@ class MagswitchGripper(GripperClient):
             return False
         elif not self._client.wait_for_result(rospy.Duration(timeout)):
             self._client.cancel_goal()
-            rospy.logerr('goal CANCELED because timeout[%.1f] has expired.',
-                         timeout.to_sec())
+            rospy.logwarn('(MagswitchGripper) goal CANCELED because timeout[%.1f] has expired.',
+                          timeout.to_sec())
             return False
         result = self._client.get_result()
         if self._goal.command.calibration_trigger == 1:

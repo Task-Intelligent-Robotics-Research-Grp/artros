@@ -181,11 +181,14 @@ class PickOrPlace(SimpleActionClient):
                         gripper.parameters['spiral_angle_increment'],
                         gripper.parameters['spiral_radius_x_max'],
                         gripper.parameters['spiral_radius_y_max'],
+                        gripper.parameters['spiral_roll_npoints'],
+                        gripper.parameters['spiral_roll_max'],
                         gripper.parameters['spiral_speed'],
                         gripper.parameters['spiral_accel'],
                         timeout)
                     if gripper.grasp(timeout):
                         routines.cancel_spiral_motion()
+                        rospy.sleep(rospy.Duration(0.5))
                 else:
                     gripper.grasp()
                 if object_id != '':

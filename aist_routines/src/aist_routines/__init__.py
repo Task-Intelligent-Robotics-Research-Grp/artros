@@ -746,12 +746,14 @@ class AISTBaseRoutines(object):
     def spiral_motion(self, robot_name, end_effector_link='',
                       npoints=36, angle_increment=30.0,
                       radius_x_max=0.005, radius_y_max=0.0005,
-                      speed=0.001, accel=1.0, timeout=rospy.Duration(30.0)):
+                      roll_npoints=3, roll_max=15.0,
+                      speed=0.01, accel=1.0, timeout=rospy.Duration(30.0)):
         if end_effector_link == '':
             end_effector_link = self.gripper(robot_name).tip_link
         self._spiral_motion.send_goal(robot_name, end_effector_link,
                                       npoints, angle_increment,
                                       radius_x_max, radius_y_max,
+                                      roll_npoints, roll_max,
                                       speed, accel, timeout)
 
     def cancel_spiral_motion(self):
