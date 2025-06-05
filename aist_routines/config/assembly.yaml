@@ -126,25 +126,25 @@ picking_parameters:
     pick_offset:      [0.000, 0.000,  0.002, 0.0, 0.0, 0.0]
     departure_offset: [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
     speed_fast:       0.1
-    speed_slow:       0.01
+    speed_slow:       0.02
     gripper_parameters:
       suck_min_period:        0.5
       blow_min_period:        0.2
       spiral_npoints:         36
       spiral_angle_increment: 30.0
       spiral_radius_x_max:    0.001
-      spiral_radius_y_max:    0.0005
-      spiral_roll_npoints:    3
-      spiral_roll_max:        15.0
-      spiral_speed:           0.01
+      spiral_radius_y_max:    0.0002
+      spiral_roll_npoints:    6
+      spiral_roll_max:        30.0
+      spiral_speed:           0.02
       spiral_accel:           1.0
-      spiral_timeout:         30.0
+      spiral_timeout:         90.0
   screw_m4:
     approach_offset:  [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
     pick_offset:      [0.000, 0.000,  0.000, 0.0, 0.0, 0.0]
     departure_offset: [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
     speed_fast:       0.1
-    speed_slow:       0.005
+    speed_slow:       0.02
     gripper_parameters:
       suck_min_period:        0.5
       blow_min_period:        0.2
@@ -152,8 +152,8 @@ picking_parameters:
       spiral_angle_increment: 30.0
       spiral_radius_x_max:    0.002
       spiral_radius_y_max:    0.0005
-      spiral_roll_npoints:    3
-      spiral_roll_max:        15.0
-      spiral_speed:           0.005
+      spiral_roll_npoints:    6
+      spiral_roll_max:        30.0
+      spiral_speed:           0.02
       spiral_accel:           1.0
-      spiral_timeout:         30.0
+      spiral_timeout:         90.0
