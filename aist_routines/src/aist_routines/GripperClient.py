@@ -88,8 +88,8 @@ class GripperClient(object):
         return self._parameters
 
     @parameters.setter
-    def parameters(self, parameters):
-        for key, value in parameters.items():
+    def parameters(self, params):
+        for key, value in params.items():
             self._parameters[key] = value
 
     def pregrasp(self):

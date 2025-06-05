@@ -92,8 +92,8 @@ class FasteningToolClient(object):
         return self._parameters
 
     @parameters.setter
-    def parameters(self, parameters):
-        for key, value in parameters.items():
+    def parameters(self, params):
+        for key, value in params.items():
             self._parameters[key] = value
 
     def tighten(self, timeout=rospy.Duration()):
@@ -114,12 +114,13 @@ class FasteningToolClient(object):
 class ScrewTool(FasteningToolClient):
     def __init__(self, name, controller_ns,
                  base_link=None, tip_link=None, touch_links=None,
-                 speed=1.0, retighten=True):
+                 speed=1.0, seek_speed=0.1, retighten=True):
         super().__init__(name, 'screw_tool', base_link, tip_link, touch_links)
 
         action_ns = controller_ns + '/command'
         self._client = SimpleActionClient(action_ns, ScrewToolCommandAction)
-        self._parameters = {'speed': speed, 'retighten': retighten}
+        self._parameters = {'speed': speed, 'seek_speed': seek_speed,
+                            'retighten': retighten}
 
         if not self._client.wait_for_server(timeout=rospy.Duration(5)):
             self._client = None
@@ -141,6 +142,10 @@ class ScrewTool(FasteningToolClient):
 
     def loosen(self, timeout=rospy.Duration(10)):
         self._send_command(-self._parameters['speed'], False, timeout)
+        return self.wait(timeout)
+
+    def seek(self, timeout=rospy.Duration(-1)):
+        self._send_command(self._parameters['seek_speed'], False)
         return self.wait(timeout)
 
     def wait(self, timeout=rospy.Duration(10)):

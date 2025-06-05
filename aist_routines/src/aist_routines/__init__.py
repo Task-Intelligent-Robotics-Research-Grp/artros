@@ -215,6 +215,7 @@ class AISTBaseRoutines(object):
         print('=== Fastening tool commands ===')
         print('  tighten:     tighten screw')
         print('  loosen:      loosen screw')
+        print('  fseek:       seek screw')
         print('  fcancel:     cancel tighten/loosen action')
 
     def interactive(self, key, robot_name, axis, speed=1.0):
@@ -367,6 +368,9 @@ class AISTBaseRoutines(object):
         elif key == 'loosen':
             tool_name = raw_input('  tool name? ')
             self.loosen(tool_name, rospy.Duration(-1))
+        elif key == 'fseek':
+            tool_name = raw_input('  tool name? ')
+            self.seek(tool_name, rospy.Duration(-1))
         elif key == 'fcancel':
             tool_name = raw_input('  tool name? ')
             self.cancel_fastening(tool_name)
@@ -593,6 +597,9 @@ class AISTBaseRoutines(object):
     def loosen(self, tool_name, timeout=rospy.Duration()):
         self.fastening_tool(tool_name).loosen(timeout)
 
+    def seek(self, tool_name, timeout=rospy.Duration(-1)):
+        self.fastening_tool(tool_name).seek(timeout)
+
     def cancel_fastening(self, tool_name):
         self.fastening_tool(tool_name).cancel()
 
@@ -746,14 +753,12 @@ class AISTBaseRoutines(object):
     def spiral_motion(self, robot_name, end_effector_link='',
                       npoints=36, angle_increment=30.0,
                       radius_x_max=0.005, radius_y_max=0.0005,
-                      roll_npoints=3, roll_max=15.0,
-                      speed=0.01, accel=1.0, timeout=rospy.Duration(30.0)):
+                      speed=0.005, accel=1.0, timeout=rospy.Duration(30.0)):
         if end_effector_link == '':
             end_effector_link = self.gripper(robot_name).tip_link
         self._spiral_motion.send_goal(robot_name, end_effector_link,
                                       npoints, angle_increment,
                                       radius_x_max, radius_y_max,
-                                      roll_npoints, roll_max,
                                       speed, accel, timeout)
 
     def cancel_spiral_motion(self):

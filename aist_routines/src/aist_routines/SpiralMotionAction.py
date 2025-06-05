@@ -58,20 +58,15 @@ class SpiralMotion(SimpleActionClient):
         self.wait_for_server()
 
     # Client stuffs
-    def send_goal(self, robot_name, eef_link='',
-                  npoints=36, angle_increment=30.0,
-                  radius_x_max=0.005, radius_y_max=0.0005,
-                  roll_npoints=3, roll_max=15.0,
-                  speed=0.01, accel=1.0, timeout=rospy.Duration(30.0),
-                  done_cb=None, active_cb=None):
+    def send_goal(self, robot_name, eef_link,
+                  npoints, angle_increment, radius_x_max, radius_y_max,
+                  speed, accel, timeout, done_cb=None, active_cb=None):
         SimpleActionClient.send_goal(self,
                                      SpiralMotionGoal(robot_name, eef_link,
                                                       npoints,
                                                       angle_increment,
                                                       radius_x_max,
                                                       radius_y_max,
-                                                      roll_npoints,
-                                                      roll_max,
                                                       speed, accel, timeout),
                                      done_cb, active_cb)
 
@@ -85,9 +80,7 @@ class SpiralMotion(SimpleActionClient):
                                            goal.npoints,
                                            goal.angle_increment,
                                            goal.radius_x_max,
-                                           goal.radius_y_max,
-                                           goal.roll_npoints,
-                                           goal.roll_max)
+                                           goal.radius_y_max)
         timeout_time = rospy.get_rostime() + goal.timeout
         while goal.timeout <= rospy.Duration() or \
               rospy.get_rostime() < timeout_time:
@@ -107,23 +100,17 @@ class SpiralMotion(SimpleActionClient):
         rospy.logwarn('(SpiralMotion) goal CANCELLED')
 
     def _create_waypoints(self, eef_link, npoints, angle_increment,
-                          radius_x_max, radius_y_max, roll_npoints, roll_max):
+                          radius_x_max, radius_y_max):
         poses = PoseArray()
         poses.header.frame_id = eef_link
 
-        a              = 0.0
-        roll           = 0.0
-        roll_increment = roll_max/roll_npoints
+        a = 0.0
         for n in range(0, npoints + 1):
             rx = n*radius_x_max/npoints
             ry = n*radius_y_max/npoints
             poses.poses.append(Pose(Point(rx*np.cos(a), ry*np.sin(a), 0),
-                                    Quaternion(0, 0, np.sin(roll/2),
-                                               np.cos(roll/2))))
+                                    Quaternion(0, 0, 0, 1)))
             a += np.radians(angle_increment)
-            if (n + roll_npoints) % (2*roll_npoints) == 0:
-                roll_increment = -roll_increment
-            roll += np.radians(roll_increment)
         poses.poses.extend(list(reversed(copy.deepcopy(poses.poses[1:-1]))))
 
         return poses

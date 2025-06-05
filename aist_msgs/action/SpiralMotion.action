@@ -5,8 +5,6 @@ uint32   npoints          # number of waypoints
 float64  angle_increment  # angle increment per point
 float64  radius_x_max     # maximum radius in x-direction
 float64  radius_y_max     # maximum radius in y-direction
-uint32   roll_npoints     # number of points in [0, roll_max)
-float64  roll_max         # roll angle varies within [-roll_max, roll_max]
 float64  speed
 float64  accel
 duration timeout
