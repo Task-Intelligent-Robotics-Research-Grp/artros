@@ -363,17 +363,13 @@ class AISTBaseRoutines(object):
 
         # Fastening tool stuffs
         elif key == 'tighten':
-            tool_name = raw_input('  tool name? ')
-            self.tighten(tool_name, rospy.Duration(-1))
+            self.tighten(self.gripper(robot_name).name, rospy.Duration(-1))
         elif key == 'loosen':
-            tool_name = raw_input('  tool name? ')
-            self.loosen(tool_name, rospy.Duration(-1))
+            self.loosen(self.gripper(robot_name).name, rospy.Duration(-1))
         elif key == 'fseek':
-            tool_name = raw_input('  tool name? ')
-            self.seek(tool_name, rospy.Duration(-1))
+            self.seek(self.gripper(robot_name).name, rospy.Duration(-1))
         elif key == 'fcancel':
-            tool_name = raw_input('  tool name? ')
-            self.cancel_fastening(tool_name)
+            self.cancel_fastening(self.gripper(robot_name).name)
 
         else:
             print('  unknown command! [%s]' % key)

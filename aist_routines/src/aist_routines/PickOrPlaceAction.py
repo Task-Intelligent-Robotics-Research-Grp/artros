@@ -192,10 +192,10 @@ class PickOrPlace(SimpleActionClient):
                     else:
                         fastening_tool = None
                     if gripper.grasp(timeout):
-                        if fastening_tool:
-                            fastening_tool.cancel()
                         routines.cancel_spiral_motion()
                         rospy.sleep(rospy.Duration(0.5))
+                    if fastening_tool:
+                        fastening_tool.cancel()
                 else:
                     gripper.grasp()
                 if object_id != '':

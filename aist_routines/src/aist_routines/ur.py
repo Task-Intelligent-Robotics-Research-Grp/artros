@@ -389,6 +389,7 @@ class URRoutines(AISTBaseRoutines):
         print('  disconnect:  Disconnect dashboard')
         print('  switch:      Switch controller')
         print('  toggle:      Toggle motion control handle')
+        print('  ftreset:     Reset bias of ft-sensor')
 
     def interactive(self, key, robot_name, axis, speed=1.0):
         if key == 'activate':
@@ -415,6 +416,8 @@ class URRoutines(AISTBaseRoutines):
             self._ur_robots[robot_name].switch_controller(controllers[n].name)
         elif key == 'toggle':
             self._ur_robots[robot_name].toggle_control_handle()
+        elif key == 'ftreset':
+            self.ftsensor_reset_bias(robot_name)
         else:
             return super().interactive(key, robot_name, axis, speed)
         return robot_name, axis, speed
@@ -442,6 +445,9 @@ class URRoutines(AISTBaseRoutines):
     def disconnect_dashboard(self):
         for ur_robot in self._ur_robots.values():
             ur_robot._quit()
+
+    def ftsensor_reset_bias(self, robot_name):
+        self._ur_robots[robot_name].ftsensor_reset_bias()
 
     # UR script motions
     def ur_movej(self, robot_name,
