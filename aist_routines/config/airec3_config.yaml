@@ -34,6 +34,5 @@ cameras:
   see3cam_right: AreaCamera
   insta360:      AreaCamera
 
-robot_description:           /robot_description
 moveit_eef_step:             0.01
 moveit_pose_reference_frame: base_footprint

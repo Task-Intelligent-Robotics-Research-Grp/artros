@@ -1,21 +1,14 @@
 <?xml version="1.0" ?>
 <launch>
 
-  <arg name="speed"		default="0.1"/>
-  <arg name="vis"		default="false"/>
+  <arg name="speed"	default="0.1"/>
 
   <!-- Start client -->
   <node ns="torobo" name="airec3_interactive"
 	pkg="aist_routines" type="airec3_interactive.py"
 	clear_params="true" output="screen">
     <rosparam file="$(dirname)/../config/airec3_config.yaml"/>
-    <param name="speed"		value="$(arg speed)"/>
+    <param name="speed"	value="$(arg speed)"/>
   </node>
-
-  <!-- Start rviz -->
-  <include if="$(arg vis)"
-	   file="$(find airec3_moveit_config)/launch/moveit_rviz.launch">
-      <arg name="config"	value="true"/>
-  </include>
 
 </launch>

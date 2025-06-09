@@ -5,22 +5,66 @@
   <arg name="scene"	default=""/>
   <arg name="product"	default="$(optenv PRODUCT aist)"/>
   <arg name="static"	default="true"/>
-  <arg name="snapshot"	default="false" />
+  <arg name="snapshot"	default="false"/>
 
   <!-- GDB functionality -->
-  <arg name="debug"	default="false" />
+  <arg name="debug"	default="false"/>
 
   <!-- Real/Sim switching param -->
   <param name="/sim"	value="$(arg sim)"/>
 
+  <!-- Common -->
+  <include file="$(dirname)/include/airec3_bringup_common.launch">
+    <arg name="scene"		value="$(arg scene)"/>
+    <arg name="sim"		value="$(arg sim)"/>
+    <arg name="product"		value="$(arg product)"/>
+    <arg name="static"		value="$(arg static)"/>
+    <arg name="snapshot"	value="$(arg snapshot)"/>
+  </include>
+
+  <!-- Launch gazebo -->
+  <group if="$(arg sim)">
+    <arg name="gazebo_gui"	default="true"/>
+    <arg name="gazebo_world"	default="$(find torobo_gazebo
+					 )/worlds/ground_plane.world"/>
+    <arg name="paused"		default="false"/>
+    <arg name="verbose"		default="false"/>
+    <include file="$(dirname)/include/torobo_world.launch">
+      <arg name="debug"			value="$(arg debug)"/>
+      <arg name="verbose"		value="$(arg verbose)"/>
+      <arg name="robot_description"	value="airec3_description"/>
+      <arg name="product"		value="$(arg product)"/>
+      <arg name="paused"		value="$(arg paused)"/>
+      <arg name="gui"			value="$(arg gazebo_gui)"/>
+      <arg name="world"			value="$(arg gazebo_world)"/>
+    </include>
+
+    <!-- If 'scene' is not empty, load environment URDF to the parameter
+	 'environment_description' and set it to Gazebo. -->
+    <group unless="$(eval scene == '')">
+      <param name="environment_description"
+	     command="$(find xacro)/xacro '$(find aist_description
+		      )/scenes/urdf/$(arg scene)_environment.urdf.xacro'"/>
+      <node name="environment_spawner" pkg="gazebo_ros" type="spawn_model"
+	    respawn="false" output="screen"
+	    args="-urdf -model environment -param environment_description
+		  -unpause"/>
+    </group>
+
+    <!-- Start rviz -->
+    <include file="$(find airec3_moveit_config)/launch/moveit_rviz.launch">
+      <arg name="config"	value="true"/>
+    </include>
+  </group>
+
   <!-- Launch real robot -->
   <group unless="$(arg sim)">
-    <arg name="log_level"	default="warning" />
+    <arg name="log_level"	default="warning"/>
     <include file="$(find rtt_torobo_hardware_real
 		   )/launch/rtt_torobo_hardware_real.launch">
-      <arg name="debug"		value="$(arg debug)" />
-      <arg name="product"	value="$(arg product)" />
-      <arg name="log_level"	value="$(arg log_level)" />
+      <arg name="debug"		value="$(arg debug)"/>
+      <arg name="product"	value="$(arg product)"/>
+      <arg name="log_level"	value="$(arg log_level)"/>
     </include>
 
     <!-- Non-RT Devices -->
@@ -28,47 +72,7 @@
 	  pkg="torobo_bringup" type="device_spawner" output="screen"
           args="--robot_config=$(find torobo_description
 		)/config/products/$(arg product).yaml
-		--model_dir=$(find torobo_ethercat_description)/config/">
-    </node>
+		--model_dir=$(find torobo_ethercat_description)/config/"/>
   </group>
-
-  <!-- Launch controllers -->
-  <node ns="torobo"
-	name="controller_spawner"
-	pkg="torobo_bringup" type="controller_spawner" output="screen"/>
-
-  <!-- Launch move_group server -->
-  <include ns="torobo"
-	   file="$(find airec3_moveit_config)/launch/move_group.launch">
-    <arg name="product"			value="$(arg product)"/>
-    <arg name="scene"			value="$(arg scene)"/>
-    <arg name="robot_description"	value="robot_description"/>
-  </include>
-  <!-- <node ns="torobo" name="robot_state_publisher" -->
-  <!-- 	pkg="robot_state_publisher" type="robot_state_publisher" -->
-  <!-- 	respawn="true" output="screen"> -->
-  <!--   <param name="robot_description"	value="robot_description"/> -->
-  <!-- </node> -->
-
-  <!-- If static == true, transform from map to odom should be provided
-       by static_transform_publisheer -->
-  <node if="$(arg static)"
-	name="map_to_odom_static_transform_publisher"
-	pkg="tf2_ros" type="static_transform_publisher"
-	args="0 0 0 0 0 0 map odom" />
-
-  <!-- If static == false, transform from map to odom should be provided
-       by localization server -->
-  <group unless="$(arg static)">
-    <!-- Launch localization server here -->
-  </group>
-
-  <!-- Launch move_base server -->
-  <!-- <include ns="torobo" -->
-  <!-- 	   file="$(dirname)/include/move_base.launch"> -->
-  <!--   <arg name="holonomic_robot"	value="true"/> -->
-  <!--   <arg name="base_controller"	value="base_controller"/> -->
-  <!--   <arg name="no_static_map"	value="true"/> -->
-  <!-- </include> -->
 
 </launch>
