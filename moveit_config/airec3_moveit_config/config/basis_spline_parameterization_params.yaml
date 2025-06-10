@@ -1,8 +1,0 @@
-basis_spline_parameterization_param:
-  min_angle_change: 0.25
-  max_duration: 3.0
-  max_jerk_scaling_factor: 1.0
-  weight_duration: 1.0
-  weight_jerk: 0.01
-  ftol: 1.0e-5
-  xtol: 1.0e-20
