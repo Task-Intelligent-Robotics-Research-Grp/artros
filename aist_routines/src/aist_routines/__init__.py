@@ -128,12 +128,6 @@ class AISTBaseRoutines(object):
             self._cameras[camera_name] = CameraClient.create(camera_name,
                                                              props)
 
-        # Fastening tools
-        self._fastening_tools = {}
-        for tool_name, props in rospy.get_param('~fastening_tools', {}).items():
-            self._fastening_tools[tool_name] \
-                = FasteningToolClient.create(tool_name, props)
-
         # Search graspabilities
         if rospy.has_param('~graspability_parameters'):
             from aist_graspability import GraspabilityClient
@@ -213,11 +207,9 @@ class AISTBaseRoutines(object):
         print('  postgrasp:   postgrasp with the current gripper')
         print('  release:     release with the current gripper')
         print('  gpos:        set gripper position')
-        print('=== Fastening tool commands ===')
         print('  tighten:     tighten screw')
         print('  loosen:      loosen screw')
-        print('  fseek:       seek screw')
-        print('  fcancel:     cancel tighten/loosen action')
+        print('  gcancel:     cancel tighten/loosen action')
 
     def interactive(self, key, robot_name, axis, speed=1.0):
         def _is_num(s):
@@ -361,16 +353,12 @@ class AISTBaseRoutines(object):
         elif key == 'gpos':
             position = float(raw_input('  position? '))
             self.set_gripper_position(robot_name, position)
-
-        # Fastening tool stuffs
         elif key == 'tighten':
-            self.tighten(self.gripper(robot_name).name, rospy.Duration(-1))
+            self.tighten(robot_name, rospy.Duration(-1))
         elif key == 'loosen':
-            self.loosen(self.gripper(robot_name).name, rospy.Duration(-1))
-        elif key == 'fseek':
-            self.seek(self.gripper(robot_name).name, rospy.Duration(-1))
-        elif key == 'fcancel':
-            self.cancel_fastening(self.gripper(robot_name).name)
+            self.loosen(robot_name, rospy.Duration(-1))
+        elif key == 'gcancel':
+            self.gripper_cancel(robot_name)
 
         else:
             print('  unknown command! [%s]' % key)
@@ -574,6 +562,15 @@ class AISTBaseRoutines(object):
     def set_gripper_position(self, robot_name, position):
         return self.gripper(robot_name).move(position)
 
+    def tighten(self, robot_name, timeout=rospy.Duration()):
+        self.gripper(robot_name).tighten(timeout)
+
+    def loosen(self, robot_name, timeout=rospy.Duration()):
+        self.gripper(robot_name).loosen(timeout)
+
+    def gripper_cancel(self, robot_name):
+        self.gripper(robot_name).cancel()
+
     # Camera stuffs
     def camera(self, camera_name):
         return self._cameras[camera_name]
@@ -583,22 +580,6 @@ class AISTBaseRoutines(object):
 
     def trigger_frame(self, camera_name):
         return self.camera(camera_name).trigger_frame()
-
-    # Fasteing tool stuffs
-    def fastening_tool(self, tool_name):
-        return self._fastening_tools[tool_name]
-
-    def tighten(self, tool_name, timeout=rospy.Duration()):
-        self.fastening_tool(tool_name).tighten(timeout)
-
-    def loosen(self, tool_name, timeout=rospy.Duration()):
-        self.fastening_tool(tool_name).loosen(timeout)
-
-    def seek(self, tool_name, timeout=rospy.Duration(-1)):
-        self.fastening_tool(tool_name).seek(timeout)
-
-    def cancel_fastening(self, tool_name):
-        self.fastening_tool(tool_name).cancel()
 
     # Marker stuffs
     def delete_all_markers(self):
