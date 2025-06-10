@@ -8,6 +8,9 @@
   <!-- Robot product param -->
   <param name="product" value="$(arg product)"/>
 
+  <!-- Robot product param -->
+  <param name="product" value="$(arg product)"/>
+
   <!-- By default we do not overwrite the URDF. Change the following to true to change the default behavior -->
   <arg name="load_robot_description"	default="false"/>
 

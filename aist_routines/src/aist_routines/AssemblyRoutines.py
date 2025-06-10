@@ -185,6 +185,7 @@ class AssemblyRoutines(URRoutines):
         if self.pick_at_frame(robot_name, tool_name + '/base_link', tool_name):
             return False
         self.set_gripper(robot_name, tool_name)
+        self.ftsensor_reset_bias(robot_name)
         return True
 
     def place_tool(self, robot_name):

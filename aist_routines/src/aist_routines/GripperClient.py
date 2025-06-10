@@ -14,7 +14,7 @@
 #    disclaimer in the documentation and/or other materials provided
 #    with the distribution.
 #  * Neither the name of National Institute of Advanced Industrial
-#    Science and Technology (AIST) nor the names of its contributors
+#    Science and Technolog (AIST) nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
 #
@@ -90,8 +90,8 @@ class GripperClient(object):
         return self._parameters
 
     @parameters.setter
-    def parameters(self, parameters):
-        for key, value in parameters.items():
+    def parameters(self, params):
+        for key, value in params.items():
             self._parameters[key] = value
 
     def pregrasp(self):
@@ -121,7 +121,7 @@ class GripperClient(object):
 class VoidGripper(GripperClient):
     def __init__(self, name, base_link=None, tip_link=None):
         super().__init__(name, 'void', base_link, tip_link)
-        rospy.loginfo('void_gripper initialized with base_link[%s] and tip_link[%s]',
+        rospy.loginfo('(VoidGripper) initialized with base_link[%s] and tip_link[%s]',
                       base_link if base_link else 'None',
                       tip_link if tip_link else 'None')
 
@@ -146,7 +146,7 @@ class GenericGripper(GripperClient):
             rospy.logerr('(GenericGripper) failed to connect to server[%s]',
                          action_ns)
 
-        rospy.loginfo('%s initialized.', action_ns)
+        rospy.loginfo('(GenericGripper) %s initialized.', action_ns)
 
     @staticmethod
     def simulated(name, action_ns, base_link=None, tip_link=None,
@@ -174,8 +174,8 @@ class GenericGripper(GripperClient):
             return False
         if not self._client.wait_for_result(timeout):
             self._client.cancel_goal()
-            rospy.logerr('goal CANCELED because timeout[%.1f] has expired.',
-                         timeout.to_sec())
+            rospy.logwarn('(GenericGripper) goal CANCELED because timeout[%.1f] has expired.',
+                          timeout.to_sec())
             return False
         return self._client.get_result().stalled
 
@@ -305,9 +305,11 @@ class SuctionGripper(GripperClient):
             return False                # return 'False' immediately.
         if not self._client.wait_for_result(timeout):  # If timeout expired...
             self._client.cancel_goal()
-            rospy.logerr('goal CANCELED because timeout[%.1f] has expired.',
-                         timeout.to_sec())
+            rospy.logwarn('(SuctionGripper) goal CANCELED because timeout[%.1f] has expired.',
+                          timeout.to_sec())
             return False
+        rospy.loginfo('(SuctionGripper) %s',
+                      'suctioned' if self._suctioned else 'not suctioned')
         return self._suctioned
 
     def cancel(self):
@@ -325,25 +327,26 @@ class SuctionGripper(GripperClient):
 #  class ScrewTool                                                   #
 ######################################################################
 class ScrewTool(SuctionGripper):
-    def __init__(self, name, controller_ns, screw_controller_ns,
+    def __init__(self, name, controller_ns, fastening_controller_ns,
                  base_link=None, tip_link=None,
                  suck_min_period=0.5, blow_min_period=0.2,
                  speed=1.0, retighten=True, seek_speed=0.2):
         super().__init__(name, controller_ns, base_link, tip_link,
                          suck_min_period, blow_min_period)
-        screw_action_ns = screw_controller_ns + '/command'
-        self._screw_client = SimpleActionClient(screw_action_ns,
-                                                ScrewToolCommandAction)
+        fastening_action_ns = fastening_controller_ns + '/command'
+        self._fastening_client = SimpleActionClient(fastening_action_ns,
+                                                    ScrewToolCommandAction)
         self._parameters.update({'speed': speed, 'retighten': retighten,
                                  'seek_speed': seek_speed})
 
-        if not self._screw_client.wait_for_server(timeout=rospy.Duration(5)):
-            self._screw_client = None
+        if not self._fastening_client.wait_for_server(
+                timeout=rospy.Duration(5)):
+            self._fastening_client = None
             rospy.logerr('(ScrewTool) failed to connect to server[%s]',
-                         screw_action_ns)
+                         fastening_action_ns)
 
     @staticmethod
-    def simulated(name, controller_ns, screw_controller_ns,
+    def simulated(name, controller_ns, fastening_controller_ns,
                   base_link=None, tip_link=None,
                   suck_min_period=0.5, blow_min_period=0.2,
                   speed=1.0, retighten=True, seek_speed=0.2):
@@ -351,38 +354,39 @@ class ScrewTool(SuctionGripper):
                                  suck_min_period, blow_min_period)
 
     def grasp(self, timeout=rospy.Duration(-1)):
-        self._send_screw_command(self._parameters['seek_speed'], False)
+        self._send_fastening_command(self._parameters['seek_speed'], False)
         suctioned = super().grasp(timeout)
-        self._screw_client.cancel_goal()               # Stop seeking
+        self._fastening_client.cancel_goal()               # Stop seeking
         return suctioned
 
     def tighten(self, timeout=rospy.Duration(10)):
-        self._send_screw_command(self._parameters['speed'],
-                                 self._parameters['retighten'])
-        return self._screw_wait(timeout)
+        self._send_fastening_command(self._parameters['speed'],
+                                     self._parameters['retighten'])
+        return self._fastening_wait(timeout)
 
     def loosen(self, timeout=rospy.Duration(10)):
-        self._send_screw_command(-self._parameters['speed'], False, timeout)
-        return self._screw_wait(timeout)
+        self._send_fastening_command(-self._parameters['speed'], False,
+                                     timeout)
+        return self._fastening_wait(timeout)
 
-    def _screw_wait(self, timeout=rospy.Duration(10)):
+    def _fastening_wait(self, timeout=rospy.Duration(10)):
         if timeout < rospy.Duration():
             return False
-        if not self._screw_client.wait_for_result(timeout):
-            self._screw_client.cancel_goal()
+        if not self._fastening_client.wait_for_result(timeout):
+            self._fastening_client.cancel_goal()
             rospy.logerr('goal CANCELED because timeout[%.1f] has expired.',
                          timeout.to_sec())
             return False
-        return self._screw_client.get_state() == GoalStatus.SUCCEEDED
+        return self._fastening_client.get_state() == GoalStatus.SUCCEEDED
 
     def cancel(self):
         super().cancel()
-        if self._screw_client.get_state() in (GoalStatus.PENDING,
-                                              GoalStatus.ACTIVE):
-            self._screw_client.cancel_goal()
+        if self._fastening_client.get_state() in (GoalStatus.PENDING,
+                                                  GoalStatus.ACTIVE):
+            self._fastening_client.cancel_goal()
 
-    def _send_screw_command(self, speed, retighten):
-        self._screw_client.send_goal(ScrewToolCommandGoal(speed, retighten))
+    def _send_fastening_command(self, speed, retighten):
+        self._fastening_client.send_goal(ScrewToolCommandGoal(speed, retighten))
 
 ######################################################################
 #  class Lecp6Gripper                                                #
@@ -417,8 +421,8 @@ class Lecp6Gripper(GripperClient):
             return False
         if not self._client.wait_for_result(rospy.Duration(timeout)):
             self._client.cancel_goal()
-            rospy.logerr('goal CANCELED because timeout[%.1f] has expired.',
-                         timeout.to_sec())
+            rospy.logwarn('(Lecp6Gripper) goal CANCELED because timeout[%.1f] has expired.',
+                          timeout.to_sec())
             return False
         return self._client.get_result().reached_goal
 
@@ -492,8 +496,8 @@ class MagswitchGripper(GripperClient):
             return False
         elif not self._client.wait_for_result(rospy.Duration(timeout)):
             self._client.cancel_goal()
-            rospy.logerr('goal CANCELED because timeout[%.1f] has expired.',
-                         timeout.to_sec())
+            rospy.logwarn('(MagswitchGripper) goal CANCELED because timeout[%.1f] has expired.',
+                          timeout.to_sec())
             return False
         result = self._client.get_result()
         if self._goal.command.calibration_trigger == 1:

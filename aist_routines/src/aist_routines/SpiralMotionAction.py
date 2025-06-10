@@ -58,11 +58,9 @@ class SpiralMotion(SimpleActionClient):
         self.wait_for_server()
 
     # Client stuffs
-    def send_goal(self, robot_name, eef_link='',
-                  npoints=36, angle_increment=30.0,
-                  radius_x_max=0.005, radius_y_max=0.0005,
-                  speed=0.001, accel=1.0, timeout=rospy.Duration(30.0),
-                  done_cb=None, active_cb=None):
+    def send_goal(self, robot_name, eef_link,
+                  npoints, angle_increment, radius_x_max, radius_y_max,
+                  speed, accel, timeout, done_cb=None, active_cb=None):
         SimpleActionClient.send_goal(self,
                                      SpiralMotionGoal(robot_name, eef_link,
                                                       npoints,
@@ -77,7 +75,7 @@ class SpiralMotion(SimpleActionClient):
         self._server.__del__()
 
     def _execute_cb(self, goal):
-        rospy.loginfo('(spiral_motion) goal ACCEPTED')
+        rospy.loginfo('(SpiralMotion) goal ACCEPTED')
         waypoints = self._create_waypoints(goal.eef_link,
                                            goal.npoints,
                                            goal.angle_increment,
@@ -92,14 +90,14 @@ class SpiralMotion(SimpleActionClient):
                                           speed=goal.speed, accel=goal.accel,
                                           end_effector_link=goal.eef_link)
         self._server.set_aborted()
-        rospy.logerr('(spiral_motion) goal ABORTED: timeout[%f]',
+        rospy.logerr('(SpiralMotion) goal ABORTED: timeout[%f]',
                      goal.timeout.to_sec())
 
     def _preempt_cb(self):
         goal = self._server.current_goal.get_goal()
         self._routines.stop(goal.robot_name)
         self._server.set_preempted()
-        rospy.logwarn('(spiral_motion) goal CANCELLED')
+        rospy.logwarn('(SpiralMotion) goal CANCELLED')
 
     def _create_waypoints(self, eef_link, npoints, angle_increment,
                           radius_x_max, radius_y_max):

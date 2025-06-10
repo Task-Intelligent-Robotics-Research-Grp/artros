@@ -38,27 +38,26 @@ import rospy
 import numpy as np
 import moveit_commander
 
-from math                              import degrees, sqrt, pi
-from tf                                import (TransformListener,
-                                               transformations as tfs)
-from std_msgs.msg                      import Header
-from geometry_msgs.msg                 import (PoseStamped, Pose, Point,
-                                               Quaternion, PoseArray,
-                                               Vector3, Vector3Stamped)
-from moveit_msgs.msg                   import (RobotTrajectory,
-                                               PositionIKRequest,
-                                               MoveItErrorCodes)
-from moveit_msgs.srv                   import GetPositionIK
-from trajectory_msgs.msg               import (JointTrajectoryPoint,
-                                               JointTrajectory)
-from aist_routines.GripperClient       import GripperClient, VoidGripper
-from aist_routines.CameraClient        import CameraClient
-from aist_routines.FasteningToolClient import FasteningToolClient
-from aist_routines.MarkerPublisher     import MarkerPublisher
-from aist_routines.PickOrPlaceAction   import PickOrPlace
-from aist_routines.SpiralMotionAction  import SpiralMotion
-from aist_collision_object_manager     import CollisionObjectManagerClient
-from aist_utility.compat               import *
+from math                             import degrees, sqrt, pi
+from tf                               import (TransformListener,
+                                              transformations as tfs)
+from std_msgs.msg                     import Header
+from geometry_msgs.msg                import (PoseStamped, Pose, Point,
+                                              Quaternion, PoseArray,
+                                              Vector3, Vector3Stamped)
+from moveit_msgs.msg                  import (RobotTrajectory,
+                                              PositionIKRequest,
+                                              MoveItErrorCodes)
+from moveit_msgs.srv                  import GetPositionIK
+from trajectory_msgs.msg              import (JointTrajectoryPoint,
+                                              JointTrajectory)
+from aist_routines.GripperClient      import GripperClient, VoidGripper
+from aist_routines.CameraClient       import CameraClient
+from aist_routines.MarkerPublisher    import MarkerPublisher
+from aist_routines.PickOrPlaceAction  import PickOrPlace
+from aist_routines.SpiralMotionAction import SpiralMotion
+from aist_collision_object_manager    import CollisionObjectManagerClient
+from aist_utility.compat              import *
 
 ######################################################################
 #  global functions                                                  #
@@ -217,6 +216,7 @@ class AISTBaseRoutines(object):
         print('=== Fastening tool commands ===')
         print('  tighten:     tighten screw')
         print('  loosen:      loosen screw')
+        print('  fseek:       seek screw')
         print('  fcancel:     cancel tighten/loosen action')
 
     def interactive(self, key, robot_name, axis, speed=1.0):
@@ -364,14 +364,13 @@ class AISTBaseRoutines(object):
 
         # Fastening tool stuffs
         elif key == 'tighten':
-            tool_name = raw_input('  tool name? ')
-            self.tighten(tool_name, rospy.Duration(-1))
+            self.tighten(self.gripper(robot_name).name, rospy.Duration(-1))
         elif key == 'loosen':
-            tool_name = raw_input('  tool name? ')
-            self.loosen(tool_name, rospy.Duration(-1))
+            self.loosen(self.gripper(robot_name).name, rospy.Duration(-1))
+        elif key == 'fseek':
+            self.seek(self.gripper(robot_name).name, rospy.Duration(-1))
         elif key == 'fcancel':
-            tool_name = raw_input('  tool name? ')
-            self.cancel_fastening(tool_name)
+            self.cancel_fastening(self.gripper(robot_name).name)
 
         else:
             print('  unknown command! [%s]' % key)
@@ -595,6 +594,9 @@ class AISTBaseRoutines(object):
     def loosen(self, tool_name, timeout=rospy.Duration()):
         self.fastening_tool(tool_name).loosen(timeout)
 
+    def seek(self, tool_name, timeout=rospy.Duration(-1)):
+        self.fastening_tool(tool_name).seek(timeout)
+
     def cancel_fastening(self, tool_name):
         self.fastening_tool(tool_name).cancel()
 
@@ -748,7 +750,7 @@ class AISTBaseRoutines(object):
     def spiral_motion(self, robot_name, end_effector_link='',
                       npoints=36, angle_increment=30.0,
                       radius_x_max=0.005, radius_y_max=0.0005,
-                      speed=0.001, accel=1.0, timeout=rospy.Duration(30.0)):
+                      speed=0.005, accel=1.0, timeout=rospy.Duration(30.0)):
         if end_effector_link == '':
             end_effector_link = self.gripper(robot_name).tip_link
         self._spiral_motion.send_goal(robot_name, end_effector_link,

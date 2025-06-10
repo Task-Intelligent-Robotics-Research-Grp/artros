@@ -186,6 +186,7 @@ class PickOrPlace(SimpleActionClient):
                         timeout)
                     if gripper.grasp(timeout):
                         routines.cancel_spiral_motion()
+                        rospy.sleep(rospy.Duration(0.5))
                 else:
                     gripper.grasp()
                 if object_id != '':
