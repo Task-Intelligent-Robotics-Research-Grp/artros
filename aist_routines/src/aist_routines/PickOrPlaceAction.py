@@ -184,18 +184,9 @@ class PickOrPlace(SimpleActionClient):
                         gripper.parameters['spiral_speed'],
                         gripper.parameters['spiral_accel'],
                         timeout)
-                    if 'seek_speed' in gripper.parameters:
-                        fastening_tool = routines.fastening_tool(gripper.name)
-                        fastening_tool.parameters \
-                            = {'seek_speed': gripper.parameters['seek_speed']}
-                        fastening_tool.seek()
-                    else:
-                        fastening_tool = None
                     if gripper.grasp(timeout):
                         routines.cancel_spiral_motion()
                         rospy.sleep(rospy.Duration(0.5))
-                    if fastening_tool:
-                        fastening_tool.cancel()
                 else:
                     gripper.grasp()
                 if object_id != '':
