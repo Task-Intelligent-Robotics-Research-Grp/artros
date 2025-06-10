@@ -1,0 +1,38 @@
+robots:
+  left_arm:
+    default_gripper: left_hand
+  right_arm:
+    default_gripper: right_hand
+  head:
+    default_gripper: head
+  torso:
+    default_gripper: torso
+  torso_left_arm:
+    default_gripper: left_hand
+  torso_right_arm:
+    default_gripper: right_hand
+  torso_head:
+    default_gripper: head
+
+grippers:
+  left_hand:
+    type:     VoidGripper
+    tip_link: left_hand/palm_link
+  right_hand:
+    type:     VoidGripper
+    tip_link: right_hand/palm_link
+  torso:
+    type:     VoidGripper
+    tip_link: torso/link_tip
+  head:
+    type:     VoidGripper
+    tip_link: head/link_face_center
+
+cameras:
+  sr300:         CodedLightRealSenseCamera
+  see3cam_left:  AreaCamera
+  see3cam_right: AreaCamera
+  insta360:      AreaCamera
+
+moveit_eef_step:             0.01
+moveit_pose_reference_frame: base_footprint

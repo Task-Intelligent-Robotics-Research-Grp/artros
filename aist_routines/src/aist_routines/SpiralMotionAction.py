@@ -37,34 +37,32 @@ import rospy, copy, numpy as np
 from actionlib          import SimpleActionServer, SimpleActionClient
 from actionlib_msgs.msg import GoalStatus
 from geometry_msgs.msg  import PoseArray, Pose, Point, Quaternion
-from aist_msgs.msg      import (SpiralSearchAction, SpiralSearchGoal,
-                                SpiralSearchResult, SpiralSearchFeedback)
+from aist_msgs.msg      import (SpiralMotionAction, SpiralMotionGoal,
+                                SpiralMotionResult, SpiralMotionFeedback)
 from tf                 import transformations as tfs
 
 ######################################################################
-#  class SpiralSearch                                                #
+#  class SpiralMotion                                                #
 ######################################################################
-class SpiralSearch(SimpleActionClient):
+class SpiralMotion(SimpleActionClient):
     def __init__(self, routines):
-        SimpleActionClient.__init__(self, 'spiral_search', SpiralSearchAction)
+        SimpleActionClient.__init__(self, 'spiral_motion', SpiralMotionAction)
 
         self._routines = routines
         self._success  = False
-        self._server   = SimpleActionServer('spiral_search',
-                                            SpiralSearchAction,
+        self._server   = SimpleActionServer('spiral_motion',
+                                            SpiralMotionAction,
                                             self._execute_cb, False)
         self._server.register_preempt_callback(self._preempt_cb)
         self._server.start()
         self.wait_for_server()
 
     # Client stuffs
-    def send_goal(self, robot_name, eef_link='',
-                  npoints=36, angle_increment=30.0,
-                  radius_y_max=0.002, radius_x_max=0.005,
-                  speed=0.005, accel=1.0, timeout=rospy.Duration(60.0),
-                  done_cb=None, active_cb=None):
+    def send_goal(self, robot_name, eef_link,
+                  npoints, angle_increment, radius_x_max, radius_y_max,
+                  speed, accel, timeout, done_cb=None, active_cb=None):
         SimpleActionClient.send_goal(self,
-                                     SpiralSearchGoal(robot_name, eef_link,
+                                     SpiralMotionGoal(robot_name, eef_link,
                                                       npoints,
                                                       angle_increment,
                                                       radius_x_max,
@@ -72,20 +70,13 @@ class SpiralSearch(SimpleActionClient):
                                                       speed, accel, timeout),
                                      done_cb, active_cb)
 
-    def notify_success(self):
-        self._success = True
-        self.cancel_goal()
-
     # Server stuffs
     def shutdown(self):
         self._server.__del__()
 
     def _execute_cb(self, goal):
-        rospy.loginfo('(spiral_search) goal ACCEPTED')
-        eef_link = goal.eef_link
-        if eef_link == '':
-            eef_link = self._routines.gripper(goal.robot_name).tip_link
-        waypoints = self._create_waypoints(eef_link,
+        rospy.loginfo('(SpiralMotion) goal ACCEPTED')
+        waypoints = self._create_waypoints(goal.eef_link,
                                            goal.npoints,
                                            goal.angle_increment,
                                            goal.radius_x_max,
@@ -97,20 +88,16 @@ class SpiralSearch(SimpleActionClient):
                 return
             self._routines.go_along_poses(goal.robot_name, waypoints,
                                           speed=goal.speed, accel=goal.accel,
-                                          end_effector_link=eef_link)
+                                          end_effector_link=goal.eef_link)
         self._server.set_aborted()
-        rospy.logerr('(spiral_search) goal ABORTED: timeout[%f]',
-                     goal.timeout_time.to_sec())
+        rospy.logerr('(SpiralMotion) goal ABORTED: timeout[%f]',
+                     goal.timeout.to_sec())
 
     def _preempt_cb(self):
         goal = self._server.current_goal.get_goal()
         self._routines.stop(goal.robot_name)
-        if self._success:
-            self._server.set_succeeded()
-            rospy.logwarn('(spiral_search) goal SUCCEEDED')
-        else:
-            self._server.set_preempted()
-            rospy.logwarn('(spiral_search) goal CANCELLED')
+        self._server.set_preempted()
+        rospy.logwarn('(SpiralMotion) goal CANCELLED')
 
     def _create_waypoints(self, eef_link, npoints, angle_increment,
                           radius_x_max, radius_y_max):

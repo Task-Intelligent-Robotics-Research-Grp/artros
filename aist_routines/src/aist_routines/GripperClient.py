@@ -14,7 +14,7 @@
 #    disclaimer in the documentation and/or other materials provided
 #    with the distribution.
 #  * Neither the name of National Institute of Advanced Industrial
-#    Science and Technology (AIST) nor the names of its contributors
+#    Science and Technolog (AIST) nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
 #
@@ -40,7 +40,9 @@ from numpy                    import clip
 from control_msgs.msg         import (GripperCommand, GripperCommandAction,
                                       GripperCommandGoal)
 from aist_fastening_tools.msg import (SuctionToolCommandAction,
-                                      SuctionToolCommandGoal)
+                                      SuctionToolCommandGoal,
+                                      ScrewToolCommandAction,
+                                      ScrewToolCommandGoal)
 from std_msgs.msg             import Bool
 
 
@@ -88,8 +90,8 @@ class GripperClient(object):
         return self._parameters
 
     @parameters.setter
-    def parameters(self, parameters):
-        for key, value in parameters.items():
+    def parameters(self, params):
+        for key, value in params.items():
             self._parameters[key] = value
 
     def pregrasp(self):
@@ -117,13 +119,15 @@ class GripperClient(object):
 #  class VoidGripper                                                 #
 ######################################################################
 class VoidGripper(GripperClient):
-    def __init__(self, name):
-        super().__init__(name, 'void')
-        rospy.loginfo('void_gripper initialized.')
+    def __init__(self, name, base_link=None, tip_link=None):
+        super().__init__(name, 'void', base_link, tip_link)
+        rospy.loginfo('(VoidGripper) initialized with base_link[%s] and tip_link[%s]',
+                      base_link if base_link else 'None',
+                      tip_link if tip_link else 'None')
 
     @staticmethod
-    def simulated(name):
-        return VoidGripper(name)
+    def simulated(name, base_link=None, tip_link=None):
+        return VoidGripper(name, base_link, tip_link)
 
 ######################################################################
 #  class GenericGripper                                              #
@@ -142,7 +146,7 @@ class GenericGripper(GripperClient):
             rospy.logerr('(GenericGripper) failed to connect to server[%s]',
                          action_ns)
 
-        rospy.loginfo('%s initialized.', action_ns)
+        rospy.loginfo('(GenericGripper) %s initialized.', action_ns)
 
     @staticmethod
     def simulated(name, action_ns, base_link=None, tip_link=None,
@@ -170,8 +174,8 @@ class GenericGripper(GripperClient):
             return False
         if not self._client.wait_for_result(timeout):
             self._client.cancel_goal()
-            rospy.logerr('goal CANCELED because timeout[%.1f] has expired.',
-                         timeout.to_sec())
+            rospy.logwarn('(GenericGripper) goal CANCELED because timeout[%.1f] has expired.',
+                          timeout.to_sec())
             return False
         return self._client.get_result().stalled
 
@@ -281,9 +285,11 @@ class SuctionGripper(GripperClient):
         # Set goal.min_period to zero so that the goal succeeds immediately.
         self._send_command(True, rospy.Duration(0), rospy.Duration(-1))
 
-    def grasp(self, timeout=rospy.Duration()):
-        rospy.sleep(0.5)
-        return self._send_command(True, rospy.Duration(0), rospy.Duration(-1))
+    def grasp(self, timeout=rospy.Duration(-1)):
+        return self._send_command(True,
+                                  rospy.Duration(
+                                      self._parameters['suck_min_period']),
+                                  timeout)
 
     def postgrasp(self):
         self.pregrasp()
@@ -295,25 +301,92 @@ class SuctionGripper(GripperClient):
                                   timeout)
 
     def wait(self, timeout=rospy.Duration()):
-        if timeout < rospy.Duration():
-            return False
-        if not self._client.wait_for_result(timeout):
+        if timeout < rospy.Duration():  # If timeout value is negative...
+            return False                # return 'False' immediately.
+        if not self._client.wait_for_result(timeout):  # If timeout expired...
             self._client.cancel_goal()
-            rospy.logerr('goal CANCELED because timeout[%.1f] has expired.',
-                         timeout.to_sec())
+            rospy.logwarn('(SuctionGripper) goal CANCELED because timeout[%.1f] has expired.',
+                          timeout.to_sec())
             return False
+        rospy.loginfo('(SuctionGripper) %s',
+                      'suctioned' if self._suctioned else 'not suctioned')
         return self._suctioned
 
     def cancel(self):
         if self._client.get_state() in (GoalStatus.PENDING, GoalStatus.ACTIVE):
             self._client.cancel_goal()
 
-    def _send_command(self, suck, min_period, timeout=rospy.Duration()):
+    def _send_command(self, suck, min_period, timeout):
         self._client.send_goal(SuctionToolCommandGoal(suck, min_period))
         return self.wait(timeout)
 
     def _state_cb(self, msg):
         self._suctioned = msg.data
+
+######################################################################
+#  class ScrewTool                                                   #
+######################################################################
+class ScrewTool(SuctionGripper):
+    def __init__(self, name, controller_ns, fastening_controller_ns,
+                 base_link=None, tip_link=None,
+                 suck_min_period=0.5, blow_min_period=0.2,
+                 speed=1.0, retighten=True, seek_speed=0.2):
+        super().__init__(name, controller_ns, base_link, tip_link,
+                         suck_min_period, blow_min_period)
+        fastening_action_ns = fastening_controller_ns + '/command'
+        self._fastening_client = SimpleActionClient(fastening_action_ns,
+                                                    ScrewToolCommandAction)
+        self._parameters.update({'speed': speed, 'retighten': retighten,
+                                 'seek_speed': seek_speed})
+
+        if not self._fastening_client.wait_for_server(
+                timeout=rospy.Duration(5)):
+            self._fastening_client = None
+            rospy.logerr('(ScrewTool) failed to connect to server[%s]',
+                         fastening_action_ns)
+
+    @staticmethod
+    def simulated(name, controller_ns, fastening_controller_ns,
+                  base_link=None, tip_link=None,
+                  suck_min_period=0.5, blow_min_period=0.2,
+                  speed=1.0, retighten=True, seek_speed=0.2):
+        return super().simulated(name, controller_ns, base_link, tip_link,
+                                 suck_min_period, blow_min_period)
+
+    def grasp(self, timeout=rospy.Duration(-1)):
+        self._send_fastening_command(self._parameters['seek_speed'], False)
+        suctioned = super().grasp(timeout)
+        self._fastening_client.cancel_goal()               # Stop seeking
+        return suctioned
+
+    def tighten(self, timeout=rospy.Duration(10)):
+        self._send_fastening_command(self._parameters['speed'],
+                                     self._parameters['retighten'])
+        return self._fastening_wait(timeout)
+
+    def loosen(self, timeout=rospy.Duration(10)):
+        self._send_fastening_command(-self._parameters['speed'], False,
+                                     timeout)
+        return self._fastening_wait(timeout)
+
+    def _fastening_wait(self, timeout=rospy.Duration(10)):
+        if timeout < rospy.Duration():
+            return False
+        if not self._fastening_client.wait_for_result(timeout):
+            self._fastening_client.cancel_goal()
+            rospy.logerr('goal CANCELED because timeout[%.1f] has expired.',
+                         timeout.to_sec())
+            return False
+        return self._fastening_client.get_state() == GoalStatus.SUCCEEDED
+
+    def cancel(self):
+        super().cancel()
+        if self._fastening_client.get_state() in (GoalStatus.PENDING,
+                                                  GoalStatus.ACTIVE):
+            self._fastening_client.cancel_goal()
+
+    def _send_fastening_command(self, speed, retighten):
+        self._fastening_client.send_goal(ScrewToolCommandGoal(speed, retighten))
 
 ######################################################################
 #  class Lecp6Gripper                                                #
@@ -348,8 +421,8 @@ class Lecp6Gripper(GripperClient):
             return False
         if not self._client.wait_for_result(rospy.Duration(timeout)):
             self._client.cancel_goal()
-            rospy.logerr('goal CANCELED because timeout[%.1f] has expired.',
-                         timeout.to_sec())
+            rospy.logwarn('(Lecp6Gripper) goal CANCELED because timeout[%.1f] has expired.',
+                          timeout.to_sec())
             return False
         return self._client.get_result().reached_goal
 
@@ -423,8 +496,8 @@ class MagswitchGripper(GripperClient):
             return False
         elif not self._client.wait_for_result(rospy.Duration(timeout)):
             self._client.cancel_goal()
-            rospy.logerr('goal CANCELED because timeout[%.1f] has expired.',
-                         timeout.to_sec())
+            rospy.logwarn('(MagswitchGripper) goal CANCELED because timeout[%.1f] has expired.',
+                          timeout.to_sec())
             return False
         result = self._client.get_result()
         if self._goal.command.calibration_trigger == 1:

@@ -172,7 +172,23 @@ class PickOrPlace(SimpleActionClient):
             self._publish_feedback(PickOrPlaceFeedback.GRASPING_OR_RELEASING,
                                    'Pick' if goal.pick else 'Place')
             if goal.pick:
-                gripper.grasp()
+                if 'spiral_npoints' in gripper.parameters:
+                    timeout = rospy.Duration(
+                                  gripper.parameters['spiral_timeout'])
+                    routines.spiral_motion(
+                        goal.robot_name, gripper.tip_link,
+                        gripper.parameters['spiral_npoints'],
+                        gripper.parameters['spiral_angle_increment'],
+                        gripper.parameters['spiral_radius_x_max'],
+                        gripper.parameters['spiral_radius_y_max'],
+                        gripper.parameters['spiral_speed'],
+                        gripper.parameters['spiral_accel'],
+                        timeout)
+                    if gripper.grasp(timeout):
+                        routines.cancel_spiral_motion()
+                        rospy.sleep(rospy.Duration(0.5))
+                else:
+                    gripper.grasp()
                 if object_id != '':
                     original_object_info = com.attach_object(object_id,
                                                              gripper.tip_link)

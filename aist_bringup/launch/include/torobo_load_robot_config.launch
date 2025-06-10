@@ -1,0 +1,89 @@
+<launch>
+
+  <arg name="robot_description"	default="robot_description"/>
+  <arg name="product"		default="$(optenv PRODUCT default)"/>
+  <arg name="sim"		default="true"/>
+  <arg name="config_dir"	default="$(optenv TR_CONFIG_DIR /tmp/)"/>
+
+  <!-- Robot product param -->
+  <param name="product"	value="$(arg product)"/>
+
+  <!-- load rosparam -->
+  <rosparam param="robot_config"
+	    file="$(find torobo_description
+		  )/config/products/$(arg product).yaml"/>
+
+  <!-- static_transform_publisher -->
+  <node name="world_to_map" pkg="tf2_ros" type="static_transform_publisher"
+	args="0 0 0 0 0 0 world map" />
+
+  <!-- load robot description URDF -->
+  <param name="$(arg robot_description)"
+	 command="$(find torobo_description)/scripts/cached_xacro
+		  '$(find torobo_description)/urdf/load_robot.urdf.xacro'
+		  path:=$(find torobo_description
+		  )/config/products/$(arg product).yaml
+		  sim:=$(arg sim)" />
+
+  <!-- The semantic description SRDF -->
+  <!-- In order to switch yaml, python code is in param's command.
+       The launching sequence works synchronously with this
+       param tag's command. -->
+  <param name="/dummy"
+	 command="$(find torobo_description)/scripts/load_srdf
+		  --model_dir=$(find torobo_description)/config/models
+		  --srdf=torobo.srdf
+		  --robot_config=$(find torobo_description
+		  )/config/products/$(arg product).yaml
+		  --kinematics_yaml=$(find torobo_moveit_config)/config/kinematics.yaml
+		  --dump_file=$(arg config_dir)/torobo.srdf"/>
+  <param name="$(arg robot_description)_semantic"
+	 textfile="$(arg config_dir)/torobo.srdf" />
+
+  <!-- load controllers_config -->
+  <param name="/dummy"
+	 command="$(find torobo_description)/scripts/load_controllers_config
+		  --model_dir=$(find torobo_description)/config/models
+		  --yaml=controllers.yaml
+		  --robot_config=$(find torobo_description
+		  )/config/products/$(arg product).yaml
+		  --dump_file=$(arg config_dir
+		  )/torobo_rosparam_controllers_config.yaml"/>
+  <rosparam file="$(arg config_dir)/torobo_rosparam_controllers_config.yaml"/>
+
+  <!-- load model_config -->
+  <param name="/dummy"
+	 command="$(find torobo_description)/scripts/load_model_config
+		  --model_dir=$(find torobo_description)/config/models
+		  --yaml=models.yaml
+		  --robot_config=$(find torobo_description
+		  )/config/products/$(arg product).yaml
+		  --dump_file=$(arg config_dir
+		  )/torobo_rosparam_model_config.yaml"/>
+  <rosparam file="$(arg config_dir)/torobo_rosparam_model_config.yaml"/>
+
+  <!-- load pid_controllers_config -->
+  <param name="/dummy"
+	 command="$(find torobo_description
+		  )/scripts/load_pid_controllers_config
+		  --model_dir=$(find torobo_description)/config/models
+		  --yaml=pid_controllers.yaml
+		  --robot_config=$(find torobo_description
+		  )/config/products/$(arg product).yaml
+		  --dump_file=$(arg config_dir
+		  )/torobo_rosparam_pid_controllers_config.yaml"/>
+  <rosparam file="$(arg config_dir
+		  )/torobo_rosparam_pid_controllers_config.yaml" />
+
+  <!-- load common_config -->
+  <param name="/dummy"
+	 command="$(find torobo_description)/scripts/load_common_config
+		  --model_dir=$(find torobo_description)/config/models
+		  --yaml=common.yaml
+		  --robot_config=$(find torobo_description
+		  )/config/products/$(arg product).yaml
+		  --dump_file=$(arg config_dir
+		  )/torobo_rosparam_common_config.yaml"/>
+  <rosparam file="$(arg config_dir)/torobo_rosparam_common_config.yaml"/>
+
+</launch>

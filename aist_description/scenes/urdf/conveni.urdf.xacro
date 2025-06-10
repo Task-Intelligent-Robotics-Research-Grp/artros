@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="conveni">
+
+  <xacro:property name="cabinet_x"		value="0.500"/>
+  <xacro:property name="cabinet_y"		value="0.000"/>
+  <xacro:property name="cabinet_width"		value="0.925"/>
+  <xacro:property name="cabinet_length"		value="0.420"/>
+  <xacro:property name="cabinet_base_height"	value="0.180"/>
+  <xacro:property name="cabinet_shelf1_height"	value="0.443"/>
+  <xacro:property name="cabinet_shelf2_height"	value="0.743"/>
+  <xacro:property name="cabinet_back_height"	value="1.711"/>
+
+  <!-- Root frame -->
+  <link name="ground"/>
+
+  <!-- Cabinet -->
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/cabinet.urdf.xacro"/>
+  <xacro:cabinet prefix="a_"
+		 width="${cabinet_width}"
+		 length="${cabinet_length}"
+		 base_height="${cabinet_base_height}"
+		 shelf1_height="${cabinet_shelf1_height}"
+		 shelf2_height="${cabinet_shelf2_height}"
+		 back_height="${cabinet_back_height}" parent="ground">
+    <origin xyz="${cabinet_x} ${cabinet_y + cabinet_width/2} 0"
+	    rpy="0 0 ${-pi/2}"/>
+  </xacro:cabinet>
+
+  <!-- AR markers -->
+  <xacro:include filename="$(find aist_aruco_ros)/urdf/ar_marker.urdf.xacro"/>
+  <xacro:ar_marker prefix="a_cabinet_" parent="a_cabinet_shelf2_origin"
+		   marker_id="100_101_102_103" width="0.150" height="0.150"
+		   margin="0.005" thickness="0.001">
+    <origin xyz="${cabinet_width/2} 0.080 0.001" rpy="0 0 0"/>
+  </xacro:ar_marker>
+
+  <!-- Stand points -->
+  <link name="left_standpoint"/>
+  <joint name="left_standpoint_joint" type="fixed">
+    <parent link="ground"/>
+    <child  link="left_standpoint"/>
+    <origin xyz="${cabinet_x - 0.7} ${cabinet_y + cabinet_width/2 + 0.4} 0"
+	    rpy="0 0 ${-pi/6}"/>
+  </joint>
+
+  <link name="right_standpoint"/>
+  <joint name="right_standpoint_joint" type="fixed">
+    <parent link="ground"/>
+    <child  link="right_standpoint"/>
+    <origin xyz="${cabinet_x - 0.7} ${cabinet_y - cabinet_width/2 - 0.4} 0"
+	    rpy="0 0 ${pi/6}"/>
+  </joint>
+
+</robot>

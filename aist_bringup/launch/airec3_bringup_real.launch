@@ -1,0 +1,37 @@
+<launch>
+
+    <arg name="product"		default="$(optenv PRODUCT default)"/>
+    <arg name="static"		default="true"/>
+    <arg name="moveit"		default="true"/>
+    <arg name="snapshot"	default="true" />
+
+    <!-- GDB functionality -->
+    <arg name="debug"		default="false" />
+
+    <!-- Common -->
+    <include file="$(dirname)/include/airec3_bringup_common.launch">
+      <arg name="sim"		value="false"/>
+      <arg name="product"	value="$(arg product)" />
+      <arg name="moveit"	value="$(arg moveit)"/>
+      <arg name="static"	value="$(arg static)"/>
+      <arg name="snapshot"	value="$(arg snapshot)"/>
+    </include>
+
+    <!-- Load hardware interface -->
+    <arg name="log_level"	default="warning"/>
+    <include file="$(find rtt_torobo_hardware_real
+		   )/launch/rtt_torobo_hardware_real.launch">
+      <arg name="debug"		value="$(arg debug)" />
+      <arg name="product"	value="$(arg product)" />
+      <arg name="log_level"	value="$(arg log_level)" />
+    </include>
+
+    <!-- Non-RT Devices -->
+    <node ns="torobo" name="device_spawner"
+	  pkg="torobo_bringup" type="device_spawner" output="screen"
+          args="--robot_config=$(find torobo_description
+		)/config/products/$(arg product).yaml
+		--model_dir=$(find torobo_ethercat_description)/config/">
+    </node>
+
+</launch>

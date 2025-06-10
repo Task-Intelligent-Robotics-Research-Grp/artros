@@ -1,0 +1,60 @@
+<launch>
+
+  <arg name="load_robot_description"	default="false"/>
+  <arg name="robot_description"		default="robot_description"/>
+  <arg name="product"			default="$(optenv PRODUCT default)"/>
+  <arg name="sim"			default="true"/>
+
+  <!-- By default, run in simulation mode -->
+  <arg name="sim_in_moveit"	default="true" />
+  <!-- By default, we do not start a database (it can be large) -->
+  <arg name="db"		default="false" />
+  <!-- Allow user to specify database location -->
+  <arg name="db_path"		default="$(find torobo_moveit_config
+					 )/default_warehouse_mongo_db"/>
+
+  <arg name="use_gui"		default="false" />
+
+  <!-- By default, we are not in debug mode -->
+  <arg name="debug"		default="false" />
+
+
+  <!-- Publish fake joint states if we do not have a robot connected -->
+  <!-- Fake Joint -->
+  <!-- We do not have a robot connected, so publish fake joint states -->
+  <node if="$(arg sim_in_moveit)"
+	name="joint_state_publisher"
+	pkg="joint_state_publisher" type="joint_state_publisher">
+    <param name="/use_gui"	value="$(arg use_gui)"/>
+    <rosparam param="/source_list">[/move_group/fake_controller_joint_states]</rosparam>
+  </node>
+
+  <!-- Given the published joint states, publish tf for the robot links -->
+  <node name="my_robot_state_publisher"
+	pkg="my_robot_state_publisher" type="my_robot_state_publisher"
+	respawn="true" output="screen">
+    <param name="robot_description"	value="$(arg robot_description)"/>
+    <remap unless="$(arg sim_in_moveit)"
+	   from="joint_states"	to="joint_states_low_rate"/>
+  </node>
+
+  <!-- Run the main MoveIt executable without trajectory execution (we do not have controllers configured by default) -->
+  <include file="$(dirname)/torobo_move_group.launch">
+    <arg name="load_robot_description"	value="$(arg load_robot_description)"/>
+    <arg name="robot_description"	value="$(arg robot_description)"/>
+    <arg name="product"			value="$(arg product)"/>
+    <arg name="sim"			value="$(arg sim)"/>
+    <arg name="allow_trajectory_execution"	value="true"/>
+    <arg name="fake_execution"		value="$(arg sim_in_moveit)"/>
+    <arg name="info"			value="true"/>
+    <arg name="debug"			value="$(arg debug)"/>
+  </include>
+
+  <!-- If database loading was enabled, start mongodb as well -->
+  <include if="$(arg db)"
+	   file="$(find torobo_moveit_config
+		 )/launch/default_warehouse_db.launch">
+    <arg name="moveit_warehouse_database_path" value="$(arg db_path)"/>
+  </include>
+
+</launch>

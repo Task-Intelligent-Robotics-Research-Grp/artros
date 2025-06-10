@@ -1,0 +1,129 @@
+<launch>
+
+  <arg name="scene"		default=""/>
+  <arg name="product"		default="$(optenv PRODUCT aist)"/>
+  <arg name="sim"		default="false"/>
+  <arg name="robot_description"	default="robot_description"/>
+  <arg name="pipeline"		default="ompl" />
+
+  <include file="$(dirname)/planning_context.launch">
+    <arg name="scene"			value="$(arg scene)"/>
+    <arg name="product"			value="$(arg product)"/>
+    <arg name="sim"			value="$(arg sim)"/>
+    <arg name="load_robot_description"	value="true"/>
+    <arg name="robot_description"	value="$(arg robot_description)"/>
+  </include>
+
+  <!-- GDB Debug Option -->
+  <arg name="debug" default="false" />
+  <arg unless="$(arg debug)" name="launch_prefix" value="" />
+  <arg     if="$(arg debug)" name="launch_prefix"
+	   value="gdb -x $(dirname)/gdb_settings.gdb --ex run --args" />
+
+  <!-- Verbose Mode Option -->
+  <arg name="info" default="$(arg debug)" />
+  <arg unless="$(arg info)" name="command_args" value="" />
+  <arg     if="$(arg info)" name="command_args" value="--debug" />
+
+  <!-- move_group settings -->
+  <arg name="allow_trajectory_execution"	default="true"/>
+  <arg name="fake_execution"			default="false"/>
+  <arg name="max_safe_path_cost"		default="1"/>
+  <arg name="jiggle_fraction"			default="0.05" />
+  <arg name="publish_monitored_planning_scene"	default="true"/>
+  <!-- define capabilites that are loaded on start (space seperated) -->
+  <arg name="capabilities"			default=""/>
+  <!-- inhibit capabilites (space seperated) -->
+  <arg name="disable_capabilities"		default=""/>
+
+  <!-- Planning Pipelines -->
+  <group ns="move_group/planning_pipelines">
+    <include ns="$(arg pipeline)"
+	     file="$(dirname)/planning_pipeline.launch.xml">
+      <arg name="product"	value="$(arg product)"/>
+      <arg name="pipeline"	value="$(arg pipeline)" />
+    </include>
+  </group>
+  <include ns="move_group" file="$(dirname)/planning_pipeline.launch.xml">
+    <arg name="product"		value="$(arg product)"/>
+    <arg name="pipeline"	value="$(arg pipeline)" />
+  </include>
+
+  <!-- Trajectory Execution Functionality -->
+  <include if="$(arg allow_trajectory_execution)"
+	   ns="move_group" file="$(dirname)/trajectory_execution.launch.xml">
+    <arg name="product"				value="$(arg product)"/>
+    <arg name="moveit_manage_controllers"	value="true" />
+    <arg unless="$(arg fake_execution)"
+	 name="moveit_controller_manager"	value="torobo"/>
+    <arg if="$(arg fake_execution)"
+	 name="moveit_controller_manager"	value="fake"/>
+  </include>
+
+  <!-- Sensors Functionality -->
+  <include if="$(arg allow_trajectory_execution)"
+	   ns="move_group" file="$(dirname)/sensor_manager.launch.xml">
+    <arg name="moveit_sensor_manager" value="airec3_base_scene" />
+  </include>
+
+  <!-- moveit cartesian service transformer -->
+  <node name="moveit_cartesian_service_transformer"
+	pkg="torobo_moveit_config" type="moveit_cartesian_service_transformer"
+        respawn="false" output="screen">
+    <param name="robot_frame" value="base_footprint"/>
+  </node>
+
+  <!-- TF service server -->
+  <node name="tf_service"
+	pkg="tf_service" type="server" output="screen"
+	args="--num_threads=8 --max_timeout=100.0" />
+
+  <!-- Start the actual move_group node/action server -->
+  <node name="move_group" launch-prefix="$(arg launch_prefix)"
+	pkg="moveit_ros_move_group" type="move_group"
+	respawn="false" output="screen" args="$(arg command_args)">
+    <!-- Set the display variable, in case OpenGL code is used internally -->
+    <env name="DISPLAY" value="$(optenv DISPLAY :0)" />
+
+    <param name="allow_trajectory_execution"
+	   value="$(arg allow_trajectory_execution)"/>
+    <param name="max_safe_path_cost"	value="$(arg max_safe_path_cost)"/>
+    <param name="jiggle_fraction"	value="$(arg jiggle_fraction)" />
+    <param name="default_planning_pipeline"
+	   value="$(arg pipeline)" />
+    <param name="capabilities"		value="$(arg capabilities)"/>
+    <param name="disable_capabilities"	value="$(arg disable_capabilities)"/>
+
+    <remap unless="$(arg fake_execution)"
+	   from="joint_states"		 to="joint_states_low_rate"/>
+    <remap from="compute_cartesian_path" to="moveit_compute_cartesian_path"/>
+    <remap from="compute_ik"		 to="moveit_compute_ik"/>
+
+    <!-- load these non-default MoveGroup capabilities -->
+    <!--
+    <param name="capabilities" value="
+                  a_package/AwsomeMotionPlanningCapability
+                  another_package/GraspPlanningPipeline
+                  " />
+    -->
+
+    <!-- inhibit these default MoveGroup capabilities -->
+    <!--
+    <param name="disable_capabilities" value="
+                  move_group/MoveGroupKinematicsService
+                  move_group/ClearOctomapService
+                  " />
+    -->
+
+    <!-- Publish the planning scene of the physical robot so that rviz plugin can know actual robot -->
+    <param name="planning_scene_monitor/publish_planning_scene"
+	   value="$(arg publish_monitored_planning_scene)" />
+    <param name="planning_scene_monitor/publish_geometry_updates"
+	   value="$(arg publish_monitored_planning_scene)" />
+    <param name="planning_scene_monitor/publish_state_updates"
+	   value="$(arg publish_monitored_planning_scene)" />
+    <param name="planning_scene_monitor/publish_transforms_updates"
+	   value="$(arg publish_monitored_planning_scene)" />
+  </node>
+
+</launch>

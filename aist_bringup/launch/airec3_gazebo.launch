@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="scene"		default=""/>
+  <arg name="product"		default="$(optenv PRODUCT aist)"/>
+  <arg name="config_dir"	default="$(optenv TR_CONFIG_DIR /tmp/)"/>
+
+  <param name="/sim"	value="true"/>
+  
+  <!-- GDB functionality -->
+  <arg name="debug"	default="false" />
+
+  <!-- Simulation with gazebo -->
+  <arg name="gazebo_gui"	default="true"/>
+  <arg name="gazebo_world"	default="$(find torobo_gazebo
+					 )/worlds/ground_plane.world"/>
+  <arg name="paused"		default="false"/>
+  <arg name="verbose"		default="false"/>
+  <include file="$(dirname)/include/torobo_world.launch">
+    <arg name="debug"			value="$(arg debug)"/>
+    <arg name="verbose"			value="$(arg verbose)"/>
+    <arg name="robot_description"	value="airec3_description"/>
+    <arg name="product"			value="$(arg product)"/>
+    <arg name="paused"			value="$(arg paused)"/>
+    <arg name="gui"			value="$(arg gazebo_gui)"/>
+    <arg name="world"			value="$(arg gazebo_world)"/>
+  </include>
+
+  <!-- If 'scene' is not empty, load environment URDF to the parameter
+       'environment_description' and set it to Gazebo. -->
+  <group unless="$(eval scene == '')">
+    <param name="environment_description"
+	   command="$(find xacro)/xacro '$(find aist_description
+		    )/scenes/urdf/$(arg scene)_environment.urdf.xacro'"/>
+    <node name="environment_spawner" pkg="gazebo_ros" type="spawn_model"
+	  respawn="false" output="screen"
+	  args="-urdf -model environment -param environment_description
+		-unpause"/>
+  </group>
+
+  <!-- Start rviz -->
+  <include file="$(find airec3_moveit_config)/launch/moveit_rviz.launch">
+    <arg name="config"	value="true"/>
+  </include>
+
+  <!-- Robot product param -->
+  <param name="torobo/product" value="$(arg product)"/>
+  
+</launch>

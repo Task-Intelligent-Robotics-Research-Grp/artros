@@ -38,26 +38,26 @@ import rospy
 import numpy as np
 import moveit_commander
 
-from math                              import degrees, sqrt, pi
-from tf                                import (TransformListener,
-                                               transformations as tfs)
-from std_msgs.msg                      import Header
-from geometry_msgs.msg                 import (PoseStamped, Pose, Point,
-                                               Quaternion, PoseArray,
-                                               Vector3, Vector3Stamped)
-from moveit_msgs.msg                   import (RobotTrajectory,
-                                               PositionIKRequest,
-                                               MoveItErrorCodes)
-from moveit_msgs.srv                   import GetPositionIK
-from trajectory_msgs.msg               import (JointTrajectoryPoint,
-                                               JointTrajectory)
-from aist_routines.GripperClient       import GripperClient, VoidGripper
-from aist_routines.CameraClient        import CameraClient
-from aist_routines.FasteningToolClient import FasteningToolClient
-from aist_routines.MarkerPublisher     import MarkerPublisher
-from aist_routines.PickOrPlaceAction   import PickOrPlace
-from aist_collision_object_manager     import CollisionObjectManagerClient
-from aist_utility.compat               import *
+from math                             import degrees, sqrt, pi
+from tf                               import (TransformListener,
+                                              transformations as tfs)
+from std_msgs.msg                     import Header
+from geometry_msgs.msg                import (PoseStamped, Pose, Point,
+                                              Quaternion, PoseArray,
+                                              Vector3, Vector3Stamped)
+from moveit_msgs.msg                  import (RobotTrajectory,
+                                              PositionIKRequest,
+                                              MoveItErrorCodes)
+from moveit_msgs.srv                  import GetPositionIK
+from trajectory_msgs.msg              import (JointTrajectoryPoint,
+                                              JointTrajectory)
+from aist_routines.GripperClient      import GripperClient, VoidGripper
+from aist_routines.CameraClient       import CameraClient
+from aist_routines.MarkerPublisher    import MarkerPublisher
+from aist_routines.PickOrPlaceAction  import PickOrPlace
+from aist_routines.SpiralMotionAction import SpiralMotion
+from aist_collision_object_manager    import CollisionObjectManagerClient
+from aist_utility.compat              import *
 
 ######################################################################
 #  global functions                                                  #
@@ -93,7 +93,9 @@ class AISTBaseRoutines(object):
                                                 'workspace_center')
 
         # MoveIt RobotCommander and MoveGroup
-        self._cmd = moveit_commander.RobotCommander('robot_description')
+        self._cmd = moveit_commander.RobotCommander(
+                        rospy.get_param('~robot_description',
+                                        'robot_description'))
         for group_name in self._cmd.get_group_names():
             group = self._cmd.get_group(group_name)
             group.set_pose_reference_frame(self.reference_frame)
@@ -147,6 +149,9 @@ class AISTBaseRoutines(object):
         else:
             self._pick_or_place = None
 
+        # Spiral motion action
+        self._spiral_motion = SpiralMotion(self)
+
         # Marker publisher
         self._markerPublisher = MarkerPublisher()
 
@@ -199,6 +204,8 @@ class AISTBaseRoutines(object):
         print('  speed:       set speed')
         print('  stop:        stop arm immediately')
         print('  jvalues:     get current joint values')
+        print('  sm:          spiral motion')
+        print('  SM:          cancel spiral motion')
         print('=== Gripper commands ===')
         print('  gripper:     assign gripper to current robot')
         print('  pregrasp:    pregrasp with the current gripper')
@@ -209,6 +216,7 @@ class AISTBaseRoutines(object):
         print('=== Fastening tool commands ===')
         print('  tighten:     tighten screw')
         print('  loosen:      loosen screw')
+        print('  fseek:       seek screw')
         print('  fcancel:     cancel tighten/loosen action')
 
     def interactive(self, key, robot_name, axis, speed=1.0):
@@ -328,6 +336,10 @@ class AISTBaseRoutines(object):
             self.stop(robot_name)
         elif key == 'jvalues':
             print(self.get_current_joint_values(robot_name))
+        elif key == 'sm':
+            self.spiral_motion(robot_name)
+        elif key == 'SM':
+            self.cancel_spiral_motion()
 
         # Gripper stuffs
         elif key == 'gripper':
@@ -352,14 +364,13 @@ class AISTBaseRoutines(object):
 
         # Fastening tool stuffs
         elif key == 'tighten':
-            tool_name = raw_input('  tool name? ')
-            self.tighten(tool_name, rospy.Duration(-1))
+            self.tighten(self.gripper(robot_name).name, rospy.Duration(-1))
         elif key == 'loosen':
-            tool_name = raw_input('  tool name? ')
-            self.loosen(tool_name, rospy.Duration(-1))
+            self.loosen(self.gripper(robot_name).name, rospy.Duration(-1))
+        elif key == 'fseek':
+            self.seek(self.gripper(robot_name).name, rospy.Duration(-1))
         elif key == 'fcancel':
-            tool_name = raw_input('  tool name? ')
-            self.cancel_fastening(tool_name)
+            self.cancel_fastening(self.gripper(robot_name).name)
 
         else:
             print('  unknown command! [%s]' % key)
@@ -583,6 +594,9 @@ class AISTBaseRoutines(object):
     def loosen(self, tool_name, timeout=rospy.Duration()):
         self.fastening_tool(tool_name).loosen(timeout)
 
+    def seek(self, tool_name, timeout=rospy.Duration(-1)):
+        self.fastening_tool(tool_name).seek(timeout)
+
     def cancel_fastening(self, tool_name):
         self.fastening_tool(tool_name).cancel()
 
@@ -731,6 +745,21 @@ class AISTBaseRoutines(object):
 
     def pick_or_place_cancel_goal(self):
         self._pick_or_place.cancel_goal()
+
+    # Spiral motion action stuffs
+    def spiral_motion(self, robot_name, end_effector_link='',
+                      npoints=36, angle_increment=30.0,
+                      radius_x_max=0.005, radius_y_max=0.0005,
+                      speed=0.005, accel=1.0, timeout=rospy.Duration(30.0)):
+        if end_effector_link == '':
+            end_effector_link = self.gripper(robot_name).tip_link
+        self._spiral_motion.send_goal(robot_name, end_effector_link,
+                                      npoints, angle_increment,
+                                      radius_x_max, radius_y_max,
+                                      speed, accel, timeout)
+
+    def cancel_spiral_motion(self):
+        self._spiral_motion.cancel_goal()
 
     # Utility functions
     def transform_pose_to_target_frame(self, pose, offset=(), target_frame=''):

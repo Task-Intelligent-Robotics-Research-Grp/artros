@@ -123,27 +123,35 @@ picking_parameters:
       max_effort:       30.0
   screw_m3:
     approach_offset:  [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
-    pick_offset:      [0.000, 0.000, -0.003, 0.0, 0.0, 0.0]
-    departure_offset: [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
+    pick_offset:      [0.000, 0.000,  0.000, 0.0, 0.0, 0.0]
+    departure_offset: [0.000, 0.000,  0.120, 0.0, 0.0, 0.0]
     speed_fast:       0.1
     speed_slow:       0.01
-    spiral_search_parameters:
-      angle_increment:  30.0
-      radius_increment: 0.00005
-      radius_max:       0.002
-      speed:            0.001
-      accel:            1.0
-      timeout:          60.0
+    gripper_parameters:
+      suck_min_period:        0.5
+      blow_min_period:        0.2
+      spiral_npoints:         36
+      spiral_angle_increment: 30.0
+      spiral_radius_x_max:    0.002
+      spiral_radius_y_max:    0.0005
+      spiral_speed:           0.001
+      spiral_accel:           1.0
+      spiral_timeout:         90.0
+      seek_speed:             0.2
   screw_m4:
-    approach_offset:  [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
-    pick_offset:      [0.000, 0.000,  0.002, 0.0, 0.0, 0.0]
-    departure_offset: [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
+    approach_offset:  [0.000, 0.000,  0.080,  0.0, 0.0, 0.0]
+    pick_offset:      [0.000, 0.000,  0.0005, 0.0, 0.0, 0.0]
+    departure_offset: [0.000, 0.000,  0.120,  0.0, 0.0, 0.0]
     speed_fast:       0.1
     speed_slow:       0.01
-    spiral_search_parameters:
-      angle_increment:  30.0
-      radius_increment: 0.00005
-      radius_max:       0.002
-      speed:            0.001
-      accel:            1.0
-      timeout:          60.0
+    gripper_parameters:
+      suck_min_period:        0.5
+      blow_min_period:        0.2
+      spiral_npoints:         36
+      spiral_angle_increment: 30.0
+      spiral_radius_x_max:    0.002
+      spiral_radius_y_max:    0.0005
+      spiral_speed:           0.001
+      spiral_accel:           1.0
+      spiral_timeout:         90.0
+      seek_speed:             0.2
