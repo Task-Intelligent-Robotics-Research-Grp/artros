@@ -350,8 +350,9 @@ class ScrewTool(SuctionGripper):
                   base_link=None, tip_link=None,
                   suck_min_period=0.5, blow_min_period=0.2,
                   speed=1.0, retighten=True, seek_speed=0.2):
-        return super().simulated(name, controller_ns, base_link, tip_link,
-                                 suck_min_period, blow_min_period)
+        return SuctionGripper.simulated(name, controller_ns,
+                                        base_link, tip_link,
+                                        suck_min_period, blow_min_period)
 
     def grasp(self, timeout=rospy.Duration(-1)):
         self._send_fastening_command(self._parameters['seek_speed'], False)
