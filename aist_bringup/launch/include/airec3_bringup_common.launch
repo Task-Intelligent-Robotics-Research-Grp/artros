@@ -24,15 +24,13 @@
     <arg name="sim"			value="$(arg sim)"/>
   </include>
 
-  <!-- static_transform_publisher -->
-  <node name="world_to_map" pkg="tf2_ros" type="static_transform_publisher"
-	args="0 0 0 0 0 0 world map" />
-
+  <!-- Transform joint_states to cartesian corrdinates
+       and publish them to TF -->
   <node ns="torobo" name="robot_state_publisher"
 	pkg="robot_state_publisher" type="robot_state_publisher"
 	respawn="true" output="screen"/>
 
-  <!-- load diagnostic_aggregator_config -->
+  <!-- Load diagnostic_aggregator_config -->
   <!-- <arg unless="$(arg sim)" name="load_config_option" value=""/> -->
   <!-- <arg     if="$(arg sim)" name="load_config_option" value="-\-sim"/> -->
   <!-- <param name="/dummy" -->
@@ -49,14 +47,14 @@
   <!-- 	    file="$(arg config_dir -->
   <!-- 		  )/torobo_rosparam_diagnostic_aggregator_config.yaml"/> -->
 
-  <!-- diagnostic aggregator -->
+  <!-- Launch diagnostic aggregator -->
   <!-- <node name="diagnostic_aggregator" ns="torobo" -->
   <!-- 	pkg="diagnostic_aggregator" type="aggregator_node"> -->
   <!--   <remap from="/diagnostics_toplevel_state" -->
   <!-- 	   to="/torobo/diagnostics_toplevel_state"/> -->
   <!-- </node> -->
 
-  <!-- collision detector -->
+  <!-- Laucnh collision detector -->
   <include file="$(find torobo_collision_detector
 		 )/launch/torobo_collision_detector_node.launch">
     <arg name="debug"		value="false"/>
@@ -64,7 +62,7 @@
     <arg name="link_name_regex"	value=".*"/>
   </include>
 
-  <!-- torobo teaching point manager -->
+  <!-- Launch torobo teaching point manager -->
   <!-- <include file="$(find torobo_teaching_point_manager -->
   <!-- 		 )/launch/teaching_point_manager.launch"/> -->
 
@@ -72,10 +70,9 @@
   <!-- <include if="$(arg snapshot)" -->
   <!-- 	   file="$(find torobo_rosbag_utils)/launch/rosbag_snapshot.launch"/> -->
 
-  <!-- If needed, broadcast static tf from map to odom -->
+  <!-- If static == true, publish transform from map to odom here -->
   <node if="$(arg static)"
-	name="map_to_odom_static_transform_publisher"
-	pkg="tf2_ros" type="static_transform_publisher"
+	name="map_to_odom" pkg="tf2_ros" type="static_transform_publisher"
 	args="0 0 0 0 0 0 map odom"/>
 
   <!-- If static == false, transform from map to odom should be provided
@@ -85,8 +82,7 @@
   </group>
 
   <!-- Launch move_base server -->
-  <include ns="torobo"
-	   file="$(dirname)/move_base.launch">
+  <include ns="torobo" file="$(dirname)/move_base.launch">
     <arg name="holonomic_robot"	value="true"/>
     <arg name="base_controller"	value="base_controller"/>
     <arg name="no_static_map"	value="true"/>
