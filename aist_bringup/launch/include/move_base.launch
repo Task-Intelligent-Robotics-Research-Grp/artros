@@ -32,7 +32,8 @@
     <!-- static global costmap, static map provides size -->
     <rosparam unless="$(arg no_static_map)"
 	      ns="global_costmap"
-	      file="$(dirname)/../../config/move_base/costmap_global_static.yaml"/>
+	      file="$(dirname
+		    )/../../config/move_base/costmap_global_static.yaml"/>
 
     <!-- global costmap with laser, for odom_navigation_demo -->
     <rosparam if="$(arg no_static_map)"
