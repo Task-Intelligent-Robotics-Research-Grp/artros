@@ -25,12 +25,12 @@
   <arg name="devices"		value="ur5e, ur5e, robotiq_140, robotiq_85"/>
   <arg name="controllers"	value="ur, ur, cmodel, cmodel"/>
   <arg name="drivers"		value="ur, ur, cmodel, cmodel"/>
-  <arg name="driver_args"	value="163.220.51.110,
+  <arg name="driver_args"	value="10.66.171.40,
 				       50001, 50002, 50003, 50004, 0;
-  				       163.220.51.111,
+  				       10.66.171.41,
 				       50005, 50006, 50007, 50008, 0;
-  				       urcap, 163.220.51.110;
-				       urcap, 163.220.51.111" />
+  				       urcap, 10.66.171.40;
+				       urcap, 10.66.171.41" />
 
   <!-- Remapping for controllers must be done before starting driver -->
   <remap from="/a_bot/motion_control_handle/target_frame"
