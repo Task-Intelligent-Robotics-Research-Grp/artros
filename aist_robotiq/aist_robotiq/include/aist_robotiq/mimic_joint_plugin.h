@@ -32,8 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef GAZEBO_PLUGINS_MIMIC_JOINT_PLUGIN
-#define GAZEBO_PLUGINS_MIMIC_JOINT_PLUGIN
+#pragma once
 
 // ROS includes
 #include <ros/ros.h>
@@ -45,19 +44,24 @@
 #include <boost/bind.hpp>
 
 // Gazebo includes
-#include <gazebo/common/Plugin.hh>
-#include <gazebo/gazebo.hh>
-#include <gazebo/physics/physics.hh>
-#include <gazebo/common/common.hh>
+#include <ignition/gazebo/System.hh>
+#include <ignition/gazebo/Model.hh>
+#include <ignition/transport/Node.hh>
 
-namespace gazebo
+namespace aist_robotiq
 {
-  class MimicJointPlugin : public ModelPlugin
+  class MimicJointPlugin : public ignition::gazebo::System,
+			   public ignition::gazebo::ISystemConfigure,
+			   public ignition::gazebo::ISystemPreUpdate,
+			   public ignition::gazebo::ISystemUpdate,
+			   public ignition::gazebo::ISystemPostUpdate
   {
     public:
       MimicJointPlugin();
       ~MimicJointPlugin();
 
+      void	Configure(const Entity& entiry,
+			  
       void Load(physics::ModelPtr _parent, sdf::ElementPtr _sdf);
       void UpdateChild();
 
@@ -76,7 +80,8 @@ namespace gazebo
       physics::JointPtr joint_, mimic_joint_;
 
       // Pointer to the model
-      physics::ModelPtr model_;
+      ignition::gazebo::Model	model_;
+      ignition::gazebo::Node	node_;
 
       // Pointer to the world
       physics::WorldPtr world_;
@@ -86,5 +91,3 @@ namespace gazebo
 
   };
 }
-
-#endif
