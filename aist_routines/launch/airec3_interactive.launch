@@ -1,14 +1,11 @@
 <?xml version="1.0" ?>
 <launch>
 
-  <arg name="speed"	default="0.1"/>
-
   <!-- Start client -->
   <node ns="torobo" name="airec3_interactive"
 	pkg="aist_routines" type="airec3_interactive.py"
 	clear_params="true" output="screen">
     <rosparam file="$(dirname)/../config/airec3_config.yaml"/>
-    <param name="speed"	value="$(arg speed)"/>
   </node>
 
 </launch>
