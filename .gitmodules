@@ -10,3 +10,6 @@
 [submodule "third_party/ur_simulation_gz"]
 	path = third_party/ur_simulation_gz
 	url = https://github.com/UniversalRobots/Universal_Robots_ROS2_GZ_Simulation
+[submodule "third_party/gz_ros2_control"]
+	path = third_party/gz_ros2_control
+	url = https://github.com/ros-controls/gz_ros2_control
