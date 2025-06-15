@@ -1,6 +1,3 @@
-[submodule "iiwa_stack"]
-	path = third_party/iiwa_stack
-	url = https://github.com/IFL-CAMP/iiwa_stack
 [submodule "third_party/ddynamic_reconfigure"]
 	path = third_party/ddynamic_reconfigure
 	url = git@github.com:Automation-Research-Team/ddynamic_reconfigure
