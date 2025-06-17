@@ -15,16 +15,13 @@
   <exec_depend>rclcpp_components</exec_depend>
   <exec_depend>launch_ros</exec_depend>
 
-  <depend>control_toolbox</depend>
-  <depend>xmlrpcpp</depend>
-  <depend>gazebo_ros</depend>
+  <depend>rclcpp</depend>
   <depend>rclpy</depend>
   <depend>control_msgs</depend>
   <depend>sensor_msgs</depend>
-  <depend>controller_manager</depend>
+  <depend>control_toolbox</depend>
   <depend>controller_interface</depend>
-  <depend>aist_msgs</depend>
-  <depend>ddynamic_reconfigure2</depend>
+  <depend>ros_gz_sim</depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_lint_auto</test_depend>
@@ -35,7 +32,6 @@
 
   <export>
     <build_type>ament_cmake</build_type>
-    <gazebo_ros plugin_path="${prefix}/lib" gazebo_media_path="${prefix}" />
   </export>
 
 </package>

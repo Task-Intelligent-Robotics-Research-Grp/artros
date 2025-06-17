@@ -37,10 +37,9 @@
  *  \file	dynpick_driver.cpp
  *  \brief	ROS driver for Wacohtech DYNPICK force-torque sensors
  */
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 #include <controller_manager/controller_manager.h>
-#include <hardware_interface/robot_hw.h>
-#include <hardware_interface/force_torque_sensor_interface.h>
+#include <hardware_interface/sensor_interface.hpp>
 #include <cstdio>
 #include <cstring>
 #include <fcntl.h>
@@ -53,7 +52,7 @@ namespace aist_ftsensor
 /************************************************************************
 *  class dynpick_driver							*
 ************************************************************************/
-class dynpick_driver : public hardware_interface::RobotHW
+class dynpick_driver : public hardware_interface::SensorInterface
 {
   private:
     using interface_t	= hardware_interface::ForceTorqueSensorInterface;
@@ -61,13 +60,15 @@ class dynpick_driver : public hardware_interface::RobotHW
     using manager_t	= controller_manager::ControllerManager;
     using response_t	= std::array<char, 256>;
     using vector6_t	= std::array<double, 6>;
+    using timer_p	= rclcpp::TimerBase::SharedPtr;
 
   public:
 			dynpick_driver()				;
     virtual		~dynpick_driver()				;
 
     void		run()						;
-    virtual void	read(const ros::Time&, const ros::Duration&)	;
+    virtual void	read(const rclcpp::Time&,
+			     const rclcpp::Duration&)			;
 
   private:
     vector6_t		get_gains()				const	;
@@ -76,7 +77,6 @@ class dynpick_driver : public hardware_interface::RobotHW
     response_t		get_response()				const	;
 
   private:
-    ros::NodeHandle	_nh;
     const int		_fd;
     interface_t		_interface;
     const vector6_t	_gains;
@@ -84,8 +84,7 @@ class dynpick_driver : public hardware_interface::RobotHW
 };
 
 dynpick_driver::dynpick_driver()
-    :_nh("~"),
-     _fd(open_tty(_nh.param<std::string>("dev", "/dev/ttyUSB0").c_str(),
+    :_fd(open_tty(_nh.param<std::string>("dev", "/dev/ttyUSB0").c_str(),
 		  _nh.param<int>("baud", 921600))),
      _interface(),
      _gains(get_gains()),
@@ -100,7 +99,8 @@ dynpick_driver::dynpick_driver()
 	put_command("R");
 	const auto&	res = get_response();
 
-	ROS_INFO_STREAM("(dynpick_driver) reset_offsets: " << res.data());
+	RCLCPP_INFO_STREAM(get_logger(),
+			   "(dynpick_driver) reset_offsets: " << res.data());
     }
 
   // Set number of points used for averaging filter.
@@ -120,8 +120,9 @@ dynpick_driver::dynpick_driver()
 	put_command("8F");
 	break;
       default:
-	ROS_ERROR_STREAM("(dynpick_driver) unsupported avg_npoints value["
-			 << avg_npoints << ']');
+	RCLCPP_ERROR_STREAM(get_logger(),
+			    "(dynpick_driver) unsupported avg_npoints value["
+			    << avg_npoints << ']');
 	throw;
     }
 
@@ -130,7 +131,8 @@ dynpick_driver::dynpick_driver()
     _interface.registerHandle(handle_t("wrench", frame_id, &_ft[0], &_ft[3]));
     registerInterface(&_interface);
 
-    ROS_INFO_STREAM("(dynpick_driver) dynpick_driver started.");
+    RCLCPP_INFO_STREAM(get_logger(),
+		       "(dynpick_driver) dynpick_driver started.");
 }
 
 dynpick_driver::~dynpick_driver()
@@ -182,7 +184,8 @@ dynpick_driver::get_gains() const
 {
     put_command("p");
     const auto&	res = get_response();
-    ROS_INFO_STREAM("(dynpick_driver) sensitivities: " << res.data());
+    RCLCPP_INFO_STREAM(get_logger(),
+		       "(dynpick_driver) sensitivities: " << res.data());
 
     vector6_t	gains;
     sscanf(res.data(), "%lf,%lf,%lf,%lf,%lf,%lf",
@@ -201,8 +204,9 @@ dynpick_driver::open_tty(const char* dev, u_int baud)
     const auto	fd = ::open(dev, O_RDWR | O_NOCTTY);
     if (fd < 0)
     {
-	ROS_ERROR_STREAM("(dynpick_driver) failed to open tty: "
-			 << strerror(errno));
+	RCLCPP_ERROR_STREAM(get_logger(),
+			    "(dynpick_driver) failed to open tty: "
+			    << strerror(errno));
 	throw;
     }
 
@@ -230,8 +234,9 @@ dynpick_driver::open_tty(const char* dev, u_int baud)
 	    baud = B921600;
 	    break;
 	  default:
-	    ROS_ERROR_STREAM("(dynpick_driver) unsupported baud rate["
-			     << baud << ']');
+	    RCLCPP_ERROR_STREAM(get_logger(),
+				"(dynpick_driver) unsupported baud rate["
+				<< baud << ']');
 	    throw;
 	}
 
@@ -274,8 +279,9 @@ dynpick_driver::put_command(const char* cmd) const
 {
     if (::write(_fd, cmd, ::strlen(cmd)) < 0)
     {
-	ROS_ERROR_STREAM("(ftsensor) failed to write to tty: "
-			 << strerror(errno));
+	RCLCPP_ERROR_STREAM(get_logger(),
+			    "(ftsensor) failed to write to tty: "
+			    << strerror(errno));
 	throw;
     }
 }
@@ -290,8 +296,9 @@ dynpick_driver::get_response() const
 	const auto	n = ::read(_fd, &res[nbytes], res.size() - nbytes);
 	if (n < 0)
 	{
-	    ROS_ERROR_STREAM("(ftsensor) failed to read from tty: "
-			     << strerror(errno));
+	    RCLCPP_ERROR_STREAM(get_logger(),
+				"(ftsensor) failed to read from tty: "
+				<< strerror(errno));
 	    throw;
 	}
 	nbytes += n;
@@ -303,29 +310,6 @@ dynpick_driver::get_response() const
 
 }	// namepsace aist_ftsensor
 
-/************************************************************************
-*  global functions							*
-************************************************************************/
-int
-main(int argc, char* argv[])
-{
-    ros::init(argc, argv, "dynpick0_driver");
+#include <rclcpp_components/register_node_macro.hpp>
 
-    try
-    {
-	aist_ftsensor::dynpick_driver	node;
-	node.run();
-    }
-    catch (const std::exception& err)
-    {
-	std::cerr << err.what() << std::endl;
-	return 1;
-    }
-    catch (...)
-    {
-	std::cerr << "Unknown error." << std::endl;
-	return 1;
-    }
-
-    return 0;
-}
+RCLCPP_COMPONENTS_REGISTER_NODE(aist_ftsensor::dynpick_driver)

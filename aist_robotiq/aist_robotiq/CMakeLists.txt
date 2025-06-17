@@ -14,14 +14,20 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp_components REQUIRED)
-find_package(common_interfaces REQUIRED)
-find_package(control_toolbox REQUIRED)
-find_package(xmlrpcpp REQUIRED)
+find_package(rclcpp REQUIRED)
 find_package(control_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(controller_manager REQUIRED)
+find_package(control_toolbox REQUIRED)
+find_package(common_interfaces REQUIRED)
+find_package(hardware_interface REQUIRED)
 find_package(controller_interface REQUIRED)
-find_package(gazebo REQUIRED)
+find_package(controller_manager REQUIRED)
+find_package(pluginlib REQUIRED)
+
+#find_package(gz_sim_vendor REQUIRED)
+find_package(ros_gz_sim REQUIRED)
+#find_package(gz_plugin_vendor REQUIRED)
+#find_package(ros-gz-plugin REQUIRED)
 
 find_package(ament_cmake_python REQUIRED)
 find_package(rclpy REQUIRED)
@@ -42,26 +48,8 @@ include_directories(
 ## gazebo_mimic_joint_plugin ##
 ###############################
 add_library(
-  gazebo_mimic_joint_plugin
+  gz_mimic_joint_plugin SHARED
     src/mimic_joint_plugin.cpp
-)
-
-target_compile_definitions(
-  gazebo_mimic_joint_plugin
-    COMPOSITION_BUILDING_DLL
-)
-
-################################
-## gazebo_disable_link_plugin ##
-################################
-add_library(
-  gazebo_disable_link_plugin
-    src/disable_link_plugin.cpp
-)
-
-target_compile_definitions(
-  gazebo_disable_link_plugin
-    COMPOSITION_BUILDING_DLL
 )
 
 ##################
@@ -95,24 +83,24 @@ rclcpp_components_register_node(
 #############
 install(
   TARGETS
-    ${PROJECT_NAME} joint_state_extractor capture_pcd
-    butterworth_lpf_test spline_extrapolator_test
+    gz_mimic_joint_plugin
   EXPORT   export_${PROJECT_NAME}
   LIBRARY  DESTINATION lib
   ARCHIVE  DESTINATION lib
   RUNTIME  DESTINATION bin
-  INCLUDES DESTINATION include
 )
 
 install(
-  DIRECTORY include/
+  DIRECTORY   include
   DESTINATION include
 )
 
 install(
-  DIRECTORY launch
+  DIRECTORY   config launch meshes urdf
   DESTINATION share/${PROJECT_NAME}/
 )
+
+ament_python_install_package(${PROJECT_NAME})
 
 install(
   PROGRAMS

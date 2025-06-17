@@ -37,6 +37,7 @@
  *  \file	ft300_driver.cpp
  *  \brief	ROS driver for Robotiq FT300 force-torque sensors
  */
+#include <rclcpp/macros.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <controller_manager/controller_manager.hpp>
 #include <hardware_interface/sensor_interface.hpp>
@@ -67,77 +68,95 @@ splitd(const char* s, double& val)
     return nullptr;
 }
 
+template <class T> static T	stov(const std::string& s);
+template <> std::string
+stov<std::string>(const std::string& s)	{ return s; }
+template <> int
+stov<int>(const std::string& s)		{ return std::stoi(s); }
+template <> double
+stov<double>(const std::string& s)	{ return std::stod(s); }
+
 /************************************************************************
 *  class ft300_driver							*
 ************************************************************************/
-class ft300_driver : public rclcpp::Node
-		     public hardware_interface::SensorInterface
+class ft300_driver : public hardware_interface::SensorInterface
 {
+  public:
+    RCLCPP_SHARED_PTR_DEFINITIONS(ft300_driver)
+
   private:
-    using interface_t	= hardware_interface::ForceTorqueSensorInterface;
-    using handle_t	= hardware_interface::ForceTorqueSensorHandle;
-    using manager_t	= controller_manager::ControllerManager;
+    using super		= hardware_interface::SensorInterface;
+    using return_type	= hardware_interface::return_type;
     using timer_p	= rclcpp::TimerBase::SharedPtr;
 
   public:
 			ft300_driver()					;
-    virtual		~ft300_driver()					;
 
-    virtual void	read(const rclcpp::Time&,
+    CallbackReturn	on_configure(const rclcpp_lifecycle::State&)	;
+    CallbackReturn	on_cleanup(const rclcpp_lifecycle::State&)	;
+    return_type		read(const rclcpp::Time&,
 			     const rclcpp::Duration&)			;
 
   private:
     template <class T>
-    T		declare_read_only_parameter(const std::string& name,
-					    const T& default_value)	;
-    void	tick()							;
-    bool	up_socket()						;
-    bool	connect_socket(u_long s_addr, int port)			;
+    T			get_param(const std::string& name, T default_value)
+			{
+			    const auto	s = info_.hardware_parameters[name];
+			    return (s != "" ? stov<T>(s): default_value);
+			}
+    void		tick()						;
+    bool		up_socket()					;
+    bool		connect_socket(u_long s_addr, int port)		;
 
   private:
-    const int		_socket;
-    interface_t		_interface;
+    int			_socket;
     double		_ft[6];
 
     timer_p		_timer;
+    rclcpp::Logger	_logger;
 };
 
 ft300_driver::ft300_driver()
-    :_socket(::socket(AF_INET, SOCK_STREAM, 0)),
-     _interface(),
+    :_socket(-1),
      _ft{0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-     _timer(create_wall_timer(std::chrono::duration<doubke>(
-				  1.0/declare_read_only_parameter<double>(
-				      "rate", 125.0)),
-			      std::bind(&ft300_driver::tick, this)))
+     _timer(create_wall_timer(std::chrono::duration<double>(
+				  1.0/get_param<double>("rate", 125.0)),
+			      std::bind(&ft300_driver::tick, this))),
+     _logger(rclcpp::get_logger("ft300_driver"))
 {
-  // Check whether the socket is correctly opened.
+}
+
+hardware_interface::CallbackReturn
+ft300_driver::on_configure(const rclcpp_lifecycle::State&)
+{
+    _socket = ::socket(AF_INET, SOCK_STREAM, 0);
     if (_socket < 0)
     {
-	RCLCPP_ERROR_STREAM(get_logger(),
+	RCLCPP_ERROR_STREAM(_logger,
 			    "failed to open socket: " << strerror(errno));
-	throw;
+	return CallbackReturn::ERROR;
     }
 
     if (!up_socket())
-	throw;
+    {
+	RCLCPP_ERROR_STREAM(_logger,
+			    "failed to bringup socket: " << strerror(errno));
+	return CallbackReturn::ERROR;
+    }
 
-  // Register hardware interface handle.
-    const auto	frame_id = declare_read_only_parameter<std::string>(
-				"frame_id", "wrench_link");
-    _interface.registerHandle(handle_t("wrench", frame_id, &_ft[0], &_ft[3]));
-    registerInterface(&_interface);
+    RCLCPP_INFO_STREAM(_logger, "ft300_driver initialized.");
 
-    RCLCPP_INFO_STREAM(get_logger(), "ft300_driver started.");
+    return CallbackReturn::SUCCESS;
 }
 
-ft300_driver::~ft300_driver()
+hardware_interface::CallbackReturn
+ft300_driver::on_cleanup(const rclcpp_lifecycle::State&)
 {
     if (_socket >= 0)
 	::close(_socket);
 }
 
-void
+hardware_interface::return_type
 ft300_driver::read(const rclcpp::Time&, const rclcpp::Duration&)
 {
     std::array<char, 1024>	buf;
@@ -145,9 +164,10 @@ ft300_driver::read(const rclcpp::Time&, const rclcpp::Duration&)
 						buf.data(), buf.size());
     if (nbytes < 0)
     {
-	ROS_ERROR_STREAM("(ft300_driver) failed to read from socket: "
-			 << strerror(errno));
-	throw;
+	RCLCPP_ERROR_STREAM(_logger,
+			    "(ft300_driver) failed to read from socket: "
+			    << strerror(errno));
+	return return_type::ERROR;
     }
     buf[nbytes] = '\0';
 
@@ -158,15 +178,8 @@ ft300_driver::read(const rclcpp::Time&, const rclcpp::Duration&)
     s = splitd(s, _ft[3]);
     s = splitd(s, _ft[4]);
     s = splitd(s, _ft[5]);
-}
 
-template <class T> T
-ft300_driver::declare_read_only_parameter(const std::string& name,
-					  const T& default_value)
-{
-    return declare_parameter(
-                name, default_value,
-                ddynamic_reconfigure2::read_only_param_desc<T>(name));
+    return return_type::OK;
 }
 
 void
@@ -180,9 +193,8 @@ bool
 ft300_driver::up_socket()
 {
   // Get hoastname and port from parameters.
-    const auto	hostname = decalre_read_only_parameter<std::string>(
-			       "hostname", "192.168.1.1");
-    const auto	port	 = decalre_read_only_parameter<int>("port", 63351);
+    const auto	hostname = get_param<std::string>("hostname", "192.168.1.1");
+    const auto	port	 = get_param<int>("port", 63351);
 
   // Connect socket to hostname:port.
     auto	addr = inet_addr(hostname.c_str());
@@ -192,7 +204,8 @@ ft300_driver::up_socket()
     const auto	h = gethostbyname(hostname.c_str());
     if (!h)
     {
-	ROS_ERROR_STREAM("(ft300_driver) unknown host name: " << hostname);
+	RCLCPP_ERROR_STREAM(_logger,
+			    "(ft300_driver) unknown host name: " << hostname);
 	return false;
     }
 
@@ -210,19 +223,20 @@ ft300_driver::connect_socket(u_long s_addr, int port)
     server.sin_family	   = AF_INET;
     server.sin_port	   = htons(port);
     server.sin_addr.s_addr = s_addr;
-    RCLCPP_INFO_STREAM(get_logger(), "trying to connect socket to "
+    RCLCPP_INFO_STREAM(_logger, "trying to connect socket to "
 		       << inet_ntoa(server.sin_addr) << ':' << port << "...");
     if (::connect(_socket, (sockaddr*)&server, sizeof(server)) == 0)
     {
-	RCLCPP_INFO_STREAM("succeeded.");
+	RCLCPP_INFO_STREAM(_logger, "succeeded.");
 	return true;
     }
     else
     {
-	RCLCPP_ERROR_STREAM("failed: " << strerror(errno));
+	RCLCPP_ERROR_STREAM(_logger, "failed: " << strerror(errno));
 	return false;
     }
 }
+
 }	// namepsace aist_robotiq
 
 #include <rclcpp_components/register_node_macro.hpp>

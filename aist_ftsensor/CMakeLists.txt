@@ -1,38 +1,32 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.8)
 project(aist_ftsensor)
 
-## Compile as C++17, supported in ROS melodic and newer
-enable_language(CXX)
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
+endif()
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
-set(CMAKE_CXX_STANDARD		17)
-set(CMAKE_CXX_STANDARD_REQUIRED	ON)
-set(CMAKE_CXX_EXTENSIONS	OFF)
-set(CMAKE_CXX_FLAGS		"-Wall -O3 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE	"")
-set(CMAKE_CXX_FLAGS_DEBUG	"-g")
-set(CMAKE_CXX_BUILD_TYPE	Release)
-
-find_package(Boost REQUIRED COMPONENTS system)
+# find dependencies
+find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
+find_package(rclcpp_components REQUIRED)
+find_package(rclpy REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(controller_manager REQUIRED)
+find_package(hardware_interface REQUIRED)
+find_package(controller_interface REQUIRED)
+find_package(ddynamic_reconfigure2 REQUIRED)
+find_package(kdl_parser REQUIRED)
+find_package(pluginlib REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(orocos_kdl REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(YAML-CPP yaml-cpp REQUIRED)
-
-find_package(catkin REQUIRED
-  COMPONENTS
-    controller_manager
-    controller_interface
-    geometry_msgs
-    hardware_interface
-    pluginlib
-    realtime_tools
-    roscpp
-    roslib
-    std_msgs
-    aist_utility
-    ddynamic_reconfigure
-    kdl_parser
-)
 
 # catkin_python_setup()
 
@@ -52,44 +46,54 @@ catkin_package(
 ###########
 ## Build ##
 ###########
-include_directories(
-  ${catkin_INCLUDE_DIRS}
+target_include_directories(
   ${EIGEN3_INCLUDE_DIRS}
   ${orocos_kdl_INCLUDE_DIRS}
 )
 
-add_library(${PROJECT_NAME}_controller
-  src/aist_ftsensor_controller.cpp
+add_library(
+  dynpick_driver
+    src/dynpick_driver.cpp
 )
 
-add_dependencies(
-  ${PROJECT_NAME}_controller
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
+target_compile_definitions(
+  dynpick_driver
+    COMPOSITION_BUILDING_DLL
 )
 
-target_link_libraries(${PROJECT_NAME}_controller
-  ${catkin_LIBRARIES}
-  ${roscpp_LIBRARIES}
-  ${orocos_kdl_LIBRARIES}
-  yaml-cpp
+ament_target_dependencies(
+  dynpick_driver
+    rclcpp_components
+    controller_manager
+    hardware_interface
 )
 
-add_executable(dynpick_driver src/dynpick_driver.cpp)
+rclcpp_components_register_node(
+  dynpick_driver
+    PLUGIN     ${PROJECT_NAME}::dynpick_driver
+    EXECUTABLE ${PROJECT_NAME}_node
+)
 
-target_link_libraries(dynpick_driver
-  ${catkin_LIBRARIES}
-  ${roscpp_LIBRARIES}
+add_library(
+  ${PROJECT_NAME}_broadcaster SHARED
+    src/aist_ftsensor_broadcaster.cpp
+)
+
+target_link_libraries(
+  ${PROJECT_NAME}_broadcaster
+    ${orocos_kdl_LIBRARIES}
+    yaml-cpp
 )
 
 #############
 ## Install ##
 #############
 # Install targets
-install(TARGETS ${PROJECT_NAME}_controller
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+install(
+  TARGETS dynpick_driver
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
 # Intall plugins
@@ -98,7 +102,7 @@ install(FILES aist_ftsensor_plugin.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
-catkin_install_python(
+install(
   PROGRAMS scripts/run_calibration.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  DESTINATION lib/${PROJECT_NAME}
 )
