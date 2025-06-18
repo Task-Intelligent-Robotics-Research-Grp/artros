@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Software License Agreement (BSD License)
 #
@@ -41,13 +41,11 @@ from rclpy.node            import Node
 from rclpy.action          import ActionServer, GoalResponse, CancelResponse
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors       import (ExternalShutdownException,
-                                   MultithreadedExecutor)
+                                   MultiThreadedExecutor)
 from sensor_msgs.msg       import JointState
-from control_msgs.msg      import (GripperCommandAction, GripperCommandGoal,
-                                   GripperCommandResult,
-                                   GripperCommandFeedback)
+from control_msgs.action   import GripperCommand
 from aist_robotiq_msgs.msg import CModelStatus, CModelCommand
-from aist_robotiq_msgs.srv import SetVelocity, SetVelocityResponse
+from aist_robotiq_msgs.srv import SetVelocity
 
 #########################################################################
 #  class CModelController                                               #
@@ -57,13 +55,16 @@ class CModelController(Node):
         super().__init__('cmodel_controller')
 
         # Read configuration parameters
-        self._min_position = rospy.get_param('~min_position', 0.0)
-        self._max_position = rospy.get_param('~max_position', 0.085)
-        self._min_velocity = rospy.get_param('~min_velocity', 0.013)
-        self._max_velocity = rospy.get_param('~max_velocity', 0.1)
-        self._min_effort   = rospy.get_param('~min_effort',   40.0)
-        self._max_effort   = rospy.get_param('~max_effort',   100.0)
-        self._joint_name   = rospy.get_param('~joint_name',   'finger_joint')
+
+        self._min_position = self._get_parameter_value('min_position', 0.0)
+        self._max_position = self._get_parameter_value('max_position', 0.085)
+        print('### max_position=%f' % self._max_position)
+        self._min_velocity = self._get_parameter_value('min_velocity', 0.013)
+        self._max_velocity = self._get_parameter_value('max_velocity', 0.1)
+        self._min_effort   = self._get_parameter_value('min_effort',  40.0)
+        self._max_effort   = self._get_parameter_value('max_effort', 100.0)
+        self._joint_name   = self._get_parameter_value('joint_name',
+                                                       'finger_joint')
 
         # Velocity parameter set by service server.
         self._velocity         = 0.5*(self._min_velocity + self._max_velocity)
@@ -88,7 +89,8 @@ class CModelController(Node):
 
         # Configure and start the action server
         self._server = ActionServer(
-                           self, GripperCommandAction, 'gripper_cmd',
+                           self, GripperCommand, 'gripper_cmd',
+                           execute_callback=None,
                            goal_callback=self._goal_cb,
                            handle_accepted_callback=self._handle_accepted_cb,
                            cancel_callback=self._cancel_cb,
@@ -103,6 +105,11 @@ class CModelController(Node):
     def destroy(self):
         self._server.destroy()
         super().destroy_node()
+
+    def _get_parameter_value(self, name, default_value):
+        self.declare_parameter(name, default_value)
+        return rclpy.parameter.parameter_value_to_python(
+                   self.get_parameter(name).get_parameter_value())
 
     def _set_velocity_cb(self, req, res):
         self._velocity = req.velocity
@@ -155,15 +162,15 @@ class CModelController(Node):
             self._goal_handle.abort()
         elif self._reached_goal(status):
             self.get_logger().info('reached goal')
-            self._goal_handle.succeed()
-                GripperCommandResult(*self._status_values(status)))
+            self._goal_handle.succeed(
+                GripperCommand.Result(*self._status_values(status)))
         elif self._stalled(status):
             self.get_logger().info('stalled')
             self._goal_handle.succeed(
-                GripperCommandResult(*self._status_values(status)))
+                GripperCommand.Result(*self._status_values(status)))
         else:
             self._goal_handle.publish_feedback(
-                GripperCommandFeedback(*self._status_values(status)))
+                GripperCommand.Feedback(*self._status_values(status)))
 
     def _goal_cb(self):
         goal = self._server.accept_new_goal()  # requested goal
@@ -275,10 +282,10 @@ class CModelController(Node):
 
 def main(args=None):
     try:
-        with rclpy.init(args=args):
-            controller = CModelController()
-            executor   = MultiThreadedExecutor()
-            rclpy.spin(controller, executor)
+        rclpy.init(args=args)
+        controller = CModelController()
+        executor   = MultiThreadedExecutor()
+        rclpy.spin(controller, executor)
     except (KeyboardInterrupt, ExternalShutdownException):
         pass
 

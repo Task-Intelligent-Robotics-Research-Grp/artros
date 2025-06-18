@@ -15,4 +15,4 @@ min_effort:   0.0
 max_effort: 185.0
 
 # Joint name
-joint_name: $(arg prefix)joint_finger
+#joint_name: $(arg prefix)joint_finger

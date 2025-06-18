@@ -35,20 +35,18 @@ Clients of gripper action controller of control_msg/GripperCommandAction type.
 @file   __init__.py
 @author t.ueshiba@aist.go.jp
 """
-import rospy
-import actionlib
+import rclpy
+from rclpy.node   import Node
+from rclpy.action import ActionClient
 from actionlib_msgs.msg import GoalStatus
-from control_msgs.msg   import (GripperCommand,
-                                GripperCommandAction, GripperCommandGoal,
-                                GripperCommandResult, GripperCommandFeedback)
-from aist_robotiq.msg   import (EPickCommand,
-                                EPickCommandAction, EPickCommandGoal,
-                                EPickCommandResult, EPickCommandFeedback)
+from control_msgs.action import GripperCommand
+from control_msgs.msg    import GripperCommand as GripperCommandMsg
+from aist_robotiq.action import EPickCommand
 
 ######################################################################
 #  class GenericGripper                                              #
 ######################################################################
-class GenericGripper(object):
+class GenericGripper(Node):
     """
     Gripper client of control_msg/GripperCommandAction type.
     """
@@ -61,11 +59,10 @@ class GenericGripper(object):
         @param max_position position when fully opened
         @param max_effort   maximum effort applied when gripping objects
         """
-        super(GenericGripper, self).__init__()
+        super().__init__()
 
-        self._feedback = GripperCommandFeedback()
-        self._client   = actionlib.SimpleActionClient(action_ns,
-                                                      GripperCommandAction)
+        self._feedback = GripperCommand.Feedback()
+        self._client   = ActionClient(self, GripperCommand, action_ns)
         self._client.wait_for_server()
 
         self._parameters = {'grasp_position':   min_position,
@@ -132,9 +129,10 @@ class GenericGripper(object):
                           for completion.
         @return result of control_msgs/GripperCommandResult type
         """
-        self._client.send_goal(GripperCommandGoal(GripperCommand(position,
-                                                                 max_effort)),
-                               feedback_cb=self._feedback_cb)
+        self._client.send_goal_async(GripperCommand.Goal(
+                                         GripperCommandMsg(position,
+                                                           max_effort)),
+                                     feedback_callback=self._feedback_cb)
         return self.wait(timeout)
 
     def wait(self, timeout=rospy.Duration(0)):
@@ -188,16 +186,14 @@ class RobotiqGripper(GenericGripper):
         assert self._min_gap < self._max_gap
         assert self._min_position != self._max_position
 
-        super(RobotiqGripper, self).__init__(ns + '/gripper_cmd',
-                                             self._min_gap, self._max_gap,
-                                             max_effort)
+        super().__init__(ns + '/gripper_cmd',
+                         self._min_gap, self._max_gap, max_effort)
 
     def move(self, gap, max_effort=0, timeout=rospy.Duration(0)):
-        return super(RobotiqGripper, self).move(self._position(gap),
-                                                max_effort, timeout)
+        return super().move(self._position(gap), max_effort, timeout)
 
     def wait(self, timeout=rospy.Duration(0)):
-        result = super(RobotiqGripper, self).wait(timeout)
+        result = super().wait(timeout)
         result.position = self._gap(result.position)
         return result
 
@@ -217,7 +213,7 @@ class RobotiqGripper(GenericGripper):
 ######################################################################
 #  class EPickGripper                                                #
 ######################################################################
-class EPickGripper(object):
+class EPickGripper(Node):
     """
     Gripper client of aist_robotiq/EPickCommandAction type.
     """
@@ -229,7 +225,7 @@ class EPickGripper(object):
         @param prefix     string prefix for identifying a specific gripper
                           from multiple devices
         """
-        super(EPickGripper, self).__init__()
+        super().__init__()
 
         ns = prefix + 'controller'
         self._feedback = EPickCommandFeedback()

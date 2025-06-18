@@ -19,18 +19,24 @@ find_package(control_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(control_toolbox REQUIRED)
 find_package(common_interfaces REQUIRED)
-find_package(hardware_interface REQUIRED)
 find_package(controller_interface REQUIRED)
 find_package(controller_manager REQUIRED)
+find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 
-#find_package(gz_sim_vendor REQUIRED)
+find_package(gz_sim_vendor REQUIRED)
 find_package(ros_gz_sim REQUIRED)
-#find_package(gz_plugin_vendor REQUIRED)
+find_package(gz_plugin_vendor REQUIRED)
 #find_package(ros-gz-plugin REQUIRED)
 
 find_package(ament_cmake_python REQUIRED)
 find_package(rclpy REQUIRED)
+
+get_cmake_property(_variableNames CACHE_VARIABLES)
+list (SORT _variableNames)
+foreach (_variableName ${_variableNames})
+    message(STATUS "${_variableName}=${${_variableName}}")
+endforeach()
 
 include_directories(
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -39,10 +45,8 @@ include_directories(
 )
 
 
-link_directories(${GAZEBO_LIBRARY_DIRS})
-include_directories(
-  ${catkin_INCLUDE_DIRS} ${GAZEBO_INCLUDE_DIRS} include
-)
+link_directories(${gz_sim_vendor_LIBRARY_DIRS})
+include_directories(${gz_sim_vendor_INCLUDE_DIRS})
 
 ###############################
 ## gazebo_mimic_joint_plugin ##
@@ -52,48 +56,48 @@ add_library(
     src/mimic_joint_plugin.cpp
 )
 
+#target_include_directories(
+#  gz_mimic_joint_plugin PUBLIC
+#    ${gz_sim_vendor_INCLUDE_DIRS}
+#)
+
 ##################
 ## ft300_driver ##
 ##################
-add_library(
-  ft300_driver SHARED
-    src/ft300_driver.cpp
-)
+#add_library(
+#  ft300_driver SHARED
+#    src/ft300_driver.cpp
+#)
 
-target_compile_definitions(
-  ft300_driver PRIVATE
-    COMPOSITION_BUILDING_DLL
-)
+#target_compile_definitions(
+#  ft300_driver PRIVATE
+#    COMPOSITION_BUILDING_DLL
+#)
 
-ament_target_dependencies(
-  ft300_driver
-    rclcpp_components
-    controller_manager
-    controller_interface
-)
+#ament_target_dependencies(
+#  ft300_driver
+#    rclcpp_components
+#    controller_manager
+#    controller_interface
+#)
 
-rclcpp_components_register_node(
-  ft300_driver
-    PLUGIN "${PROJECT_NAME}::ft300_driver"
-    EXECUTABLE ft300_driver_node
-)
+#rclcpp_components_register_node(
+#  ft300_driver
+#    PLUGIN "${PROJECT_NAME}::ft300_driver"
+#    EXECUTABLE ft300_driver_node
+#)
 
 #############
 ## Install ##
 #############
-install(
-  TARGETS
-    gz_mimic_joint_plugin
-  EXPORT   export_${PROJECT_NAME}
-  LIBRARY  DESTINATION lib
-  ARCHIVE  DESTINATION lib
-  RUNTIME  DESTINATION bin
-)
-
-install(
-  DIRECTORY   include
-  DESTINATION include
-)
+#install(
+#  TARGETS
+#    gz_mimic_joint_plugin
+#  EXPORT   export_${PROJECT_NAME}
+#  LIBRARY  DESTINATION lib
+#  ARCHIVE  DESTINATION lib
+#  RUNTIME  DESTINATION bin
+#)
 
 install(
   DIRECTORY   config launch meshes urdf
@@ -104,7 +108,7 @@ ament_python_install_package(${PROJECT_NAME})
 
 install(
   PROGRAMS
-    scripts/cmodel_contoller.py
+    scripts/cmodel_controller.py
     scripts/cmodel_rtu_driver.py
     scripts/cmodel_tcp_driver.py
     scripts/cmodel_urcap_driver.py

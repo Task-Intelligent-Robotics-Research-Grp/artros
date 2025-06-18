@@ -41,7 +41,7 @@ from rclpy.executors           import ExternalShutdownException
 
 if __name__ == '__main__':
     try:
-        rclpy.init():
+        rclpy.init(args=args)
 
         ip_address = sys.argv[1]
         slave_id   = 9 if len(sys.argv) < 3 else int(sys.argv[2])
