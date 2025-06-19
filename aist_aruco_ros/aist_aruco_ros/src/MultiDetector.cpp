@@ -91,9 +91,6 @@ class MultiDetector : public rclcpp::Node
 
   private:
     std::string	node_name()			const	{ return get_name(); }
-    template <class T>
-    T		declare_read_only_parameter(const std::string& name,
-					    const T& default_value)	;
     void	set_min_marker_size(double size)			;
     void	set_enclosed_marker(bool enable)			;
     void	set_detection_mode(int mode)				;
@@ -140,8 +137,8 @@ class MultiDetector : public rclcpp::Node
 MultiDetector::MultiDetector(const rclcpp::NodeOptions& options)
     :rclcpp::Node("multi_detector", options),
      _ddr(rclcpp::Node::SharedPtr(this)),
-     _camera_names(declare_read_only_parameter<std::vector<std::string> >(
-		       "camera_names", {})),
+     _camera_names(ddynamic_reconfigure2::declare_read_only_parameter<
+		       std::vector<std::string> >(this, "camera_names", {})),
      _it(rclcpp::Node::SharedPtr(this)),
      _image_sub(),
      _image_subs(),
@@ -152,10 +149,10 @@ MultiDetector::MultiDetector(const rclcpp::NodeOptions& options)
      _sync(),
      _tf2_buffer(get_clock()),
      _tf2_listener(_tf2_buffer),
-     _reference_frame(declare_read_only_parameter<std::string>(
-			  "reference_frame", "")),
-     _marker_frame(declare_read_only_parameter<std::string>("marker_frame",
-							    "marker_frame")),
+     _reference_frame(ddynamic_reconfigure2::declare_read_only_parameter<
+			  std::string>(this, "reference_frame", "")),
+     _marker_frame(ddynamic_reconfigure2::declare_read_only_parameter<
+		       std::string>(this, "marker_frame", "marker_frame")),
      _marker_detector(),
      _marker_map(),
      _correspondences_set()
@@ -259,16 +256,17 @@ MultiDetector::MultiDetector(const rclcpp::NodeOptions& options)
     _correspondences_set.correspondences_set.resize(_camera_names.size());
 
   // Load marker map.
-    const auto marker_map_name = declare_read_only_parameter<std::string>(
-				     "marker_map", "");
+    const auto marker_map_name = ddynamic_reconfigure2::
+				 declare_read_only_parameter<std::string>(
+				     this, "marker_map", "");
     if (marker_map_name == "")
     {
 	RCLCPP_ERROR_STREAM(get_logger(), "Marker map not specified!");
 	throw;
     }
 
-    const auto mMapFile = declare_read_only_parameter(
-			      "marker_map_dir",
+    const auto mMapFile = ddynamic_reconfigure2::declare_read_only_parameter(
+			      this, "marker_map_dir",
 			      ament_index_cpp::get_package_share_directory(
 				  "aist_aruco_ros")
 			      + "/config")
@@ -333,15 +331,6 @@ MultiDetector::MultiDetector(const rclcpp::NodeOptions& options)
 	 {"TAG36h11",		"TAG36h11"},
 	 {"TAG36h10",		"TAG36h10"},
 	 {"CUSTOM",		"CUSTOM"}});
-}
-
-template <class T> T
-MultiDetector::declare_read_only_parameter(const std::string& name,
-					   const T& default_value)
-{
-    return declare_parameter(
-		name, default_value,
-		ddynamic_reconfigure2::read_only_param_desc<T>(name));
 }
 
 void

@@ -19,9 +19,6 @@ class JointStateExtractor : public rclcpp::Node
 
   private:
     std::string node_name()			const	{ return get_name(); }
-    template <class T>
-    T		declare_read_only_parameter(const std::string& name,
-					    const T& default_value)	;
     void	joint_state_cb(joint_state_p joint_state)		;
 
   private:
@@ -43,8 +40,9 @@ JointStateExtractor::JointStateExtractor(const rclcpp::NodeOptions& options)
      _joint_state()
 {
 
-    _joint_state.name = declare_read_only_parameter<std::vector<std::string>
-						    >("joint_names", {});
+    _joint_state.name = ddynamic_reconfigure2::declare_read_only_parameter<
+			    std::vector<std::string> >(this,
+						       "joint_names", {});
 
     const auto	njoints = _joint_state.name.size();
     _joint_state.position.resize(njoints);
@@ -52,15 +50,6 @@ JointStateExtractor::JointStateExtractor(const rclcpp::NodeOptions& options)
     _joint_state.effort  .resize(njoints);
 
     RCLCPP_INFO_STREAM(get_logger(), "started");
-}
-
-template <class T> T
-JointStateExtractor::declare_read_only_parameter(const std::string& name,
-						 const T& default_value)
-{
-    return declare_parameter(
-		name, default_value,
-		ddynamic_reconfigure2::read_only_param_desc<T>(name));
 }
 
 void

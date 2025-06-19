@@ -100,15 +100,12 @@ class Calibrator : public rclcpp::Node
     using TakeSampleGoalPtr	= std::shared_ptr<const TakeSample::Goal>;
     using TakeSampleGoalHandlePtr
 	      = std::shared_ptr<rclcpp_action::ServerGoalHandle<TakeSample> >;
-    
+
   public:
 		Calibrator(const rclcpp::NodeOptions& options)		;
 
   private:
      std::string	node_name()	const	{ return get_name(); }
-    template <class T>
-    T			declare_read_only_parameter(const std::string& name,
-						    const T& default_value);
     const std::string&	camera_frame()				const	;
     const std::string&	effector_frame()			const	;
     const std::string&	marker_frame()				const	;
@@ -136,7 +133,7 @@ class Calibrator : public rclcpp::Node
     const EmptySrvPtr				  _reset_srv;
     const TakeSampleSrvPtr			  _take_sample_srv;
     TakeSampleGoalHandlePtr			  _current_goal_handle;
-    
+
     tf2_ros::Buffer				  _tf2_buffer;
     const tf2_ros::TransformListener		  _tf2_listener;
 
@@ -188,41 +185,38 @@ Calibrator::Calibrator(const rclcpp::NodeOptions& options)
      _current_goal_handle(nullptr),
      _tf2_buffer(get_clock()),
      _tf2_listener(_tf2_buffer),
-     _use_dual_quaternion(declare_read_only_parameter<bool>(
-			      "use_dual_quaternion", true)),
-     _eye_on_hand(declare_read_only_parameter<bool>("eye_on_hand", true)),
-     _camera_name(declare_read_only_parameter<std::string>("camera_name",
-							   "camera"))
+     _use_dual_quaternion(ddynamic_reconfigure2::declare_read_only_parameter(
+			      this, "use_dual_quaternion", true)),
+     _eye_on_hand(ddynamic_reconfigure2::declare_read_only_parameter(
+		      this, "eye_on_hand", true)),
+     _camera_name(ddynamic_reconfigure2::declare_read_only_parameter<
+		      std::string>(this, "camera_name", "camera"))
 {
     RCLCPP_INFO_STREAM(get_logger(), "initializing calibrator...");
 
     if (_eye_on_hand)
     {
-	_Tec.header.frame_id = declare_read_only_parameter<std::string>(
-				   "robot_effector_frame", "tool0");
-	_Twm.header.frame_id = declare_read_only_parameter<std::string>(
-				   "robot_base_frame", "base_link");
+	_Tec.header.frame_id = ddynamic_reconfigure2::
+			       declare_read_only_parameter<std::string>(
+				   this, "robot_effector_frame", "tool0");
+	_Twm.header.frame_id = ddynamic_reconfigure2::
+			       declare_read_only_parameter<std::string>(
+				   this, "robot_base_frame", "base_link");
     }
     else
     {
-	_Twm.header.frame_id = declare_read_only_parameter<std::string>(
-				   "robot_effector_frame", "tool0");
-	_Tec.header.frame_id = declare_read_only_parameter<std::string>(
-				   "robot_base_frame", "base_link");
+	_Twm.header.frame_id = ddynamic_reconfigure2::
+			       declare_read_only_parameter<std::string>(
+				   this, "robot_effector_frame", "tool0");
+	_Tec.header.frame_id = ddynamic_reconfigure2::
+			       declare_read_only_parameter<std::string>(
+				   this, "robot_base_frame", "base_link");
     }
 
     _Tec.child_frame_id = "";
-    _Twm.child_frame_id = declare_read_only_parameter<std::string>(
-			      "marker_frame", "marker_frame");
-}
-
-template <class T> T
-Calibrator::declare_read_only_parameter(const std::string& name,
-					const T& default_value)
-{
-    return declare_parameter(
-		name, default_value,
-		ddynamic_reconfigure2::read_only_param_desc<T>(name));
+    _Twm.child_frame_id = ddynamic_reconfigure2::
+			  declare_read_only_parameter<std::string>(
+			      this, "marker_frame", "marker_frame");
 }
 
 const std::string&
@@ -258,7 +252,7 @@ Calibrator::pose_cb(pose_p pose)
     try
     {
 	using namespace	aist_utility;
-	
+
       // Set camera frame.
 	_Tec.child_frame_id = pose->header.frame_id;
 

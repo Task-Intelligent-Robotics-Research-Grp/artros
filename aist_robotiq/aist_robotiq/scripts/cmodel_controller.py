@@ -46,6 +46,7 @@ from sensor_msgs.msg       import JointState
 from control_msgs.action   import GripperCommand
 from aist_robotiq_msgs.msg import CModelStatus, CModelCommand
 from aist_robotiq_msgs.srv import SetVelocity
+from ddynamic_reconfigure2 import declare_read_only_parameter
 
 #########################################################################
 #  class CModelController                                               #
@@ -56,15 +57,21 @@ class CModelController(Node):
 
         # Read configuration parameters
 
-        self._min_position = self._get_parameter_value('min_position', 0.0)
-        self._max_position = self._get_parameter_value('max_position', 0.085)
+        self._min_position = declare_read_only_parameter(self,
+                                                         'min_position', 0.0)
+        self._max_position = declare_read_only_parameter(self,
+                                                         'max_position', 0.085)
         print('### max_position=%f' % self._max_position)
-        self._min_velocity = self._get_parameter_value('min_velocity', 0.013)
-        self._max_velocity = self._get_parameter_value('max_velocity', 0.1)
-        self._min_effort   = self._get_parameter_value('min_effort',  40.0)
-        self._max_effort   = self._get_parameter_value('max_effort', 100.0)
-        self._joint_name   = self._get_parameter_value('joint_name',
-                                                       'finger_joint')
+        self._min_velocity = declare_read_only_parameter(self,
+                                                         'min_velocity', 0.013)
+        self._max_velocity = declare_read_only_parameter(self,
+                                                         'max_velocity', 0.1)
+        self._min_effort   = declare_read_only_parameter(self,
+                                                         'min_effort',  40.0)
+        self._max_effort   = declare_read_only_parameter(self,
+                                                         'max_effort', 100.0)
+        self._joint_name   = declare_read_only_parameter(self, 'joint_name',
+                                                         'finger_joint')
 
         # Velocity parameter set by service server.
         self._velocity         = 0.5*(self._min_velocity + self._max_velocity)

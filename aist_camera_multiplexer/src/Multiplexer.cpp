@@ -74,7 +74,7 @@ class Multiplexer : public rclcpp::Node
 	const rclcpp::Subscription<cloud_t>::SharedPtr	     _cloud_sub;
 	const rclcpp::Subscription<camera_info_t>::SharedPtr _camera_info_sub;
     };
-    
+
     using ddynamic_reconfigure_t = ddynamic_reconfigure2::DDynamicReconfigure;
 
   public:
@@ -82,9 +82,6 @@ class Multiplexer : public rclcpp::Node
 
   private:
     std::string	node_name()		const	{ return get_name(); }
-    template <class T>
-    T		declare_read_only_parameter(const std::string& name,
-					    const T& default_value)	;
     size_t	ncameras()					const	;
     void	activate_camera(const std::string& camera_name)		;
 
@@ -167,8 +164,10 @@ Multiplexer::Multiplexer(const rclcpp::NodeOptions& options)
      _camera_info_pub(create_publisher<camera_info_t>(
 			  node_name() + "/camera_info", 1))
 {
-    const auto	camera_names = declare_read_only_parameter<
-				std::vector<std::string> >("camera_names", {});
+    const auto	camera_names = ddynamic_reconfigure2::
+			       declare_read_only_parameter<
+				   std::vector<std::string> >(
+				       this, "camera_names", {});
     if (camera_names.empty())
     {
 	RCLCPP_ERROR_STREAM(get_logger(), "No camera names specified.");
@@ -188,15 +187,6 @@ Multiplexer::Multiplexer(const rclcpp::NodeOptions& options)
 	"active_camera", _subscribers[_active_camera_number].camera_name(),
 	std::bind(&Multiplexer::activate_camera, this, std::placeholders::_1),
 	"Currently active camera", enum_cameras);
-}
-
-template <class T> T
-Multiplexer::declare_read_only_parameter(const std::string& name,
-					 const T& default_value)
-{
-    return declare_parameter(
-		name, default_value,
-		ddynamic_reconfigure2::read_only_param_desc<T>(name));
 }
 
 size_t

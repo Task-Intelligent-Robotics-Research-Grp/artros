@@ -23,15 +23,12 @@ class SplineExtrapolatorTest : public rclcpp::Node
     using flt_p		= flt_t::UniquePtr;
     using vector3_t	= geometry_msgs::msg::Vector3Stamped;
     using vector3_p	= vector3_t::UniquePtr;
-    
+
   public:
 		SplineExtrapolatorTest(const rclcpp::NodeOptions& options);
 
   private:
     std::string node_name()			const	{ return get_name(); }
-    template <class T>
-    T		declare_read_only_parameter(const std::string& name,
-					    const T& default_value)	;
     void	tick()							;
     void	flt_cb(flt_p flt)					;
 
@@ -57,20 +54,12 @@ SplineExtrapolatorTest::SplineExtrapolatorTest(
      _extrapolator3(get_clock()->now()),
      _extrapolator4(get_clock()->now()),
      _timer(create_wall_timer(std::chrono::duration<double>(
-				  1.0/declare_read_only_parameter<double>(
-				          "rate", 100.0)),
+				  1.0/ddynamic_reconfigure2::
+				      declare_read_only_parameter<double>(
+					  this, "rate", 100.0)),
 			      std::bind(&SplineExtrapolatorTest::tick, this)))
 {
     RCLCPP_INFO_STREAM(get_logger(), "started");
-}
-
-template <class T> T
-SplineExtrapolatorTest::declare_read_only_parameter(const std::string& name,
-						    const T& default_value)
-{
-    return declare_parameter(
-		name, default_value,
-		ddynamic_reconfigure2::read_only_param_desc<T>(name));
 }
 
 void

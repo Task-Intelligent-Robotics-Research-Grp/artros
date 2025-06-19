@@ -24,9 +24,10 @@ find_package(controller_manager REQUIRED)
 find_package(hardware_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 
-find_package(gz_sim_vendor REQUIRED)
+#find_package(gz_sim_vendor REQUIRED)
 find_package(ros_gz_sim REQUIRED)
-find_package(gz_plugin_vendor REQUIRED)
+#find_package(gazebo6-dev REQUIRED)
+#find_package(gz_plugin_vendor REQUIRED)
 #find_package(ros-gz-plugin REQUIRED)
 
 find_package(ament_cmake_python REQUIRED)
@@ -45,20 +46,20 @@ include_directories(
 )
 
 
-link_directories(${gz_sim_vendor_LIBRARY_DIRS})
-include_directories(${gz_sim_vendor_INCLUDE_DIRS})
+link_directories(${ros_gz_sim_LIBRARY_DIRS})
+include_directories(${ros_gz_sim_INCLUDE_DIRS})
 
 ###############################
 ## gazebo_mimic_joint_plugin ##
 ###############################
-add_library(
-  gz_mimic_joint_plugin SHARED
-    src/mimic_joint_plugin.cpp
-)
+#add_library(
+#  gz_mimic_joint_plugin SHARED
+#    src/mimic_joint_plugin.cpp
+#)
 
 #target_include_directories(
 #  gz_mimic_joint_plugin PUBLIC
-#    ${gz_sim_vendor_INCLUDE_DIRS}
+#    ${ros_gz_sim_INCLUDE_DIRS}
 #)
 
 ##################
