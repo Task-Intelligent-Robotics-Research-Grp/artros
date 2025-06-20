@@ -35,7 +35,7 @@
 #
 import threading
 from aist_robotiq.cmodel_base import CModelBase
-from aist_robotiq.msg         import CModelStatus
+from aist_robotiq_msgs.msg    import CModelStatus
 from pymodbus.exceptions      import ModbusIOException
 from pymodbus.client.sync     import ModbusTcpClient, ModbusSerialClient
 
@@ -44,7 +44,7 @@ from pymodbus.client.sync     import ModbusTcpClient, ModbusSerialClient
 #########################################################################
 class CModelModbusBase(CModelBase):
     def __init__(self, slave_id):
-        super().__init__(slave_id)
+        super().__init__('cmode_modbus', slave_id)
 
     def disconnect(self):
         if self._client:          # (self._client is defined in derived class)

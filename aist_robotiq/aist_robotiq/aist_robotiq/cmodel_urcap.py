@@ -5,7 +5,7 @@
 
 import time, socket, threading
 from aist_robotiq.cmodel_base import CModelBase
-from aist_robotiq.msg         import CModelStatus
+from aist_robotiq_msgs.msg    import CModelStatus
 
 #########################################################################
 #  class CModelURCap                                                    #
@@ -40,7 +40,7 @@ class CModelURCap(CModelBase):
         """
         Constructor
         """
-        super().__init__(slave_id)
+        super().__init__('cmodel_urcap', slave_id)
         self._lock   = threading.Lock()
         self._socket = self.connect(address)
         #self.activate()

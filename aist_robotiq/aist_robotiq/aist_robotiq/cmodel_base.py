@@ -33,20 +33,20 @@
 #
 # Author: Toshio Ueshiba
 #
-from rclpy.node       import Node
-from numpy            import clip
-from aist_robotiq.msg import CModelStatus, CModelCommand
+from rclpy.node            import Node
+from numpy                 import clip
+from aist_robotiq_msgs.msg import CModelStatus, CModelCommand
 
 #########################################################################
 #  class CModelBase                                                     #
 #########################################################################
 class CModelBase(Node):
-    def __init__(self, slave_id):
-        super().__init__()
+    def __init__(self, name, slave_id):
+        super().__init__(name)
         self._slave_id = slave_id
         self._pub      = self.create_publisher(CModelStatus, '/status', 3)
         self._sub      = self.create_subscription(CModelCommand, '/command',
-                                                  self.put_command)
+                                                  self.put_command, 3)
         self._timer    = self.create_timer(0.05, self._timer_cb)
 
     def __del__(self):

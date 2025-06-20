@@ -61,7 +61,6 @@ class CModelController(Node):
                                                          'min_position', 0.0)
         self._max_position = declare_read_only_parameter(self,
                                                          'max_position', 0.085)
-        print('### max_position=%f' % self._max_position)
         self._min_velocity = declare_read_only_parameter(self,
                                                          'min_velocity', 0.013)
         self._max_velocity = declare_read_only_parameter(self,

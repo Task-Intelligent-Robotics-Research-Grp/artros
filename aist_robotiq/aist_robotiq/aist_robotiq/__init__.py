@@ -37,6 +37,7 @@ Clients of gripper action controller of control_msg/GripperCommandAction type.
 """
 import rclpy
 from rclpy.node               import Node
+from rclpy.duration           import Duration
 from rclpy.action             import ActionClient
 from actionlib_msgs.msg       import GoalStatus
 from control_msgs.action      import GripperCommand
@@ -88,7 +89,7 @@ class GenericGripper(Node):
         for key, value in parameters.items():
             self._parameters[key] = value
 
-    def grasp(self, timeout=rclpy.duration(0)):
+    def grasp(self, timeout=Duration()):
         """
         Grasp an object with the gripper.
         Desired finger position and applied effort are specified by parameters
@@ -103,7 +104,7 @@ class GenericGripper(Node):
         return self.move(self.parameters['grasp_position'],
                          self.parameters['max_effort'], timeout)
 
-    def release(self, timeout=rclpy.duration(0)):
+    def release(self, timeout=Duration()):
         """
         Release an object grasped by the gripper.
         Desired finger position is specified by a parameter
@@ -117,7 +118,7 @@ class GenericGripper(Node):
         """
         return self.move(self.parameters['release_position'], 0, timeout)
 
-    def move(self, position, max_effort=0, timeout=rclpy.duration(0)):
+    def move(self, position, max_effort=0, timeout=Duration()):
         """
         Move fingers to the specified position with specified effort
         @param position   finger position
@@ -135,7 +136,7 @@ class GenericGripper(Node):
                                      feedback_callback=self._feedback_cb)
         return self.wait(timeout)
 
-    def wait(self, timeout=rclpy.duration(0)):
+    def wait(self, timeout=Duration()):
         """
         Wait the gripper for completing the movement.
         @param timeout If positive, wait timeout duration until
@@ -189,10 +190,10 @@ class RobotiqGripper(GenericGripper):
         super().__init__(ns + '/gripper_cmd',
                          self._min_gap, self._max_gap, max_effort)
 
-    def move(self, gap, max_effort=0, timeout=rclpy.duration(0)):
+    def move(self, gap, max_effort=0, timeout=Duration()):
         return super().move(self._position(gap), max_effort, timeout)
 
-    def wait(self, timeout=rclpy.duration(0)):
+    def wait(self, timeout=Duration()):
         result = super().wait(timeout)
         result.position = self._gap(result.position)
         return result
@@ -257,7 +258,7 @@ class EPickGripper(Node):
         for key, value in parameters.items():
             self._parameters[key] = value
 
-    def grasp(self, timeout=rclpy.duration(0)):
+    def grasp(self, timeout=Duration()):
         """
         Grasp an object with the gripper.
         Pressure applied and pressure threshold for object detection are
@@ -274,7 +275,7 @@ class EPickGripper(Node):
                          self.parameters['detection_pressure'],
                          timeout)
 
-    def release(self, timeout=rclpy.duration(-1)):
+    def release(self, timeout=Duration(seconds=-1)):
         """
         Release an object grasped by the gripper.
         Value of applied pressure is specified by a parameter
@@ -290,7 +291,7 @@ class EPickGripper(Node):
                          self.parameters['detection_pressure'],
                          timeout)
 
-    def move(self, max_pressure, min_pressure, timeout=rclpy.duration(0)):
+    def move(self, max_pressure, min_pressure, timeout=Duration()):
         """
         Move fingers to the specified position with specified effort
         @param max_pressure maximum pressure value applied
@@ -309,7 +310,7 @@ class EPickGripper(Node):
                                feedback_cb=self._feedback_cb)
         return self.wait(timeout)
 
-    def wait(self, timeout=rclpy.duration(0)):
+    def wait(self, timeout=Duration()):
         """
         Wait the gripper for completing the movement.
         @param timeout If positive, wait timeout duration until

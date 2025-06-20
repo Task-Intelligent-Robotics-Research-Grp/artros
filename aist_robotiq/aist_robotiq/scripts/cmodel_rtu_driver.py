@@ -43,6 +43,7 @@ from rclpy.executors            import ExternalShutdownException
 if __name__ == '__main__':
     try:
         rclpy.init():
+
         port     = int(sys.argv[1])
         slave_id = 9 if len(sys.argv) < 3 else int(sys.argv[2])
         cmodel   = CModelModbusRTU(port, slave_id)
