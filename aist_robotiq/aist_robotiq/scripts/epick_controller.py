@@ -35,78 +35,110 @@
 #
 # Author: Toshio Ueshiba
 #
-import rclpy, os
+import rclpy, os, threading
 import numpy as np
-from rclpy.node            import Node
-from rclpy.action          import ActionServer, GoalResponse, CancelResponse
-from rclpy.callback_groups import ReentrantCallbackGroup
-from rclpy.executors       import (ExternalShutdownException,
-                                   MultithreadedExecutor)
-from aist_robotiq.msg      import (CModelStatus, CModelCommand,
-                                   EPickCommandAction, EPickCommandGoal,
-                                   EPickCommandResult, EPickCommandFeedback)
-from actionlib        import SimpleActionServer
+from rclpy.node               import Node
+from rclpy.action             import ActionServer, GoalResponse, CancelResponse
+from rclpy.callback_groups    import ReentrantCallbackGroup
+from rclpy.executors          import (ExternalShutdownException,
+                                      MultithreadedExecutor)
+from aist_robotiq_msgs.msg    import CModelStatus, CModelCommand
+from aist_robotiq_msgs.action import EPickCommand
 
 #########################################################################
 #  class EPickController                                                #
 #########################################################################
 class EPickController(Node):
     def __init__(self):
-        super().__init__()
+        super().__init__('epick_controller')
 
         # Status recevied from driver, command sent to driver
-        self._status_sub  = self.create_subscription(CModelStatus, 'status',
-                                                     self._status_cb, 1)
-        self._command_pub = self.create_publisher(CModelCommand, 'command', 1)
+        self._status_condition = threading.Condition()
+        self._status           = None
+        self._status_sub       = self.create_subscription(
+                                     CModelStatus, self.get_name() + '/status',
+                                     self._status_cb, 1,
+                                     callback_group=ReentrantCallbackGroup())
+        self._command_pub      = self.create_publisher(
+                                     CModelCommand,
+                                     self.get_name() + '/command', 1)
 
         # Configure and start the action server
-        self._server = ActionServer(self, EPickCommandAction, 'gripper_cmd',
-                                    callback_group=ReentrantCallbackGroup(),
-                                          auto_start=False)
-        self._server.register_goal_callback(self._goal_cb)
-        self._server.register_preempt_callback(self._preempt_cb)
-        self._server.start()
+        self._goal_lock   = threading.Lock()
+        self._goal_handle = None
+        self._gripper_cmd_srv \
+            = ActionServer(self, EPickCommandAction,
+                           self.get_name() + '/gripper_cmd',
+                           execute_callback=self._execute_cb,
+                           goal_callback=self._goal_cb,
+                           handle_accepted_callback=self._handle_accepted_cb,
+                           cancel_callbakc=self._cancel_cb,
+                           callback_group=ReentrantCallbackGroup())
 
-        rospy.logdebug('(%s) Started' % self._name)
+        self.get_lobber().debug('started' % self._name)
+
+    def destroy(self):
+        self._gripper_cmd_srv.destroy()
+        super().destroy_node()
+
+    def _goal_cb(self, goal_request):
+        self.get_logger().info('goal received')
+        return GoalResponse.ACCEPT
+
+    def _handle_accepted_cb(self, goal_handle):
+        with self._goal_lock:
+            # This server only allows one goal at a time
+            if goal_handle is not None and self._goal_handle.is_active:
+                self.get_logger.warn('previous goal ABORTED')
+                self._goal_handle.abort()  # Abort the existing goal
+            self._goal_handle = goal_handle
+        goal_handle.execute()
+
+    def _cancel_cb(self, goal):
+        self.get_logger().info('cancel request received')
+        return CancelResponse.ACCEPT
+
+    def _execute_cb(self, goal_handle):
+        self._send_move_command(goal_handle.request.command.advanced_mode,
+                                goal_handle.request.command.max_pressure,
+                                goal_handle.request.command.min_pressure,
+                                goal_handle.request.command.timeout)
+        self.get_logger().info('sent move command[advance_mode=%d, max_pressure=%f, min_pressure=%f, timeout=%f]',
+                               goal_handle.request.command.advanced_mode,
+                               goal_handle.request.command.max_pressure,
+                               goal_handle.request.command.min_pressure,
+                               goal_handle.request.command.timeout.to_sec())
+
+        while goal_handle.is_active:
+            # Wait for new incoming status from the driver
+            with self._status_condition:
+                while self._status is None:
+                    self._status_condition.wait()
+                status = self._status
+                self._status = None
+
+            goal_handle.publish_feedback(
+                EPickCommand.Feedback(*self._status_values(status)))
+
+            result = GripperCommand.Result(*self._status_values(status))
+
+            if goal_handle.is_cancel_requested():
+                goal_handle.canceled()
+                self.get_logger().warn('goal CANCELED')
+            elif self._error(status) != 0:
+                goal_handle.abort()
+                self.get_logger().error('goal ABORTED[error code: %x]',
+                                        self._error(status))
+            elif self._stalled(status):
+                goal_handle.succeed()
+                self.get_logger().info('goal SUCCEED[stalled]')
+
+        return result
 
     def _status_cb(self, status):
-        # Return if no active goals
-        if not self._server.is_active():
-            return
-
-        # Handle the active goal
-        if not self._is_active(status):
-            rospy.logwarn('(%s) abort goal because the gripper is not yet active' % self._name)
-            self._server.set_aborted()
-        elif self._error(status) != 0:
-            rospy.logwarn('(%s) faulted with code: %x'
-                          % (self._name, self._error(status)))
-            self._server.set_aborted()
-        elif self._stalled(status):
-            rospy.loginfo('(%s) stalled' % self._name)
-            self._server.set_succeeded(
-                EPickCommandResult(*self._status_values(status)))
-        else:
-            self._server.publish_feedback(
-                EPickCommandFeedback(*self._status_values(status)))
-
-    def _goal_cb(self):
-        goal = self._server.accept_new_goal()  # requested goal
-
-        # Check that preempt has not been requested by the client
-        if self._server.is_preempt_requested():
-            self._server.set_preempted()
-            return
-
-        self._send_move_command(goal.command.advanced_mode,
-                                goal.command.max_pressure,
-                                goal.command.min_pressure,
-                                goal.command.timeout)
-
-    def _preempt_cb(self):
-        self._stop()
-        rospy.loginfo('(%s) preempted' % self._name)
-        self._server.set_preempted()
+        with self._status_condition:
+            self._status = status
+            self._status_condition.notifyAll()
 
     def _send_move_command(self, advanced_mode,
                            max_pressure, min_pressure, timeout):
@@ -150,6 +182,11 @@ class EPickController(Node):
 
 
 if __name__ == '__main__':
-    rospy.init_node('epick_controller')
-    controller = EPickController()
-    rospy.spin()
+    try:
+        rclpy.init()
+        controller = EPickController()
+        executor   = MultiThreadedExecutor(num_threads=4)
+        executor.add_node(controller)
+        executor.spin()
+    except (KeyboardInterrupt, ExternalShutdownException):
+        pass

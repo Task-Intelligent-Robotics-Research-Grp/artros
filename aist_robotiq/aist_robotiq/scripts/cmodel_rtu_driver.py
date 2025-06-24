@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
         port     = int(sys.argv[1])
         slave_id = 9 if len(sys.argv) < 3 else int(sys.argv[2])
-        cmodel   = CModelModbusRTU(port, slave_id)
+        cmodel   = CModelModbusRTU('cmodel_rtu_driver', port, slave_id)
 
         rclpy.spin(cmodel)
 

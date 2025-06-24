@@ -43,8 +43,8 @@ from pymodbus.client.sync     import ModbusTcpClient, ModbusSerialClient
 #  class CModelModbusBase                                               #
 #########################################################################
 class CModelModbusBase(CModelBase):
-    def __init__(self, slave_id):
-        super().__init__('cmode_modbus', slave_id)
+    def __init__(self, name, slave_id):
+        super().__init__(name, slave_id)
 
     def disconnect(self):
         if self._client:          # (self._client is defined in derived class)
@@ -113,8 +113,8 @@ class CModelModbusBase(CModelBase):
 #  class CModelModbusTCP                                                #
 #########################################################################
 class CModelModbusTCP(CModelModbusBase):
-    def __init__(self, ip_address, slave_id=9):
-        super().__init__(slave_id)
+    def __init__(self, name, ip_address, slave_id=9):
+        super().__init__(name, slave_id)
         self._lock   = threading.Lock()
         self._client = ModbusTcpClient(ip_address)
         self._client.connect()
@@ -131,8 +131,8 @@ class CModelModbusTCP(CModelModbusBase):
 #  class CModelModbusRTU                                                #
 #########################################################################
 class CModelModbusRTU(CModelModbusBase):
-    def __init__(self, port, slave_id=9):
-        super().__init__(slave_id)
+    def __init__(self, name, port, slave_id=9):
+        super().__init__(name, slave_id)
         self._lock   = threading.Lock()
         self._client = ModbusSerialClient(method='rtu', port=port,
                                           stopbits=1, bytesize=8, parity='N',

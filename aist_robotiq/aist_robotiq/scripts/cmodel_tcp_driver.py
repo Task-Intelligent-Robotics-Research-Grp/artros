@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
         ip_addess = sys.argv[1]
         slave_id  = 9 if len(sys.argv) < 3 else int(sys.argv[2])
-        cmodel    = CModelModbusTCP(ip_address, slave_id)
+        cmodel    = CModelModbusTCP('cmodel_tcp_driver', ip_address, slave_id)
 
         rclpy.spin(cmodel)
 

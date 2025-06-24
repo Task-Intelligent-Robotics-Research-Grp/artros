@@ -36,11 +36,11 @@ class CModelURCap(CModelBase):
 
     ENCODING = 'UTF-8'  # ASCII and UTF-8 both seem to work
 
-    def __init__(self, address, slave_id=9):
+    def __init__(self, name, address, slave_id=9):
         """
         Constructor
         """
-        super().__init__('cmodel_urcap', slave_id)
+        super().__init__(name, slave_id)
         self._lock   = threading.Lock()
         self._socket = self.connect(address)
         #self.activate()

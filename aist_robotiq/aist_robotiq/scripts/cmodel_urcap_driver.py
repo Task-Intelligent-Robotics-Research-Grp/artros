@@ -43,8 +43,9 @@ if __name__ == '__main__':
     try:
         rclpy.init()
 
+        ip_address = sys.argv[1]
         slave_id   = 9 if len(sys.argv) < 3 else int(sys.argv[2])
-        cmodel     = CModelURCap(sys.argv[1], slave_id)
+        cmodel     = CModelURCap('cmodel_urcap_driver', ip_address, slave_id)
 
         rclpy.spin(cmodel)
 
