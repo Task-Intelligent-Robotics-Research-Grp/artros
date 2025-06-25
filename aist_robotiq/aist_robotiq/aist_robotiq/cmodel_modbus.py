@@ -118,6 +118,8 @@ class CModelModbusTCP(CModelModbusBase):
         self._lock   = threading.Lock()
         self._client = ModbusTcpClient(ip_address)
         self._client.connect()
+        self.get_logger().info('started[ip_address=%s, slave_id=%d]'
+                               % (ip_address, slave_id))
 
     def _write_registers(self, message):
         with self._lock:
@@ -138,6 +140,8 @@ class CModelModbusRTU(CModelModbusBase):
                                           stopbits=1, bytesize=8, parity='N',
                                           baudrate=115200, timeout=0.2)
         self._client.connect()
+        self.get_logger().info('started[port=%d, slave_id=%d]'
+                               % (port, slave_id))
 
     def _write_registers(self, message):
         with self._lock:

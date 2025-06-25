@@ -46,7 +46,6 @@ if __name__ == '__main__':
         ip_address = sys.argv[1]
         slave_id   = 9 if len(sys.argv) < 3 else int(sys.argv[2])
         cmodel     = CModelURCap('cmodel_urcap_driver', ip_address, slave_id)
-
         rclpy.spin(cmodel)
 
         cmodel.destroy_node()

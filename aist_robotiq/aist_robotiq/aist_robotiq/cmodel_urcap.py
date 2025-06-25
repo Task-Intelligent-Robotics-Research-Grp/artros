@@ -44,6 +44,8 @@ class CModelURCap(CModelBase):
         self._lock   = threading.Lock()
         self._socket = self.connect(address)
         #self.activate()
+        self.get_logger().info('started[address=%s, slave_id=%d]'
+                               % (address, slave_id))
 
     def connect(self, hostname, port=63352, socket_timeout=2.0):
         """

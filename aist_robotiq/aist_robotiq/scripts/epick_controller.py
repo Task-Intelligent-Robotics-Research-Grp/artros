@@ -49,8 +49,8 @@ from aist_robotiq_msgs.action import EPickCommand
 #  class EPickController                                                #
 #########################################################################
 class EPickController(Node):
-    def __init__(self):
-        super().__init__('epick_controller')
+    def __init__(self, name):
+        super().__init__(name)
 
         # Status recevied from driver, command sent to driver
         self._status_condition = threading.Condition()
@@ -184,7 +184,7 @@ class EPickController(Node):
 if __name__ == '__main__':
     try:
         rclpy.init()
-        controller = EPickController()
+        controller = EPickController('epick_controller')
         executor   = MultiThreadedExecutor(num_threads=4)
         executor.add_node(controller)
         executor.spin()

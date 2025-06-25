@@ -21,7 +21,9 @@
   <depend>hardware_interface</depend>
   <depend>control_msgs</depend>
   <depend>sensor_msgs</depend>
+  <depend>aist_robotiq_msgs</depend>
   <depend>control_toolbox</depend>
+  <depend>builtin_interfaces</depend>
   <depend>controller_interface</depend>
   <depend>ros_gz_sim</depend>
 

@@ -35,7 +35,7 @@
 #
 # Author: Toshio Ueshiba
 #
-import rclpy, os, threading
+import rclpy, sys, time, threading
 import numpy as np
 from rclpy.node            import Node
 from rclpy.action          import ActionServer, GoalResponse, CancelResponse
@@ -51,8 +51,8 @@ from aist_robotiq_msgs.srv import SetVelocity
 #  class CModelController                                               #
 #########################################################################
 class CModelController(Node):
-    def __init__(self):
-        super().__init__('cmodel_controller')
+    def __init__(self, name):
+        super().__init__(name)
 
         # Read configuration parameters
         self._min_position = self.declare_parameter('min_position', .810).value
@@ -76,14 +76,14 @@ class CModelController(Node):
         self._status           = None
         self._status_sub       = self.create_subscription(
                                      CModelStatus, self.get_name() + '/status',
-                                     self._status_cb, 1,
+                                     self._status_cb, 10,
                                      callback_group=ReentrantCallbackGroup())
         self._command_pub      = self.create_publisher(
                                      CModelCommand,
                                      self.get_name() + '/command', 1)
         self._joint_state_pub  = self.create_publisher(
                                      JointState, '/joint_states', 1)
-        self._goal_rPR         = 0
+        self._goal_r_pr        = 0
 
         # Position parameters to be calibrated
         self._min_gap_counts   = 255  # gap counts at full-close position
@@ -103,7 +103,7 @@ class CModelController(Node):
                            callback_group=ReentrantCallbackGroup())
 
         # Calibrate gripper
-        self._sleep(2.0)              # wait for server comes up
+        #time.sleep(2.0)              # wait for server comes up
         self._calibrate()
 
         self.get_logger().debug('started')
@@ -135,7 +135,7 @@ class CModelController(Node):
         return CancelResponse.ACCEPT
 
     def _execute_cb(self, goal_handle):
-        self._goal_rPR \
+        self._goal_r_pr \
             = self._send_move_command(goal_handle.request.command.position,
                                       self._velocity,
                                       goal_handle.request.command.max_effort)
@@ -171,7 +171,7 @@ class CModelController(Node):
                 goal_handle.succeed()
                 self.get_logger().info('goal SUCCEED[stalled]')
 
-        return result
+                return result
 
     def _status_cb(self, status):
         # Publish the joint_states for the gripper
@@ -181,22 +181,24 @@ class CModelController(Node):
         joint_state.position     = [self._position(status)]
         self._joint_state_pub.publish(joint_state)
 
+        self.get_logger.info('### status=%s' % status)
+
         # Handle calibration process if not moving
         if self._is_active(status) and not self._is_moving(status):
             if self._calibration_step == 1:
                 self.get_logger().info("calibration step 1: start calibration")
                 self._calibration_step = 2
                 self._send_raw_move_command(0, 64, 1)    # full-open
-                self._sleep(0.5)
+                #self._sleep(0.5)
             elif self._calibration_step == 2:
-                self._max_gap_counts = status.gPO        # record at full-open
+                self._max_gap_counts = status.g_po        # record at full-open
                 self.get_logger().info("calibration step 2: gap[%d]@full-open",
                                        self._max_gap_counts)
                 self._calibration_step = 3
                 self._send_raw_move_command(255, 64, 1)  # full-close
-                self._sleep(0.5)
+                #self._sleep(0.5)
             elif self._calibration_step == 3:
-                self._min_gap_counts = status.gPO        # record at full-close
+                self._min_gap_counts = status.g_po        # record at full-close
                 self.get_logger().info("calibration step 3: gap[%d]@full-close",
                                        self._min_gap_counts)
                 self._calibration_step = 0
@@ -245,7 +247,7 @@ class CModelController(Node):
         self.get_logger().debug('stopping')
 
     def _position(self, status):
-        return (status.gPO - self._min_gap_counts) * self.position_per_tick \
+        return (status.g_po - self._min_gap_counts) * self.position_per_tick \
              + self._min_position
 
     def _effort(self, status):
@@ -255,13 +257,13 @@ class CModelController(Node):
         # After the goal accepted in _goal_cb(), status.g_pr does not
         # correctly reflects the requested position if _status_cb() is
         # called before _send_move_command(). Thus we have to use
-        # self._goal_rPR instead of status.gPR.
-        return (status.gOBJ == 1 and status.gPO > self._goal_rPR + 1) or \
-               (status.gOBJ == 2 and status.gPO + 1 < self._goal_rPR)
+        # self._goal_r_pr instead of status.g_pr.
+        return (status.g_obj == 1 and status.g_po > self._goal_r_pr + 1) or \
+               (status.g_obj == 2 and status.g_po + 1 < self._goal_r_pr)
 
     def _reached_goal(self, status):
         # ibid
-        return status.gOBJ == 3 and abs(status.gPO - self._goal_rPR) <= 1
+        return status.g_obj == 3 and abs(status.g_po - self._goal_r_pr) <= 1
 
     def _status_values(self, status):
         return self._position(status), self._effort(status), \
@@ -275,11 +277,6 @@ class CModelController(Node):
 
     def _is_moving(self, status):
         return status.g_gto == 1 and status.g_obj == 0
-
-    def _sleep(self, sec):
-        rate = self.create_rate(1.0/sec)
-        rate.sleep()
-        self.destroy_rate(rate)
 
     @property
     def position_per_tick(self):
@@ -296,10 +293,13 @@ class CModelController(Node):
 
 if __name__ == '__main__':
     try:
-        rclpy.init()
-        controller      = CModelController()
-        executor        = MultiThreadedExecutor(num_threads=4)
-        executor.add_node(controller)
-        executor.spin()
+        rclpy.init(args=sys.argv)
+        controller = CModelController('cmodel_controller')
+        # executor   = MultiThreadedExecutor(num_threads=4)
+        # executor   = MultiThreadedExecutor(num_threads=4)
+        # executor.add_node(controller)
+        # executor.spin()
+        rclpy.spin(controller)
+
     except (KeyboardInterrupt, ExternalShutdownException):
         pass

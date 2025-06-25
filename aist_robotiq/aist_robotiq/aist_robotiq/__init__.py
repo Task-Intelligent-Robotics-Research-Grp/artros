@@ -47,11 +47,11 @@ from aist_robotiq_msgs.action import EPickCommand
 ######################################################################
 #  class GenericGripper                                              #
 ######################################################################
-class GenericGripper(Node):
+class GenericGripper(object):
     """
     Gripper client of control_msg/GripperCommandAction type.
     """
-    def __init__(self, action_ns,
+    def __init__(self, node, action_ns,
                  min_position=0.0, max_position=0.1, max_effort=5.0):
         """
         Constructor
@@ -63,14 +63,12 @@ class GenericGripper(Node):
         super().__init__()
 
         self._feedback = GripperCommand.Feedback()
-        self._client   = ActionClient(self, GripperCommand, action_ns)
-        self._client.wait_for_server()
+        self._client   = ActionClient(node, GripperCommand, action_ns)
+#        self._client.wait_for_server()
 
         self._parameters = {'grasp_position':   min_position,
                             'release_position': max_position,
                             'max_effort':       max_effort}
-
-        self.get_loger().info('%s initialized.', action_ns)
 
     @property
     def parameters(self):
@@ -171,7 +169,7 @@ class GenericGripper(Node):
 #  class RobotiqGripper                                              #
 ######################################################################
 class RobotiqGripper(GenericGripper):
-    def __init__(self, prefix='a_bot_gripper_', max_effort=0.0):
+    def __init__(self, node, prefix='a_bot_gripper_', max_effort=0.0):
         """
         Constructor
         @param prefix     string prefix for identifying a specific gripper
@@ -179,15 +177,17 @@ class RobotiqGripper(GenericGripper):
         @param max_effort maximum effort applied when gripping objects
         """
         ns = prefix + 'controller'
-        self._min_gap      = rclpy.get_param(ns + '/min_gap',      0.000)
-        self._max_gap      = rclpy.get_param(ns + '/max_gap',      0.085)
-        self._min_position = rclpy.get_param(ns + '/min_position', 0.81)
-        self._max_position = rclpy.get_param(ns + '/max_position', 0.00)
+        self._min_gap      = node.declare_parameter(ns + '/min_gap', 0.000).value
+        self._max_gap      = node.declare_parameter(ns + '/max_gap', 0.085).value
+        self._min_position = node.declare_parameter(ns + '/min_position',
+                                                    0.81).value
+        self._max_position = node.declare_parameter(ns + '/max_position',
+                                                    0.00).value
 
         assert self._min_gap < self._max_gap
         assert self._min_position != self._max_position
 
-        super().__init__(ns + '/gripper_cmd',
+        super().__init__(node, ns + '/gripper_cmd',
                          self._min_gap, self._max_gap, max_effort)
 
     def move(self, gap, max_effort=0, timeout=Duration()):
@@ -214,11 +214,11 @@ class RobotiqGripper(GenericGripper):
 ######################################################################
 #  class EPickGripper                                                #
 ######################################################################
-class EPickGripper(Node):
+class EPickGripper(object):
     """
     Gripper client of aist_robotiq/EPickCommandAction type.
     """
-    def __init__(self, prefix='a_bot_gripper_', advanced_mode=False,
+    def __init__(self, node, prefix='a_bot_gripper_', advanced_mode=False,
                  grasp_pressure=-78.0, detection_pressure=-10.0,
                  release_pressure=0.0):
         """
@@ -230,8 +230,8 @@ class EPickGripper(Node):
 
         ns = prefix + 'controller'
         self._feedback = EPickCommandFeedback()
-        self._client   = actionlib.SimpleActionClient(ns + '/gripper_cmd',
-                                                      EPickCommandAction)
+        self._client   = ActionClient(node, EPickCommandAction,
+                                      ns + '/gripper_cmd')
         self._client.wait_for_server()
 
         self._parameters = {'advanced_mode':      advanced_mode,

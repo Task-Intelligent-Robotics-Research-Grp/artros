@@ -21,7 +21,10 @@ launch_arguments = [
      'description': 'IP address or device file'},
     {'name':        'slave_id',
      'default':     '9',
-     'description': 'slave ID'}]
+     'description': 'slave ID'},
+    {'name':        'log_level',
+     'default':     'info',
+     'description': 'debug log level [DEBUG|INFO|WARN|ERROR|FATAL]'}]
 
 def declare_launch_arguments(args, defaults={}):
     num_to_str = lambda x : str(x) if isinstance(x, (bool, int, float)) else x
@@ -62,7 +65,9 @@ def launch_setup(context):
                  package='aist_robotiq',
                  executable=controller_type + '_controller.py',
                  parameters=[params],
-                 output='screen')]
+                 output='screen',
+                 arguments=['--ros-args', '--log-level',
+                            LaunchConfiguration('log_level')])]
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \

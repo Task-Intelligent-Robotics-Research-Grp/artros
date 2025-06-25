@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Software License Agreement (BSD License)
 #
@@ -35,44 +35,58 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy
-from aist_robotiq        import RobotiqGripper
-from aist_utility.compat import *
+import rclpy
+from rclpy.node   import Node
+from aist_robotiq import RobotiqGripper
+
+#########################################################################
+#  class TestCModelClient                                               #
+#########################################################################
+class TestCModelClient(Node):
+    def __init__(self, name):
+        super().__init__(name)
+
+        prefix = self.declare_parameter('prefix', 'a_bot_bripper_').value
+        self._gripper = RobotiqGripper(self, prefix)
+        self._timer = self.create_timer(0.01, self._interactive_cb)
+        self.get_logger().info('started')
+
+    def _interactive_cb(self):
+        def is_float(s):
+            try:
+                float(s)
+            except ValueError:
+                return False
+            else:
+                return True
+
+        while rclpy.ok():
+            print('==== Available commands ====')
+            print('  g:         Grasp')
+            print('  r:         Release')
+            print('  <numeric>: Open gripper with a specified gap value')
+            print('  q:         Quit\n')
+
+            key = input('>> ')
+            if key == 'g':
+                result = gripper.grasp()
+            elif key == 'r':
+                result = gripper.release()
+            elif is_float(key):
+                result = gripper.move(float(key))
+            elif key=='q':
+                break
+            else:
+                print('unknown command: %s' % key)
+                continue
+
+            print('---- Result ----')
+            print(result)
 
 if __name__ == '__main__':
+    rclpy.init()
 
-    def is_float(s):
-        try:
-            float(s)
-        except ValueError:
-            return False
-        else:
-            return True
-
-    rospy.init_node('test_cmodel_client')
-
-    prefix  = rospy.get_param('~prefix', 'a_bot_gripper_')
-    gripper = RobotiqGripper(prefix)
-
-    while not rospy.is_shutdown():
-        print('==== Available commands ====')
-        print('  g:         Grasp')
-        print('  r:         Release')
-        print('  <numeric>: Open gripper with a specified gap value')
-        print('  q:         Quit\n')
-
-        key = raw_input('>> ')
-        if key == 'g':
-            result = gripper.grasp()
-        elif key == 'r':
-            result = gripper.release()
-        elif is_float(key):
-            result = gripper.move(float(key))
-        elif key=='q':
-            break
-        else:
-            print('unknown command: %s' % key)
-            continue
-
-        print('---- Result ----')
-        print(result)
+    test = TestCModelClient('test_cmodel_client')
+    rclpy.spin(test)
+    test.destroy_node()
+    rclpy.shutdown()
