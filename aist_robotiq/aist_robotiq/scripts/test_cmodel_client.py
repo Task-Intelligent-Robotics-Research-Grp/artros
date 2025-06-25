@@ -46,12 +46,11 @@ class TestCModelClient(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        prefix = self.declare_parameter('prefix', 'a_bot_bripper_').value
+        prefix = self.declare_parameter('prefix', 'a_bot_gripper_').value
         self._gripper = RobotiqGripper(self, prefix)
-        self._timer = self.create_timer(0.01, self._interactive_cb)
         self.get_logger().info('started')
 
-    def _interactive_cb(self):
+    def run(self):
         def is_float(s):
             try:
                 float(s)
@@ -69,11 +68,11 @@ class TestCModelClient(Node):
 
             key = input('>> ')
             if key == 'g':
-                result = gripper.grasp()
+                result = self._gripper.grasp()
             elif key == 'r':
-                result = gripper.release()
+                result = self._gripper.release()
             elif is_float(key):
-                result = gripper.move(float(key))
+                result = self._gripper.move(float(key))
             elif key=='q':
                 break
             else:
@@ -87,6 +86,7 @@ if __name__ == '__main__':
     rclpy.init()
 
     test = TestCModelClient('test_cmodel_client')
-    rclpy.spin(test)
+    test.run()
+
     test.destroy_node()
     rclpy.shutdown()

@@ -36,7 +36,8 @@ def launch_setup(context):
                  package='aist_robotiq',
                  executable='test_' + client_type + '_client.py',
                  parameters=[params],
-                 output='screen')]
+                 emulate_tty=True,
+                 output='log')]
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \

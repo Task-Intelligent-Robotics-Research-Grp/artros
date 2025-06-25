@@ -64,7 +64,7 @@ class GenericGripper(object):
 
         self._feedback = GripperCommand.Feedback()
         self._client   = ActionClient(node, GripperCommand, action_ns)
-#        self._client.wait_for_server()
+        self._client.wait_for_server()
 
         self._parameters = {'grasp_position':   min_position,
                             'release_position': max_position,
@@ -128,10 +128,11 @@ class GenericGripper(object):
                           for completion.
         @return result of control_msgs/GripperCommandResult type
         """
-        self._client.send_goal_async(GripperCommand.Goal(
-                                         GripperCommandMsg(position,
-                                                           max_effort)),
-                                     feedback_callback=self._feedback_cb)
+        self._client.send_goal_async(
+            GripperCommand.Goal(
+                command=GripperCommandMsg(position=position,
+                                          max_effort=max_effort)),
+            feedback_callback=self._feedback_cb)
         return self.wait(timeout)
 
     def wait(self, timeout=Duration()):
