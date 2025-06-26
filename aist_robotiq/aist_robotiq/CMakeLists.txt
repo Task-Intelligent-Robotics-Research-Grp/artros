@@ -117,6 +117,7 @@ install(
     scripts/epick_controller.py
     scripts/test_cmodel_client.py
     scripts/test_epick_client.py
+    scripts/test_status_sub.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

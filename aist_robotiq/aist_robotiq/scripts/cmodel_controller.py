@@ -183,12 +183,12 @@ class CModelController(Node):
     def _status_cb(self, status):
         # Publish the joint_states for the gripper
         joint_state = JointState()
-        joint_state.header.stamp = self.get_clock().now()
+        joint_state.header.stamp = self.get_clock().now().to_msg()
         joint_state.name         = [self._joint_name]
         joint_state.position     = [self._position(status)]
         self._joint_state_pub.publish(joint_state)
 
-        self.get_logger.info('### status=%s' % status)
+        self.get_logger().info('### status=%s' % status)
 
         # Handle calibration process if not moving
         if self._is_active(status) and not self._is_moving(status):
@@ -302,10 +302,10 @@ if __name__ == '__main__':
     try:
         rclpy.init(args=sys.argv)
         controller = CModelController('cmodel_controller')
-        executor   = MultiThreadedExecutor(num_threads=4)
-        executor.add_node(controller)
-        executor.spin()
-        #rclpy.spin(controller)
+        # executor   = MultiThreadedExecutor(num_threads=4)
+        # executor.add_node(controller)
+        # executor.spin()
+        rclpy.spin(controller)
 
     except (KeyboardInterrupt, ExternalShutdownException):
         pass
