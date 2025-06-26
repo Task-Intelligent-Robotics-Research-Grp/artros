@@ -109,11 +109,16 @@ class EPickController(Node):
                                goal_handle.request.command.min_pressure,
                                goal_handle.request.command.timeout.to_sec())
 
+        result = GripperCommand.Result()
+
         while goal_handle.is_active:
             # Wait for new incoming status from the driver
             with self._status_condition:
                 while self._status is None:
-                    self._status_condition.wait()
+                    if not self._status_condition.wait(timeout=1.0):
+                        goal_handle.abort()
+                        self.get_logger().warn('goal ABORTED[no incoming gripper status]')
+                        return result
                 status = self._status
                 self._status = None
 

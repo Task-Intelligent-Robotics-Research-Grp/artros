@@ -198,14 +198,14 @@ class CModelController(Node):
                 self._send_raw_move_command(0, 64, 1)    # full-open
                 #self._sleep(0.5)
             elif self._calibration_step == 2:
-                self._max_gap_counts = status.g_po        # record at full-open
+                self._max_gap_counts = status.g_po       # record at full-open
                 self.get_logger().info("calibration step 2: gap[%d]@full-open"
                                        % self._max_gap_counts)
                 self._calibration_step = 3
                 self._send_raw_move_command(255, 64, 1)  # full-close
                 #self._sleep(0.5)
             elif self._calibration_step == 3:
-                self._min_gap_counts = status.g_po        # record at full-close
+                self._min_gap_counts = status.g_po       # record at full-close
                 self.get_logger().info("calibration step 3: gap[%d]@full-close"
                                        % self._min_gap_counts)
                 self._calibration_step = 0
