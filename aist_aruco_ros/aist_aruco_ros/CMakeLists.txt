@@ -20,12 +20,19 @@ find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(image_transport REQUIRED)
+find_package(message_filters REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(ddynamic_reconfigure2 REQUIRED)
 find_package(aist_utility REQUIRED)
 find_package(aist_aruco_msgs REQUIRED)
+
+include_directories(
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+  $<INSTALL_INTERFACE:include>
+)
 
 #####################################
 #  component: libaist_aruco_ros.so  #
@@ -50,6 +57,7 @@ ament_target_dependencies(
     sensor_msgs
     visualization_msgs
     image_transport
+    message_filters
     cv_bridge
     tf2_ros
     tf2_geometry_msgs
