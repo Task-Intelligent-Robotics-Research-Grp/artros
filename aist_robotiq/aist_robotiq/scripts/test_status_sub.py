@@ -38,8 +38,10 @@
 import rclpy, sys, time, threading
 import numpy as np
 from rclpy.node            import Node
-from rclpy.callback_groups import ReentrantCallbackGroup
+from rclpy.callback_groups import (MutuallyExclusiveCallbackGroup,
+                                   ReentrantCallbackGroup)
 from rclpy.executors       import (ExternalShutdownException,
+                                   SingleThreadedExecutor,
                                    MultiThreadedExecutor)
 from sensor_msgs.msg       import JointState
 from aist_robotiq_msgs.msg import CModelStatus
@@ -63,7 +65,8 @@ class TestStatusSub(Node):
 
         self._status_sub      = self.create_subscription(
                                     CModelStatus, self.get_name() + '/status',
-                                    self._status_cb, 10)
+                                    self._status_cb, 10,
+                                    callback_group=MutuallyExclusiveCallbackGroup())
         self._joint_state_pub = self.create_publisher(
                                     JointState, '/joint_states', 1)
 
@@ -98,10 +101,9 @@ if __name__ == '__main__':
     try:
         rclpy.init(args=sys.argv)
         test_status_sub = TestStatusSub('test_status_sub')
-        # executor        = MultiThreadedExecutor(num_threads=4)
-        # executor.add_node(test_status_sub)
-        # executor.spin()
-        rclpy.spin(test_status_sub)
-
+        executor        = MultiThreadedExecutor()
+        executor.add_node(test_status_sub)
+        #executor.spin()
+        rclpy.spin(test_status_sub, executor=executor)
     except (KeyboardInterrupt, ExternalShutdownException):
         pass
