@@ -176,6 +176,29 @@
     </gazebo>
   </xacro:macro>
 
+  <xacro:macro name="short_inner_finger_pad" params="prefix fingerprefix">
+    <link name="${prefix}${fingerprefix}_inner_finger_pad">
+      <visual>
+        <origin xyz="0 -0.00275 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.027 0.0375 0.0075"/>
+        </geometry>
+        <material name="">
+          <color rgba="0.9 0.9 0.9 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 -0.00275 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.027 0.0375 0.0075"/>
+        </geometry>
+        <material name="">
+          <color rgba="0.9 0.0 0.0 1"/>
+        </material>
+      </collision>
+    </link>
+  </xacro:macro>
+
   <xacro:macro name="outer_finger_joint" params="prefix fingerprefix">
     <joint name="${prefix}${fingerprefix}_outer_finger_joint" type="fixed">
       <origin xyz="0 0.01821998610742 0.0260018192872234" rpy="0 0 0"/>
@@ -246,7 +269,8 @@
   </xacro:macro>
 
   <!-- Initialization of all joints and links -->
-  <xacro:macro name="robotiq_140_gripper" params="prefix parent *origin">
+  <xacro:macro name="robotiq_140_gripper"
+	       params="prefix parent short_finger:=false *origin">
 
     <joint name="${prefix}base_joint" type="fixed">
       <parent link="${parent}"/>
@@ -264,13 +288,20 @@
     <joint name="${prefix}tip_link_joint" type="fixed">
       <parent link="${prefix}base_link"/>
       <child link="${prefix}tip_link"/>
-      <origin rpy="0.0 ${-pi/2} 0.0" xyz=".2328 0.0 0.0"/>
+      <xacro:if value="${short_finger}">
+	<origin rpy="0.0 ${-pi/2} 0.0" xyz=".2168 0.0 0.0"/>
+      </xacro:if>
+      <xacro:unless value="${short_finger}">
+	<origin rpy="0.0 ${-pi/2} 0.0" xyz=".2328 0.0 0.0"/>
+      </xacro:unless>
     </joint>
     <link name="${prefix}tip_link"/>
 
     <xacro:robotiq_arg2f_base_link prefix="${prefix}"/>
-    <xacro:finger_links prefix="${prefix}" fingerprefix="left" stroke="140"/>
-    <xacro:finger_links prefix="${prefix}" fingerprefix="right" stroke="140"/>
+    <xacro:finger_links prefix="${prefix}" fingerprefix="left"
+			stroke="140" short_finger="${short_finger}"/>
+    <xacro:finger_links prefix="${prefix}" fingerprefix="right"
+			stroke="140" short_finger="${short_finger}"/>
     <xacro:finger_joint prefix="${prefix}"/>
     <xacro:right_outer_knuckle_joint prefix="${prefix}"/>
     <xacro:robotiq_arg2f_transmission prefix="${prefix}"/>
