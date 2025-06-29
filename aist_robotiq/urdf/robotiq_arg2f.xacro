@@ -35,11 +35,21 @@
     <xacro:inner_finger_pad_joint prefix="${prefix}" fingerprefix="${fingerprefix}"/>
   </xacro:macro>
 
-  <xacro:macro name="finger_links" params="prefix fingerprefix stroke">
+  <xacro:macro name="finger_links" params="prefix fingerprefix stroke
+					   short_finger:=false">
     <xacro:outer_knuckle prefix="${prefix}" fingerprefix="${fingerprefix}" stroke="${stroke}"/>
     <xacro:outer_finger prefix="${prefix}" fingerprefix="${fingerprefix}" stroke="${stroke}"/>
-    <xacro:inner_finger prefix="${prefix}" fingerprefix="${fingerprefix}" stroke="${stroke}"/>
-    <xacro:inner_finger_pad prefix="${prefix}" fingerprefix="${fingerprefix}"/>
+    <xacro:inner_finger prefix="${prefix}"
+			fingerprefix="${fingerprefix}"
+			stroke="${stroke}"/>
+    <xacro:if value="${short_finger}">
+      <xacro:short_inner_finger_pad prefix="${prefix}"
+				    fingerprefix="${fingerprefix}"/>
+    </xacro:if>
+    <xacro:unless value="${short_finger}">
+      <xacro:inner_finger_pad prefix="${prefix}"
+			      fingerprefix="${fingerprefix}"/>
+    </xacro:unless>
     <xacro:inner_knuckle prefix="${prefix}" fingerprefix="${fingerprefix}" stroke="${stroke}"/>
   </xacro:macro>
 </robot>

@@ -11,11 +11,12 @@ TrajectoryPlannerROS:
   acc_lim_y: 1.0
   acc_lim_theta:  3.2
 
-  max_vel_x: 0.25
-  min_vel_x: 0.0
-  max_vel_y: 0.25
-  min_vel_x: 0.0
-
+#  max_vel_x: 0.25
+#  min_vel_x: 0.0
+#  max_vel_y: 0.25
+#  min_vel_x: 0.0
+  max_vel_x:  0.3
+  min_vel_x:  0.1
   max_vel_theta: 1.0
   min_vel_theta: -1.0
   min_in_place_vel_theta: 0.2
@@ -23,16 +24,20 @@ TrajectoryPlannerROS:
   holonomic_robot: $(arg holonomic_robot)
   escape_vel: -0.1
 
+  y_vels: [-0.1, -0.1, 0.1, 0.1]
+
   # Goal Tolerance Parameters
   yaw_goal_tolerance: 0.1
   xy_goal_tolerance: 0.2
-  latch_xy_goal_tolerance: false
+  #latch_xy_goal_tolerance: false
+  latch_xy_goal_tolerance: true
 
   # Forward Simulation Parameters
   sim_time: 2.0
   sim_granularity: 0.02
   angular_sim_granularity: 0.02
   vx_samples: 6
+  vy_samples: 6
   vtheta_samples: 20
   controller_frequency: 20.0
 
@@ -58,14 +63,21 @@ DWAPlannerROS:
   # Robot configuration parameters
   holonomic_robot: $(arg holonomic_robot)
 
-  acc_lim_x: 2.5
-  acc_lim_y: 2.5
-  acc_lim_th: 3.2
+  #acc_lim_x: 2.5
+  #acc_lim_y: 2.5
+  #acc_lim_th: 3.2
+  acc_lim_x: 1.0
+  acc_lim_y: 1.0
+  acc_lim_th: 1.0
 
-  max_vel_x: 0.5
-  min_vel_x: 0.0
-  max_vel_y: 0.5
-  min_vel_y: 0.0
+  #max_vel_x: 0.5
+  #min_vel_x: 0.0
+  #max_vel_y: 0.5
+  #min_vel_y: 0.0
+  max_vel_x:  0.3
+  min_vel_x: -0.3
+  max_vel_y:  0.3
+  min_vel_y: -0.3
 
   max_trans_vel: 0.5
   min_trans_vel: 0.1
@@ -73,9 +85,12 @@ DWAPlannerROS:
   min_rot_vel: 0.0
 
   # Goal Tolerance Parameters
+  #yaw_goal_tolerance: 0.1
+  #xy_goal_tolerance: 0.2
+  #latch_xy_goal_tolerance: false
   yaw_goal_tolerance: 0.1
   xy_goal_tolerance: 0.2
-  latch_xy_goal_tolerance: false
+  latch_xy_goal_tolerance: true
 
   # # Forward Simulation Parameters
   # sim_time: 2.0
@@ -84,7 +99,15 @@ DWAPlannerROS:
   # vy_samples: 0
   # vtheta_samples: 20
   # penalize_negative_x: true
-
+  use_dwa: true                 # true
+  sim_time: 1.0                 # 1.7
+  sim_granularity: 0.025        # 0.025
+  angular_sim_granularity: 0.017 # 0.10 (1 degree = 0.017 rad)
+  vx_samples: 3                 # 3
+  vy_samples: 10                # 10
+  vtheta_samples: 20            # 20
+  penalize_negative_x: false    # Is this even taken into account?
+  
   # # Trajectory scoring parameters
   # path_distance_bias: 32.0 # The weighting for how much the controller should stay close to the path it was given
   # goal_distance_bias: 24.0 # The weighting for how much the controller should attempt to reach its local goal, also controls speed
@@ -96,3 +119,15 @@ DWAPlannerROS:
 
   # # Oscillation Prevention Parameters
   # oscillation_reset_dist: 0.25 #How far the robot must travel in meters before oscillation flags are reset (double, default: 0.05)
+  meter_scoring: false          # Is this even taken into account?
+  path_distance_bias: 1.00      # 32.0
+  goal_distance_bias: 0.10      # 24.0
+  occdist_scale: 0.01           # 0.01
+  forward_point_distance: 0.325 # 0.325
+  stop_time_buffer: 0.20        # 0.20
+  scaling_speed: 0.25           # 0.25
+  max_scaling_factor: 0.20      # 0.20
+  heading_lookahead: 0.325
+  heading_scoring_timestep: 0.8
+  heading_scoring: true         # Is this even taken into account?
+  penalize_negative_x: false    # Is this even taken into account?
