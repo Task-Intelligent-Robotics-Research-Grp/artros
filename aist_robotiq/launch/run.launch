@@ -2,9 +2,9 @@
 <launch>
 
   <arg name="prefix"	default="a_bot_gripper_"/>
-  <arg name="device"	default="robotiq_85"/>
+  <arg name="device"	default="robotiq_140"/>
   <arg name="driver"	default="urcap"/>	<!-- "urcap", "tcp", "rtu" -->
-  <arg name="ip_or_dev"	default="163.220.51.110"/>
+  <arg name="ip_or_dev"	default="10.66.171.40"/>
   <arg name="slave_id"	default="9"/>
 
   <arg name="controller_type"

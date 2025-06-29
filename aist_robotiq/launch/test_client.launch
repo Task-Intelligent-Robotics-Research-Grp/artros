@@ -2,7 +2,7 @@
 <launch>
 
   <arg name="prefix"			default="a_bot_gripper_"/>
-  <arg name="device"			default="robotiq_85"/>
+  <arg name="device"			default="robotiq_140"/>
   <arg name="sim"			default="false"/>
 
   <!-- For device='robotiq_epick' only -->
