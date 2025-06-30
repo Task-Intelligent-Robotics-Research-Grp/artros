@@ -180,7 +180,7 @@ class CModelController(Node):
     def _handle_accepted_cb(self, goal_handle):
         with self._goal_lock:
             # This server only allows one goal at a time
-            if goal_handle is not None and self._goal_handle.is_active:
+            if self._goal_handle is not None and self._goal_handle.is_active:
                 self.get_logger.warn('previous goal ABORTED')
                 self._goal_handle.abort()  # Abort the existing goal
             self._goal_handle = goal_handle

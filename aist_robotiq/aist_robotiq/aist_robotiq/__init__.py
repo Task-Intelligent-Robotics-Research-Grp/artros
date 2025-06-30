@@ -128,7 +128,7 @@ class GenericGripper(object):
                           for completion.
         @return result of control_msgs/GripperCommandResult type
         """
-        self._client.send_goal_async(
+        self._future=self._client.send_goal_async(
             GripperCommand.Goal(
                 command=GripperCommandMsg(position=position,
                                           max_effort=max_effort)),
@@ -145,15 +145,16 @@ class GenericGripper(object):
                        for completion.
         @return result of control_msgs/GripperCommandResult type
         """
-        if timeout.to_sec() < 0:
-            return GripperCommandResult(0, 0, False, False)
+        if timeout.nanoseconds < 0:
+            return GripperCommand.Result(position=0, effort=0,
+                                         stalled=False, reached_goal=False)
         elif not self._client.wait_for_result(timeout):
-            self.get_logger().error('Timeout[%f] has expired before goal finished',
-                                    timeout.to_sec())
-            return GripperCommand.Result(self._feedback.position,
-                                         self._feedback.effort,
-                                         self._feedback.stalled,
-                                         self._feedback.reached_goal)
+            self.get_logger().error('Timeout[%f] has expired before goal finished' %
+                                    timeout.nanoceconds/1.0e9)
+            return GripperCommand.Result(position=self._feedback.position,
+                                         effort=self._feedback.effort,
+                                         stalled=self._feedback.stalled,
+                                         reached_goal=self._feedback.reached_goal)
         return self._client.get_result()
 
     def cancel(self):
