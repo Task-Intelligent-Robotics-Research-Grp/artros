@@ -39,7 +39,7 @@ import rclpy
 from rclpy.node               import Node
 from rclpy.duration           import Duration
 from rclpy.action             import ActionClient
-from actionlib_msgs.msg       import GoalStatus
+from action_msgs.msg          import GoalStatus
 from control_msgs.action      import GripperCommand
 from control_msgs.msg         import GripperCommand as GripperCommandMsg
 from aist_robotiq_msgs.action import EPickCommand
@@ -163,6 +163,17 @@ class GenericGripper(object):
         """
         if self._client.get_state() in (GoalStatus.PENDING, GoalStatus.ACTIVE):
             self._client.cancel_goal()
+
+    def _goal_response_cb(self, future):
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self.get_logger().warn('goal rejected')
+            return
+        goal_handle.get_result_async().add_done_callback(self._get_result_cb)
+
+    def _get_result_cb(self, future):
+        status = future.result().status
+        result = future.result().result
 
     def _feedback_cb(self, feedback):
         self._feedback = feedback
