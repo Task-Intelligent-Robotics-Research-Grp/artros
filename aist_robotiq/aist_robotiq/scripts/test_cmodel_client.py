@@ -35,7 +35,7 @@
 #
 # Author: Toshio Ueshiba
 #
-import rclpy
+import rclpy, threading
 from rclpy.node   import Node
 from aist_robotiq import RobotiqGripper
 
@@ -50,7 +50,11 @@ class TestCModelClient(Node):
         self._gripper = RobotiqGripper(self, prefix)
         self.get_logger().info('started')
 
-    def run(self):
+        cli_thread = threading.Thread(target=self.interactive)
+        cli_thread.daemon = True
+        cli_thread.start()
+
+    def interactive(self):
         def is_float(s):
             try:
                 float(s)
@@ -81,12 +85,12 @@ class TestCModelClient(Node):
 
             print('---- Result ----')
             print(result)
+        self.destroy_node()
+        rclpy.shutdown()
+
 
 if __name__ == '__main__':
     rclpy.init()
 
     test = TestCModelClient('test_cmodel_client')
-    test.run()
-
-    test.destroy_node()
-    rclpy.shutdown()
+    rclpy.spin(test)

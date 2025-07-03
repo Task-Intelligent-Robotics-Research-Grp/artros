@@ -35,7 +35,7 @@ Clients of gripper action controller of control_msg/GripperCommandAction type.
 @file   __init__.py
 @author t.ueshiba@aist.go.jp
 """
-import rclpy
+import rclpy, time
 from rclpy.node               import Node
 from rclpy.duration           import Duration
 from rclpy.action             import ActionClient
@@ -62,6 +62,8 @@ class GenericGripper(object):
         """
         super().__init__()
 
+        self._clock    = node.get_clock()
+        self._logger   = node.get_logger()
         self._feedback = GripperCommand.Feedback()
         self._client   = ActionClient(node, GripperCommand, action_ns)
         self._client.wait_for_server()
@@ -114,9 +116,9 @@ class GenericGripper(object):
                        for completion.
         @return result of control_msgs/GripperCommandResult type
         """
-        return self.move(self.parameters['release_position'], 0, timeout)
+        return self.move(self.parameters['release_position'], 0.0, timeout)
 
-    def move(self, position, max_effort=0, timeout=Duration()):
+    def move(self, position, max_effort=0.0, timeout=Duration()):
         """
         Move fingers to the specified position with specified effort
         @param position   finger position
@@ -128,11 +130,13 @@ class GenericGripper(object):
                           for completion.
         @return result of control_msgs/GripperCommandResult type
         """
-        self._future=self._client.send_goal_async(
-            GripperCommand.Goal(
-                command=GripperCommandMsg(position=position,
-                                          max_effort=max_effort)),
-            feedback_callback=self._feedback_cb)
+        self._get_result_future = None
+        self._client.send_goal_async(
+             GripperCommand.Goal(
+                 command=GripperCommandMsg(position=position,
+                                           max_effort=max_effort)),
+             feedback_callback=self._feedback_cb) \
+            .add_done_callback(self._goal_response_cb)
         return self.wait(timeout)
 
     def wait(self, timeout=Duration()):
@@ -148,14 +152,20 @@ class GenericGripper(object):
         if timeout.nanoseconds < 0:
             return GripperCommand.Result(position=0, effort=0,
                                          stalled=False, reached_goal=False)
-        elif not self._client.wait_for_result(timeout):
-            self.get_logger().error('Timeout[%f] has expired before goal finished' %
-                                    timeout.nanoceconds/1.0e9)
-            return GripperCommand.Result(position=self._feedback.position,
-                                         effort=self._feedback.effort,
-                                         stalled=self._feedback.stalled,
-                                         reached_goal=self._feedback.reached_goal)
-        return self._client.get_result()
+
+        timeout_time = self._clock.now() + timeout
+        while self._get_result_future is None or \
+              not self._get_result_future.done():
+            if timeout.nanoseconds > 0 and \
+               self._clock.now() > timeout_time:
+                self._logger.error('Timeout[%f] has expired before goal finished' %
+                                   timeout.nanoceconds/1.0e9)
+                return GripperCommand.Result(position=self._feedback.position,
+                                             effort=self._feedback.effort,
+                                             stalled=self._feedback.stalled,
+                                             reached_goal=self._feedback.reached_goal)
+            time.sleep(0.1)
+        return self._get_result_future.result().result
 
     def cancel(self):
         """
@@ -167,13 +177,10 @@ class GenericGripper(object):
     def _goal_response_cb(self, future):
         goal_handle = future.result()
         if not goal_handle.accepted:
-            self.get_logger().warn('goal rejected')
+            self._logger.error('goal rejected')
             return
-        goal_handle.get_result_async().add_done_callback(self._get_result_cb)
-
-    def _get_result_cb(self, future):
-        status = future.result().status
-        result = future.result().result
+        self._logger.info('goal accepted')
+        self._get_result_future = goal_handle.get_result_async()
 
     def _feedback_cb(self, feedback):
         self._feedback = feedback
@@ -190,8 +197,10 @@ class RobotiqGripper(GenericGripper):
         @param max_effort maximum effort applied when gripping objects
         """
         ns = prefix + 'controller'
-        self._min_gap      = node.declare_parameter(ns + '/min_gap', 0.000).value
-        self._max_gap      = node.declare_parameter(ns + '/max_gap', 0.085).value
+        self._min_gap      = node.declare_parameter(ns + '/min_gap',
+                                                    0.000).value
+        self._max_gap      = node.declare_parameter(ns + '/max_gap',
+                                                    0.085).value
         self._min_position = node.declare_parameter(ns + '/min_position',
                                                     0.81).value
         self._max_position = node.declare_parameter(ns + '/max_position',
@@ -203,7 +212,7 @@ class RobotiqGripper(GenericGripper):
         super().__init__(node, ns + '/gripper_cmd',
                          self._min_gap, self._max_gap, max_effort)
 
-    def move(self, gap, max_effort=0, timeout=Duration()):
+    def move(self, gap, max_effort=0.0, timeout=Duration()):
         return super().move(self._position(gap), max_effort, timeout)
 
     def wait(self, timeout=Duration()):

@@ -41,8 +41,8 @@ from rclpy.node            import Node
 from rclpy.executors       import (ExternalShutdownException,
                                    SingleThreadedExecutor,
                                    MultiThreadedExecutor)
-from rclpy.callback_groups import (ReentrantCallbackGroup,
-                                   MutuallyExclusiveCallbackGroup)
+from rclpy.callback_groups import (MutuallyExclusiveCallbackGroup,
+                                   ReentrantCallbackGroup)
 from rclpy.action          import ActionServer, GoalResponse, CancelResponse
 from sensor_msgs.msg       import JointState
 from control_msgs.action   import GripperCommand
@@ -53,16 +53,6 @@ from aist_robotiq_msgs.srv import SetVelocity
 #  class CModelController                                               #
 #########################################################################
 class CModelController(Node):
-
-    class StatusSubscriptionNode(Node):
-        def __init__(self, controller_node):
-            super().__init__(controller_node.get_name() + '_status_subscriber')
-
-            self._status_sub = self.create_subscription(
-                                   CModelStatus, self.get_name() + '/status',
-                                   controller_node._status_cb, 10)
-            self.get_logger().info('subscriber started')
-
     def __init__(self, name):
         super().__init__(name)
 
@@ -92,13 +82,16 @@ class CModelController(Node):
         self._goal_r_pr       = 0
 
         # Status recevied from the driver and command sent to the driver
+        self._subscription_cbg = MutuallyExclusiveCallbackGroup()
         self._status_condition = threading.Condition()
         self._status           = None
-        status_thread = threading.Thread(target=self._status_routine)
-        status_thread.daemon = True
-        status_thread.start()
+        self._status_sub       = self.create_subscription(
+                                     CModelStatus, self.get_name() + '/status',
+                                     self._status_cb, 10,
+                                     callback_group=self._subscription_cbg)
 
         # Configure and start the action server
+        self._action_cbg  = MutuallyExclusiveCallbackGroup()
         self._goal_lock   = threading.Lock()
         self._goal_handle = None
         self._gripper_cmd_srv \
@@ -108,7 +101,7 @@ class CModelController(Node):
                            goal_callback=self._goal_cb,
                            handle_accepted_callback=self._handle_accepted_cb,
                            cancel_callback=self._cancel_cb,
-                           callback_group=MutuallyExclusiveCallbackGroup())
+                           callback_group=self._action_cbg)
 
         # Position parameters to be calibrated
         self._min_gap_counts   = 255  # gap counts at full-close position
@@ -140,7 +133,7 @@ class CModelController(Node):
         joint_state.position     = [self._position(status)]
         self._joint_state_pub.publish(joint_state)
 
-        self.get_logger().info('### status=%s' % status)
+        # self.get_logger().info('### status=%s' % status)
 
         # Handle calibration process if not moving
         if self._is_active(status) and not self._is_moving(status):
@@ -148,14 +141,14 @@ class CModelController(Node):
                 self.get_logger().info("calibration step 1: start calibration")
                 self._calibration_step = 2
                 self._send_raw_move_command(0, 64, 1)    # full-open
-                time.sleep(5.0)
+                time.sleep(2.0)
             elif self._calibration_step == 2:
                 self._max_gap_counts = status.g_po       # record at full-open
                 self.get_logger().info("calibration step 2: gap[%d]@full-open"
                                        % self._max_gap_counts)
                 self._calibration_step = 3
                 self._send_raw_move_command(255, 64, 1)  # full-close
-                time.sleep(5.0)
+                time.sleep(2.0)
             elif self._calibration_step == 3:
                 self._min_gap_counts = status.g_po       # record at full-close
                 self.get_logger().info("calibration step 3: gap[%d]@full-close"
@@ -168,7 +161,7 @@ class CModelController(Node):
 
         with self._status_condition:
             self._status = status
-            self._status_condition.notifyAll()
+            self._status_condition.notify_all()
 
     # GripperCommand action stuffs
     def _goal_cb(self, goal_request):
@@ -181,7 +174,7 @@ class CModelController(Node):
         with self._goal_lock:
             # This server only allows one goal at a time
             if self._goal_handle is not None and self._goal_handle.is_active:
-                self.get_logger.warn('previous goal ABORTED')
+                self.get_logger.error('previous goal ABORTED')
                 self._goal_handle.abort()  # Abort the existing goal
             self._goal_handle = goal_handle
         goal_handle.execute()
@@ -195,10 +188,6 @@ class CModelController(Node):
             = self._send_move_command(goal_handle.request.command.position,
                                       self._velocity,
                                       goal_handle.request.command.max_effort)
-        self.get_logger().info('sent move command[position=%f, velocity=%f, max_effort=%f]'
-                               % (goal_handle.request.command.position,
-                                  self._velocity,
-                                  goal.handle.request.command.max_effort))
 
         result = GripperCommand.Result()
 
@@ -208,17 +197,17 @@ class CModelController(Node):
                 while self._status is None:
                     if not self._status_condition.wait(timeout=1.0):
                         goal_handle.abort()
-                        self.get_logger().warn('goal ABORTED[no incoming gripper status]')
+                        self.get_logger().error('goal ABORTED[no incoming gripper status]')
                         return result
                 status = self._status
                 self._status = None
 
             goal_handle.publish_feedback(
-                GripperCommand.Feedback(*self._status_values(status)))
+                GripperCommand.Feedback(**self._status_dict(status)))
 
-            result = GripperCommand.Result(*self._status_values(status))
+            result = GripperCommand.Result(**self._status_dict(status))
 
-            if goal_handle.is_cancel_requested():
+            if goal_handle.is_cancel_requested:
                 goal_handle.canceled()
                 self.get_logger().warn('goal CANCELED')
             elif self._error(status) != 0:
@@ -246,20 +235,18 @@ class CModelController(Node):
     def _send_move_command(self, position, velocity, effort):
         # print('*** _send_move_command: position=%f, velocity=%f, effort=%f'
         #       % (position, velocity, effort))
-        pos = np.clip(int((position - self._min_position)
-                          / self.position_per_tick + self._min_gap_counts),
-                      self._max_gap_counts, self._min_gap_counts)
-        vel = np.clip(int((velocity - self._min_velocity)
-                          / self.velocity_per_tick),
-                      0, 255)
-        eff = np.clip(int((effort - self._min_effort) / self.effort_per_tick),
-                      0, 255)
+        pos = int(np.clip((position - self._min_position)
+                          / self.position_per_tick + self._min_gap_counts,
+                          self._max_gap_counts, self._min_gap_counts))
+        vel = int(np.clip((velocity - self._min_velocity)
+                          / self.velocity_per_tick,
+                          0, 255))
+        eff = int(np.clip((effort - self._min_effort) / self.effort_per_tick,
+                          0, 255))
         self._send_raw_move_command(pos, vel, eff)
         return pos
 
     def _send_raw_move_command(self, pos, vel, eff):
-        # print('*** _send_raw_move_command: pos=%d, vel=%d, eff=%d'
-        #       % (pos, vel, eff))
         command = CModelCommand()
         command.r_act = 1
         command.r_gto = 1
@@ -280,7 +267,7 @@ class CModelController(Node):
              + self._min_position
 
     def _effort(self, status):
-        return status.gCOU * self.effort_per_tick + self._min_effort
+        return status.g_cou * self.effort_per_tick + self._min_effort
 
     def _stalled(self, status):
         # After the goal accepted in _goal_cb(), status.g_pr does not
@@ -294,9 +281,11 @@ class CModelController(Node):
         # ibid
         return status.g_obj == 3 and abs(status.g_po - self._goal_r_pr) <= 1
 
-    def _status_values(self, status):
-        return self._position(status), self._effort(status), \
-               self._stalled(status),  self._reached_goal(status)
+    def _status_dict(self, status):
+        return {'position':     self._position(status),
+                'effort':       self._effort(status),
+                'stalled':      self._stalled(status),
+                'reached_goal': self._reached_goal(status)}
 
     def _error(self, status):
         return status.g_flt
@@ -321,13 +310,13 @@ class CModelController(Node):
         return (self._max_effort - self._min_effort) / 255
 
 if __name__ == '__main__':
+    rclpy.init(args=sys.argv)
+
     try:
-        rclpy.init(args=sys.argv)
         controller = CModelController('cmodel_controller')
         # executor   = MultiThreadedExecutor(num_threads=4)
         # executor.add_node(controller)
         # executor.spin()
         rclpy.spin(controller)
-
     except (KeyboardInterrupt, ExternalShutdownException):
         pass
