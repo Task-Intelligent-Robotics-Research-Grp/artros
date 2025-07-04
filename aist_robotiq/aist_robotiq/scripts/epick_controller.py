@@ -35,7 +35,7 @@
 #
 # Author: Toshio Ueshiba
 #
-import rclpy, os, threading
+import rclpy, sys, time, threading
 import numpy as np
 from rclpy.node               import Node
 from rclpy.action             import ActionServer, GoalResponse, CancelResponse
@@ -52,18 +52,22 @@ class EPickController(Node):
     def __init__(self, name):
         super().__init__(name)
 
+        # Publisher for command
+        self._command_pub = self.create_publisher(CModelCommand,
+                                                  self.get_name() + '/command',
+                                                  1)
+
         # Status recevied from driver, command sent to driver
+        self._subscription_cbg = MutuallyExclusiveCallbackGrooup()
         self._status_condition = threading.Condition()
         self._status           = None
         self._status_sub       = self.create_subscription(
                                      CModelStatus, self.get_name() + '/status',
                                      self._status_cb, 1,
-                                     callback_group=ReentrantCallbackGroup())
-        self._command_pub      = self.create_publisher(
-                                     CModelCommand,
-                                     self.get_name() + '/command', 1)
+                                     callback_group=self._subscription_cbg)
 
         # Configure and start the action server
+        self._action_cbg  = MutuallyExclusiveCallbackGroup()
         self._goal_lock   = threading.Lock()
         self._goal_handle = None
         self._gripper_cmd_srv \
@@ -73,13 +77,18 @@ class EPickController(Node):
                            goal_callback=self._goal_cb,
                            handle_accepted_callback=self._handle_accepted_cb,
                            cancel_callbakc=self._cancel_cb,
-                           callback_group=ReentrantCallbackGroup())
+                           callback_group=self._action_cbg)
 
-        self.get_lobber().debug('started' % self._name)
+        self.get_lobber().info('controller started')
 
     def destroy(self):
         self._gripper_cmd_srv.destroy()
         super().destroy_node()
+
+    def _status_cb(self, status):
+        with self._status_condition:
+            self._status = status
+            self._status_condition.notify_all()
 
     def _goal_cb(self, goal_request):
         self.get_logger().info('goal received')
@@ -123,72 +132,69 @@ class EPickController(Node):
                 self._status = None
 
             goal_handle.publish_feedback(
-                EPickCommand.Feedback(*self._status_values(status)))
+                EPickCommand.Feedback(**self._status_dict(status)))
 
-            result = GripperCommand.Result(*self._status_values(status))
+            result = EPickCommand.Result(**self._status_dict(status))
 
             if goal_handle.is_cancel_requested():
                 goal_handle.canceled()
                 self.get_logger().warn('goal CANCELED')
             elif self._error(status) != 0:
                 goal_handle.abort()
-                self.get_logger().error('goal ABORTED[error code: %x]',
-                                        self._error(status))
+                self.get_logger().error('goal ABORTED[error code: %x]'
+                                        % self._error(status))
             elif self._stalled(status):
                 goal_handle.succeed()
                 self.get_logger().info('goal SUCCEED[stalled]')
 
         return result
 
-    def _status_cb(self, status):
-        with self._status_condition:
-            self._status = status
-            self._status_condition.notifyAll()
-
     def _send_move_command(self, advanced_mode,
                            max_pressure, min_pressure, timeout):
-        max_prs = np.clip(int(max_pressure) + 100, 0, 255)
-        min_prs = np.clip(int(min_pressure) + 100, 0, 100)
+        max_prs = int(np.clip(max_pressure + 100, 0, 255))
+        min_prs = int(np.clip(min_pressure + 100, 0, 100))
         tout    = np.clip(int(10.0*timeout.to_sec()), 0, 255)
         self._send_raw_move_command(advanced_mode, max_prs, min_prs, tout)
 
     def _send_raw_move_command(self, advanced_mode, max_prs, min_prs, tout):
         command = CModelCommand()
-        command.rACT = 1
-        command.rMOD = 1 if advanced_mode else 0
-        command.rGTO = 1
-        command.rATR = 0
-        command.rPR  = max_prs
-        command.rSP  = tout
-        command.rFR  = min_prs  # threshold for object detection(gOBJ)
+        command.r_act = 1
+        command.r_mod = 1 if advanced_mode else 0
+        command.r_gto = 1
+        command.r_atr = 0
+        command.r_pr  = max_prs
+        command.r_sp  = tout
+        command.r_fr  = min_prs  # threshold for object detection(gOBJ)
         self._command_pub.publish(command)
 
     def _stop(self):
         command = CModelCommand()
-        command.rACT = 1
-        command.rGTO = 0
+        command.r_act = 1
+        command.r_gto = 0
         self._command_pub.publish(command)
-        rospy.logdebug('(%s) stopping' % (self._name))
+        self.get_logger().debug('stopping')
 
     def _pressure(self, status):
-        return status.gPO - 100
+        return status.g_po - 100
 
     def _stalled(self, status):
-        return status.gOBJ == 1 or status.gOBJ == 2
+        return status.g_obj == 1 or status.g_obj == 2
 
-    def _status_values(self, status):
-        return self._pressure(status), self._stalled(status)
+    def _status_dict(self, status):
+        return {'pressure': self._pressure(status),
+                'stalled':  self._stalled(status)}
 
     def _error(self, status):
-        return status.gFLT
+        return status.g_flt
 
     def _is_active(self, status):
-        return status.gSTA == 3 and status.gACT == 1
+        return status.g_sta == 3 and status.g_act == 1
 
 
 if __name__ == '__main__':
+    rclpy.init(args=sys.argv)
+
     try:
-        rclpy.init()
         controller = EPickController('epick_controller')
         executor   = MultiThreadedExecutor(num_threads=4)
         executor.add_node(controller)

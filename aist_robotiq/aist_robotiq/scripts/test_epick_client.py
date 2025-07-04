@@ -35,51 +35,74 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy
-from aist_robotiq        import EPickGripper
-from aist_utility.compat import *
+import rclpy, threading
+from rclpy.node   import Node
+from aist_robotiq import EPickGripper
+
+#########################################################################
+#  class TestEPickClient                                                #
+#########################################################################
+class TestEPickClient(Node):
+    def __init__(self, name):
+        super().__init__(name)
+
+        prefix             = self.declare_parameter('prefix',
+                                                    'a_bot_gripper_').value
+        advanced_mode      = self.declare_parameter('advanced_mode',
+                                                    False).value
+        grasp_pressure     = self.declare_parameter('grasp_pressure',
+                                                    -78.0).value
+        detection_pressure = self.declare_parameter('detection_pressure',
+                                                    -10.0).value
+        release_pressure   = self.declare_parameter('release_pressure',
+                                                    0.0).value
+        timeout            = self.declare_parameter('timeout', 1.0).value
+
+        gripper = EPickGripper(prefix, advanced_mode, grasp_pressure,
+                               detection_pressure, release_pressure)
+        self.get_logger().info('started')
+
+        cli_thread = threading.Thread(target=self.interactive)
+        cli_thread.daemon = True
+        cli_thread.start()
+
+    def interactive(self):
+        def is_float(s):
+            try:
+                float(s)
+            except ValueError:
+                return False
+            else:
+                return True
+
+        while rclpy.ok():
+            print('==== Available commands ====')
+            print('  g:         Grasp')
+            print('  r:         Release')
+            print('  <numeric>: Set gripper a specified pressure value')
+            print('  q:         Quit\n')
+
+            key = input('>> ')
+            if key == 'g':
+                result = self._gripper.grasp()
+            elif key == 'r':
+                result = self._gripper.release()
+            elif is_float(key):
+                result = self._gripper.move(float(key))
+            elif key=='q':
+                break
+            else:
+                print('unknown command: %s' % key)
+                continue
+
+            print('---- Result ----')
+            print(result)
+        self.destroy_node()
+        rclpy.shutdown()
+
 
 if __name__ == '__main__':
+    rclpy.init()
 
-    def is_float(s):
-        try:
-            float(s)
-        except ValueError:
-            return False
-        else:
-            return True
-
-    rospy.init_node('test_epick_client')
-
-    prefix             = rospy.get_param('~prefix', 'a_bot_gripper_')
-    advanced_mode      = rospy.get_param('~advanced_mode',      False)
-    grasp_pressure     = rospy.get_param('~grasp_pressure',     -78.0)
-    detection_pressure = rospy.get_param('~detection_pressure', -10.0)
-    release_pressure   = rospy.get_param('~release_pressure',     0.0)
-    timeout            = rospy.Duration(rospy.get_param('~timeout',  1.0))
-
-    gripper = EPickGripper(prefix, advanced_mode, grasp_pressure,
-                           detection_pressure, release_pressure)
-
-    while not rospy.is_shutdown():
-        print('==== Available commands ====')
-        print('  g:         Grasp')
-        print('  r:         Release')
-        print('  <numeric>: Set gripper a specified pressure value')
-        print('  q:         Quit\n')
-
-        key = raw_input('>> ')
-        if key == 'g':
-            result = gripper.grasp(timeout)
-        elif key == 'r':
-            result = gripper.release()
-        elif is_float(key):
-            result = gripper.move(float(key), detection_pressure, timeout)
-        elif key=='q':
-            break
-        else:
-            print('unknown command: %s' % key)
-            continue
-
-        print('---- Result ----')
-        print(result)
+    test = TestCModelClient('test_epick_client')
+    rclpy.spin(test)

@@ -43,6 +43,7 @@ from action_msgs.msg          import GoalStatus
 from control_msgs.action      import GripperCommand
 from control_msgs.msg         import GripperCommand as GripperCommandMsg
 from aist_robotiq_msgs.action import EPickCommand
+from aist_robotiq_msgs.msg    import EPickCommand as EPickCommandMsg
 
 ######################################################################
 #  class GenericGripper                                              #
@@ -251,6 +252,8 @@ class EPickGripper(object):
         super().__init__()
 
         ns = prefix + 'controller'
+        self._clock    = node.get_clock()
+        self._logger   = node.get_logger()
         self._feedback = EPickCommandFeedback()
         self._client   = ActionClient(node, EPickCommandAction,
                                       ns + '/gripper_cmd')
@@ -260,8 +263,6 @@ class EPickGripper(object):
                             'grasp_pressure':     grasp_pressure,
                             'detection_pressure': detection_pressure,
                             'release_pressure':   release_pressure}
-
-        self.get_logger().info('%s initialized.', ns + '/gripper_cmd')
 
     @property
     def parameters(self):
@@ -325,11 +326,16 @@ class EPickGripper(object):
                             for completion.
         @return result of aist_robotiq/EPickCommandResult type
         """
-        self._client.send_goal(EPickCommand.Goal(
-                                 EPickCommand(self.parameters['advanced_mode'],
-                                              max_pressure, min_pressure,
-                                              timeout)),
-                               feedback_cb=self._feedback_cb)
+        self._get_result_future = None
+        self._client.send_goal_async(
+             EPickCommand.Goal(
+                 command=EPickCommandMsg(
+                     advanced_mode=self.parameters['advanced_mode'],
+                     max_pressure=max_pressure,
+                     min_pressure=min_pressure,
+                     timeout=timeout.to_msg())),
+             feedback_cb=self._feedback_cb) \
+            .add_done_callback(self._goal_response_cb)
         return self.wait(timeout)
 
     def wait(self, timeout=Duration()):
@@ -342,14 +348,20 @@ class EPickGripper(object):
                        for completion.
         @return result of aist_robotiq/EPickCommandResult type
         """
-        if timeout.to_sec() < 0:
-            return EPickCommandResult(0, False)
-        elif not self._client.wait_for_result(timeout):
-            self.get_logger().error('Timeout[%f] has expired before goal finished',
-                                    timeout.to_sec())
-            return EPickCommand.Result(self._feedback.pressure,
-                                      self._feedback.stalled)
-        return self._client.get_result()
+        if timeout.nanoseconds < 0:
+            return EPickCommand.Result(pressure=0.0, stalled=False)
+
+        timeout_time = self._clock.now() + timeout
+        while self._get_result_future us None or \
+              not self._get_result_future.done():
+            if timeout.nanoseconds > 0 and \
+               self._clock.now() > timeout_time:
+                self._logger.error('Timeout[%f] has expired before goal finished'
+                                   % timeout.nanoseconds/1.0e9)
+                return EPickCommand.Result(pressure=self._feedback.pressure,
+                                           stalled=self._feedback.stalled)
+            time.sleep(0.1)
+        return self._get_result_future.result().result
 
     def cancel(self):
         """
@@ -357,6 +369,14 @@ class EPickGripper(object):
         """
         if self._client.get_state() in (GoalStatus.PENDING, GoalStatus.ACTIVE):
             self._client.cancel_goal()
+
+    def _goal_response_cb(self, future):
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self._logger.error('goal rejected')
+            return
+        self._logger.info('goal accepted')
+        self._get_result_future = goal_handle.get_result_async()
 
     def _feedback_cb(self, feedback):
         self._feedback = feedback

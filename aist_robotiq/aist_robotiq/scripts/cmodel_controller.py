@@ -118,13 +118,6 @@ class CModelController(Node):
         self._gripper_cmd_srv.destroy()
         super().destroy_node()
 
-    # Status subscription stuffs
-    def _status_routine(self):
-        node = CModelController.StatusSubscriptionNode(self)
-        executor = SingleThreadedExecutor()
-        executor.add_node(node)
-        executor.spin()
-
     def _status_cb(self, status):
         # Publish the joint_states for the gripper
         joint_state = JointState()
@@ -314,9 +307,9 @@ if __name__ == '__main__':
 
     try:
         controller = CModelController('cmodel_controller')
-        # executor   = MultiThreadedExecutor(num_threads=4)
-        # executor.add_node(controller)
-        # executor.spin()
-        rclpy.spin(controller)
+        executor   = MultiThreadedExecutor(num_threads=4)
+        executor.add_node(controller)
+        executor.spin()
+        #rclpy.spin(controller)
     except (KeyboardInterrupt, ExternalShutdownException):
         pass
