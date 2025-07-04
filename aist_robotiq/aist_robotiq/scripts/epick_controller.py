@@ -39,9 +39,10 @@ import rclpy, sys, time, threading
 import numpy as np
 from rclpy.node               import Node
 from rclpy.action             import ActionServer, GoalResponse, CancelResponse
-from rclpy.callback_groups    import ReentrantCallbackGroup
 from rclpy.executors          import (ExternalShutdownException,
-                                      MultithreadedExecutor)
+                                      MultiThreadedExecutor)
+from rclpy.callback_groups    import (MutuallyExclusiveCallbackGroup,
+                                      ReentrantCallbackGroup)
 from aist_robotiq_msgs.msg    import CModelStatus, CModelCommand
 from aist_robotiq_msgs.action import EPickCommand
 
@@ -58,7 +59,7 @@ class EPickController(Node):
                                                   1)
 
         # Status recevied from driver, command sent to driver
-        self._subscription_cbg = MutuallyExclusiveCallbackGrooup()
+        self._subscription_cbg = MutuallyExclusiveCallbackGroup()
         self._status_condition = threading.Condition()
         self._status           = None
         self._status_sub       = self.create_subscription(
@@ -71,15 +72,15 @@ class EPickController(Node):
         self._goal_lock   = threading.Lock()
         self._goal_handle = None
         self._gripper_cmd_srv \
-            = ActionServer(self, EPickCommandAction,
+            = ActionServer(self, EPickCommand,
                            self.get_name() + '/gripper_cmd',
                            execute_callback=self._execute_cb,
                            goal_callback=self._goal_cb,
                            handle_accepted_callback=self._handle_accepted_cb,
-                           cancel_callbakc=self._cancel_cb,
+                           cancel_callback=self._cancel_cb,
                            callback_group=self._action_cbg)
 
-        self.get_lobber().info('controller started')
+        self.get_logger().info('controller started')
 
     def destroy(self):
         self._gripper_cmd_srv.destroy()

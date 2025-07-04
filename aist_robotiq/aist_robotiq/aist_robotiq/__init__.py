@@ -254,8 +254,8 @@ class EPickGripper(object):
         ns = prefix + 'controller'
         self._clock    = node.get_clock()
         self._logger   = node.get_logger()
-        self._feedback = EPickCommandFeedback()
-        self._client   = ActionClient(node, EPickCommandAction,
+        self._feedback = EPickCommand.Feedback()
+        self._client   = ActionClient(node, EPickCommand,
                                       ns + '/gripper_cmd')
         self._client.wait_for_server()
 
@@ -352,7 +352,7 @@ class EPickGripper(object):
             return EPickCommand.Result(pressure=0.0, stalled=False)
 
         timeout_time = self._clock.now() + timeout
-        while self._get_result_future us None or \
+        while self._get_result_future is None or \
               not self._get_result_future.done():
             if timeout.nanoseconds > 0 and \
                self._clock.now() > timeout_time:

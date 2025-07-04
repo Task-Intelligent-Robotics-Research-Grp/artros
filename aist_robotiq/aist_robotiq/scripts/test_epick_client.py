@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Software License Agreement (BSD License)
 #
@@ -58,7 +58,7 @@ class TestEPickClient(Node):
                                                     0.0).value
         timeout            = self.declare_parameter('timeout', 1.0).value
 
-        gripper = EPickGripper(prefix, advanced_mode, grasp_pressure,
+        gripper = EPickGripper(self, prefix, advanced_mode, grasp_pressure,
                                detection_pressure, release_pressure)
         self.get_logger().info('started')
 
@@ -104,5 +104,5 @@ class TestEPickClient(Node):
 if __name__ == '__main__':
     rclpy.init()
 
-    test = TestCModelClient('test_epick_client')
+    test = TestEPickClient('test_epick_client')
     rclpy.spin(test)
