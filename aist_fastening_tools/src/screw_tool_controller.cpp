@@ -37,13 +37,13 @@
  *  \file	screw_tool_controller.cpp
  *  \brief	controller for screw tools
  */
-#include <ros/ros.h>
-#include <dynamixel_workbench_msgs/DynamixelStateList.h>
-#include <dynamixel_workbench_msgs/DynamixelCommand.h>
-#include <ddynamic_reconfigure/ddynamic_reconfigure.h>
-#include <actionlib/server/simple_action_server.h>
-#include <aist_fastening_tools/ScrewToolCommandAction.h>
-#include <aist_fastening_tools/ScrewToolStatus.h>
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp_action/rclcpp_action.hpp>
+#include <dynamixel_workbench_msgs/msg/dynamixel_state_list.hpp>
+#include <dynamixel_workbench_msgs/msg/dynamixel_command.h>
+#include <ddynamic_reconfigure2/ddynamic_reconfigure2.hpp>
+#include <aist_msgs/action/screw_tool_command.hpp>
+#include <aist_msgs/msg/screw_tool_satus.hpp>
 #include <aist_utility/butterworth_lpf.h>
 
 namespace aist_fastening_tools
@@ -69,28 +69,44 @@ get_normalized(int32_t value)
 /************************************************************************
 *  class ScrewToolController						*
 ************************************************************************/
-class ScrewToolController
+class ScrewToolController : public rclcpp::Node
 {
   private:
-    using dynamixel_states_t	= dynamixel_workbench_msgs::DynamixelStateList;
-    using dynamixel_states_cp	= dynamixel_workbench_msgs::
-					DynamixelStateListConstPtr;
-    using dynamixel_command_t	= dynamixel_workbench_msgs::DynamixelCommand;
-    using server_t		= actionlib::SimpleActionServer<
-					ScrewToolCommandAction>;
-    using goal_cp		= boost::shared_ptr<const server_t::Goal>;
-    using ddynamic_reconfigure_t= ddynamic_reconfigure::DDynamicReconfigure;
+    using super			= rclcpp::Node;
+    using dynamixel_states_t	= dynamixel_workbench_msgs::msg::
+					DynamixelStateList;
+    using dynamixel_states_cp	= dynamixel_states_t::UniquePtr;
+    using dynamixel_command_t	= dynamixel_workbench_msgs::msg::
+					DynamixelCommand;
+    using ScrewToolStatus	= aist_msgs::msg::ScrewToolStatus
+    using ScrewToolCommand	= aist_msgs::action::ScrewToolCommand
+    using server_t		= rclcpp_action::Server<ScrewToolCommand>;
+    using server_p		= server_t::SharedPtr;
+    using goal_uuid_t		= rclcpp_action::GoalUUID;
+    using goal_handle_t		= rclcpp_action::
+					ServerGoalHandle<ScrewToolCommand>;
+    using goal_handle_p		= std::shared_ptr<goal_handle_t>;
+    using goal_handle_cp	= std::shared_ptr<const goal_handle_t>;
+    using goal_response_t	= rclcpp_action::GoalResponse;
+    using cancel_response_t	= rclcpp_action::CancelResponse;
+    using ddynamic_reconfigure_t= ddynamic_reconfigure2::DDynamicReconfigure;
     using filter_t		= aist_utility::ButterworthLPF<double, double>;
+    template <class MSG>
+    using publisher_p		= typename rclcpp::Publisher<MSG>::SharedPtr;
 
     enum Stage	{ ACTIVE, LOOSEN, RETIGHTEN, DONE };
 
   public:
-		ScrewToolController(ros::NodeHandle& nh,
-				    const std::string& driver_ns)	;
+    ScrewToolController(const rclcpp::NodeOptions& options)		;
 
   private:
-    void	goal_cb()						;
-    void	preempt_cb()						;
+    goal_response_t
+		goal_cb(const goal_uuid_t& uuid,
+			const goal_handle_cp goal_handle)		;
+    cancel_response_t
+		cancel_cb(const goal_handle_p goal_handle)		;
+    void	handle_accepted_cb(const goal_handle_p goal_handle)	;
+    void	execute_cb(const goal_handle_p goal_handle)		;
     void	dynamixel_states_cb(const dynamixel_states_cp& states)	;
 
   private:
@@ -104,49 +120,57 @@ class ScrewToolController
 
   private:
   // Basic stuffs
-    const std::string		_node_ns;
     const uint8_t		_motor_id;
     Stage			_stage;
-    ros::Time			_start_time;
+    rclcpp::Time		_start_time;
 
   // Dynamixel driver stuffs
-    const ros::Subscriber	_dynamixel_states_sub;
+    const rclcpp::Subscriber	_dynamixel_states_sub;
     ros::ServiceClient		_dynamixel_command;
 
   // Status publishment stuffs
-    ros::Publisher		_status_pub;
+    const publisher_p<ScrewToolStatus>	_status_pub;
 
   // Action stuffs
-    server_t			_command_srv;
+    server_p			_command_srv;
     goal_cp			_active_goal;
 
   // Parameters
     ddynamic_reconfigure_t	_ddr;
-    ros::Duration		_loosen_period;      // period before retighten
+    rclcpp::Duration		_loosen_period;      // period before retighten
     double			_max_stall_speed;
-    ros::Duration		_min_stall_period;
+    rclcpp::Duration		_min_stall_period;
     double			_max_noload_current;
-    ros::Duration		_min_noload_period;
+    rclcpp::Duration		_min_noload_period;
 
   // Current filtering stuffs
-    const ros::Duration		_control_period;
+    const rclcpp::Duration	_control_period;
     double			_current;
     filter_t			_filter;
 };
 
-ScrewToolController::ScrewToolController(ros::NodeHandle& nh,
-					 const std::string& driver_ns)
-    :_node_ns(nh.getNamespace()),
-     _motor_id(nh.param<int>("motor_id", 1)),
+ScrewToolController::ScrewToolController(const rclcpp::NodeOptions& options)
+    :rclcpp::Node("screw_tool_controller", options),
+     _motor_id(ddynamic_reconfigure2::
+	       declare_read_only_parameter<int>(this, "motor_id", 1)),
      _stage(DONE),
      _start_time(),
-     _dynamixel_states_sub(nh.subscribe<dynamixel_states_t>(
-			       driver_ns + "/dynamixel_state", 1,
-			       &dynamixel_states_cb, this)),
+     _dynamixel_states_sub(
+	 create_subscription<dynamixel_states_t>(
+	     driver_ns + "/dynamixel_state", 1,
+	     std::bind(&ScrewToolController::dynamixel_states_cb,
+		       this, std::placeholders::_1))),
      _dynamixel_command(nh.serviceClient<dynamixel_command_t>(
 			    driver_ns + "/dynamixel_command")),
-     _status_pub(nh.advertise<ScrewToolStatus>("status", 1)),
-     _command_srv(nh, "command", false),
+     _status_pub(create_publisher<ScrewToolStatus>("~/status", t1)),
+     _command_srv(rclcpp_action::create_server<>(
+		      this, "~/command",
+		      std::bind(&ScrewToolController::goal_cb, this,
+				std::placeholders::_1, std::placeholders::_2),
+		      std::bind(&ScrewToolController::cancel_cb, this,
+				std::placeholders::_1),
+		      std::bind(&ScrewToolController::handle_accepted_cb, this,
+				std::placeholders::_1))),
      _active_goal(nullptr),
      _ddr(nh),
      _loosen_period(1.0),

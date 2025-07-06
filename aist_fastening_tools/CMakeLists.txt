@@ -5,77 +5,40 @@ cmake_minimum_required(VERSION 3.5.0)
 project(aist_fastening_tools)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-w)
-add_compile_options(-std=c++17)
-add_compile_options(-fpermissive)
-add_compile_options(-pthread)
-add_compile_options(-O2)
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
+endif()
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
-##########################################################################
-# Find catkin packages and libraries for catkin and system dependencies
-##########################################################################
-find_package(
-  catkin REQUIRED COMPONENTS
-  rospy
-  roscpp
-  roslib
-  dynamixel_workbench_controllers
-  dynamixel_workbench_msgs
-  ddynamic_reconfigure
-  message_generation
-  actionlib
-  actionlib_msgs
-  aist_utility
-)
-
-##########################################################################
-# Declare ROS messages, services and actions
-##########################################################################
-add_message_files(
-  FILES
-    ScrewToolStatus.msg
-)
-
-add_action_files(
-  FILES
-    ScrewToolCommand.action
-    SuctionToolCommand.action
-)
-
-generate_messages(
-  DEPENDENCIES
-    actionlib_msgs
-)
-
-##########################################################################
-# Declare catkin specific configuration to be passed to dependent projects
-##########################################################################
-catkin_package(
-  CATKIN_DEPENDS
-    rospy
-    roscpp
-    dynamixel_workbench_controllers
-    dynamixel_workbench_msgs
-    ddynamic_reconfigure
-    message_runtime
-    actionlib_msgs
-)
+# find dependencies
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp_components REQUIRED)
+find_package(dynamixel_workbench_controllers REQUIRED)
+find_package(dynamixel_workbench_msgs REQUIRED)
+find_package(ddynamic_reconfigure2 REQUIRED)
+find_package(aist_utility REQUIRED)
+find_package(aist_msgs REQUIRED)
 
 ##########################################################################
 # Build
 ##########################################################################
 include_directories(
-  ${catkin_INCLUDE_DIRS}
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
 )
 
 add_executable(screw_tool_controller
   src/screw_tool_controller.cpp
 )
 
-add_dependencies(screw_tool_controller
-  ${PROJECT_NAME}_gencpp
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
+ament_target_dependencies(
+  test_calibrator
+    aist_utility
 )
 
 target_link_libraries(screw_tool_controller
@@ -87,15 +50,22 @@ target_link_libraries(screw_tool_controller
 # Install
 ##########################################################################
 install(
-  TARGETS
-    screw_tool_controller
-  ARCHIVE
-    DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY
-    DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME
-    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  TARGETS  screw_tool_controller
+  ARCHIVE  DESTINATION lib
+  LIBRARY  DESTINATION lib
+  RUNTIME  DESTINATION bin
+  INCLUDES DESTINATION include
 )
+
+install(
+  DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+########################
+#  python executables  #
+########################
+ament_python_install_package(${PROJECT_NAME})
 
 catkin_install_python(
   PROGRAMS

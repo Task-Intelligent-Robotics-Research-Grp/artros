@@ -20,6 +20,7 @@ set(
     msg/Pointing.msg
     msg/RequestHelp.msg
     msg/UpsetResult.msg
+    msg/ScrewToolStatus.msg
 )
 
 set(
@@ -35,6 +36,8 @@ set(
     action/RepeatSweep.action
     action/RequestHelp.action
     action/Sweep.action
+    action/ScrewToolCommand.action
+    action/SuctionToolCommand.action
 )
 
 rosidl_generate_interfaces(
