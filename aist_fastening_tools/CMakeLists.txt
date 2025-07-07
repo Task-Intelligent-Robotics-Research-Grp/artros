@@ -18,7 +18,6 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp_components REQUIRED)
-find_package(dynamixel_workbench_controllers REQUIRED)
 find_package(dynamixel_workbench_msgs REQUIRED)
 find_package(ddynamic_reconfigure2 REQUIRED)
 find_package(aist_utility REQUIRED)
@@ -27,30 +26,40 @@ find_package(aist_msgs REQUIRED)
 ##########################################################################
 # Build
 ##########################################################################
-include_directories(
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
+add_library(
+  ${PROJECT_NAME} SHARED
+    src/screw_tool_controller.cpp
 )
 
-add_executable(screw_tool_controller
-  src/screw_tool_controller.cpp
+target_include_directories(
+  ${PROJECT_NAME} PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+
+target_compile_definitions(
+  ${PROJECT_NAME} PRIVATE
+    COMPOSITION_BUILDING_DLL
 )
 
 ament_target_dependencies(
-  test_calibrator
+  ${PROJECT_NAME}
+    dynamixel_workbench_msgs
+    ddynamic_reconfigure2
     aist_utility
+    aist_msgs
 )
 
-target_link_libraries(screw_tool_controller
-  ${roscpp_LIBRARIES}
-  ${catkin_LIBRARIES}
+rclcpp_components_register_nodes(
+  ${PROJECT_NAME}
+    ${PROJECT_NAME}::ScrewToolController
 )
 
 ##########################################################################
 # Install
 ##########################################################################
 install(
-  TARGETS  screw_tool_controller
+  TARGETS  ${PROJECT_NAME}
   ARCHIVE  DESTINATION lib
   LIBRARY  DESTINATION lib
   RUNTIME  DESTINATION bin
@@ -65,13 +74,16 @@ install(
 ########################
 #  python executables  #
 ########################
-ament_python_install_package(${PROJECT_NAME})
+#ament_python_install_package(${PROJECT_NAME})
 
-catkin_install_python(
+install(
   PROGRAMS
     scripts/screw_tool_test.py
     scripts/suction_tool_controller.py
     scripts/suction_tool_test.py
     scripts/conveni_suction_gripper_controller.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  DESTINATION
+    lib/${PROJECT_NAME}
 )
+
+ament_package()

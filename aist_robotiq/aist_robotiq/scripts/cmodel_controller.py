@@ -119,22 +119,12 @@ class CModelController(Node):
         super().destroy_node()
 
     def _status_cb(self, status):
-        # Publish the joint_states for the gripper
-        joint_state = JointState()
-        joint_state.header.stamp = self.get_clock().now().to_msg()
-        joint_state.name         = [self._joint_name]
-        joint_state.position     = [self._position(status)]
-        self._joint_state_pub.publish(joint_state)
-
-        # self.get_logger().info('### status=%s' % status)
-
         # Handle calibration process if not moving
         if self._is_active(status) and not self._is_moving(status):
             if self._calibration_step == 1:
                 self.get_logger().info("calibration step 1: start calibration")
                 self._calibration_step = 2
                 self._send_raw_move_command(0, 64, 1)    # full-open
-                time.sleep(2.0)
             elif self._calibration_step == 2:
                 self._max_gap_counts = status.g_po       # record at full-open
                 self.get_logger().info("calibration step 2: gap[%d]@full-open"
@@ -151,6 +141,17 @@ class CModelController(Node):
                 self.get_logger().info('calibrated to [%d, %d]'
                                        % (self._min_gap_counts,
                                           self._max_gap_counts))
+        if self._calibration_step != 0:
+            return
+
+        # Publish the joint_states for the gripper
+        joint_state = JointState()
+        joint_state.header.stamp = self.get_clock().now().to_msg()
+        joint_state.name         = [self._joint_name]
+        joint_state.position     = [self._position(status)]
+        self._joint_state_pub.publish(joint_state)
+
+        # self.get_logger().info('### status=%s' % status)
 
         with self._status_condition:
             self._status = status
