@@ -35,49 +35,52 @@
 #
 # Author: Toshio Ueshiba (t.ueshiba@aist.go.jp)
 #
-import threading, rospy
-from actionlib                import SimpleActionServer
-from actionlib_msgs.msg       import GoalStatus
-from aist_fastening_tools.msg import (SuctionToolCommandAction,
-                                      SuctionToolCommandGoal,
-                                      SuctionToolCommandResult,
-                                      SuctionToolCommandFeedback)
-from ur_msgs.msg              import IOStates
-from ur_msgs.srv              import SetIO, SetIORequest
-from std_msgs.msg             import Bool
-from sensor_msgs.msg          import JointState
+import threading, rclpy
+from rclpy.node            import Node
+from rclpy.executors       import (ExternalShutdownException,
+                                   SingleThreadedExecutor,
+                                   MultiThreadedExecutor)
+from rclpy.callback_groups import (MutuallyExclusiveCallbackGroup,
+                                   ReentrantCallbackGroup)
+from rclpy.action          import ActionServer, GoalResponse, CancelResponse
+from aist_msgs.action      import SuctionToolCommand
+from ur_msgs.msg           import IOStates
+from ur_msgs.srv           import SetIO, SetIORequest
+from std_msgs.msg          import Bool
+from sensor_msgs.msg       import JointState
 
 #########################################################################
 #  class SuctionToolController                                          #
 #########################################################################
-class SuctionToolController(object):
-    def __init__(self, driver_ns):
-        super(SuctionToolController, self).__init__()
-
-        self._name = rospy.get_name()
+class SuctionToolController(Node):
+    def __init__(self, name):
+        super().__init__(name)
 
         # Initialize ur_control table
-        self._in_port    = rospy.get_param('~digital_in_port', None)
-        self._suck_port  = rospy.get_param('~digital_out_port_suck')
-        self._blow_port  = rospy.get_param('~digital_out_port_blow', None)
-        self._joint_name = rospy.get_param('~joint_name', None)
+        self._in_port    = self.declare_parameter('digital_in_port', -1).value
+        self._suck_port  = self.declare_parameter('digital_out_port_suck',
+                                                  0).value
+        self._blow_port  = self.declare_parameter('digital_out_port_blow',
+                                                  1).value
+        self._joint_name = self.declare_parameter('joint_name', '').value
 
         # Subscribe and set I/O states.
-        if self._in_port is not None:
-            self._io_states_sub = rospy.Subscriber(driver_ns + '/io_states',
-                                                   IOStates,
-                                                   self._io_states_cb,
-                                                   queue_size=1)
-            self._suction_pub   = rospy.Publisher('~suctioned', Bool,
-                                                  queue_size=1)
+        if self._in_port >= 0:
+            self._subscription_cbg = MutuallyExclusiveCallbackGroup()
+            self._io_states_sub = self.create_subscription(
+                                      IOStates, self.get_name() + '/io_states',
+                                      self._io_states_cb, 10,
+                                      callback_group=self._subscription_cbg)
+            self._suction_pub   = self.create_publisher(
+                                      Bool, self.get_name() + 'suctioned', 1)
         self._suctioned = False
 
         # Create a publisher for JointState.
-        if self._joint_name is not None:
-            self._joint_state_pub = rospy.Publisher('/joint_states',
-                                                    JointState, queue_size=1)
-            self._min_pos         = rospy.get_param('~min_position')
-            self._max_pos         = rospy.get_param('~max_position')
+        if self._joint_name != '':
+            self._joint_state_pub = self.create_publisher('/joint_states',
+                                                          JointState, 1)
+            self._min_pos         = self.decalre_parameter('min_position')
+            self._max_pos         = self.declare_parameter('max_position')
             self._current_pos     = self._min_pos
             self._timer           = rospy.Timer(rospy.Duration(0.1),
                                                 self._timer_cb)

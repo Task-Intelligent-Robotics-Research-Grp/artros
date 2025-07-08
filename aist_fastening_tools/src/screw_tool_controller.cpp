@@ -77,12 +77,10 @@ class ScrewToolController : public rclcpp::Node
     using dynamixel_states_cp	= dynamixel_states_t::UniquePtr;
     using dynamixel_command_t	= dynamixel_workbench_msgs::srv::
 					DynamixelCommand;
-    using dynamixel_command_req	= dynamixel_command_t::Request;
-    using dynamixel_command_res	= dynamixel_command_t::Response;
     using screw_tool_status_t	= aist_msgs::msg::ScrewToolStatus;
     using screw_tool_command_t	= aist_msgs::action::ScrewToolCommand;
-    using goal_t		= screw_tool_command_t::Goal;
-    using goal_cp		= std::shared_ptr<const goal_t>;
+    using goal_cp		= std::shared_ptr<
+					const screw_tool_command_t::Goal>;
     using goal_uuid_t		= rclcpp_action::GoalUUID;
     using goal_handle_t		= rclcpp_action::
 					ServerGoalHandle<screw_tool_command_t>;
@@ -99,8 +97,7 @@ class ScrewToolController : public rclcpp::Node
     template <class SRV>
     using client_p	 = typename rclcpp::Client<SRV>::SharedPtr;
     template <class ACT>
-    using server_p	 = typename rclcpp_action::Server<ACT>::SharedPtr;
-
+    using action_server_p= typename rclcpp_action::Server<ACT>::SharedPtr;
 
     enum Stage	{ ACTIVE, LOOSEN, RETIGHTEN, DONE };
 
@@ -113,10 +110,8 @@ class ScrewToolController : public rclcpp::Node
     cancel_response_t
 		cancel_cb(const goal_handle_p goal_handle)		;
     void	handle_accepted_cb(const goal_handle_p goal_handle)	;
-    void	execute(const goal_handle_p goal_handle)		;
     void	dynamixel_states_cb(const dynamixel_states_cp& states)	;
 
-  private:
     bool	is_satisfied(double ratio, double max_ratio,
 			     const rclcpp::Duration& min_period)	;
     bool	send_dynamixel_command(const std::string& addr_name,
@@ -140,21 +135,21 @@ class ScrewToolController : public rclcpp::Node
     const publisher_p<screw_tool_status_t>	_status_pub;
 
   // Action stuffs
-    const server_p<screw_tool_command_t>	_command_srv;
-    goal_cp					_active_goal;
+    const action_server_p<screw_tool_command_t>	_command_srv;
+    goal_handle_p				_current_goal_handle;
 
   // Parameters
     ddynamic_reconfigure2::DDynamicReconfigure	_ddr;
-    rclcpp::Duration		_loosen_period;      // period before retighten
-    double			_max_stall_speed;
-    rclcpp::Duration		_min_stall_period;
-    double			_max_noload_current;
-    rclcpp::Duration		_min_noload_period;
+    rclcpp::Duration				_loosen_period;      // period before retighten
+    double					_max_stall_speed;
+    rclcpp::Duration				_min_stall_period;
+    double					_max_noload_current;
+    rclcpp::Duration				_min_noload_period;
 
   // Current filtering stuffs
-    const rclcpp::Duration	_control_period;
-    double			_current;
-    filter_t			_filter;
+    const rclcpp::Duration			_control_period;
+    double					_current;
+    filter_t					_filter;
 };
 
 ScrewToolController::ScrewToolController(const rclcpp::NodeOptions& options)
@@ -182,7 +177,7 @@ ScrewToolController::ScrewToolController(const rclcpp::NodeOptions& options)
 				std::placeholders::_1),
 		      std::bind(&ScrewToolController::handle_accepted_cb, this,
 				std::placeholders::_1))),
-     _active_goal(nullptr),
+     _current_goal_handle(nullptr),
      _ddr(rclcpp::Node::SharedPtr(this)),
      _loosen_period(std::chrono::milliseconds(1000)),
      _max_stall_speed(0.01),
@@ -250,14 +245,10 @@ ScrewToolController::ScrewToolController(const rclcpp::NodeOptions& options)
 ScrewToolController::goal_response_t
 ScrewToolController::goal_cb(const goal_uuid_t& uuid, const goal_cp goal)
 {
-
-    send_dynamixel_command("Torque_Enable", 1);
-    send_dynamixel_command("Moving_Speed", target_speed(_active_goal->speed));
-
     RCLCPP_INFO_STREAM(get_logger(),
 		       "goal ACCEPTED: "
-		       << (_active_goal->speed > 0 ? "tighten" : "loosen")
-		       << " with speed=" << _active_goal->speed);
+		       << (goal->speed > 0 ? "tighten" : "loosen")
+		       << " with speed=" << goal->speed);
     return goal_response_t::ACCEPT_AND_EXECUTE;
 }
 
@@ -275,80 +266,20 @@ ScrewToolController::cancel_cb(const goal_handle_p goal_handle)
 void
 ScrewToolController::handle_accepted_cb(const goal_handle_p goal_handle)
 {
-
-}
-
-void
-ScrewToolController::execute(const goal_handle_p goal_handle)
-{
-    while (goal_handle->is_active())
+    if (_current_goal_handle != nullptr && _current_goal_handle->is_active())
     {
-      // Publish speed and filtered current as a feedback.
-	auto	feedback = std::make_shared<screw_tool_command_t::Feedback>();
-	feedback->speed   = status.speed;
-	feedback->current = status.current;
-	goal_handle->publish_feedback(feedback);
+	RCLCPP_WARN_STREAM(get_logger(), "previous goal ABORTED");
 
-	if (const auto goal = goal_handle->get_goal(); goal->speed > 0.0)
-	    switch (_stage)
-	    {
-	      case ACTIVE:
-		if (is_satisfied(feedback->speed,
-				 _max_stall_speed, _min_stall_period))
-		{
-		    if (goal->retighten)
-		    {
-			send_dynamixel_command("Moving_Speed",
-					       target_speed(0.0));
-			rclcpp::sleep_for(std::chrono::milliseconds(100));
-
-			RCLCPP_INFO_STREAM(get_logger(),
-					   "slightly loosen screw");
-
-			send_dynamixel_command("Moving_Speed",
-					       target_speed(-goal->speed));
-			_stage	= LOOSEN;
-			_start_time = get_clock()->now();
-		    }
-		    else
-			_stage = DONE;
-		}
-		break;
-	      case LOOSEN:
-		if (get_clock()->now() - _start_time > _loosen_period)
-		{
-		    send_dynamixel_command("Moving_Speed", target_speed(0.0));
-		    rclcpp::sleep_for(std::chrono::milliseconds(100));
-
-		    RCLCPP_INFO_STREAM(get_logger(), "retighten screw");
-
-		    send_dynamixel_command("Moving_Speed",
-					   target_speed(goal->speed));
-		    _stage	= RETIGHTEN;
-		    _start_time = get_clock()->now();
-		}
-		break;
-	      case RETIGHTEN:
-		if (is_satisfied(feedback->speed,
-				 _max_stall_speed, _min_stall_period))
-		    _stage = DONE;
-		break;
-	      default:
-		break;
-	    }
-	else if (is_satisfied(status.current,
-			      _max_noload_current, _min_noload_period))
-	    _stage = DONE;
-
-	if (_stage == DONE)
-	{
-	    send_dynamixel_command("Moving_Speed", target_speed(0.0));
-	    send_dynamixel_command("Enable_Torque", 0);
-	    goal_handle->succeed();
-
-	    RCLCPP_INFO_STREAM(get_logger(), "goal SUCCEEDED");
-	}
+	auto	result = std::make_shared<screw_tool_command_t::Result>();
+	result->stalled = false;
+	_current_goal_handle->abort(result);
     }
+
+    _current_goal_handle = goal_handle;
+    send_dynamixel_command("Torque_Enable", 1);
+    send_dynamixel_command("Moving_Speed",
+			   target_speed(
+			       _current_goal_handle->get_goal()->speed));
 }
 
 void
@@ -370,18 +301,83 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
   // Read current value.
     _current = get_normalized(state->present_current);
 
-  // Publish tool status.
+  // Apply low-pass filter to the current and publish tool status.
     screw_tool_status_t	status;
     status.header.stamp	= get_clock()->now();
     status.speed	= get_normalized(state->present_velocity);
     status.current	= _filter.filter(_current);
     _status_pub->publish(status);
 
-  // Read current value and apply low-pass filter.
   // Check if an active goal is available.
-    if (!_command_srv.isActive())
+    if (!_current_goal_handle || !_current_goal_handle->is_active())
 	return;
+    
+  // Publish speed and filtered current as a feedback.
+    auto	feedback = std::make_shared<screw_tool_command_t::Feedback>();
+    feedback->speed   = status.speed;
+    feedback->current = status.current;
+    _current_goal_handle->publish_feedback(feedback);
 
+    if (const auto goal = _current_goal_handle->get_goal(); goal->speed > 0.0)
+	switch (_stage)
+	{
+	  case ACTIVE:
+	    if (is_satisfied(feedback->speed,
+			     _max_stall_speed, _min_stall_period))
+	    {
+		if (goal->retighten)
+		{
+		    send_dynamixel_command("Moving_Speed", target_speed(0.0));
+		    rclcpp::sleep_for(std::chrono::milliseconds(100));
+
+		    RCLCPP_INFO_STREAM(get_logger(), "slightly loosen screw");
+
+		    send_dynamixel_command("Moving_Speed",
+					   target_speed(-goal->speed));
+		    _stage	= LOOSEN;
+		    _start_time = get_clock()->now();
+		}
+		else
+		    _stage = DONE;
+	    }
+	    break;
+	  case LOOSEN:
+	    if (get_clock()->now() - _start_time > _loosen_period)
+	    {
+		send_dynamixel_command("Moving_Speed", target_speed(0.0));
+		rclcpp::sleep_for(std::chrono::milliseconds(100));
+
+		RCLCPP_INFO_STREAM(get_logger(), "retighten screw");
+
+		send_dynamixel_command("Moving_Speed",
+				       target_speed(goal->speed));
+		_stage	= RETIGHTEN;
+		_start_time = get_clock()->now();
+	    }
+	    break;
+	  case RETIGHTEN:
+	    if (is_satisfied(feedback->speed,
+			     _max_stall_speed, _min_stall_period))
+		_stage = DONE;
+	    break;
+	  default:
+	    break;
+	}
+    else if (is_satisfied(status.current,
+			  _max_noload_current, _min_noload_period))
+	_stage = DONE;
+
+    if (_stage == DONE)
+    {
+	send_dynamixel_command("Moving_Speed", target_speed(0.0));
+	send_dynamixel_command("Enable_Torque", 0);
+
+	auto	result = std::make_shared<screw_tool_command_t::Result>();
+	result->stalled = true;
+	_current_goal_handle->succeed(result);
+
+	RCLCPP_INFO_STREAM(get_logger(), "goal SUCCEEDED");
+    }
 }
 
 bool
@@ -398,13 +394,14 @@ bool
 ScrewToolController::send_dynamixel_command(const std::string& addr_name,
 					    int32_t value)
 {
-    dynamixel_command_req	command;
-    command.id	      = _motor_id;
-    command.addr_name = addr_name;
-    command.value     = value;
-    auto	result = _dynamixel_command->async_send_request(command);
+    auto	req = std::make_shared<dynamixel_command_t::Request>();
+    req->id	   = _motor_id;
+    req->addr_name = addr_name;
+    req->value     = value;
+    auto	future = _dynamixel_command->async_send_request(req);
+    future.wait();
 
-    return command.response.comm_result;
+    return future.get()->comm_result;
 }
 
 void

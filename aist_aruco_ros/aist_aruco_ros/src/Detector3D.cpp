@@ -16,8 +16,8 @@
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 #include <visualization_msgs/msg/marker.hpp>
-#include <message_filters/subscriber.hpp>
-#include <message_filters/time_synchronizer.hpp>
+#include <message_filters/subscriber.h>
+#include <message_filters/time_synchronizer.h>
 #include <ddynamic_reconfigure2/ddynamic_reconfigure2.hpp>
 
 #include <opencv2/calib3d.hpp>
