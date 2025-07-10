@@ -82,26 +82,22 @@ class CModelController(Node):
         self._goal_r_pr       = 0
 
         # Status recevied from the driver and command sent to the driver
-        self._subscription_cbg = MutuallyExclusiveCallbackGroup()
-        self._status_condition = threading.Condition()
-        self._status           = None
-        self._status_sub       = self.create_subscription(
-                                     CModelStatus, self.get_name() + '/status',
-                                     self._status_cb, 10,
-                                     callback_group=self._subscription_cbg)
+        self._status     = None
+        self._status_sub = self.create_subscription(CModelStatus,
+                                                    self.get_name() \
+                                                    + '/status',
+                                                    self._status_cb, 1)
 
         # Configure and start the action server
-        self._action_cbg  = MutuallyExclusiveCallbackGroup()
         self._goal_lock   = threading.Lock()
         self._goal_handle = None
         self._gripper_cmd_srv \
             = ActionServer(self, GripperCommand,
                            self.get_name() + '/gripper_cmd',
-                           execute_callback=self._execute_cb,
+                           execute_callback=None,
                            goal_callback=self._goal_cb,
                            handle_accepted_callback=self._handle_accepted_cb,
-                           cancel_callback=self._cancel_cb,
-                           callback_group=self._action_cbg)
+                           cancel_callback=self._cancel_cb)
 
         # Position parameters to be calibrated
         self._min_gap_counts   = 255  # gap counts at full-close position
@@ -153,9 +149,27 @@ class CModelController(Node):
 
         # self.get_logger().info('### status=%s' % status)
 
-        with self._status_condition:
-            self._status = status
-            self._status_condition.notify_all()
+        if self._goal_handle is None or not self._goal_handle.is_active:
+            return
+
+        self._goal_handle.publish_feedback(
+            GripperCommand.Feedback(**self._status_dict(status)))
+
+        result = GripperCommand.Result(**self._status_dict(status))
+
+        if self._goal_handle.is_cancel_requested:
+            self._goal_handle.canceled()
+            self.get_logger().warn('goal CANCELED')
+        elif self._error(status) != 0:
+            self._goal_handle.abort()
+            self.get_logger().error('goal ABORTED[error code: %x]'
+                                    % self._error(status))
+        elif self._reached_goal(status):
+            self._goal_handle.succeed()
+            self.get_logger().info('goal SUCCEED[reached goal]')
+        elif self._stalled(status):
+            self._goal_handle.succeed()
+            self.get_logger().info('goal SUCCEED[stalled]')
 
     # GripperCommand action stuffs
     def _goal_cb(self, goal_request):
@@ -173,49 +187,9 @@ class CModelController(Node):
             self._goal_handle = goal_handle
         goal_handle.execute()
 
-    def _cancel_cb(self, goal):
+    def _cancel_cb(self, cancel_request):
         self.get_logger().info('cancel request received')
         return CancelResponse.ACCEPT
-
-    def _execute_cb(self, goal_handle):
-        self._goal_r_pr \
-            = self._send_move_command(goal_handle.request.command.position,
-                                      self._velocity,
-                                      goal_handle.request.command.max_effort)
-
-        result = GripperCommand.Result()
-
-        while goal_handle.is_active:
-            # Wait for new incoming status from the driver
-            with self._status_condition:
-                while self._status is None:
-                    if not self._status_condition.wait(timeout=1.0):
-                        goal_handle.abort()
-                        self.get_logger().error('goal ABORTED[no incoming gripper status]')
-                        return result
-                status = self._status
-                self._status = None
-
-            goal_handle.publish_feedback(
-                GripperCommand.Feedback(**self._status_dict(status)))
-
-            result = GripperCommand.Result(**self._status_dict(status))
-
-            if goal_handle.is_cancel_requested:
-                goal_handle.canceled()
-                self.get_logger().warn('goal CANCELED')
-            elif self._error(status) != 0:
-                goal_handle.abort()
-                self.get_logger().error('goal ABORTED[error code: %x]'
-                                        % self._error(status))
-            elif self._reached_goal(status):
-                goal_handle.succeed()
-                self.get_logger().info('goal SUCCEED[reached goal]')
-            elif self._stalled(status):
-                goal_handle.succeed()
-                self.get_logger().info('goal SUCCEED[stalled]')
-
-        return result
 
     # Other stuffs
     def _set_velocity_cb(self, req, res):
@@ -308,9 +282,6 @@ if __name__ == '__main__':
 
     try:
         controller = CModelController('cmodel_controller')
-        executor   = MultiThreadedExecutor(num_threads=4)
-        executor.add_node(controller)
-        executor.spin()
-        #rclpy.spin(controller)
+        rclpy.spin(controller)
     except (KeyboardInterrupt, ExternalShutdownException):
         pass
