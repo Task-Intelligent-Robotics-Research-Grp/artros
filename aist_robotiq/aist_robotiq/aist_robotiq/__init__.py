@@ -160,7 +160,7 @@ class GenericGripper(object):
             if timeout.nanoseconds > 0 and \
                self._clock.now() > timeout_time:
                 self._logger.error('Timeout[%f] has expired before goal finished' %
-                                   timeout.nanoceconds/1.0e9)
+                                   timeout.nanoceconds*1.0e-9)
                 return GripperCommand.Result(position=self._feedback.position,
                                              effort=self._feedback.effort,
                                              stalled=self._feedback.stalled,

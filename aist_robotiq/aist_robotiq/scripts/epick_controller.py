@@ -55,15 +55,14 @@ class EPickController(Node):
 
         # Publisher for command
         self._command_pub = self.create_publisher(CModelCommand,
-                                                  self.get_name() + '/command',
-                                                  1)
+                                                  '~/command', 1)
 
         # Status recevied from driver, command sent to driver
         self._subscription_cbg = MutuallyExclusiveCallbackGroup()
         self._status_condition = threading.Condition()
         self._status           = None
         self._status_sub       = self.create_subscription(
-                                     CModelStatus, self.get_name() + '/status',
+                                     CModelStatus, '~/status',
                                      self._status_cb, 1,
                                      callback_group=self._subscription_cbg)
 
@@ -72,8 +71,7 @@ class EPickController(Node):
         self._goal_lock   = threading.Lock()
         self._goal_handle = None
         self._gripper_cmd_srv \
-            = ActionServer(self, EPickCommand,
-                           self.get_name() + '/gripper_cmd',
+            = ActionServer(self, EPickCommand, '~/gripper_cmd',
                            execute_callback=self._execute_cb,
                            goal_callback=self._goal_cb,
                            handle_accepted_callback=self._handle_accepted_cb,

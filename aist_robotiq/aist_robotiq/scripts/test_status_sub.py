@@ -64,7 +64,7 @@ class TestStatusSub(Node):
                                                     'finger_joint').value
 
         self._status_sub      = self.create_subscription(
-                                    CModelStatus, self.get_name() + '/status',
+                                    CModelStatus, '~/status',
                                     self._status_cb, 10,
                                     callback_group=MutuallyExclusiveCallbackGroup())
         self._joint_state_pub = self.create_publisher(

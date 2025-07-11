@@ -189,14 +189,14 @@ ScrewToolController::ScrewToolController(const rclcpp::NodeOptions& options)
 	     ddynamic_reconfigure2::
 	     declare_read_only_parameter<int>(this, "control_period", 10))),
      _current(0.0),
-     _filter(2, 7.0e-9*_control_period.nanoseconds())
+     _filter(2, 7.0*_control_period.seconds())
 {
     using namespace	std::placeholders;
 
   // Setup ddynamic_reconfigure server.
     _ddr.registerVariable<double>(
 	"control parameters.loosen_period",
-	1.0e-9*_loosen_period.nanoseconds(),
+	_loosen_period.seconds(),
 	std::bind(&ScrewToolController::set_period, this, _loosen_period, _1),
 	"Period of loosening before retightening",
 	{0.1, 5.0});
@@ -207,7 +207,7 @@ ScrewToolController::ScrewToolController(const rclcpp::NodeOptions& options)
 	{0.0, 0.05});
     _ddr.registerVariable<double>(
 	"control parameters.min_stall_period",
-	1.0e-9*_min_stall_period.nanoseconds(),
+	_min_stall_period.seconds(),
 	std::bind(&ScrewToolController::set_period,
 		  this, _min_stall_period, _1),
 	"Minimum period required to be judged as stalled",
@@ -219,7 +219,7 @@ ScrewToolController::ScrewToolController(const rclcpp::NodeOptions& options)
 	{0.0, 1.0});
     _ddr.registerVariable<double>(
 	"control parameters.min_noload_period",
-	1.0e-9*_min_noload_period.nanoseconds(),
+	_min_noload_period.seconds(),
 	std::bind(&ScrewToolController::set_period,
 		  this, _min_noload_period, _1),
 	"Minimum period required to be judged as unloaded",
@@ -232,7 +232,7 @@ ScrewToolController::ScrewToolController(const rclcpp::NodeOptions& options)
 	{1, 5});
     _ddr.registerVariable<double>(
 	"filtering parameters.filter_cutoff_frequency",
-	_filter.cutoff()/(1.0e-9*_control_period.nanoseconds()),
+	_filter.cutoff()/_control_period.seconds(),
 	std::bind(&ScrewToolController::set_filter_cutoff_frequency, this, _1),
 	"Cutoff frequency of current low pass filter",
 	{1, 30});
@@ -311,7 +311,7 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
   // Check if an active goal is available.
     if (!_current_goal_handle || !_current_goal_handle->is_active())
 	return;
-    
+
   // Publish speed and filtered current as a feedback.
     auto	feedback = std::make_shared<screw_tool_command_t::Feedback>();
     feedback->speed   = status.speed;
@@ -407,7 +407,7 @@ ScrewToolController::send_dynamixel_command(const std::string& addr_name,
 void
 ScrewToolController::set_period(rclcpp::Duration& period, double sec)
 {
-    period = rclcpp::Duration(std::chrono::nanoseconds(long(1.0e9*sec)));
+    period = rclcpp::Duration(std::chrono::duration<double>(sec));
 }
 
 void
@@ -421,7 +421,7 @@ void
 ScrewToolController::set_filter_cutoff_frequency(double cutoff_frequency)
 {
     _filter.initialize(_filter.half_order(),
-		       cutoff_frequency*1.0e-9*_control_period.nanoseconds());
+		       cutoff_frequency * _control_period.seconds());
     _filter.reset(_current);
 }
 }	// namespace aist_fastening_tools

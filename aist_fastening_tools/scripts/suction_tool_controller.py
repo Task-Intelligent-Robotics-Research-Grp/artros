@@ -68,11 +68,11 @@ class SuctionToolController(Node):
         if self._in_port >= 0:
             self._subscription_cbg = MutuallyExclusiveCallbackGroup()
             self._io_states_sub = self.create_subscription(
-                                      IOStates, self.get_name() + '/io_states',
+                                      IOStates, '~/io_states',
                                       self._io_states_cb, 10,
                                       callback_group=self._subscription_cbg)
             self._suction_pub   = self.create_publisher(
-                                      Bool, self.get_name() + 'suctioned', 1)
+                                      Bool, '~/suctioned', 1)
         self._suctioned = False
 
         # Create a publisher for JointState.
