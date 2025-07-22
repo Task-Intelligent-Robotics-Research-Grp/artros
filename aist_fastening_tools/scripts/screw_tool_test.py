@@ -1,25 +1,28 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-import rospy
+import rclpy, threading
 import numpy as np
-from actionlib                import SimpleActionClient
-from actionlib_msgs.msg       import GoalStatus
-from aist_fastening_tools.msg import (ScrewToolCommandAction,
-                                      ScrewToolCommandGoal)
-from aist_utility.compat      import *
+from rclpy.node           import Node
+from aist_fastening_tools import ScrewTool
 
 
-class ScrewToolTest(object):
-    def __init__(self, controller_ns):
-        self._client = SimpleActionClient(controller_ns + '/command',
-                                          ScrewToolCommandAction)
-        self._client.wait_for_server()
+class ScrewToolTest(Node):
+    def __init__(self, name):
+        super().__init__(name)
 
-    def run(self):
-        speed = 1.0
+        controller_ns = self.declare_parameter(
+                            'controller_ns',
+                            'screw_tool_m3_fastening_controller').value
+        self._screw_tool = ScrewTool(self, controller_ns + '/command')
+        self.get_logger().info('started')
 
-        while not rospy.is_shutdown():
-            key = raw_input('[speed: %d]> ' % speed)
+        cli_thread = threading.Thread(target=self.interactive)
+        cli_thread.daemon = True
+        cli_thread.start()
+
+    def interactive(self):
+        while rclpy.ok():
+            key = input('[speed: %d]> ' % self._screw_tool.parameters['speed'])
 
             print('====')
             print('  q: quit this program')
@@ -32,36 +35,24 @@ class ScrewToolTest(object):
             if key == 'q':
                 break
             elif key == 't':
-                self._send_command(speed, True)
+                self._screw_tool.tighten()
             elif key == 'l':
-                self._send_command(-speed, False)
+                self._screw_tool.loosen()
             elif key == 'w':
-                self._wait()
+                self._screw_tool.wait()
             elif key == 'c':
-                self._client.cancel_goal()
+                self._screw_tool.cancel()
             elif key == 's':
-                speed = np.clip(float(raw_input('  speed? ')), 0.0, 1.0)
+                speed = np.clip(float(input('  speed? ')), 0.0, 1.0)
+                self._screw_tool.parameters = {'speed': speed}
             else:
                 print('Unknown command[%s]' % key)
-
-    def _send_command(self, speed, tighten):
-        self._client.send_goal(ScrewToolCommandGoal(speed, tighten))
-
-    def _wait(self, timeout=rospy.Duration(10)):
-        self._client.wait_for_result(timeout)
-        status = self._client.get_state()
-        if status == GoalStatus.SUCCEEDED:
-            print("  succeeded")
+        self.destroy_node()
+        rclpy.shutdown()
 
 
 if __name__ == '__main__':
-    try:
-        rospy.init_node('screw_tool_test')
+    rclpy.init()
 
-        controller_ns = rospy.get_param('~controller_ns',
-                                        'screw_tool_m3_fastening_controller')
-        test = ScrewToolTest(controller_ns)
-        test.run()
-
-    except rospy.ROSInterruptException:
-        print('program interrupted before completion')
+    test = ScrewToolTest('screw_tool_test')
+    rclpy.spin(test)
