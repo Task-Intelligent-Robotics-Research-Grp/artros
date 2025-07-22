@@ -23,9 +23,9 @@ find_package(ddynamic_reconfigure2 REQUIRED)
 find_package(aist_utility REQUIRED)
 find_package(aist_msgs REQUIRED)
 
-##########################################################################
-# Build
-##########################################################################
+###########
+#  Build  #
+###########
 add_library(
   ${PROJECT_NAME} SHARED
     src/screw_tool_controller.cpp
@@ -52,12 +52,13 @@ ament_target_dependencies(
 
 rclcpp_components_register_nodes(
   ${PROJECT_NAME}
-    ${PROJECT_NAME}::ScrewToolController
+    PLUGIN     ${PROJECT_NAME}::ScrewToolController
+    EXECUTABLE screw_tool_controller_node
 )
 
-##########################################################################
-# Install
-##########################################################################
+#############
+#  Install  #
+#############
 install(
   TARGETS  ${PROJECT_NAME}
   ARCHIVE  DESTINATION lib
@@ -71,8 +72,13 @@ install(
   DESTINATION share/${PROJECT_NAME}/
 )
 
+install(
+  DIRECTORY config
+  DESTINATION share/${PROJECT_NAME}/
+)
+
 ########################
-#  python executables  #
+#  Python executables  #
 ########################
 #ament_python_install_package(${PROJECT_NAME})
 
@@ -85,5 +91,10 @@ install(
   DESTINATION
     lib/${PROJECT_NAME}
 )
+
+#############
+#  Exports  #
+#############
+ament_export_libraries(${PROJECT_NAME})
 
 ament_package()

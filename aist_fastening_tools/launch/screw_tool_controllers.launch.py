@@ -1,33 +1,20 @@
 import yaml
 from launch                   import LaunchDescription
-from launch.actions           import (DeclareLaunchArgument, OpaqueFunction,
-                                      GroupAction)
-from launch.substitutions     import (LaunchConfiguration,
-                                      PathJoinSubstitution, EqualsSubstitution)
-from launch.conditions        import IfCondition, UnlessCondition
+from launch.actions           import DeclareLaunchArgument, OpaqueFunction
+from launch.substitutions     import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions       import Node, LoadComposableNodes
-from launch_ros.substitutions import FindPackageShare
 from launch_ros.descriptions  import ComposableNode
 
 launch_arguments = [
     {'name':        'namespace',
      'default':     '',
-     'description': 'namespace for camera'},
-    {'name':        'camera_name',
-     'default':     'phoxi',
-     'description': 'camera unique name'},
+     'description': 'namespace of controllers'},
     {'name':        'config_file',
      'default':     '',
      'description': 'path to YAML file for configuring camera'},
-    {'name':        'external_container',
-     'default':     'false',
-     'description': 'use existing external container'},
     {'name':        'container',
-     'default':     '',
-     'description': 'name of internal or external component container'},
-    {'name':        'vis',
-     'default':     'false',
-     'description': 'visualize camera outputs'},
+     'default':     'screw_tools_container',
+     'description': 'name of component container'},
     {'name':        'log_level',
      'default':     'info',
      'description': 'debug log level [DEBUG|INFO|WARN|ERROR|FATAL]'},
@@ -35,83 +22,48 @@ launch_arguments = [
      'default':     'screen',
      'description': 'pipe node output [screen|log|both]'}]
 
-parameter_arguments = [
-    {'name':        'id',
-     'default':     'InstalledExamples-basic-example',
-     'description': 'choose device by serial number'},
-    {'name':        'rate',
-     'default':     '10.0',
-     'description': 'rate of publishing topics'}]
-
 def declare_launch_arguments(args):
     return [DeclareLaunchArgument(arg['name'],
                                   default_value=arg['default'],
                                   description=arg['description']) \
             for arg in args]
 
-def set_configurable_parameters(args):
-    return dict([(arg['name'], LaunchConfiguration(arg['name'])) \
-                 for arg in args])
-
-def load_parameters(config_file):
-    if config_file == '':
-        return {}
-    with open(config_file, 'r') as f:
-        return yaml.load(f, Loader=yaml.SafeLoader)
+def get_node_names(conf_file_path):
+    with open(conf_file_path, 'r') as file:
+        conf = yaml.safe_load(file)
+    return list(conf.keys())
 
 def launch_setup(context, param_args):
-    params   = load_parameters(
-                   LaunchConfiguration('config_file').perform(context))
-    actions  = declare_launch_arguments(param_args, params)
-    params  |= set_configurable_parameters(param_args)
-    actions += [Node(namespace=LaunchConfiguration('namespace'),
-                     name=LaunchConfiguration('camera_name'),
-                     package='aist_fastening_tools',
-                     executable='aist_fastening_tools_node',
-                     parameters=[params],
-                     output=LaunchConfiguration('output'),
-                     arguments=['--ros-args', '--log-level',
-                                LaunchConfiguration('log_level')],
-                     emulate_tty=True,
-                     condition=IfCondition(
-                                   EqualsSubstitution(
-                                       LaunchConfiguration('container'), ''))),
-                GroupAction(
-                    condition=UnlessCondition(
-                                  EqualsSubstitution(
-                                      LaunchConfiguration('container'), '')),
-                    actions=[
-                        Node(name=LaunchConfiguration('container'),
-                             package='rclcpp_components',
-                             executable='component_container',
-                             output=LaunchConfiguration('output'),
-                             arguments=['--ros-args', '--log-level',
-                                        LaunchConfiguration('log_level')],
-                             condition=UnlessCondition(
-                                 LaunchConfiguration('external_container'))),
-                        LoadComposableNodes(
-                            target_container=LaunchConfiguration('container'),
-                            composable_node_descriptions=[
-                                ComposableNode(
-                                    namespace=LaunchConfiguration('namespace'),
-                                    name=LaunchConfiguration('camera_name'),
-                                    package='aist_fastening_tools',
-                                    plugin='aist_fastening_tools::Camera',
-                                    parameters=[params],
-                                    extra_arguments=[
-                                        {'use_intra_process_comms': True}])])]),
-                GroupAction(
-                    condition=IfCondition(LaunchConfiguration('vis')),
-                    actions=[
-                        Node(name='rviz', package='rviz2', executable='rviz2',
-                             output='screen',
-                             arguments=['-d',
-                                 PathJoinSubstitution([
-                                     FindPackageShare('aist_fastening_tools'),
-                                     'launch', 'aist_fastening_tools.rviz'])]),
-                        Node(name='rqt_reconfigure', package='rqt_reconfigure',
-                             executable='rqt_reconfigure', output='screen')])]
-    return actions
+    conf_file_path = PathJoinSubstitution([ThisLaunchFileDir(), '..', 'conf',
+                                           'screw_tool_controllers.yaml'])
+    node_names = get_node_names(conf_file_path.perform(context))
+    composable_nodes = [
+        ComposableNode(
+            namespace=LaunchConfiguration('namespace'),
+            name=node_names[0],
+            package='dynamixel_workbench_controllers',
+            plugin='dynamixel_workbench_controllers::DynamixelController',
+            parameters=[config_file_path],
+            extra_arguments=[{'use_intra_process_comms': True}])]
+    for node_name in node_names[1:]:
+        nodes.append(
+            ComposableNode(
+                namespace=LaunchConfiguration('namespace'),
+                name=node_name,
+                package='aist_fastening_tools',
+                plugin='aist_fastening_tools::DynamixelController',
+                parameters=[config_file_path],
+                extra_arguments=[{'use_intra_process_comms': True}]))
+
+    return [Node(name=LaunchConfiguration('container'),
+                 package='rclcpp_components',
+                 executable='component_container',
+                 output=LaunchConfiguration('output'),
+                 arguments=['--ros-args', '--log-level',
+                            LaunchConfiguration('log_level')]),
+            LoadComposableNodes(
+                target_container=LaunchConfiguration('container'),
+                composable_node_descriptions=composable_nodes)]
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \

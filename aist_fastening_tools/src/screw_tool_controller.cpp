@@ -155,8 +155,8 @@ class ScrewToolController : public rclcpp::Node
 ScrewToolController::ScrewToolController(const rclcpp::NodeOptions& options)
     :rclcpp::Node("screw_tool_controller", options),
      _driver_ns(ddynamic_reconfigure2::
-		declare_read_only_parameter<std::string>(this, "driver_ns",
-							 "screw_tool_driver")),
+		declare_read_only_parameter<std::string>(
+		    this, "driver_ns", "screw_tools_fastening_driver")),
      _motor_id(ddynamic_reconfigure2::
 	       declare_read_only_parameter<int>(this, "motor_id", 1)),
      _stage(DONE),
@@ -179,15 +179,15 @@ ScrewToolController::ScrewToolController(const rclcpp::NodeOptions& options)
 				std::placeholders::_1))),
      _current_goal_handle(nullptr),
      _ddr(rclcpp::Node::SharedPtr(this)),
-     _loosen_period(std::chrono::milliseconds(1000)),
+     _loosen_period(std::chrono::duration<double>(1.0)),
      _max_stall_speed(0.01),
-     _min_stall_period(std::chrono::milliseconds(500)),
+     _min_stall_period(std::chrono::duration<double>(0.5)),
      _max_noload_current(0.3),
-     _min_noload_period(std::chrono::milliseconds(500)),
+     _min_noload_period(std::chrono::duration<double>(0.5)),
      _control_period(
-	 std::chrono::milliseconds(
-	     ddynamic_reconfigure2::
-	     declare_read_only_parameter<int>(this, "control_period", 10))),
+	 std::chrono::duration<double>(
+	     ddynamic_reconfigure2::declare_read_only_parameter<double>(
+		 this, "control_period", 0.01))),
      _current(0.0),
      _filter(2, 7.0*_control_period.seconds())
 {
@@ -425,3 +425,7 @@ ScrewToolController::set_filter_cutoff_frequency(double cutoff_frequency)
     _filter.reset(_current);
 }
 }	// namespace aist_fastening_tools
+
+#include <rclcpp_components/register_node_macro.hpp>
+
+RCLCPP_COMPONENTS_REGISTER_NODE(aist_fastening_tools::ScrewToolController)
