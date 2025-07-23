@@ -1,6 +1,6 @@
 screw_tools_fastening_driver:
   ros__parameters:
-    usb_port:               /dev/ttyUSB1
+    usb_port:               /dev/ttyUSB0
     dxl_baud_rate:          1000000
     dxl_read_period:        0.010
     dxl_write_period:       0.010

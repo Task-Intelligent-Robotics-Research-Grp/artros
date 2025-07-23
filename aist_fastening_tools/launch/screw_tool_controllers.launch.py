@@ -1,7 +1,8 @@
 import yaml
 from launch                   import LaunchDescription
 from launch.actions           import DeclareLaunchArgument, OpaqueFunction
-from launch.substitutions     import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions     import (LaunchConfiguration,
+                                      PathJoinSubstitution, ThisLaunchFileDir)
 from launch_ros.actions       import Node, LoadComposableNodes
 from launch_ros.descriptions  import ComposableNode
 
@@ -33,8 +34,8 @@ def get_node_names(conf_file_path):
         conf = yaml.safe_load(file)
     return list(conf.keys())
 
-def launch_setup(context, param_args):
-    conf_file_path = PathJoinSubstitution([ThisLaunchFileDir(), '..', 'conf',
+def launch_setup(context):
+    conf_file_path = PathJoinSubstitution([ThisLaunchFileDir(), '..', 'config',
                                            'screw_tool_controllers.yaml'])
     node_names = get_node_names(conf_file_path.perform(context))
     composable_nodes = [
@@ -43,16 +44,16 @@ def launch_setup(context, param_args):
             name=node_names[0],
             package='dynamixel_workbench_controllers',
             plugin='dynamixel_workbench_controllers::DynamixelController',
-            parameters=[config_file_path],
+            parameters=[conf_file_path],
             extra_arguments=[{'use_intra_process_comms': True}])]
     for node_name in node_names[1:]:
-        nodes.append(
+        composable_nodes.append(
             ComposableNode(
                 namespace=LaunchConfiguration('namespace'),
                 name=node_name,
                 package='aist_fastening_tools',
-                plugin='aist_fastening_tools::DynamixelController',
-                parameters=[config_file_path],
+                plugin='aist_fastening_tools::ScrewToolController',
+                parameters=[conf_file_path],
                 extra_arguments=[{'use_intra_process_comms': True}]))
 
     return [Node(name=LaunchConfiguration('container'),
@@ -67,5 +68,4 @@ def launch_setup(context, param_args):
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \
-                             [OpaqueFunction(function=launch_setup,
-                                             args=[parameter_arguments])])
+                             [OpaqueFunction(function=launch_setup)])

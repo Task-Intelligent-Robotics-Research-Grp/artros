@@ -394,12 +394,29 @@ bool
 ScrewToolController::send_dynamixel_command(const std::string& addr_name,
 					    int32_t value)
 {
+    using namespace	std::chrono_literals;
+
+    RCLCPP_INFO_STREAM(get_logger(), "send_dynamixel_command(): addr="
+		       << addr_name << ", value=" << value);
+    while (!_dynamixel_command->wait_for_service(1s))
+    {
+	RCLCPP_INFO_STREAM(get_logger(),
+			   "service not available, waiting again...");
+    }
+
     auto	req = std::make_shared<dynamixel_command_t::Request>();
     req->id	   = _motor_id;
     req->addr_name = addr_name;
     req->value     = value;
     auto	future = _dynamixel_command->async_send_request(req);
-    future.wait();
+    RCLCPP_INFO_STREAM(get_logger(), "send_dynamixel_command(): waiting...");
+    if (future.wait_for(1s) != std::future_status::ready)
+    {
+	RCLCPP_INFO_STREAM(get_logger(),
+			   "no service response, waiting again...");
+	return false;
+    }
+    RCLCPP_INFO_STREAM(get_logger(), "send_dynamixel_command(): returned");
 
     return future.get()->comm_result;
 }

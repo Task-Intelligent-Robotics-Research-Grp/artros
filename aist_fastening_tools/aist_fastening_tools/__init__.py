@@ -49,7 +49,7 @@ class ScrewTool(object):
     """
     Screw tool client of aist_msgs.action.ScrewToolCommand type.
     """
-    def __init__(self, node, action_ns):
+    def __init__(self, node, action_ns, speed=1.0, retighten=True):
         """
         Constructor
         @param action_ns    namespace of action server to be connected

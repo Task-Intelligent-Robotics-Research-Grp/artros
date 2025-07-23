@@ -80,7 +80,7 @@ install(
 ########################
 #  Python executables  #
 ########################
-#ament_python_install_package(${PROJECT_NAME})
+ament_python_install_package(${PROJECT_NAME})
 
 install(
   PROGRAMS
