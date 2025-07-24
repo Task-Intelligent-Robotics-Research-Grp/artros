@@ -370,7 +370,7 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
     if (_stage == DONE)
     {
 	send_dynamixel_command("Moving_Speed", target_speed(0.0));
-	send_dynamixel_command("Enable_Torque", 0);
+	send_dynamixel_command("Torque_Enable", 0);
 
 	auto	result = std::make_shared<screw_tool_command_t::Result>();
 	result->stalled = true;
