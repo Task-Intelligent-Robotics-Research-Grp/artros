@@ -30,8 +30,8 @@ def declare_launch_arguments(args):
             for arg in args]
 
 def get_node_names(conf_file_path):
-    with open(conf_file_path, 'r') as file:
-        conf = yaml.safe_load(file)
+    with open(conf_file_path, 'r') as f:
+        conf = yaml.safe_load(f)
     return list(conf.keys())
 
 def launch_setup(context):
@@ -58,7 +58,7 @@ def launch_setup(context):
 
     return [Node(name=LaunchConfiguration('container'),
                  package='rclcpp_components',
-                 executable='component_container',
+                 executable='component_container_mt',
                  output=LaunchConfiguration('output'),
                  arguments=['--ros-args', '--log-level',
                             LaunchConfiguration('log_level')]),

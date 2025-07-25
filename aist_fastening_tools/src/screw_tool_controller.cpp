@@ -106,17 +106,17 @@ class ScrewToolController : public rclcpp::Node
 
   private:
     goal_response_t
-		goal_cb(const goal_uuid_t& uuid, const goal_cp goal)	;
+		goal_cb(const goal_uuid_t&, const goal_cp goal)		;
     cancel_response_t
-		cancel_cb(const goal_handle_p goal_handle)		;
+		cancel_cb(const goal_handle_p)				;
     void	handle_accepted_cb(const goal_handle_p goal_handle)	;
     void	dynamixel_states_cb(const dynamixel_states_cp& states)	;
 
     bool	is_satisfied(double ratio, double max_ratio,
 			     const rclcpp::Duration& min_period)	;
-    bool	send_dynamixel_command(const std::string& addr_name,
-				       int32_t value)			;
-    void	set_period(rclcpp::Duration& period, double sec)	;
+    void	send_dynamixel_command(const std::string& addr_name,
+				       int32_t value)		const	;
+    static void	set_period(rclcpp::Duration& period, double sec)	;
     void	set_filter_half_order(int half_order)			;
     void	set_filter_cutoff_frequency(double cutoff_frequency)	;
 
@@ -192,12 +192,13 @@ ScrewToolController::ScrewToolController(const rclcpp::NodeOptions& options)
      _filter(2, 7.0*_control_period.seconds())
 {
     using namespace	std::placeholders;
+    using namespace	std::chrono_literals;
 
   // Setup ddynamic_reconfigure server.
     _ddr.registerVariable<double>(
 	"control parameters.loosen_period",
 	_loosen_period.seconds(),
-	std::bind(&ScrewToolController::set_period, this, _loosen_period, _1),
+	std::bind(&ScrewToolController::set_period, _loosen_period, _1),
 	"Period of loosening before retightening",
 	{0.1, 5.0});
     _ddr.registerVariable<double>(
@@ -208,8 +209,7 @@ ScrewToolController::ScrewToolController(const rclcpp::NodeOptions& options)
     _ddr.registerVariable<double>(
 	"control parameters.min_stall_period",
 	_min_stall_period.seconds(),
-	std::bind(&ScrewToolController::set_period,
-		  this, _min_stall_period, _1),
+	std::bind(&ScrewToolController::set_period, _min_stall_period, _1),
 	"Minimum period required to be judged as stalled",
 	{0.1, 1.0});
     _ddr.registerVariable<double>(
@@ -220,8 +220,7 @@ ScrewToolController::ScrewToolController(const rclcpp::NodeOptions& options)
     _ddr.registerVariable<double>(
 	"control parameters.min_noload_period",
 	_min_noload_period.seconds(),
-	std::bind(&ScrewToolController::set_period,
-		  this, _min_noload_period, _1),
+	std::bind(&ScrewToolController::set_period, _min_noload_period, _1),
 	"Minimum period required to be judged as unloaded",
 	{0.1, 1.0});
     _ddr.registerVariable<int>(
@@ -237,14 +236,27 @@ ScrewToolController::ScrewToolController(const rclcpp::NodeOptions& options)
 	"Cutoff frequency of current low pass filter",
 	{1, 30});
 
+    if (!_dynamixel_command->wait_for_service(1s))
+	throw std::runtime_error("service not available");
+
     RCLCPP_INFO_STREAM(get_logger(),
 		       "controller started with motor ID["
 		       << int(_motor_id) << ']');
 }
 
 ScrewToolController::goal_response_t
-ScrewToolController::goal_cb(const goal_uuid_t& uuid, const goal_cp goal)
+ScrewToolController::goal_cb(const goal_uuid_t&, const goal_cp goal)
 {
+    if (_current_goal_handle != nullptr && _current_goal_handle->is_active())
+    {
+	auto	result = std::make_shared<screw_tool_command_t::Result>();
+	result->stalled = false;
+	_current_goal_handle->canceled(result);
+	_current_goal_handle = nullptr;
+
+	RCLCPP_WARN_STREAM(get_logger(), "previous goal CANCELED");
+    }
+
     RCLCPP_INFO_STREAM(get_logger(),
 		       "goal ACCEPTED: "
 		       << (goal->speed > 0 ? "tighten" : "loosen")
@@ -253,12 +265,21 @@ ScrewToolController::goal_cb(const goal_uuid_t& uuid, const goal_cp goal)
 }
 
 ScrewToolController::cancel_response_t
-ScrewToolController::cancel_cb(const goal_handle_p goal_handle)
+ScrewToolController::cancel_cb(const goal_handle_p)
 {
-    RCLCPP_INFO_STREAM(get_logger(), "goal PREEMPTED");
+    try
+    {
+	send_dynamixel_command("Moving_Speed",  0);
+	send_dynamixel_command("Torque_Enable", 0);
+    }
+    catch (const std::exception& err)
+    {
+	RCLCPP_ERROR_STREAM(get_logger(),
+			    "failed to cancel goal: " << err.what());
+	return cancel_response_t::REJECT;
+    }
 
-    send_dynamixel_command("Moving_Speed",  0);
-    send_dynamixel_command("Torque_Enable", 0);
+    RCLCPP_INFO_STREAM(get_logger(), "goal CANCELED");
 
     return cancel_response_t::ACCEPT;
 }
@@ -266,20 +287,26 @@ ScrewToolController::cancel_cb(const goal_handle_p goal_handle)
 void
 ScrewToolController::handle_accepted_cb(const goal_handle_p goal_handle)
 {
-    if (_current_goal_handle != nullptr && _current_goal_handle->is_active())
+    try
     {
-	RCLCPP_WARN_STREAM(get_logger(), "previous goal ABORTED");
-
+	send_dynamixel_command("Torque_Enable", 1);
+	send_dynamixel_command("Moving_Speed",
+			       target_speed(goal_handle->get_goal()->speed));
+    }
+    catch (const std::exception& err)
+    {
 	auto	result = std::make_shared<screw_tool_command_t::Result>();
 	result->stalled = false;
-	_current_goal_handle->abort(result);
+	goal_handle->abort(result);
+
+	RCLCPP_ERROR_STREAM(get_logger(), "goal ABORTED: " << err.what());
+
+	return;
     }
 
     _current_goal_handle = goal_handle;
-    send_dynamixel_command("Torque_Enable", 1);
-    send_dynamixel_command("Moving_Speed",
-			   target_speed(
-			       _current_goal_handle->get_goal()->speed));
+    _stage		 = ACTIVE;
+    _start_time		 = get_clock()->now();
 }
 
 void
@@ -318,65 +345,81 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
     feedback->current = status.current;
     _current_goal_handle->publish_feedback(feedback);
 
-    if (const auto goal = _current_goal_handle->get_goal(); goal->speed > 0.0)
-	switch (_stage)
-	{
-	  case ACTIVE:
-	    if (is_satisfied(feedback->speed,
-			     _max_stall_speed, _min_stall_period))
+    try
+    {
+	if (const auto goal = _current_goal_handle->get_goal();
+	    goal->speed > 0.0)
+	    switch (_stage)
 	    {
-		if (goal->retighten)
+	      case ACTIVE:
+		if (is_satisfied(feedback->speed,
+				 _max_stall_speed, _min_stall_period))
+		{
+		    if (goal->retighten)
+		    {
+			send_dynamixel_command("Moving_Speed",
+					       target_speed(0.0));
+			rclcpp::sleep_for(std::chrono::milliseconds(100));
+
+			RCLCPP_INFO_STREAM(get_logger(),
+					   "slightly loosen screw");
+
+			send_dynamixel_command("Moving_Speed",
+					       target_speed(-goal->speed));
+			_stage	    = LOOSEN;
+			_start_time = get_clock()->now();
+		    }
+		    else
+			_stage = DONE;
+		}
+		break;
+	      case LOOSEN:
+		if (get_clock()->now() - _start_time > _loosen_period)
 		{
 		    send_dynamixel_command("Moving_Speed", target_speed(0.0));
 		    rclcpp::sleep_for(std::chrono::milliseconds(100));
 
-		    RCLCPP_INFO_STREAM(get_logger(), "slightly loosen screw");
+		    RCLCPP_INFO_STREAM(get_logger(), "retighten screw");
 
 		    send_dynamixel_command("Moving_Speed",
-					   target_speed(-goal->speed));
-		    _stage	= LOOSEN;
+					   target_speed(goal->speed));
+		    _stage	= RETIGHTEN;
 		    _start_time = get_clock()->now();
 		}
-		else
+		break;
+	      case RETIGHTEN:
+		if (is_satisfied(feedback->speed,
+				 _max_stall_speed, _min_stall_period))
 		    _stage = DONE;
+		break;
+	      default:
+		break;
 	    }
-	    break;
-	  case LOOSEN:
-	    if (get_clock()->now() - _start_time > _loosen_period)
-	    {
-		send_dynamixel_command("Moving_Speed", target_speed(0.0));
-		rclcpp::sleep_for(std::chrono::milliseconds(100));
+	else if (is_satisfied(status.current,
+			      _max_noload_current, _min_noload_period))
+	    _stage = DONE;
 
-		RCLCPP_INFO_STREAM(get_logger(), "retighten screw");
+	if (_stage == DONE)
+	{
+	    send_dynamixel_command("Moving_Speed", target_speed(0.0));
+	    send_dynamixel_command("Torque_Enable", 0);
 
-		send_dynamixel_command("Moving_Speed",
-				       target_speed(goal->speed));
-		_stage	= RETIGHTEN;
-		_start_time = get_clock()->now();
-	    }
-	    break;
-	  case RETIGHTEN:
-	    if (is_satisfied(feedback->speed,
-			     _max_stall_speed, _min_stall_period))
-		_stage = DONE;
-	    break;
-	  default:
-	    break;
+	    auto result = std::make_shared<screw_tool_command_t::Result>();
+	    result->stalled = true;
+	    _current_goal_handle->succeed(result);
+	    _current_goal_handle = nullptr;
+
+	    RCLCPP_INFO_STREAM(get_logger(), "goal SUCCEEDED");
 	}
-    else if (is_satisfied(status.current,
-			  _max_noload_current, _min_noload_period))
-	_stage = DONE;
-
-    if (_stage == DONE)
+    }
+    catch (const std::exception& err)
     {
-	send_dynamixel_command("Moving_Speed", target_speed(0.0));
-	send_dynamixel_command("Torque_Enable", 0);
+	auto result = std::make_shared<screw_tool_command_t::Result>();
+	result->stalled = false;
+	_current_goal_handle->abort(result);
+	_current_goal_handle = nullptr;
 
-	auto	result = std::make_shared<screw_tool_command_t::Result>();
-	result->stalled = true;
-	_current_goal_handle->succeed(result);
-
-	RCLCPP_INFO_STREAM(get_logger(), "goal SUCCEEDED");
+	RCLCPP_ERROR_STREAM(get_logger(), "goal ABORTED: " << err.what());
     }
 }
 
@@ -390,19 +433,14 @@ ScrewToolController::is_satisfied(double ratio, double max_ratio,
     return (get_clock()->now() - _start_time > min_period);
 }
 
-bool
+void
 ScrewToolController::send_dynamixel_command(const std::string& addr_name,
-					    int32_t value)
+					    int32_t value) const
 {
     using namespace	std::chrono_literals;
 
     RCLCPP_INFO_STREAM(get_logger(), "send_dynamixel_command(): addr="
 		       << addr_name << ", value=" << value);
-    while (!_dynamixel_command->wait_for_service(1s))
-    {
-	RCLCPP_INFO_STREAM(get_logger(),
-			   "service not available, waiting again...");
-    }
 
     auto	req = std::make_shared<dynamixel_command_t::Request>();
     req->id	   = _motor_id;
@@ -411,14 +449,9 @@ ScrewToolController::send_dynamixel_command(const std::string& addr_name,
     auto	future = _dynamixel_command->async_send_request(req);
     RCLCPP_INFO_STREAM(get_logger(), "send_dynamixel_command(): waiting...");
     if (future.wait_for(1s) != std::future_status::ready)
-    {
-	RCLCPP_INFO_STREAM(get_logger(),
-			   "no service response, waiting again...");
-	return false;
-    }
-    RCLCPP_INFO_STREAM(get_logger(), "send_dynamixel_command(): returned");
+	throw std::runtime_error("no service response");
 
-    return future.get()->comm_result;
+    RCLCPP_INFO_STREAM(get_logger(), "send_dynamixel_command(): returned");
 }
 
 void

@@ -36,11 +36,12 @@ Clients of gripper action controller of control_msg/GripperCommandAction type.
 @author t.ueshiba@aist.go.jp
 """
 import rclpy, time
-from rclpy.node       import Node
-from rclpy.duration   import Duration
-from rclpy.action     import ActionClient
-from action_msgs.msg  import GoalStatus
-from aist_msgs.action import ScrewToolCommand
+from rclpy.node            import Node
+from rclpy.duration        import Duration
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
+from rclpy.action          import ActionClient
+from action_msgs.msg       import GoalStatus
+from aist_msgs.action      import ScrewToolCommand
 
 ######################################################################
 #  class ScrewTool                                                   #
@@ -56,10 +57,12 @@ class ScrewTool(object):
         """
         super().__init__()
 
-        self._clock    = node.get_clock()
-        self._logger   = node.get_logger()
-        self._feedback = ScrewToolCommand.Feedback()
-        self._client   = ActionClient(node, ScrewToolCommand, action_ns)
+        self._clock      = node.get_clock()
+        self._logger     = node.get_logger()
+        self._feedback   = ScrewToolCommand.Feedback()
+        self._client_cbg = MutuallyExclusiveCallbackGroup()
+        self._client     = ActionClient(node, ScrewToolCommand, action_ns,
+                                        self._client_cbg)
         self._client.wait_for_server()
 
         self._parameters = {'speed':     speed,
