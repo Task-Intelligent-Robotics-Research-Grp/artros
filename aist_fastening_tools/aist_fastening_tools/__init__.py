@@ -35,7 +35,7 @@ Clients of gripper action controller of control_msg/GripperCommandAction type.
 @file   __init__.py
 @author t.ueshiba@aist.go.jp
 """
-import rclpy, time
+import rclpy, time, threading
 from rclpy.node            import Node
 from rclpy.duration        import Duration
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
@@ -57,16 +57,18 @@ class ScrewTool(object):
         """
         super().__init__()
 
-        self._clock      = node.get_clock()
-        self._logger     = node.get_logger()
-        self._feedback   = ScrewToolCommand.Feedback()
-        self._client_cbg = MutuallyExclusiveCallbackGroup()
-        self._client     = ActionClient(node, ScrewToolCommand, action_ns,
-                                        self._client_cbg)
+        self._clock            = node.get_clock()
+        self._logger           = node.get_logger()
+        self._feedback         = ScrewToolCommand.Feedback()
+        self._client_cbg       = MutuallyExclusiveCallbackGroup()
+        self._result_condition = threading.Condition()
+        self._result           = None
+        self._client           = ActionClient(node, ScrewToolCommand,
+                                              action_ns,
+                                              callback_group=self._client_cbg)
+        self._parameters       = {'speed':     speed,
+                                  'retighten': retighten}
         self._client.wait_for_server()
-
-        self._parameters = {'speed':     speed,
-                            'retighten': retighten}
 
     @property
     def parameters(self):
@@ -85,7 +87,7 @@ class ScrewTool(object):
         for key, value in parameters.items():
             self._parameters[key] = value
 
-    def tighten(self, timeout=Duration()):
+    def tighten(self, timeout=Duration(seconds=1)):
         """
         Tighten the screw with the tool.
         Desired speed is specified by the parameter 'speed'.
@@ -100,7 +102,7 @@ class ScrewTool(object):
         return self._send_goal(self.parameters['speed'],
                                self.parameters['retighten'], timeout)
 
-    def loosen(self, timeout=Duration()):
+    def loosen(self, timeout=Duration(seconds=1)):
         """
         Loosen the screw with the tool.
         Desired speed is specified by the parameter 'speed'.
@@ -111,7 +113,7 @@ class ScrewTool(object):
                        for completion.
         @return result of control_msgs/GripperCommandResult type
         """
-        return self._send_goal(self.parameters['speed'], False, timeout)
+        return self._send_goal(-self.parameters['speed'], False, timeout)
 
     def wait(self, timeout=Duration()):
         """
@@ -126,26 +128,31 @@ class ScrewTool(object):
         if timeout.nanoseconds < 0:
             return ScrewToolCommand.Result(stalled=False)
 
-        timeout_time = self._clock.now() + timeout
-        while self._get_result_future is None or \
-              not self._get_result_future.done():
-            if timeout.nanoseconds > 0 and \
-               self._clock.now() > timeout_time:
-                self._logger.error('Timeout[%f] has expired before goal finished' %
-                                   timeout.nanoceconds*1.0e-9)
-                return ScrewToolCommand.Result(stalled=self._feedback.stalled)
-            time.sleep(0.1)
-        return self._get_result_future.result().result
+        to = timeout.nanoseconds*1.0e-9 if timeout.nanoseconds > 0 else None
+        with self._result_condition:
+            while self._result is None:
+                if not self._result_condition.wait(timeout=to):
+                    self._logger.error(
+                        'Timeout[%f] has expired before goal finished' % to)
+                    return ScrewToolCommand.Result(stalled=False)
+            result = self._result
+            self._result = None
+
+        return result
 
     def cancel(self):
         """
         Cancel the latest motion command sent to the gripper.
         """
-        if self._client.get_state() in (GoalStatus.PENDING, GoalStatus.ACTIVE):
-            self._client.cancel_goal()
+        if not self._goal_handle:
+            self._logger.warn('no active goals')
+            return
+
+        self._goal_handle.cancel_goal_async().add_done_callback(
+            self._cancel_response_cb)
 
     def _send_goal(self, speed, retighten, timeout=Duration()):
-        self._get_result_future = None
+        self._goal_handle = None
         self._client.send_goal_async(
             ScrewToolCommand.Goal(speed=speed, retighten=retighten),
             feedback_callback=self._feedback_cb) \
@@ -158,7 +165,21 @@ class ScrewTool(object):
             self._logger.error('goal rejected')
             return
         self._logger.info('goal accepted')
-        self._get_result_future = goal_handle.get_result_async()
+        goal_handle.get_result_async().add_done_callback(self._get_result_cb)
+        self._goal_handle = goal_handle
+
+    def _get_result_cb(self, future):
+        self._logger.info('result received')
+        with self._result_condition:
+            self._result = future.result()
+            self._result_condition.notify_all()
+
+    def _cancel_response_cb(self, future):
+        cancel_response = future.result()
+        if len(cancel_response.goals_canceling) == 0:
+            self._logger.warn('no active goals')
+            return None
+        self._logger.info('goal canceled')
 
     def _feedback_cb(self, feedback):
         self._feedback = feedback

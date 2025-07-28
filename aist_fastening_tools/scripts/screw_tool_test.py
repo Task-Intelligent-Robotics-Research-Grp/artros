@@ -22,8 +22,6 @@ class ScrewToolTest(Node):
 
     def interactive(self):
         while rclpy.ok():
-            key = input('[speed: %d]> ' % self._screw_tool.parameters['speed'])
-
             print('====')
             print('  q: quit this program')
             print('  t: tighten the screw')
@@ -31,6 +29,8 @@ class ScrewToolTest(Node):
             print('  w: wait for tightening/loosening completed')
             print('  c: cancel tightening/loosening')
             print('  s: set tool speed')
+
+            key = input('[speed: %d]> ' % self._screw_tool.parameters['speed'])
 
             if key == 'q':
                 break
