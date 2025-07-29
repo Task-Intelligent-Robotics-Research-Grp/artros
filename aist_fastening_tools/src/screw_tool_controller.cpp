@@ -140,7 +140,7 @@ class ScrewToolController : public rclcpp::Node
     const action_server_p<screw_tool_command_t>	_command_srv;
     goal_handle_p				_current_goal_handle;
     std::mutex					_current_goal_mtx;
-    
+
   // Parameters
     ddynamic_reconfigure2::DDynamicReconfigure	_ddr;
     rclcpp::Duration				_loosen_period;      // period before retighten
@@ -254,7 +254,7 @@ ScrewToolController::goal_response_t
 ScrewToolController::goal_cb(const goal_uuid_t&, const goal_cp goal)
 {
     const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
-    
+
     if (_current_goal_handle != nullptr && _current_goal_handle->is_active())
     {
 	auto	result = std::make_shared<screw_tool_command_t::Result>();
@@ -287,7 +287,7 @@ ScrewToolController::cancel_cb(const goal_handle_p)
 	return cancel_response_t::REJECT;
     }
 
-    RCLCPP_INFO_STREAM(get_logger(), "goal CANCELED");
+    RCLCPP_DEBUG_STREAM(get_logger(), "accepted request for cancelling goal");
     return cancel_response_t::ACCEPT;
 }
 
@@ -358,16 +358,16 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
 	_current_goal_handle->canceled(result);
 	_current_goal_handle = nullptr;
 
-	RCLCPP_INFO_STREAM(get_logger(), "goal CANCELED");
+	RCLCPP_WARN_STREAM(get_logger(), "goal CANCELED");
 	return;
     }
-    
+
   // Publish speed and filtered current as a feedback.
     const auto	feedback = std::make_shared<screw_tool_command_t::Feedback>();
     feedback->speed   = status.speed;
     feedback->current = status.current;
     _current_goal_handle->publish_feedback(feedback);
-	
+
     try
     {
 	if (const auto goal = _current_goal_handle->get_goal();
@@ -467,22 +467,22 @@ ScrewToolController::send_dxl_command(const std::string& addr_name,
 {
     using namespace	std::chrono_literals;
 
-    RCLCPP_INFO_STREAM(get_logger(), "send_dxl_command(): addr="
-		       << addr_name << ", value=" << value);
+    RCLCPP_DEBUG_STREAM(get_logger(), "send_dxl_command(): addr_name="
+			<< addr_name << ", value=" << value);
 
     const auto	req = std::make_shared<dynamixel_command_t::Request>();
     req->id	   = _motor_id;
     req->addr_name = addr_name;
     req->value     = value;
     auto	future = _dxl_command->async_send_request(req);
-    RCLCPP_INFO_STREAM(get_logger(), "send_dxl_command(): waiting...");
+
     if (future.wait_for(1s) != std::future_status::ready)
 	throw std::runtime_error("no service response");
 
     if (!future.get()->comm_result)
 	throw std::runtime_error("communication error");
 
-    RCLCPP_INFO_STREAM(get_logger(), "send_dxl_command(): received response");
+    RCLCPP_DEBUG_STREAM(get_logger(), "send_dxl_command(): received response");
 }
 
 void
