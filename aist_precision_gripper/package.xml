@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package format="2">
+<package format="3">
   <name>aist_precision_gripper</name>
   <version>0.1.0</version>
   <description>The aist_precision_gripper package</description>
@@ -7,18 +7,16 @@
   <maintainer email="t.ueshiba@aist.go.jp">Toshio UESHIBA</maintainer>
   <license>BSD</license>
   <author email="t.ueshiba@aist.go.jp">Toshio UESHIBA</author>
-  <url type="repository">https://gitlab.com/art-aist-private/artros</url>
+  <url type="repository">https://github.com/Automation-Research-Team/artros</url>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <exec_depend>dynamixel_workbench_controllers</exec_depend>
+  <exec_depend>dynamixel_workbench_msgs</exec_depend>
 
-  <exec_depend>message_runtime</exec_depend>
-
-  <depend>rospy</depend>
-  <depend>actionlib</depend>
-  <depend>actionlib_msgs</depend>
+  <depend>composition_interfaces</depend>
   <depend>control_msgs</depend>
   <depend>sensor_msgs</depend>
-  <depend>dynamixel_workbench_controllers</depend>
-  <depend>dynamixel_workbench_msgs</depend>
 
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
 </package>

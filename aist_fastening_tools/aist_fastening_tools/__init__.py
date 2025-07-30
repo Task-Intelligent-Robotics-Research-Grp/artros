@@ -178,8 +178,8 @@ class ScrewTool(object):
         cancel_response = future.result()
         if len(cancel_response.goals_canceling) == 0:
             self._logger.warn('no active goals')
-            return None
-        self._logger.info('goal canceled')
+        else:
+            self._logger.info('goal canceled')
 
     def _feedback_cb(self, feedback):
         self._feedback = feedback

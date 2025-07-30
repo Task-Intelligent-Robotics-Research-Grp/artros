@@ -8,8 +8,8 @@ screw_tools_fastening_driver:
     use_moveit:             false
     dynamixel_info:         dynamixel_info.yaml
     mobile_robot_config:
-      separation_between_wheels: 0.500
-      radius_of_wheel:           0.050
+      separation_between_wheels: 0.000
+      radius_of_wheel:           0.000
 
 screw_tool_m3_fastening_controller:
   ros__parameters:

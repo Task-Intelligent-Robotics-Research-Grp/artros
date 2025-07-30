@@ -35,9 +35,10 @@
 #
 # Author: Toshio Ueshiba
 #
-import rclpy, os
+import rclpy, sys, threading
 import numpy as np
-from rclpy.node import node
+from rclpy.node                   import Node
+from rclpy.duration               import Duration
 from rclpy.executors              import (ExternalShutdownException,
                                           SingleThreadedExecutor,
                                           MultiThreadedExecutor)
@@ -54,18 +55,15 @@ from dynamixel_workbench_msgs.srv import DynamixelCommand
 #  class PrecisionGripperController                                     #
 #########################################################################
 class PrecisionGripperController(Node):
-    def __init__(self, name):
-        super().__init__(name)
-
-        self._name = rospy.get_name()
+    def __init__(self, name, *kargs, **kwargs):
+        super().__init__(name, *kargs, **kwargs)
 
         # Read motor id
         self._id = self.declare_parameter('~ID', 1).value
 
         # Read timeout value for checking stalled state
-        self._stall_timeout = rclpy.Duration.from_sec(
-                                self.declare_parameter('stall_timeout',
-                                                       1.0).value)
+        self._stall_timeout = Duration(seconds=self.declare_parameter(
+                                                   'stall_timeout', 1).value)
 
         # Read configuration parameters
         self._min_position = self.declare_parameter('min_position',
@@ -96,10 +94,12 @@ class PrecisionGripperController(Node):
                                         callback_group=self._dxl_state_cbg)
 
         # Create a service client for sending command to _Dxl driver
-        self._dxl_command = self.create_client(DynamixelCommand,
-                                               driver_ns
-                                               + '/dynamixel_command')
-        if not self._dxl_command.wait_for_servvice(1.0):
+        self._response_condition = threading.Condition()
+        self._response           = None
+        self._dxl_command        = self.create_client(DynamixelCommand,
+                                                      driver_ns
+                                                      + '/dynamixel_command')
+        if not self._dxl_command.wait_for_service(1.0):
             raise RuntimeError
 
         # Publish joint state
@@ -137,25 +137,25 @@ class PrecisionGripperController(Node):
         # Publish joint state
         if self._joint_state_pub is not None:
             joint_state = JointState()
-            joint_state.header.stamp = rospy.Time.now()
+            joint_state.header.stamp = self.get_clock().now().to_msg()
             joint_state.name     = [self._dxl_state.name  + '_finger_joint']
             joint_state.position = [self._position()]
             joint_state.velocity = [0.0]
             joint_state.effort   = [self._effort()]
             self._joint_state_pub.publish(joint_state)
 
-    def _goal_cb(self.goal_request):
+    def _goal_cb(self, goal_request):
         self.get_logger().info('goal received[position=%f, max_effort=%f]'
-                               % (goal_request.command_position,
+                               % (goal_request.command.position,
                                   goal_request.command.max_effort))
         return GoalResponse.ACCEPT
 
     def _handle_accepted_cb(self, goal_handle):
-        with self._goal_lock:
-            if self._goal_handle is not None and self._goal_handle.is_active:
-                self.get_logger.warn('previous goal CANCELED')
-                self._goalhandle.canceled()
-            self._goal_handle = goal_hande
+        # with self._goal_lock:
+        #     if self._goal_handle is not None and self._goal_handle.is_active:
+        #         self.get_logger().warn('previous goal CANCELED')
+        #         self._goalhandle.canceled()
+        #     self._goal_handle = goal_hande
         goal_handle.execute()
 
     def _cancel_cb(self, goal):
@@ -188,7 +188,7 @@ class PrecisionGripperController(Node):
                 goal_handle.canceled()
                 self.get_logger().warn('goal CANCELED')
             elif self._is_moving():
-                self._last_movement_time = self.get_clock().now().to_msg()
+                self._last_movement_time = self.get_clock().now()
             elif self._reached_goal(dxl_state):
                 goal_handle.succeed()
                 self.get_logger().info('goal SUCCEED[reached goal]')
@@ -207,26 +207,40 @@ class PrecisionGripperController(Node):
         if abs(cur) < self._min_cur:
             pos_now = np.int32(self._position())
             cur = self._min_cur if pos > pos_now else -self._min_cur
-        self.get_logger.info('** Cmd(pos=%i, cur=%i) for position=%f, effort=%f' % (pos, cur, position, effort))
+        self.get_logger().info('** Cmd(pos=%i, cur=%i) for position=%f, effort=%f' % (pos, cur, position, effort))
         self._set_value('Goal_Current',  cur)
         self._set_value('Goal_Position', pos)
         return pos
 
     def _set_value(self, addr_name, value):
-        try:
-            res = self._dxl_command('', self._id, addr_name, value)
-        except rospy.ServiceException as err:
-            rospy.logerr('(%s) failed to set value[%i] to %s: %s',
-                         self._name, value, addr_name, err)
-            return False
+        self._response = None
+        self._dxl_command.call_async(
+            DynamixelCommand.Request(command='', id=self._id,
+                                     addr_name=addr_name, value=value)) \
+                         .add_done_callback(self._get_response_cb)
+        with self._response_condition:
+            while self._response is None:
+                if not self._response_condition.wait(timeout=1.0):
+                    self.get_logger().error(
+                        'Timeout[%f] has expired before receving response'
+                        % 1.0)
+                    return
+            res = self._response
+            self._response = None
 
         if res.comm_result:
-            rospy.loginfo("(%s) succesfully set value[%i] to %s",
-                          self._name, value, addr_name)
+            self.get_logger().info('succesfully set value[%i] to %s'
+                                   % (value, addr_name))
         else:
-            rospy.logerr('(%s) communication error when setting value[%i] to %s',
-                         self._name, value, addr_name)
+            self.get_logger().error('communication error when setting value[%i] to %s'
+                                    % (value, addr_name))
         return res.comm_result
+
+    def _get_response_cb(self, future):
+        self._logger.info('response received')
+        with self._response_condition:
+            self._response = future.result()
+            self._response_condition.notify_all()
 
     def _position(self):
         return (self._dxl_state.present_position - self._min_pos) \
@@ -245,7 +259,7 @@ class PrecisionGripperController(Node):
 
     def _stalled(self):
         return (not self._is_moving()) and \
-               (rospy.Time.now() - self._last_movement_time >
+               (self.get_clock().now() - self._last_movement_time >
                 self._stall_timeout)
 
     def _state_values(self):
@@ -261,8 +275,7 @@ class PrecisionGripperController(Node):
     def effort_per_tick(self):
         return self._max_effort / self._max_cur
 
-
-if __name__ == '__main__':
+def main():
     rclpy.init(args=sys.argv)
 
     try:
@@ -272,3 +285,6 @@ if __name__ == '__main__':
         executor.spin()
     except (KeyboardInterrupt, ExternalShutdownException):
         pass
+
+if __name__ == '__main__':
+    main()
