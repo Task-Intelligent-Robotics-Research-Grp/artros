@@ -2,7 +2,7 @@
 # Set minimum required version of cmake, project name and compile options
 ##########################################################################
 cmake_minimum_required(VERSION 3.5.0)
-project(aist_fastening_tools)
+project(aist_precision_gripper)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 if(NOT CMAKE_C_STANDARD)
@@ -21,20 +21,19 @@ find_package(rclcpp_components REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(dynamixel_workbench_msgs REQUIRED)
 find_package(ddynamic_reconfigure2 REQUIRED)
-find_package(aist_utility REQUIRED)
-find_package(aist_msgs REQUIRED)
+find_package(control_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 ###########
 #  Build  #
 ###########
 add_library(
   ${PROJECT_NAME} SHARED
-    src/screw_tool_controller.cpp
+    src/precision_gripper_controller.cpp
 )
 
 target_include_directories(
   ${PROJECT_NAME} PRIVATE
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
 
@@ -45,16 +44,18 @@ target_compile_definitions(
 
 ament_target_dependencies(
   ${PROJECT_NAME}
+    rclcpp_components
+    rclcpp_action
     dynamixel_workbench_msgs
     ddynamic_reconfigure2
-    aist_utility
-    aist_msgs
+    control_msgs
+    sensor_msgs
 )
 
 rclcpp_components_register_nodes(
   ${PROJECT_NAME}
-    PLUGIN     ${PROJECT_NAME}::ScrewToolController
-    EXECUTABLE screw_tool_controller_node
+    PLUGIN     ${PROJECT_NAME}::PrecisionGripperController
+    EXECUTABLE precision_gripper_controller_node
 )
 
 #############
@@ -66,7 +67,6 @@ install(
   ARCHIVE  DESTINATION lib
   LIBRARY  DESTINATION lib
   RUNTIME  DESTINATION bin
-  INCLUDES DESTINATION include
 )
 
 install(
@@ -86,10 +86,7 @@ ament_python_install_package(${PROJECT_NAME})
 
 install(
   PROGRAMS
-    scripts/screw_tool_test.py
-    scripts/suction_tool_controller.py
-    scripts/suction_tool_test.py
-    scripts/conveni_suction_gripper_controller.py
+    scripts/test_gripper_client.py
   DESTINATION
     lib/${PROJECT_NAME}
 )

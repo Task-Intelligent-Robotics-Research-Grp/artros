@@ -114,7 +114,7 @@ class ScrewToolController : public rclcpp::Node
     void	dynamixel_states_cb(const dynamixel_states_cp& states)	;
 
     bool	is_settled(double value, double max_value,
-			     const rclcpp::Duration& min_period)	;
+			   const rclcpp::Duration& min_period)		;
     void	send_dxl_command(const std::string& addr_name,
 				 int32_t value)			const	;
     static void	set_period(rclcpp::Duration& period, double sec)	;

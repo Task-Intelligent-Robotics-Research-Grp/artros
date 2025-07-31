@@ -12,7 +12,10 @@ launch_arguments = [
      'description': 'namespace of controllers'},
     {'name':        'config_file',
      'default':     '',
-     'description': 'path to YAML file for configuring gripper'},
+     'description': 'path to YAML file for configuring camera'},
+    {'name':        'container',
+     'default':     'precision_gripper_container',
+     'description': 'name of component container'},
     {'name':        'log_level',
      'default':     'info',
      'description': 'debug log level [DEBUG|INFO|WARN|ERROR|FATAL]'},
@@ -32,27 +35,34 @@ def get_node_names(conf_file_path):
     return list(conf.keys())
 
 def launch_setup(context):
-    conf_file_path = PathJoinSubstitution(
-                         [ThisLaunchFileDir(), '..', 'config',
-                          'precision_gripper_controller.yaml'])
-    node_names = get_node_names(conf_file_path.perform(context))
+    conf_file = PathJoinSubstitution([ThisLaunchFileDir(), '..', 'config',
+                                      'precision_gripper_controller.yaml'])
+    node_names = get_node_names(conf_file.perform(context))
+    composable_nodes = [
+        ComposableNode(
+            namespace=LaunchConfiguration('namespace'),
+            name=node_names[0],
+            package='dynamixel_workbench_controllers',
+            plugin='dynamixel_workbench_controllers::DynamixelController',
+            parameters=[conf_file_path],
+            extra_arguments=[{'use_intra_process_comms': True}]),
+        ComposableNode(
+            namespace=LaunchConfiguration('namespace'),
+            name=node_names[1],
+            package='aist_precision_gripper',
+            plugin='aist_precision_gripper::PrecisionGripperController',
+            parameters=[conf_file_path],
+            extra_arguments=[{'use_intra_process_comms': True}])]
 
-    return [Node(namespace=LaunchConfiguration('namespace'),
-                 name=node_names[0],
-                 package='dynamixel_workbench_controllers',
-                 executable='dynamixel_workbench_controllers_node',
-                 parameters=[conf_file_path],
+    return [Node(name=LaunchConfiguration('container'),
+                 package='rclcpp_components',
+                 executable='component_container_mt',
                  output=LaunchConfiguration('output'),
                  arguments=['--ros-args', '--log-level',
                             LaunchConfiguration('log_level')]),
-            Node(namespace=LaunchConfiguration('namespace'),
-                 name=node_names[1],
-                 package='aist_precision_gripper',
-                 executable='precision_gripper_controller',
-                 parameters=[conf_file_path],
-                 output='screen',
-                 arguments=['--ros-args', '--log-level',
-                            LaunchConfiguration('log_level')])]
+            LoadComposableNodes(
+                target_container=LaunchConfiguration('container'),
+                composable_node_descriptions=composable_nodes)]
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \
