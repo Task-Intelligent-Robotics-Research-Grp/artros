@@ -253,18 +253,6 @@ ScrewToolController::ScrewToolController(const rclcpp::NodeOptions& options)
 ScrewToolController::goal_response_t
 ScrewToolController::goal_cb(const goal_uuid_t&, const goal_cp goal)
 {
-    const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
-
-    if (_current_goal_handle != nullptr && _current_goal_handle->is_active())
-    {
-	auto	result = std::make_shared<screw_tool_command_t::Result>();
-	result->stalled = false;
-	_current_goal_handle->canceled(result);
-	_current_goal_handle = nullptr;
-
-	RCLCPP_WARN_STREAM(get_logger(), "previous goal CANCELED");
-    }
-
     RCLCPP_INFO_STREAM(get_logger(),
 		       "goal ACCEPTED: "
 		       << (goal->speed > 0 ? "tighten" : "loosen")
@@ -295,6 +283,17 @@ void
 ScrewToolController::handle_accepted_cb(const goal_handle_p goal_handle)
 {
     const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
+
+  // If any active goal exists, abort it.
+    if (_current_goal_handle != nullptr && _current_goal_handle->is_active())
+    {
+	auto	result = std::make_shared<screw_tool_command_t::Result>();
+	result->stalled = false;
+	_current_goal_handle->abort(result);
+	_current_goal_handle = nullptr;
+
+	RCLCPP_WARN_STREAM(get_logger(), "previous goal ABORTED");
+    }
 
     try
     {
