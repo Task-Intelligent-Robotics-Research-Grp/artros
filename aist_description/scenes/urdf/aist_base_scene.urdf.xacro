@@ -103,74 +103,40 @@
   </xacro:suction_tool_holder>
 
   <!-- robot arms -->
-  <xacro:include filename="$(find ur_gazebo)/urdf/ur_macro.xacro"/>
-  <xacro:ur_robot_gazebo
-      prefix="a_bot_"
+  <xacro:include filename="$(find ur_description)/urdf/ur_macro.xacro"/>
+  <xacro:ur_robot
+      name="a_bot"
+      tf_prefix="a_bot_"
+      parent="a_bot_table_top_center"
       joint_limits_parameters_file="$(find ur_description
 				    )/config/ur5e/joint_limits.yaml"
       physical_parameters_file="$(find ur_description
 				)/config/ur5e/physical_parameters.yaml"
       visual_parameters_file="$(find ur_description
 			      )/config/ur5e/visual_parameters.yaml"
-      kinematics_parameters_file="$(find aist_bringup
-				  )/config/a_bot_calibration.yaml"
-      transmission_hw_interface="hardware_interface/PositionJointInterface"
+      kinematics_parameters_file="$(find aist_description
+				  )/scenes/calib/a_bot.yaml"
       safety_limits="true"
-      safety_pos_margin="0.15"/>
-
-  <xacro:ur_robot_gazebo
-      prefix="b_bot_"
-      joint_limits_parameters_file="$(find ur_description
-				    )/config/ur5e/joint_limits.yaml"
-      physical_parameters_file="$(find ur_description
-				)/config/ur5e/physical_parameters.yaml"
-      visual_parameters_file="$(find ur_description
-			      )/config/ur5e/visual_parameters.yaml"
-      kinematics_parameters_file="$(find aist_bringup
-				  )/config/b_bot_calibration.yaml"
-      transmission_hw_interface="hardware_interface/PositionJointInterface"
-      safety_limits="true"
-      safety_pos_margin="0.15"/>
-
-  <joint name="a_bot_base_link_joint" type="fixed">
-    <parent link="a_bot_table_top_center"/>
-    <child  link="a_bot_base_link"/>
+      safety_pos_margin="0.15">
     <origin xyz="0 0 0 " rpy="0 0 0"/>
-  </joint>
+  </xacro:ur_robot>
 
-  <joint name="b_bot_base_link_joint" type="fixed">
-    <parent link="b_bot_table_top_center"/>
-    <child  link="b_bot_base_link"/>
+  <xacro:ur_robot
+      name="b_bot"
+      tf_prefix="b_bot_"
+      parent="b_bot_table_top_center"
+      joint_limits_parameters_file="$(find ur_description
+				    )/config/ur5e/joint_limits.yaml"
+      physical_parameters_file="$(find ur_description
+				)/config/ur5e/physical_parameters.yaml"
+      visual_parameters_file="$(find ur_description
+			      )/config/ur5e/visual_parameters.yaml"
+      kinematics_parameters_file="$(find aist_description
+				  )/scenes/calib/b_bot.yaml"
+      safety_limits="true"
+      safety_pos_margin="0.15">
     <origin xyz="0 0 0" rpy="0 0 ${b_bot_theta}"/>
-  </joint>
-
-  <!-- Attach mounter for Zivid2+ camera -->
-  <!-- <xacro:include filename="$(find aist_description)/devices/urdf/zivid_coupling.urdf.xacro"/> -->
-  <!-- <xacro:zivid_coupling prefix="a_bot_zivid_coupling_" parent="a_bot_flange"> -->
-  <!--   <origin xyz="0 0 0" rpy="${pi} 0 0" /> -->
-  <!-- </xacro:zivid_coupling> -->
-
-  <!-- Spawn and attach Zivid2+ camera -->
-  <!-- <xacro:include filename="$(find aist_description -->
-  <!-- 			   )/scenes/urdf/load_calibration.urdf.xacro"/> -->
-  <!-- <xacro:load_calibration filename="$(find aist_handeye_calibration -->
-  <!-- 				    )/calib/a_bot_zivid.yaml"/> -->
-  <!-- <xacro:include filename="$(find aist_description -->
-  <!-- 			   )/devices/urdf/zivid2plus.urdf.xacro"/> -->
-  <!-- <xacro:zivid2plus name="a_bot_zivid" -->
-  <!-- 		    parent="a_bot_zivid_coupling_flange_link"> -->
-  <!--   <origin xyz="${origin[0]} ${origin[1]} ${origin[2]}" -->
-  <!--   	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/> -->
-  <!-- </xacro:zivid2plus> -->
-
-  <!-- Spawn and attach force sensor -->
-  <!-- <xacro:include filename="$(find aist_robotiq)/urdf/ft300.urdf.xacro"/> -->
-  <!-- <xacro:ft300 prefix="a_bot_ftsensor_" parent="a_bot_flange"> -->
-  <!--   <origin xyz="0 0 0" rpy="${pi} 0 0"/> -->
-  <!-- </xacro:ft300> -->
-  <!-- <xacro:ft300 prefix="b_bot_ftsensor_" parent="b_bot_flange"> -->
-  <!--   <origin xyz="0 0 0" rpy="${pi} 0 0"/> -->
-  <!-- </xacro:ft300> -->
+  </xacro:ur_robot>
 
   <!-- Spawn and attach grippers -->
   <xacro:include filename="$(find aist_robotiq
@@ -215,8 +181,8 @@
   <!-- Add Motioncam-3D scanner -->
   <xacro:include filename="$(find aist_description
 			   )/scenes/urdf/load_calibration.urdf.xacro"/>
-  <xacro:load_calibration filename="$(find aist_handeye_calibration
-				    )/calib/a_motioncam.yaml"/>
+  <xacro:load_calibration filename="$(find aist_description
+				    )/scenes/calib/a_motioncam.yaml"/>
   <xacro:include filename="$(find aist_phoxi_camera
 			   )/urdf/motioncam_m_camera.urdf.xacro"/>
   <xacro:motioncam_m_camera name="a_motioncam" parent="workspace_center">
@@ -225,20 +191,20 @@
   </xacro:motioncam_m_camera>
 
   <!-- Add RealSense cameras -->
-  <xacro:include filename="$(find aist_description
-  			   )/devices/urdf/sr305_on_2f140.urdf.xacro" />
-  <xacro:sr305_on_2f140 prefix="a_bot_"
-  			parent="a_bot_gripper_base_link"
-  			use_nominal_extrinsics="true"/>
-  <xacro:include filename="$(find aist_description
-  			   )/devices/urdf/sr305_on_2f85.urdf.xacro" />
-  <xacro:sr305_on_2f85 prefix="b_bot_"
-  		       parent="b_bot_gripper_base_link"
-  		       use_nominal_extrinsics="true"/>
+  <!-- <xacro:include filename="$(find aist_description -->
+  <!-- 			   )/devices/urdf/sr305_on_2f140.urdf.xacro" /> -->
+  <!-- <xacro:sr305_on_2f140 prefix="a_bot_" -->
+  <!-- 			parent="a_bot_gripper_base_link" -->
+  <!-- 			use_nominal_extrinsics="true"/> -->
+  <!-- <xacro:include filename="$(find aist_description -->
+  <!-- 			   )/devices/urdf/sr305_on_2f85.urdf.xacro" /> -->
+  <!-- <xacro:sr305_on_2f85 prefix="b_bot_" -->
+  <!-- 		       parent="b_bot_gripper_base_link" -->
+  <!-- 		       use_nominal_extrinsics="true"/> -->
 
   <!-- Add live camera -->
-  <xacro:load_calibration filename="$(find aist_camera_calibration
-				    )/calib/live_camera.yaml"/>
+  <xacro:load_calibration filename="$(find aist_description
+				    )/scenes/calib/live_camera.yaml"/>
   <link name="live_camera_optical_frame"/>
   <joint name="live_camera_joint" type="fixed">
     <parent link="workspace_center"/>

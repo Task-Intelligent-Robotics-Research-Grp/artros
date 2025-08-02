@@ -1,41 +1,22 @@
 Panels:
-  - Class: rviz/Displays
+  - Class: rviz_common/Displays
     Help Height: 0
     Name: Displays
     Property Tree Widget:
-      Expanded:
-        - /TF1
-        - /TF1/Frames1
-      Splitter Ratio: 0.6792828440666199
-    Tree Height: 865
-  - Class: rviz/Selection
-    Name: Selection
-  - Class: rviz/Tool Properties
-    Expanded:
-      - /2D Pose Estimate1
-      - /2D Nav Goal1
-      - /Publish Point1
-    Name: Tool Properties
-    Splitter Ratio: 0.5886790156364441
-  - Class: rviz/Views
+      Expanded: ~
+      Splitter Ratio: 0.5
+    Tree Height: 592
+  - Class: rviz_common/Views
     Expanded:
       - /Current View1
     Name: Views
     Splitter Ratio: 0.5
-  - Class: rviz/Time
-    Name: Time
-    SyncMode: 0
-    SyncSource: ""
-Preferences:
-  PromptSaveOnExit: true
-Toolbars:
-  toolButtonStyle: 2
 Visualization Manager:
   Class: ""
   Displays:
     - Alpha: 0.5
       Cell Size: 1
-      Class: rviz/Grid
+      Class: rviz_default_plugins/Grid
       Color: 160; 160; 164
       Enabled: true
       Line Style:
@@ -52,8 +33,16 @@ Visualization Manager:
       Reference Frame: <Fixed Frame>
       Value: true
     - Alpha: 1
-      Class: rviz/RobotModel
+      Class: rviz_default_plugins/RobotModel
       Collision Enabled: false
+      Description File: ""
+      Description Source: Topic
+      Description Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot_description
       Enabled: true
       Links:
         All Links Enabled: true
@@ -65,140 +54,192 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/back_hole:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        panel_motor/back_hole_bottom:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        panel_motor/base_link:
+        panel_bearing/base_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        panel_motor/bottom_corner_1:
+        panel_bearing/base_screw_hole_1:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/bottom_corner_2:
+        panel_bearing/base_screw_hole_2:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/bottom_screw_hole_1:
+        panel_bearing/base_screw_hole_aligner_1:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/bottom_screw_hole_2:
+        panel_bearing/base_screw_hole_aligner_2:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/bottom_screw_hole_aligner_1:
+        panel_bearing/bearing_screw_hole_1:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/bottom_screw_hole_aligner_2:
+        panel_bearing/bearing_screw_hole_2:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/center:
+        panel_bearing/bearing_screw_hole_3:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/default_grasp:
+        panel_bearing/bearing_screw_hole_4:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/grasp_1:
+        panel_bearing/bottom_corner_1:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/grasp_10:
+        panel_bearing/bottom_corner_2:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/grasp_11:
+        panel_bearing/default_grasp:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/grasp_12:
+        panel_bearing/front_hole:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/grasp_2:
+        panel_bearing/grasp_1:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/grasp_3:
+        panel_bearing/grasp_10:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/grasp_4:
+        panel_bearing/grasp_11:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/grasp_5:
+        panel_bearing/grasp_12:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/grasp_6:
+        panel_bearing/grasp_13:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/grasp_7:
+        panel_bearing/grasp_14:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/grasp_8:
+        panel_bearing/grasp_15:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/grasp_9:
+        panel_bearing/grasp_16:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/motor_screw_hole_1:
+        panel_bearing/grasp_17:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/motor_screw_hole_2:
+        panel_bearing/grasp_18:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/motor_screw_hole_3:
+        panel_bearing/grasp_19:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/motor_screw_hole_4:
+        panel_bearing/grasp_2:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/motor_screw_hole_5:
+        panel_bearing/grasp_20:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/motor_screw_hole_6:
+        panel_bearing/grasp_21:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panel_motor/primitive_1:
+        panel_bearing/grasp_22:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
-        panel_motor/primitive_2:
+        panel_bearing/grasp_23:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
+        panel_bearing/grasp_24:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        panel_bearing/grasp_25:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        panel_bearing/grasp_26:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        panel_bearing/grasp_27:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        panel_bearing/grasp_28:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        panel_bearing/grasp_3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        panel_bearing/grasp_4:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        panel_bearing/grasp_5:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        panel_bearing/grasp_6:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        panel_bearing/grasp_7:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        panel_bearing/grasp_8:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        panel_bearing/grasp_9:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        panel_bearing/pulley_ridge_bottom:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        panel_bearing/pulley_ridge_middle:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        panel_bearing/pulley_ridge_top:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+      Mass Properties:
+        Inertia: false
+        Mass: false
       Name: RobotModel
-      Robot Description: robot_description
       TF Prefix: ""
       Update Interval: 0
       Value: true
       Visual Enabled: true
-    - Class: rviz/TF
+    - Class: rviz_default_plugins/TF
       Enabled: true
       Filter (blacklist): ""
       Filter (whitelist): ""
@@ -207,69 +248,94 @@ Visualization Manager:
         All Enabled: true
         base_link:
           Value: true
-        panel_motor/back_hole:
+        panel_bearing/base_link:
           Value: true
-        panel_motor/back_hole_bottom:
+        panel_bearing/base_screw_hole_1:
           Value: true
-        panel_motor/base_link:
+        panel_bearing/base_screw_hole_2:
           Value: true
-        panel_motor/bottom_corner_1:
+        panel_bearing/base_screw_hole_aligner_1:
           Value: true
-        panel_motor/bottom_corner_2:
+        panel_bearing/base_screw_hole_aligner_2:
           Value: true
-        panel_motor/bottom_screw_hole_1:
+        panel_bearing/bearing_screw_hole_1:
           Value: true
-        panel_motor/bottom_screw_hole_2:
+        panel_bearing/bearing_screw_hole_2:
           Value: true
-        panel_motor/bottom_screw_hole_aligner_1:
+        panel_bearing/bearing_screw_hole_3:
           Value: true
-        panel_motor/bottom_screw_hole_aligner_2:
+        panel_bearing/bearing_screw_hole_4:
           Value: true
-        panel_motor/center:
+        panel_bearing/bottom_corner_1:
           Value: true
-        panel_motor/default_grasp:
+        panel_bearing/bottom_corner_2:
           Value: true
-        panel_motor/grasp_1:
+        panel_bearing/default_grasp:
           Value: true
-        panel_motor/grasp_10:
+        panel_bearing/front_hole:
           Value: true
-        panel_motor/grasp_11:
+        panel_bearing/grasp_1:
           Value: true
-        panel_motor/grasp_12:
+        panel_bearing/grasp_10:
           Value: true
-        panel_motor/grasp_2:
+        panel_bearing/grasp_11:
           Value: true
-        panel_motor/grasp_3:
+        panel_bearing/grasp_12:
           Value: true
-        panel_motor/grasp_4:
+        panel_bearing/grasp_13:
           Value: true
-        panel_motor/grasp_5:
+        panel_bearing/grasp_14:
           Value: true
-        panel_motor/grasp_6:
+        panel_bearing/grasp_15:
           Value: true
-        panel_motor/grasp_7:
+        panel_bearing/grasp_16:
           Value: true
-        panel_motor/grasp_8:
+        panel_bearing/grasp_17:
           Value: true
-        panel_motor/grasp_9:
+        panel_bearing/grasp_18:
           Value: true
-        panel_motor/motor_screw_hole_1:
+        panel_bearing/grasp_19:
           Value: true
-        panel_motor/motor_screw_hole_2:
+        panel_bearing/grasp_2:
           Value: true
-        panel_motor/motor_screw_hole_3:
+        panel_bearing/grasp_20:
           Value: true
-        panel_motor/motor_screw_hole_4:
+        panel_bearing/grasp_21:
           Value: true
-        panel_motor/motor_screw_hole_5:
+        panel_bearing/grasp_22:
           Value: true
-        panel_motor/motor_screw_hole_6:
+        panel_bearing/grasp_23:
           Value: true
-        panel_motor/primitive_1:
+        panel_bearing/grasp_24:
           Value: true
-        panel_motor/primitive_2:
+        panel_bearing/grasp_25:
           Value: true
-      Marker Alpha: 1
+        panel_bearing/grasp_26:
+          Value: true
+        panel_bearing/grasp_27:
+          Value: true
+        panel_bearing/grasp_28:
+          Value: true
+        panel_bearing/grasp_3:
+          Value: true
+        panel_bearing/grasp_4:
+          Value: true
+        panel_bearing/grasp_5:
+          Value: true
+        panel_bearing/grasp_6:
+          Value: true
+        panel_bearing/grasp_7:
+          Value: true
+        panel_bearing/grasp_8:
+          Value: true
+        panel_bearing/grasp_9:
+          Value: true
+        panel_bearing/pulley_ridge_bottom:
+          Value: true
+        panel_bearing/pulley_ridge_middle:
+          Value: true
+        panel_bearing/pulley_ridge_top:
+          Value: true
       Marker Scale: 0.10000000149011612
       Name: TF
       Show Arrows: false
@@ -277,132 +343,142 @@ Visualization Manager:
       Show Names: true
       Tree:
         base_link:
-          panel_motor/base_link:
-            panel_motor/back_hole:
+          panel_bearing/base_link:
+            panel_bearing/base_screw_hole_1:
               {}
-            panel_motor/back_hole_bottom:
+            panel_bearing/base_screw_hole_2:
               {}
-            panel_motor/bottom_corner_1:
+            panel_bearing/base_screw_hole_aligner_1:
               {}
-            panel_motor/bottom_corner_2:
+            panel_bearing/base_screw_hole_aligner_2:
               {}
-            panel_motor/bottom_screw_hole_1:
+            panel_bearing/bearing_screw_hole_1:
               {}
-            panel_motor/bottom_screw_hole_2:
+            panel_bearing/bearing_screw_hole_2:
               {}
-            panel_motor/bottom_screw_hole_aligner_1:
+            panel_bearing/bearing_screw_hole_3:
               {}
-            panel_motor/bottom_screw_hole_aligner_2:
+            panel_bearing/bearing_screw_hole_4:
               {}
-            panel_motor/center:
+            panel_bearing/bottom_corner_1:
               {}
-            panel_motor/default_grasp:
+            panel_bearing/bottom_corner_2:
               {}
-            panel_motor/grasp_1:
+            panel_bearing/default_grasp:
               {}
-            panel_motor/grasp_10:
+            panel_bearing/front_hole:
               {}
-            panel_motor/grasp_11:
+            panel_bearing/grasp_1:
               {}
-            panel_motor/grasp_12:
+            panel_bearing/grasp_10:
               {}
-            panel_motor/grasp_2:
+            panel_bearing/grasp_11:
               {}
-            panel_motor/grasp_3:
+            panel_bearing/grasp_12:
               {}
-            panel_motor/grasp_4:
+            panel_bearing/grasp_13:
               {}
-            panel_motor/grasp_5:
+            panel_bearing/grasp_14:
               {}
-            panel_motor/grasp_6:
+            panel_bearing/grasp_15:
               {}
-            panel_motor/grasp_7:
+            panel_bearing/grasp_16:
               {}
-            panel_motor/grasp_8:
+            panel_bearing/grasp_17:
               {}
-            panel_motor/grasp_9:
+            panel_bearing/grasp_18:
               {}
-            panel_motor/motor_screw_hole_1:
+            panel_bearing/grasp_19:
               {}
-            panel_motor/motor_screw_hole_2:
+            panel_bearing/grasp_2:
               {}
-            panel_motor/motor_screw_hole_3:
+            panel_bearing/grasp_20:
               {}
-            panel_motor/motor_screw_hole_4:
+            panel_bearing/grasp_21:
               {}
-            panel_motor/motor_screw_hole_5:
+            panel_bearing/grasp_22:
               {}
-            panel_motor/motor_screw_hole_6:
+            panel_bearing/grasp_23:
               {}
-            panel_motor/primitive_1:
+            panel_bearing/grasp_24:
               {}
-            panel_motor/primitive_2:
+            panel_bearing/grasp_25:
+              {}
+            panel_bearing/grasp_26:
+              {}
+            panel_bearing/grasp_27:
+              {}
+            panel_bearing/grasp_28:
+              {}
+            panel_bearing/grasp_3:
+              {}
+            panel_bearing/grasp_4:
+              {}
+            panel_bearing/grasp_5:
+              {}
+            panel_bearing/grasp_6:
+              {}
+            panel_bearing/grasp_7:
+              {}
+            panel_bearing/grasp_8:
+              {}
+            panel_bearing/grasp_9:
+              {}
+            panel_bearing/pulley_ridge_bottom:
+              {}
+            panel_bearing/pulley_ridge_middle:
+              {}
+            panel_bearing/pulley_ridge_top:
               {}
       Update Interval: 0
       Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Default Light: true
     Fixed Frame: base_link
     Frame Rate: 30
   Name: root
   Tools:
-    - Class: rviz/Interact
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/FocusCamera
+    - Class: rviz_default_plugins/Interact
       Hide Inactive Objects: true
-    - Class: rviz/MoveCamera
-    - Class: rviz/Select
-    - Class: rviz/FocusCamera
-    - Class: rviz/Measure
-    - Class: rviz/SetInitialPose
-      Theta std deviation: 0.2617993950843811
-      Topic: /initialpose
-      X std deviation: 0.5
-      Y std deviation: 0.5
-    - Class: rviz/SetGoal
-      Topic: /move_base_simple/goal
-    - Class: rviz/PublishPoint
-      Single click: true
-      Topic: /clicked_point
+  Transformation:
+    Current:
+      Class: rviz_default_plugins/TF
   Value: true
   Views:
     Current:
-      Class: rviz/Orbit
-      Distance: 0.3954724073410034
+      Class: rviz_default_plugins/Orbit
+      Distance: 0.4127773940563202
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
-      Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.03619841858744621
-        Y: -0.03886067867279053
-        Z: -0.014903477393090725
+        X: 0.05078291893005371
+        Y: 0.029007554054260254
+        Z: 0.010153532028198242
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.849797248840332
+      Pitch: 0.9498724937438965
       Target Frame: <Fixed Frame>
-      Yaw: 1.6385859251022339
+      Value: Orbit (rviz)
+      Yaw: 1.4259785413742065
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 1084
+  Height: 1168
   Hide Left Dock: false
-  Hide Right Dock: true
-  QMainWindow State: 000000ff00000000fd0000000400000000000001f80000039cfc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003b0000039c000000c700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f00000554fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003b00000554000000a000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000063500000044fc0100000002fb0000000800540069006d00650100000000000006350000030700fffffffb0000000800540069006d00650100000000000004500000000000000000000004370000039c00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
-  Selection:
-    collapsed: false
-  Time:
-    collapsed: false
-  Tool Properties:
-    collapsed: false
+  Hide Right Dock: false
+  QMainWindow State: 000000ff00000000fd0000000100000000000001c900000436fc0200000002fb000000100044006900730070006c006100790073010000003d0000028d000000c900fffffffb0000000a0056006900650077007301000002d0000001a3000000a400ffffff000006000000043600000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
-    collapsed: true
-  Width: 1589
-  X: 971
-  Y: 98
+    collapsed: false
+  Width: 1999
+  X: 529
+  Y: 58

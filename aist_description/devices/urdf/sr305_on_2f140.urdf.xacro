@@ -46,8 +46,8 @@
 
     <xacro:include filename="$(find aist_description
 			     )/scenes/urdf/load_calibration.urdf.xacro"/>
-    <xacro:load_calibration filename="$(find aist_handeye_calibration
-				      )/calib/${prefix}camera.yaml"
+    <xacro:load_calibration filename="$(find aist_description
+				      )/scenes/calib/${prefix}camera.yaml"
 			    propname="camera_origin"/>
     <xacro:sensor_sr305 name="${prefix}camera" parent="${parent}"
 			use_nominal_extrinsics="${use_nominal_extrinsics}">

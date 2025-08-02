@@ -79,6 +79,16 @@ install(
   DESTINATION share/${PROJECT_NAME}/
 )
 
+install(
+  DIRECTORY urdf
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+install(
+  DIRECTORY meshes
+  DESTINATION share/${PROJECT_NAME}/
+)
+
 ########################
 #  Python executables  #
 ########################
