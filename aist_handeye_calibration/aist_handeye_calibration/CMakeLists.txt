@@ -94,17 +94,7 @@ install(
 )
 
 install(
-  DIRECTORY launch
-  DESTINATION share/${PROJECT_NAME}/
-)
-
-install(
-  DIRECTORY config
-  DESTINATION share/${PROJECT_NAME}/
-)
-
-install(
-  DIRECTORY calib
+  DIRECTORY launch config calib
   DESTINATION share/${PROJECT_NAME}/
 )
 

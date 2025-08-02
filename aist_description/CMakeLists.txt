@@ -15,32 +15,7 @@ install(
 )
 
 install(
-  DIRECTORY launch
-  DESTINATION share/${PROJECT_NAME}/
-)
-
-install(
-  DIRECTORY devices
-  DESTINATION share/${PROJECT_NAME}/
-)
-
-install(
-  DIRECTORY objects
-  DESTINATION share/${PROJECT_NAME}/
-)
-
-install(
-  DIRECTORY parts
-  DESTINATION share/${PROJECT_NAME}/
-)
-
-install(
-  DIRECTORY scenes
-  DESTINATION share/${PROJECT_NAME}/
-)
-
-install(
-  DIRECTORY wrc
+  DIRECTORY launch devices objects parts scenes wrc
   DESTINATION share/${PROJECT_NAME}/
 )
 
