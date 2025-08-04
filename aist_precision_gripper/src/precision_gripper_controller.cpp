@@ -48,18 +48,6 @@
 namespace aist_precision_gripper
 {
 /************************************************************************
-*  static functions							*
-************************************************************************/
-static rclcpp::SubscriptionOptions
-create_subscription_options(const rclcpp::CallbackGroup::SharedPtr& cbg)
-{
-    auto	options = rclcpp::SubscriptionOptions();
-    options.callback_group = cbg;
-
-    return options;
-}
-
-/************************************************************************
 *  class PrecisionGripperController					*
 ************************************************************************/
 class PrecisionGripperController : public rclcpp::Node
@@ -136,7 +124,6 @@ class PrecisionGripperController : public rclcpp::Node
     const rclcpp::Duration			_stall_timeout;
 
   // Dynamixel driver stuffs
-    const callback_group_p			_dxl_states_cbg;
     const subscription_p<dynamixel_states_t>	_dxl_states_sub;
     const callback_group_p			_dxl_command_cbg;
     const client_p<dynamixel_command_t>		_dxl_command;
@@ -179,14 +166,11 @@ PrecisionGripperController::PrecisionGripperController(const rclcpp::NodeOptions
 			ddynamic_reconfigure2::
 			declare_read_only_parameter<double>(
 			    this, "stall_timeout", 1.0))),
-     _dxl_states_cbg(create_callback_group(
-			 rclcpp::CallbackGroupType::MutuallyExclusive)),
      _dxl_states_sub(create_subscription<dynamixel_states_t>(
 			 _driver_ns + "/dynamixel_state", 1,
 			 std::bind(
 			     &PrecisionGripperController::dynamixel_states_cb,
-			     this, std::placeholders::_1),
-			 create_subscription_options(_dxl_states_cbg))),
+			     this, std::placeholders::_1))),
      _dxl_command_cbg(create_callback_group(
 			  rclcpp::CallbackGroupType::MutuallyExclusive)),
      _dxl_command(create_client<dynamixel_command_t>(
@@ -291,8 +275,9 @@ PrecisionGripperController::dynamixel_states_cb(const dynamixel_states_cp& state
     _present_pos = state->present_position;
 
   // Publish joinst state.
+    const auto	stamp = now();
     auto	joint_state = std::make_unique<joint_state_t>();
-    joint_state->header.stamp = now();
+    joint_state->header.stamp = stamp;
     joint_state->name.push_back(state->name + "_finger_joint");
     joint_state->position.push_back(actual_position(state->present_position));
     joint_state->velocity.push_back(0.0);
@@ -318,7 +303,7 @@ PrecisionGripperController::dynamixel_states_cb(const dynamixel_states_cp& state
     }
 
     if (is_moving(state->present_velocity))
-	_last_move_time = joint_state->header.stamp;
+	_last_move_time = stamp;
     else if (reached_goal(state->present_position, state->present_velocity))
     {
 	const auto	result = std::make_shared<gripper_command_t::Result>();
