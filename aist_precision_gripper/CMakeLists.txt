@@ -82,7 +82,7 @@ ament_python_install_package(${PROJECT_NAME})
 
 install(
   PROGRAMS
-    scripts/test_gripper_client.py
+    scripts/test_client.py
   DESTINATION
     lib/${PROJECT_NAME}
 )

@@ -139,7 +139,8 @@ class PrecisionGripperController : public rclcpp::Node
     rclcpp::Time				_last_move_time;
 };
 
-PrecisionGripperController::PrecisionGripperController(const rclcpp::NodeOptions& options)
+PrecisionGripperController::PrecisionGripperController(
+    const rclcpp::NodeOptions& options)
     :rclcpp::Node("precision_gripper_controller", options),
      _driver_ns(ddynamic_reconfigure2::
 		declare_read_only_parameter<std::string>(
@@ -256,7 +257,8 @@ PrecisionGripperController::handle_accepted_cb(const goal_handle_p goal_handle)
 }
 
 void
-PrecisionGripperController::dynamixel_states_cb(const dynamixel_states_cp& states)
+PrecisionGripperController::dynamixel_states_cb(
+    const dynamixel_states_cp& states)
 {
   // Find a dynamixel state with my motor ID.
     const auto	state = std::find_if(states->dynamixel_state.begin(),
@@ -275,9 +277,9 @@ PrecisionGripperController::dynamixel_states_cb(const dynamixel_states_cp& state
     _present_pos = state->present_position;
 
   // Publish joinst state.
-    const auto	stamp = now();
+    const auto	current_time = now();
     auto	joint_state = std::make_unique<joint_state_t>();
-    joint_state->header.stamp = stamp;
+    joint_state->header.stamp = current_time;
     joint_state->name.push_back(state->name + "_finger_joint");
     joint_state->position.push_back(actual_position(state->present_position));
     joint_state->velocity.push_back(0.0);
@@ -303,7 +305,7 @@ PrecisionGripperController::dynamixel_states_cb(const dynamixel_states_cp& state
     }
 
     if (is_moving(state->present_velocity))
-	_last_move_time = stamp;
+	_last_move_time = current_time;
     else if (reached_goal(state->present_position, state->present_velocity))
     {
 	const auto	result = std::make_shared<gripper_command_t::Result>();
@@ -435,4 +437,5 @@ PrecisionGripperController::goal_cur(double max_effort) const
 
 #include <rclcpp_components/register_node_macro.hpp>
 
-RCLCPP_COMPONENTS_REGISTER_NODE(aist_precision_gripper::PrecisionGripperController)
+RCLCPP_COMPONENTS_REGISTER_NODE(
+    aist_precision_gripper::PrecisionGripperController)

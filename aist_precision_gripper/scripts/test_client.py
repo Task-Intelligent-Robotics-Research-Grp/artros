@@ -46,8 +46,10 @@ class TestGripperClient(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        prefix = self.declare_parameter('prefix', 'precision_gripper_').value
-        self._gripper = GenericGripper(self, prefix + 'controller/gripper_cmd')
+        controller_ns = self.declare_parameter(
+                            'controller_ns',
+                            'precision_gripper_controller').value
+        self._gripper = GenericGripper(self, controller_ns)
         self.get_logger().info('started')
 
         cli_thread = threading.Thread(target=self.interactive)
@@ -91,7 +93,7 @@ class TestGripperClient(Node):
 def main():
     rclpy.init(args=sys.argv)
 
-    test = TestGripperClient('test_gripper_client')
+    test = TestGripperClient('test_client')
     rclpy.spin(test)
 
 if __name__ == '__main__':

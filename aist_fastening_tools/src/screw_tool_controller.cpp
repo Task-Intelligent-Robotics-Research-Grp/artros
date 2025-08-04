@@ -305,7 +305,7 @@ ScrewToolController::handle_accepted_cb(const goal_handle_p goal_handle)
 
     _current_goal_handle = goal_handle;
     _stage		 = ACTIVE;
-    _start_time		 = get_clock()->now();
+    _start_time		 = now();
 }
 
 void
@@ -328,8 +328,9 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
     _current = get_normalized(state->present_current);
 
   // Apply low-pass filter to the current and publish tool status.
+    const auto		current_time = now();
     screw_tool_status_t	status;
-    status.header.stamp	= get_clock()->now();
+    status.header.stamp	= current_time;
     status.speed	= get_normalized(state->present_velocity);
     status.current	= _filter.filter(_current);
     _status_pub->publish(status);
@@ -368,7 +369,7 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
 		if (goal->retighten)
 		{
 		    RCLCPP_INFO_STREAM(get_logger(), "*** ACTIVE->LOOSEN");
-			
+
 		    send_dxl_command("Moving_Speed", target_speed(0.0));
 		    rclcpp::sleep_for(std::chrono::milliseconds(100));
 
@@ -377,14 +378,14 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
 		    send_dxl_command("Moving_Speed",
 				     target_speed(-goal->speed));
 		    _stage	= LOOSEN;
-		    _start_time = get_clock()->now();
+		    _start_time = current_time;
 		}
 		else
 		    _stage = DONE;		// tightening completed
 	    }
 	    break;
 	  case LOOSEN:
-	    if (get_clock()->now() - _start_time > _loosen_period)
+	    if (current_time - _start_time > _loosen_period)
 	    {
 		RCLCPP_INFO_STREAM(get_logger(), "*** LOOSEN->RETIGHTEN");
 		send_dxl_command("Moving_Speed", target_speed(0.0));
@@ -394,7 +395,7 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
 
 		send_dxl_command("Moving_Speed", target_speed(goal->speed));
 		_stage	    = RETIGHTEN;
-		_start_time = get_clock()->now();
+		_start_time = current_time;
 	    }
 	    break;
 	  case RETIGHTEN:
@@ -432,10 +433,12 @@ bool
 ScrewToolController::is_settled(double value, double max_value,
 				const rclcpp::Duration& min_period)
 {
-    if (std::abs(value) > max_value)
-	_start_time = get_clock()->now();
+    const auto	current_time = now();
 
-    return (get_clock()->now() - _start_time > min_period);
+    if (std::abs(value) > max_value)
+	_start_time = current_time;
+
+    return (current_time - _start_time > min_period);
 }
 
 bool
