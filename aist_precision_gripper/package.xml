@@ -12,11 +12,13 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
+  <build_depend>rclcpp_components</build_depend>
+  <exec_depend>rclcpp_components</exec_depend>
+
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>message_runtime</exec_depend>
   <exec_depend>dynamixel_workbench_controllers</exec_depend>
 
-  <depend>rclcpp_components</depend>
   <depend>rclcpp_action</depend>
   <depend>rclpy</depend>
   <depend>dynamixel_workbench_msgs</depend>

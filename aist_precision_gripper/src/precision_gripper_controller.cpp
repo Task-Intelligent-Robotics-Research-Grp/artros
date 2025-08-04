@@ -190,7 +190,7 @@ PrecisionGripperController::PrecisionGripperController(const rclcpp::NodeOptions
 				std::placeholders::_1))),
      _current_goal_handle(nullptr),
      _current_goal_mtx(),
-     _last_move_time()
+     _last_move_time(now())
 {
     using namespace	std::chrono_literals;
 
@@ -280,7 +280,7 @@ PrecisionGripperController::dynamixel_states_cb(const dynamixel_states_cp& state
 
   // Publish joinst state.
     auto	joint_state = std::make_unique<joint_state_t>();
-    joint_state->header.stamp = get_clock()->now();
+    joint_state->header.stamp = now();
     joint_state->name.push_back(state->name + "_finger_joint");
     joint_state->position.push_back(actual_position(state->present_position));
     joint_state->velocity.push_back(0.0);
@@ -299,7 +299,7 @@ PrecisionGripperController::dynamixel_states_cb(const dynamixel_states_cp& state
 	const auto result = std::make_shared<gripper_command_t::Result>();
 	result->stalled = false;
 	_current_goal_handle->canceled(result);
-	_current_goal_handle = nullptr;
+      //_current_goal_handle = nullptr;
 
 	RCLCPP_WARN_STREAM(get_logger(), "goal CANCELED");
 	return;
@@ -318,6 +318,7 @@ PrecisionGripperController::dynamixel_states_cb(const dynamixel_states_cp& state
 	_current_goal_handle = nullptr;
 
 	RCLCPP_INFO_STREAM(get_logger(), "goal SUCCEEDED[reached goal]");
+	return;
     }
     else if (stalled(state->present_velocity))
     {
@@ -330,6 +331,7 @@ PrecisionGripperController::dynamixel_states_cb(const dynamixel_states_cp& state
 	_current_goal_handle = nullptr;
 
 	RCLCPP_INFO_STREAM(get_logger(), "goal SUCCEEDED[stalled]");
+	return;
     }
 
   // Publish speed and filtered current as a feedback.
@@ -408,8 +410,7 @@ PrecisionGripperController::reached_goal(int pos, int vel) const
 bool
 PrecisionGripperController::stalled(int vel) const
 {
-    return !is_moving(vel) &&
-	   get_clock()->now() - _last_move_time > _stall_timeout;
+    return !is_moving(vel) && now() - _last_move_time > _stall_timeout;
 }
 
 int

@@ -115,7 +115,7 @@ class ScrewToolController : public rclcpp::Node
 
     bool	is_settled(double value, double max_value,
 			   const rclcpp::Duration& min_period)		;
-    void	send_dxl_command(const std::string& addr_name,
+    bool	send_dxl_command(const std::string& addr_name,
 				 int32_t value)			const	;
     static void	set_period(rclcpp::Duration& period, double sec)	;
     void	set_filter_half_order(int half_order)			;
@@ -254,24 +254,20 @@ ScrewToolController::goal_response_t
 ScrewToolController::goal_cb(const goal_uuid_t&, const goal_cp goal)
 {
     RCLCPP_INFO_STREAM(get_logger(),
-		       "goal ACCEPTED: "
+		       "goal ACCEPTED: op="
 		       << (goal->speed > 0 ? "tighten" : "loosen")
-		       << " with speed=" << goal->speed);
+		       << ", speed=" << goal->speed
+		       << ", retighten=" << std::boolalpha << goal->retighten);
     return goal_response_t::ACCEPT_AND_EXECUTE;
 }
 
 ScrewToolController::cancel_response_t
 ScrewToolController::cancel_cb(const goal_handle_p)
 {
-    try
+    if (!send_dxl_command("Moving_Speed",  0) ||
+	!send_dxl_command("Torque_Enable", 0))
     {
-	send_dxl_command("Moving_Speed",  0);
-	send_dxl_command("Torque_Enable", 0);
-    }
-    catch (const std::exception& err)
-    {
-	RCLCPP_ERROR_STREAM(get_logger(),
-			    "failed to cancel goal: " << err.what());
+	RCLCPP_ERROR_STREAM(get_logger(), "failed to cancel goal");
 	return cancel_response_t::REJECT;
     }
 
@@ -295,20 +291,15 @@ ScrewToolController::handle_accepted_cb(const goal_handle_p goal_handle)
 	RCLCPP_WARN_STREAM(get_logger(), "previous goal ABORTED");
     }
 
-    try
-    {
-	send_dxl_command("Torque_Enable", 1);
-	send_dxl_command("Moving_Speed",
-			 target_speed(goal_handle->get_goal()->speed));
-    }
-    catch (const std::exception& err)
+    if (!send_dxl_command("Torque_Enable", 1) ||
+	!send_dxl_command("Moving_Speed",
+			  target_speed(goal_handle->get_goal()->speed)))
     {
 	const auto result = std::make_shared<screw_tool_command_t::Result>();
 	result->stalled = false;
 	goal_handle->abort(result);
 
-	RCLCPP_ERROR_STREAM(get_logger(), "goal ABORTED: " << err.what());
-
+	RCLCPP_ERROR_STREAM(get_logger(), "goal ABORTED");
 	return;
     }
 
@@ -367,86 +358,73 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
     feedback->current = status.current;
     _current_goal_handle->publish_feedback(feedback);
 
-    try
+    if (const auto goal = _current_goal_handle->get_goal(); goal->speed > 0.0)
     {
-	if (const auto goal = _current_goal_handle->get_goal();
-	    goal->speed > 0.0)
+	switch (_stage)
 	{
-	    switch (_stage)
+	  case ACTIVE:
+	    if (is_settled(status.speed, _max_stall_speed, _min_stall_period))
 	    {
-	      case ACTIVE:
-		if (is_settled(status.speed,
-			       _max_stall_speed, _min_stall_period))
+		if (goal->retighten)
 		{
-		    if (goal->retighten)
-		    {
-			send_dxl_command("Moving_Speed",
-					 target_speed(0.0));
-			rclcpp::sleep_for(std::chrono::milliseconds(100));
-
-			RCLCPP_INFO_STREAM(get_logger(),
-					   "slightly loosen screw");
-
-			send_dxl_command("Moving_Speed",
-					 target_speed(-goal->speed));
-			_stage	    = LOOSEN;
-			_start_time = get_clock()->now();
-		    }
-		    else
-			_stage = DONE;		// tightening completed
-		}
-		break;
-	      case LOOSEN:
-		if (get_clock()->now() - _start_time > _loosen_period)
-		{
+		    RCLCPP_INFO_STREAM(get_logger(), "*** ACTIVE->LOOSEN");
+			
 		    send_dxl_command("Moving_Speed", target_speed(0.0));
 		    rclcpp::sleep_for(std::chrono::milliseconds(100));
 
-		    RCLCPP_INFO_STREAM(get_logger(), "retighten screw");
+		    RCLCPP_INFO_STREAM(get_logger(), "slightly loosen screw");
 
 		    send_dxl_command("Moving_Speed",
-				     target_speed(goal->speed));
-		    _stage	= RETIGHTEN;
+				     target_speed(-goal->speed));
+		    _stage	= LOOSEN;
 		    _start_time = get_clock()->now();
 		}
-		break;
-	      case RETIGHTEN:
-		if (is_settled(status.speed,
-			       _max_stall_speed, _min_stall_period))
-		    _stage = DONE;		// retightening completed
-		break;
-	      default:
-		break;
+		else
+		    _stage = DONE;		// tightening completed
 	    }
-	}
-	else if (is_settled(status.current,
-			    _max_noload_current, _min_noload_period))
-	{
-	    _stage = DONE;			// loosening completed
-	}
+	    break;
+	  case LOOSEN:
+	    if (get_clock()->now() - _start_time > _loosen_period)
+	    {
+		RCLCPP_INFO_STREAM(get_logger(), "*** LOOSEN->RETIGHTEN");
+		send_dxl_command("Moving_Speed", target_speed(0.0));
+		rclcpp::sleep_for(std::chrono::milliseconds(100));
 
-	if (_stage == DONE)
-	{
-	    send_dxl_command("Moving_Speed", target_speed(0.0));
-	    send_dxl_command("Torque_Enable", 0);
+		RCLCPP_INFO_STREAM(get_logger(), "retighten screw");
 
-	    const auto
-		result = std::make_shared<screw_tool_command_t::Result>();
-	    result->stalled = true;
-	    _current_goal_handle->succeed(result);
-	    _current_goal_handle = nullptr;
-
-	    RCLCPP_INFO_STREAM(get_logger(), "goal SUCCEEDED");
+		send_dxl_command("Moving_Speed", target_speed(goal->speed));
+		_stage	    = RETIGHTEN;
+		_start_time = get_clock()->now();
+	    }
+	    break;
+	  case RETIGHTEN:
+	    if (is_settled(status.speed, _max_stall_speed, _min_stall_period))
+	    {
+		RCLCPP_INFO_STREAM(get_logger(), "*** RETIGHTEN->DONE");
+		_stage = DONE;		// retightening completed
+	    }
+	    break;
+	  default:
+	    break;
 	}
     }
-    catch (const std::exception& err)
+    else if (is_settled(status.current,
+			_max_noload_current, _min_noload_period))
     {
+	_stage = DONE;			// loosening completed
+    }
+
+    if (_stage == DONE)
+    {
+	send_dxl_command("Moving_Speed", target_speed(0.0));
+	send_dxl_command("Torque_Enable", 0);
+
 	const auto result = std::make_shared<screw_tool_command_t::Result>();
-	result->stalled = false;
-	_current_goal_handle->abort(result);
+	result->stalled = true;
+	_current_goal_handle->succeed(result);
 	_current_goal_handle = nullptr;
 
-	RCLCPP_ERROR_STREAM(get_logger(), "goal ABORTED: " << err.what());
+	RCLCPP_INFO_STREAM(get_logger(), "goal SUCCEEDED");
     }
 }
 
@@ -460,7 +438,7 @@ ScrewToolController::is_settled(double value, double max_value,
     return (get_clock()->now() - _start_time > min_period);
 }
 
-void
+bool
 ScrewToolController::send_dxl_command(const std::string& addr_name,
 				      int32_t value) const
 {
@@ -475,13 +453,16 @@ ScrewToolController::send_dxl_command(const std::string& addr_name,
     req->value     = value;
     auto	future = _dxl_command->async_send_request(req);
 
-    if (future.wait_for(1s) != std::future_status::ready)
-	throw std::runtime_error("no service response");
-
-    if (!future.get()->comm_result)
-	throw std::runtime_error("communication error");
+    if (future.wait_for(1s) != std::future_status::ready ||
+	!future.get()->comm_result)
+    {
+	RCLCPP_ERROR_STREAM(get_logger(),
+			    "no response or communication error");
+	return false;
+    }
 
     RCLCPP_DEBUG_STREAM(get_logger(), "send_dxl_command(): received response");
+    return true;
 }
 
 void

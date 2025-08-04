@@ -33,7 +33,8 @@ add_library(
 )
 
 target_include_directories(
-  ${PROJECT_NAME} PRIVATE
+  ${PROJECT_NAME} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
 
@@ -55,7 +56,7 @@ ament_target_dependencies(
 rclcpp_components_register_nodes(
   ${PROJECT_NAME}
     PLUGIN     ${PROJECT_NAME}::PrecisionGripperController
-    EXECUTABLE precision_gripper_controller_node
+    EXECUTABLE ${PROJECT_NAME}_node
 )
 
 #############
@@ -63,7 +64,7 @@ rclcpp_components_register_nodes(
 #############
 install(
   TARGETS  ${PROJECT_NAME}
-  EXPORT   export_${PROJECT_NAME}
+#  EXPORT   export_${PROJECT_NAME}
   ARCHIVE  DESTINATION lib
   LIBRARY  DESTINATION lib
   RUNTIME  DESTINATION bin

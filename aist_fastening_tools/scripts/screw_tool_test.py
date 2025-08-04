@@ -12,7 +12,7 @@ class ScrewToolTest(Node):
 
         controller_ns = self.declare_parameter(
                             'controller_ns',
-                            'screw_tool_m3_fastening_controller').value
+                            'screw_tool_m4_fastening_controller').value
         self._screw_tool = ScrewTool(self, controller_ns + '/command')
         self.get_logger().info('started')
 
