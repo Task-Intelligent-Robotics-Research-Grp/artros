@@ -44,14 +44,14 @@ def launch_setup(context):
                           LaunchConfiguration('config_file'), ''),
                       PathJoinSubstitution(
                           [ThisLaunchFileDir(), '..', 'config',
-                           'screw_tools_fastening_controllers.yaml']),
+                           'screw_tool_fastening_controllers.yaml']),
                       LaunchConfiguration('config_file'))
     dxlinfo_file = IfElseSubstitution(
                        EqualsSubstitution(
                            LaunchConfiguration('dynamixel_info'), ''),
                        PathJoinSubstitution(
                            [ThisLaunchFileDir(), '..', 'config',
-                            'screw_tools_dynamixel_info.yaml']),
+                            'screw_tool_dynamixel_info.yaml']),
                        LaunchConfiguration('dynamixel_info'))
 
     node_names = get_node_names(config_file.perform(context))

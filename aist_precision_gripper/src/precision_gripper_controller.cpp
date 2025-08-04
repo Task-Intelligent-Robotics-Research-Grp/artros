@@ -48,6 +48,18 @@
 namespace aist_precision_gripper
 {
 /************************************************************************
+*  static functions							*
+************************************************************************/
+static rclcpp::SubscriptionOptions
+create_subscription_options(const rclcpp::CallbackGroup::SharedPtr& cbg)
+{
+    auto	options = rclcpp::SubscriptionOptions();
+    options.callback_group = cbg;
+
+    return options;
+}
+
+/************************************************************************
 *  class PrecisionGripperController					*
 ************************************************************************/
 class PrecisionGripperController : public rclcpp::Node
@@ -95,9 +107,9 @@ class PrecisionGripperController : public rclcpp::Node
     void	handle_accepted_cb(const goal_handle_p goal_handle)	;
     void	dynamixel_states_cb(const dynamixel_states_cp& states)	;
 
-    void	send_move_command(double position,
+    bool	send_move_command(double position,
 				  double max_effort)		const	;
-    void	send_dxl_command(const std::string& addr_name,
+    bool	send_dxl_command(const std::string& addr_name,
 				 int32_t value)			const	;
 
     double	actual_position(int pos)			const	;
@@ -124,6 +136,7 @@ class PrecisionGripperController : public rclcpp::Node
     const rclcpp::Duration			_stall_timeout;
 
   // Dynamixel driver stuffs
+    const callback_group_p			_dxl_states_cbg;
     const subscription_p<dynamixel_states_t>	_dxl_states_sub;
     const callback_group_p			_dxl_command_cbg;
     const client_p<dynamixel_command_t>		_dxl_command;
@@ -157,7 +170,7 @@ PrecisionGripperController::PrecisionGripperController(const rclcpp::NodeOptions
      _max_pos(ddynamic_reconfigure2::declare_read_only_parameter<int>(
 		  this, "max_position_count", 2050)),
      _min_cur(ddynamic_reconfigure2::declare_read_only_parameter<int>(
-		  this, "min_effort_count", 3)),
+		  this, "min_effort_count", 7)),
      _max_cur(ddynamic_reconfigure2::declare_read_only_parameter<int>(
 		  this, "max_effort_count", 13)),
      _position_per_tick((_max_position - _min_position)/(_max_pos - _min_pos)),
@@ -166,12 +179,14 @@ PrecisionGripperController::PrecisionGripperController(const rclcpp::NodeOptions
 			ddynamic_reconfigure2::
 			declare_read_only_parameter<double>(
 			    this, "stall_timeout", 1.0))),
-
+     _dxl_states_cbg(create_callback_group(
+			 rclcpp::CallbackGroupType::MutuallyExclusive)),
      _dxl_states_sub(create_subscription<dynamixel_states_t>(
 			 _driver_ns + "/dynamixel_state", 1,
 			 std::bind(
 			     &PrecisionGripperController::dynamixel_states_cb,
-			     this, std::placeholders::_1))),
+			     this, std::placeholders::_1),
+			 create_subscription_options(_dxl_states_cbg))),
      _dxl_command_cbg(create_callback_group(
 			  rclcpp::CallbackGroupType::MutuallyExclusive)),
      _dxl_command(create_client<dynamixel_command_t>(
@@ -237,12 +252,10 @@ PrecisionGripperController::handle_accepted_cb(const goal_handle_p goal_handle)
 	RCLCPP_WARN_STREAM(get_logger(), "previous goal ABORTED");
     }
 
-    try
-    {
-	send_move_command(goal_handle->get_goal()->command.position,
-			  goal_handle->get_goal()->command.max_effort);
-    }
-    catch (const std::exception& err)
+    _last_move_time = now();
+
+    if (!send_move_command(goal_handle->get_goal()->command.position,
+			   goal_handle->get_goal()->command.max_effort))
     {
 	const auto result = std::make_shared<gripper_command_t::Result>();
 	result->position     = actual_position(_present_pos);
@@ -251,8 +264,7 @@ PrecisionGripperController::handle_accepted_cb(const goal_handle_p goal_handle)
 	result->reached_goal = false;
 	goal_handle->abort(result);
 
-	RCLCPP_ERROR_STREAM(get_logger(), "goal ABORTED: " << err.what());
-
+	RCLCPP_ERROR_STREAM(get_logger(), "goal ABORTED");
 	return;
     }
 
@@ -299,7 +311,7 @@ PrecisionGripperController::dynamixel_states_cb(const dynamixel_states_cp& state
 	const auto result = std::make_shared<gripper_command_t::Result>();
 	result->stalled = false;
 	_current_goal_handle->canceled(result);
-      //_current_goal_handle = nullptr;
+	_current_goal_handle = nullptr;
 
 	RCLCPP_WARN_STREAM(get_logger(), "goal CANCELED");
 	return;
@@ -344,7 +356,7 @@ PrecisionGripperController::dynamixel_states_cb(const dynamixel_states_cp& state
     _current_goal_handle->publish_feedback(feedback);
 }
 
-void
+bool
 PrecisionGripperController::send_move_command(double position,
 					      double max_effort) const
 {
@@ -353,11 +365,11 @@ PrecisionGripperController::send_move_command(double position,
     if (std::abs(cur) < _min_cur)
 	cur = (pos > _present_pos ? _min_cur : -_min_cur);
 
-    send_dxl_command("Goal_Current",  cur);
-    send_dxl_command("Goal_Position", pos);
+    return send_dxl_command("Goal_Current",  cur) &&
+	   send_dxl_command("Goal_Position", pos);
 }
 
-void
+bool
 PrecisionGripperController::send_dxl_command(const std::string& addr_name,
 				      int32_t value) const
 {
@@ -372,13 +384,16 @@ PrecisionGripperController::send_dxl_command(const std::string& addr_name,
     req->value     = value;
     auto	future = _dxl_command->async_send_request(req);
 
-    if (future.wait_for(1s) != std::future_status::ready)
-	throw std::runtime_error("no service response");
-
-    if (!future.get()->comm_result)
-	throw std::runtime_error("communication error");
+    if (future.wait_for(1s) != std::future_status::ready ||
+	!future.get()->comm_result)
+    {
+	RCLCPP_ERROR_STREAM(get_logger(),
+			    "no service response or communication error");
+	return false;
+    }
 
     RCLCPP_DEBUG_STREAM(get_logger(), "send_dxl_command(): received response");
+    return true;
 }
 
 double
@@ -402,6 +417,10 @@ PrecisionGripperController::is_moving(int vel) const
 bool
 PrecisionGripperController::reached_goal(int pos, int vel) const
 {
+    RCLCPP_INFO_STREAM(get_logger(), "*** pos=" << pos << ", goal_pos="
+		       << goal_pos(_current_goal_handle
+				   ->get_goal()->command.position)
+		       << ", vel=" << vel);
     return !is_moving(vel) &&
 	   std::abs(pos - goal_pos(_current_goal_handle
 				   ->get_goal()->command.position)) <= 1;

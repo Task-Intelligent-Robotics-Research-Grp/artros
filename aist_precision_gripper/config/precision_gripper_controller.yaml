@@ -6,12 +6,19 @@ precision_gripper_driver:
     dxl_write_period:       0.010
     use_joint_states_topic: false
     use_moveit:             false
-    dynamixel_info:         dynamixel_info.yaml
     mobile_robot_config:
       separation_between_wheels: 0.000
       radius_of_wheel:           0.000
 
 precision_gripper_controller:
   ros__parameters:
-    driver_ns:      precision_gripper_driver
-    motor_id:       1
+    driver_ns:          precision_gripper_driver
+    motor_id:           1
+    min_position:       0.000
+    max_position:       0.010
+    max_effort:         0.5
+    min_position_count: 2300
+    max_position_count: 2050
+    min_effort_count:   7
+    max_effort_count:   13
+    stall_timeout:      1.0
