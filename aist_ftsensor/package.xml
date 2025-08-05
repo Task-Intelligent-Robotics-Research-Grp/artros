@@ -12,29 +12,33 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <build_depend>rclcpp_components</build_depend>
-  <exec_depend>rclcpp_components</exec_depend>
-  <build_depend>hardware_interface</build_depend>
+  <build_depend>ros2_control_cmake</build_depend>
 
-  <depend>controller_manager</depend>
+  <depend>rclcpp</depend>
+  <depend>rclcpp_lifecycle</depend>
+  <depend>rclpy</depend>
+  <depend>backward_ros</depend>
   <depend>controller_interface</depend>
-  <depend>realtime_tools</depend>
+  <depend>hardware_interface</depend>
   <depend>pluginlib</depend>
+  <depend>realtime_tools</depend>
+  <depend>std_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>sensor_msgs</depend>
-  <depend>rclcpp</depend>
-  <depend>rclpy</depend>
-  <depend>std_msgs</depend>
+  <depend>ddynamic_reconfigure2</depend>
+  <depend>aist_utility</depend>
   <depend>boost</depend>
   <depend>eigen</depend>
-  <depend>aist_utility</depend>
-  <depend>ddynamic_reconfigure2</depend>
   <depend>kdl_parser</depend>
 
-  <build_export_depend>hardware_interface</build_export_depend>
+  <test_depend>ament_cmake_gmock</test_depend>
+  <test_depend>controller_manager</test_depend>
+  <test_depend>hardware_interface_testing</test_depend>
+  <test_depend>ros2_control_test_assets</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
     <controller_interface plugin="${prefix}/aist_ftsensor_plugin.xml"/>
   </export>
+
 </package>

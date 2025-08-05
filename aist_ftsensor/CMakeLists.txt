@@ -1,86 +1,93 @@
 cmake_minimum_required(VERSION 3.8)
 project(aist_ftsensor)
 
-if(NOT CMAKE_C_STANDARD)
-  set(CMAKE_C_STANDARD 99)
-endif()
-if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 17)
-endif()
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
-endif()
+find_package(ros2_control_cmake REQUIRED)
+set_compiler_options()
+export_windows_symbols()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
-find_package(rclcpp_components REQUIRED)
-find_package(rclpy REQUIRED)
-find_package(geometry_msgs REQUIRED)
-find_package(controller_manager REQUIRED)
-find_package(hardware_interface REQUIRED)
-find_package(controller_interface REQUIRED)
-find_package(ddynamic_reconfigure2 REQUIRED)
-find_package(kdl_parser REQUIRED)
-find_package(pluginlib REQUIRED)
+find_package(backward_ros REQUIRED)
+
+set(
+  THIS_PACKAGE_INCLUDE_DEPENDS
+    rclcpp
+    rclcpp_lifecycle
+    rclpy
+    controller_interface
+    hardware_interface
+    plubinlib
+    realtime_tools
+    std_msgs
+    geometry_msgs
+    sensor_msgs
+    ddynamic_reconfigure2
+    aist_utility
+    kdl_parser
+    orocos_kdl
+)
+
+foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
+  find_package(${Dependency} REQUIRED)
+endforeach()
+
 find_package(Eigen3 REQUIRED)
-find_package(orocos_kdl REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(YAML-CPP yaml-cpp REQUIRED)
-
-# catkin_python_setup()
-
-###################################
-## catkin specific configuration ##
-###################################
-catkin_package(
-  CATKIN_DEPENDS
-    roscpp
-    controller_interface
-    geometry_msgs
-    hardware_interface
-    realtime_tools
-  LIBRARIES ${PROJECT_NAME}
-)
 
 ###########
 ## Build ##
 ###########
-target_include_directories(
-  ${EIGEN3_INCLUDE_DIRS}
-  ${orocos_kdl_INCLUDE_DIRS}
-)
-
 add_library(
-  dynpick_driver
+  dynpick_driver SHARED
     src/dynpick_driver.cpp
 )
 
-target_compile_definitions(
-  dynpick_driver
-    COMPOSITION_BUILDING_DLL
-)
-
-ament_target_dependencies(
-  dynpick_driver
-    rclcpp_components
-    controller_manager
-    hardware_interface
-)
-
-rclcpp_components_register_node(
-  dynpick_driver
-    PLUGIN     ${PROJECT_NAME}::dynpick_driver
-    EXECUTABLE ${PROJECT_NAME}_node
-)
-
-add_library(
-  ${PROJECT_NAME}_broadcaster SHARED
-    src/aist_ftsensor_broadcaster.cpp
+target_compile_features(
+  dynpick_driver PUBLIC
+    cxx_std_17
 )
 
 target_link_libraries(
-  ${PROJECT_NAME}_broadcaster
+  dynpick_driver PUBLIC
+    controller_interface::controller_interface
+    hardware_interface::hardware_interface
+    pluginlib::pluginlib
+    rclcpp::rclcpp
+    rclcpp_lifecycle::rclcpp_lifecycle
+    realtime_tools::realtime_tools
+    ${std_msgs_TARGETS}
+    ${geometry_msgs_TARGETS}
+    ${sensor_msgs_TARGETS}
+)
+
+pluginlib_export_plugin_description_file(
+  controller_interface
+    force_torque_sensor_broadcaster.xml
+)
+
+add_library(
+  ${PROJECT_NAME}_broadcaster PUBLIC
+    src/aist_ftsensor_broadcaster.cpp
+)
+
+target_compile_features(
+  ${PROJECT_NAME}_broadcaster PUBLIC
+    cxx_std_17
+)
+
+target_link_libraries(
+  ${PROJECT_NAME}_broadcaster PUBLIC
+    controller_interface::controller_interface
+    hardware_interface::hardware_interface
+    pluginlib::pluginlib
+    rclcpp::rclcpp
+    rclcpp_lifecycle::rclcpp_lifecycle
+    realtime_tools::realtime_tools
+    ${std_msgs_TARGETS}
+    ${geometry_msgs_TARGETS}
+    ${sensor_msgs_TARGETS}
     ${orocos_kdl_LIBRARIES}
     yaml-cpp
 )
@@ -90,7 +97,8 @@ target_link_libraries(
 #############
 # Install targets
 install(
-  TARGETS dynpick_driver
+  TARGETS dynpick_driver ${PROJECT_NAME}_broadcaster
+  EXPORT  export_${PROJECT_NAME}_broadcaster
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
@@ -106,3 +114,8 @@ install(
   PROGRAMS scripts/run_calibration.py
   DESTINATION lib/${PROJECT_NAME}
 )
+
+ament_export_targets(export_${PROJECT_NAME}_broadcaster HAS_LIBRARY_TARGET)
+ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
+
+ament_package()

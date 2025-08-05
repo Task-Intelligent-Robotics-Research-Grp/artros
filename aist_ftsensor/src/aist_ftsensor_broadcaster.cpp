@@ -37,14 +37,13 @@
  *  \file	aist_ftsensor_controller.cpp
  *  \brief	force-torque sensor controller with gravity compensation
  */
-#include <ros/ros.h>
-#include <controller_interface/controller.h>
-#include <hardware_interface/force_torque_sensor_interface.h>
-#include <realtime_tools/realtime_publisher.h>
-#include <geometry_msgs/WrenchStamped.h>
-#include <sensor_msgs/JointState.h>
-#include <std_srvs/Trigger.h>
-#include <ddynamic_reconfigure/ddynamic_reconfigure.h>
+#include <controller_interface/chainable_controller_interface.hpp>
+#include <rclcpp_lifecycle/state.hpp>
+#include <realtime_tools/realtime_publisher.hpp>
+#include <geometry_msgs/msg/wrench_stamped.hpp>
+#include <sensor_msgs/msg/joint_state.hpp>
+#include <std_msgs/srv/trigger.hpp>
+#include <ddynamic_reconfigure2/ddynamic_reconfigure2.h>
 #include <kdl_parser/kdl_parser.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <fstream>
@@ -93,428 +92,198 @@ operator <<(std::ostream& out, const KDL::JntArray& joints)
 *  class ForceTorqueSensorBroadcaster					*
 ************************************************************************/
 class ForceTorqueSensorBroadcaster
-    : public controller_interface::Controller<
-		 hardware_interface::ForceTorqueSensorInterface>
+    : public controller_interface::ChainableControllerInterface
 {
-  private:
-    using interface_t	 = hardware_interface::ForceTorqueSensorInterface;
-    using joint_state_cp = sensor_msgs::JointStateConstPtr;
+  public:
+    using cb_return_t	= controller_interface::CallbackReturn;
+    using ci_return_t	= controller_interface::return_type;
+    using lc_state_t	= rclcpp_lifecylce::State;
+    
+    using interface_t	= hardware_interface::ForceTorqueSensorInterface;
+    using wrench_t	= geometry_msgs::msg::WrenchStamped;
+    using joint_state_t = sensor_msgs::msg::JointState;
+    using joint_state_cp= joint_state_t::ConstSharedPtr;
 
-    class Sensor
-    {
-      private:
-	using handle_t		= hardware_interface::ForceTorqueSensorHandle;
-	using publisher_t	= realtime_tools::RealtimePublisher<
-					geometry_msgs::WrenchStamped>;
-	using publisher_p	= std::shared_ptr<publisher_t>;
-	using fksolver_p	= std::unique_ptr<KDL::ChainFkSolverPos>;
-	using controller_t	= ForceTorqueSensorBroadcaster;
-	using vector_t		= Eigen::Vector3d;
-	using matrix_t		= Eigen::Matrix3d;
-	using quaternion_t	= Eigen::Quaterniond;
-	using ft_t		= Eigen::Matrix<double, 6, 1>;
-	using filter_t		= aist_utility::ButterworthLPF<double, ft_t>;
-	using ddr_t		= ddynamic_reconfigure::DDynamicReconfigure;
+    using handle_t		= hardware_interface::ForceTorqueSensorHandle;
+    using fksolver_p	= std::unique_ptr<KDL::ChainFkSolverPos>;
+    using controller_t	= ForceTorqueSensorBroadcaster;
+    using vector_t	= Eigen::Vector3d;
+    using matrix_t	= Eigen::Matrix3d;
+    using quaternion_t	= Eigen::Quaterniond;
+    using ft_t		= Eigen::Matrix<double, 6, 1>;
+    using filter_t		= aist_utility::ButterworthLPF<double, ft_t>;
+    using ddr_t		= ddynamic_reconfigure2::DDynamicReconfigure;
+    
+    using ft_sensor_t	= semantic_components::ForceTorqueSensor;
 
-	constexpr static double	G = 9.80665;
-
-      public:
-		Sensor(interface_t* hw, ros::NodeHandle& root_nh,
-		       const ros::NodeHandle& controller_nh,
-		       const std::string& name,
-		       double pub_rate, const controller_t& controller)	;
-
-	void	starting(const ros::Time& time)				;
-	void	update(const ros::Time& time,
-		       const ros::Duration& period)			;
-	void	stopping(const ros::Time& time)				{}
-	void	take_sample()						;
-	bool	compute_calibration()					;
-	void	save_calibration(std::ostream& out)		const	;
-	void	clear_samples()						;
-	void	reset_bias()						;
-
-      private:
-	void	take_sample(const vector_t& k,
-			    const vector_t& f, const vector_t& m)	;
-	void	set_filter_half_order(int half_order)			;
-	void	set_filter_cutoff_frequency(double cutoff_frequency)	;
-
-	vector_t	vector_param(const std::string& name)	  const	;
-	quaternion_t	quaternion_param(const std::string& name) const	;
-
-      private:
-      // ROS node stuffs
-	const handle_t			_hw_handle;
-	ros::NodeHandle			_nh;
-	const std::string		_frame_id;
-	const publisher_p		_pub_org;
-	const publisher_p		_pub;
-	const ros::Duration		_pub_interval;
-	ros::Time			_last_pub_time;
-	ddr_t				_ddr;
-
-      // Filtering stuffs
-	ft_t				_ft;
-	filter_t			_filter;
-	mutable std::mutex		_ft_mtx;
-
-      // Forward kinematics stuffs
-	const controller_t&		_controller;
-	KDL::Chain			_chain;
-	std::vector<std::string>	_joint_names;
-	KDL::JntArray			_joint_positions;
-	fksolver_p			_fksolver;
-
-      // Variables retrieved from parameter server
-	bool				_compensate_gravity;
-	double				_mg;		// effector mass
-	quaternion_t			_q;		// rotation
-	vector_t			_r;		// mass center
-	vector_t			_f0;		// force offset
-	vector_t			_m0;		// torque offset
-
-      // Calibration stuffs
-	bool				_do_sample;
-	bool				_do_reset;
-	size_t				_nsamples;
-	vector_t			_k_sum;
-	vector_t			_f_sum;
-	vector_t			_m_sum;
-	double				_k_sqsum;
-	matrix_t			_kf_sum;
-	matrix_t			_km_sum;
-	matrix_t			_mm_sum;
-
-	std::ofstream			_fout;
-    };
-
-    using sensor_p	= std::shared_ptr<Sensor>;
+    using trigger_t	= std_msgs::srv::Trigger;
+    using trigger_req	= trigger_t::Request::SharedPtr;
+    using trigger_res	= trigger_t::Response::SharedPtr;
+    
+    template <class MSG>
+    using publisher_p	= typename rclcpp::Publisher<MSG>;
+    template <class MSG>
+    using rt_publisher_t= typename realtime_tools::RealtimePublisher<MSG>;
+    template <class MSG>
+    using rt_publisher_p= std::unique_ptr<rt_publisher_t<MSG> >;
+    template <class MSG>
+    using subscription_p= typename rclcpp::Subscription<MSG>::SharedPtr;
+    template <class SRV>
+    using service_p	= typename rclcpp::Service<SRV>::SharedPtr;
+    
+    constexpr static double	G = 9.80665;
 
   public:
-			ForceTorqueSensorBroadcaster()			;
+		ForceTorqueSensorBroadcaster()				;
 
-    virtual bool	init(interface_t* hw,
-			     ros::NodeHandle &root_nh,
-			     ros::NodeHandle& controller_nh)		;
-    virtual void	starting(const ros::Time& time)			;
-    virtual void	update(const ros::Time& time,
-			       const ros::Duration& period)		;
-    virtual void	stopping(const ros::Time& time)			;
+    cb_return_t	on_init(const lc_state& prev_state)			;
+    cb_return_t	on_configure(const lc_state& prev_state)		;
+    cb_return_t	on_activate(const lc_state& prev_state)			;
+    cb_return_t	on_deactivate(const lc_state& prev_state)		;
+
+    ci_return_t	update_and_write_commands(
+		    const rclcpp::Time& time,
+		    const rclcpp::Duration& period)			;
+    ci_return_t	update_reference_from_subscribers(
+		    const rclcpp::Time& time,
+		    const rclcpp::Duration& period)			;
+
+    void	joint_state_cb(const joint_state_cp& joint_state)	;
+    bool	take_sample_cb(const trigger_req& req,
+			       const trigger_res& res)			;
+    bool	compute_calibration_cb(const trigger_req& req,
+				       const trigger_res& res);
+    bool	save_calibration_cb(const trigger_req& req,
+				    const trigger_res& res)		;
+    bool	clear_samples_cb(const trigger_req& req,
+				 const trigger_res& res)		;
+    bool	reset_bias_cb(const trigger_req& req,
+			      const trigger_res& res)			;
 
     const KDL::Tree&	get_tree()				const	;
     void		get_jnt_pos(const std::vector<std::string>& jnt_name,
 				    KDL::JntArray& jnt_pos)	const	;
 
   private:
-    void	joint_state_cb(const joint_state_cp& joint_state)	;
-    bool	take_sample_cb(std_srvs::Trigger::Request&  req,
-			       std_srvs::Trigger::Response& res)	;
-    bool	compute_calibration_cb(std_srvs::Trigger::Request&  req,
-				       std_srvs::Trigger::Response& res);
-    bool	save_calibration_cb(std_srvs::Trigger::Request&  req,
-				    std_srvs::Trigger::Response& res)	;
-    bool	clear_samples_cb(std_srvs::Trigger::Request&  req,
-				 std_srvs::Trigger::Response& res)	;
-    bool	reset_bias_cb(std_srvs::Trigger::Request&  req,
-			      std_srvs::Trigger::Response& res)		;
+    void	take_sample()						;
+    bool	compute_calibration()					;
+    void	save_calibration(std::ostream& out)		const	;
+    void	clear_samples()						;
+    void	reset_bias()						;
+
+    void	take_sample(const vector_t& k,
+			    const vector_t& f, const vector_t& m)	;
+    void	set_filter_half_order(int half_order)			;
+    void	set_filter_cutoff_frequency(double cutoff_frequency)	;
+
+    vector_t	vector_param(const std::string& name)		const	;
+    quaternion_t
+		quaternion_param(const std::string& name)	const	;
 
   private:
+    std::unique_ptr<ft_sensor_t>	_ft_sensor;
+    const std::string			_frame_id;
+
   // JointState stuffs
     KDL::Tree				_tree;
-    ros::Subscriber			_joint_state_sub;
+    const subscription_p<joint_state_t>	_joint_state_sub;
     std::map<std::string, double>	_joint_positions;
     mutable std::mutex			_joint_state_mtx;
 
-  // Calibration stuffs
-    ros::ServiceServer			_take_sample;
-    ros::ServiceServer			_compute_calibration;
-    ros::ServiceServer			_save_calibration;
-    ros::ServiceServer			_clear_samples;
-    ros::ServiceServer			_reset_bias;
+  // Wrench stuffs
+    publisher_p<wrench_t>		_wrench_org_pub;
+    publisher_p<wrench_t>		_wrench_pub;
+    rt_publisher_p<wrench_t>		_wrench_rt_pub;
+    const rclcpp::Duration		_pub_interval;
+    rclcpp::Time			_last_pub_time;
 
+  // Calibration stuffs
+    const service_p<trigger_t>		_take_sample;
+    const service_p<trigger_t>		_compute_calibration;
+    const service_p<trigger_t>		_save_calibration;
+    const service_p<trigger_t>		_clear_samples;
+    const service_p<trigger_t>		_reset_bias;
     std::string				_calib_file;
-    std::vector<sensor_p>		_sensors;
+
+    ddr_t				_ddr;
+
+  // Filtering stuffs
+    ft_t				_ft;
+    filter_t				_filter;
+    mutable std::mutex			_ft_mtx;
+
+  // Forward kinematics stuffs
+    const controller_t&			_controller;
+    KDL::Chain				_chain;
+    std::vector<std::string>		_joint_names;
+    KDL::JntArray			_joint_positions;
+    fksolver_p				_fksolver;
+
+  // Variables retrieved from parameter server
+    bool				_compensate_gravity;
+    double				_mg;		// effector mass
+    quaternion_t			_q;		// rotation
+    vector_t				_r;		// mass center
+    vector_t				_f0;		// force offset
+    vector_t				_m0;		// torque offset
+
+  // Calibration stuffs
+    bool				_do_sample;
+    bool				_do_reset;
+    size_t				_nsamples;
+    vector_t				_k_sum;
+    vector_t				_f_sum;
+    vector_t				_m_sum;
+    double				_k_sqsum;
+    matrix_t				_kf_sum;
+    matrix_t				_km_sum;
+    matrix_t				_mm_sum;
+
+    std::ofstream			_fout;
 };
 
 ForceTorqueSensorBroadcaster::ForceTorqueSensorBroadcaster()
-    :_tree(), _joint_state_sub(), _joint_positions(), _joint_state_mtx(),
-     _calib_file(), _sensors(0)
-{
-}
+    :controller_interface::ChainableControllerInterface(),
+     _ft_sensor(),
+     _frame_id(),
+     
+     _tree(),
+     _joint_state_sub(),
+     _joint_positions(),
+     _joint_state_mtx(),
 
-bool
-ForceTorqueSensorBroadcaster::init(interface_t* hw,
-				  ros::NodeHandle& root_nh,
-				  ros::NodeHandle& controller_nh)
-{
-  // Load contents of "robot_description" parameter.
-    const auto	param_name = root_nh.param<std::string>("robot_description",
-							"/robot_description");
-    std::string	robot_desc_string;
-    if (!root_nh.getParam(param_name, robot_desc_string))
-    {
-	RCLCPP_ERROR_STREAM(get_loggeer(), '(' << controller_nh.getNamespace()
-			    << ") Robot description parameter["
-			    << param_name << "] not found");
-	return false;
-    }
-
-  // Construct KDL tree from robot_description parameter.
-    if (!kdl_parser::treeFromString(robot_desc_string, _tree))
-    {
-	RCLCPP_ERROR_STREAM(get_logger(), '(' << controller_nh.getNamespace()
-			    << ") Failed to construct kdl tree");
-	return false;
-    }
-
-  // Create subscriber for joint_states
-    _joint_state_sub = root_nh.subscribe("/joint_states", 1,
-					 &ForceTorqueSensorBroadcaster
-					 ::joint_state_cb, this);
-
-  // Get calibration file name from parameter server.
-    _calib_file = std::string(getenv("HOME"))
-		+ "/.ros/aist_ftsensor"
-		+ controller_nh.getNamespace() + ".yaml";
-
-  // Get publishing period.
-    const auto	pub_rate = controller_nh.param<double>("publish_rate", 0.0);
-    if (pub_rate <= 0.0)
-    {
-	RCLCPP_ERROR_STREAM(get_logger(),
-			    '(' << controller_nh.getNamespace()
-			    << ") Value of parameter 'publish_rate' is "
-			    << pub_rate << ", but must be positive.");
-	return false;
-    }
-
-  // Setup ROS service servers for calibration.
-    _take_sample
-	= controller_nh.advertiseService(
-	    "take_sample",
-	    &ForceTorqueSensorBroadcaster::take_sample_cb, this);
-    _compute_calibration
-	= controller_nh.advertiseService(
-	    "compute_calibration",
-	    &ForceTorqueSensorBroadcaster::compute_calibration_cb, this);
-    _save_calibration
-	= controller_nh.advertiseService(
-	    "save_calibration",
-	    &ForceTorqueSensorBroadcaster::save_calibration_cb, this);
-    _clear_samples
-	= controller_nh.advertiseService(
-	    "clear_samples",
-	    &ForceTorqueSensorBroadcaster::clear_samples_cb, this);
-    _reset_bias
-	= controller_nh.advertiseService(
-	    "reset_bias",
-	    &ForceTorqueSensorBroadcaster::reset_bias_cb, this);
-
-  // Setup sensors.
-    for (const auto& name : hw->getNames())
-    {
-	try
-	{
-	    _sensors.push_back(sensor_p(new Sensor(hw, root_nh, controller_nh,
-						   name, pub_rate, *this)));
-	}
-	catch (const std::exception& err)
-	{
-	    RCLCPP_ERROR_STREAM(get_logger(),
-				'(' << controller_nh.getNamespace()
-				<< ") " << err.what());
-	}
-    }
-
-    RCLCPP_INFO_STREAM(get_logger(), '(' << controller_nh.getNamespace()
-		       << ") Susccesfully initialized");
-
-    return true;
-}
-
-void
-ForceTorqueSensorBroadcaster::starting(const ros::Time& time)
-{
-    for (const auto& sensor : _sensors)
-	sensor->starting(time);
-}
-
-void
-ForceTorqueSensorBroadcaster::update(const ros::Time& time,
-				    const ros::Duration& period)
-{
-    for (const auto& sensor : _sensors)
-	sensor->update(time, period);
-}
-
-void
-ForceTorqueSensorBroadcaster::stopping(const ros::Time& time)
-{
-    for (const auto& sensor : _sensors)
-	sensor->stopping(time);
-}
-
-const KDL::Tree&
-ForceTorqueSensorBroadcaster::get_tree() const
-{
-    return _tree;
-}
-
-void
-ForceTorqueSensorBroadcaster::get_jnt_pos(
-    const std::vector<std::string>& jnt_name, KDL::JntArray& jnt_pos) const
-{
-    std::lock_guard<std::mutex>	lock(_joint_state_mtx);
-
-    for (size_t i = 0; i < jnt_name.size(); ++i)
-	jnt_pos(i) = _joint_positions.at(jnt_name[i]);
-}
-
-void
-ForceTorqueSensorBroadcaster::joint_state_cb(const joint_state_cp& joint_state)
-{
-    std::lock_guard<std::mutex>	lock(_joint_state_mtx);
-
-    for (size_t i = 0; i < joint_state->name.size(); ++i)
-	_joint_positions[joint_state->name[i]] = joint_state->position[i];
-}
-
-bool
-ForceTorqueSensorBroadcaster::take_sample_cb(std_srvs::Trigger::Request& req,
-					    std_srvs::Trigger::Response& res)
-{
-    for (const auto& sensor : _sensors)
-	sensor->take_sample();
-
-    res.success = true;
-    res.message = "take_sample succeeded.";
-    RCLCPP_INFO_STREAM("(aist_ftsensor_controller) " << res.message);
-
-    return true;
-}
-
-bool
-ForceTorqueSensorBroadcaster::compute_calibration_cb(
-    std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
-{
-    for (const auto& sensor : _sensors)
-	if (!sensor->compute_calibration())
-	{
-	    res.success = false;
-	    res.message = "compute_calibration failed.";
-	    RCLCPP_ERROR_STREAM("(aist_ftsensor_controller) " << res.message);
-
-	    return true;
-	}
-
-    res.success = true;
-    res.message = "compute_calibration succeeded.";
-    RCLCPP_INFO_STREAM("(aist_ftsensor_controller) " << res.message);
-
-    return true;
-}
-
-bool
-ForceTorqueSensorBroadcaster::save_calibration_cb(
-    std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
-{
-    try
-    {
-      // Open/create parent directory of the calibration file.
-	const auto   dir = _calib_file.substr(0,
-					      _calib_file.find_last_of('/'));
-	struct stat buf;
-	if (stat(dir.c_str(), &buf) && mkdir(dir.c_str(), S_IRWXU))
-	    throw std::runtime_error("cannot create " + dir + ": "
-						      + strerror(errno));
-
-      // Open calibration file and save calibration results.
-	std::ofstream	out(_calib_file.c_str());
-	if (!out)
-	    throw std::runtime_error("cannot open " + _calib_file + ": "
-						    + strerror(errno));
-	for (const auto& sensor : _sensors)
-	    sensor->save_calibration(out);
-
-	res.success = true;
-	res.message = "save_calibration succeeded.";
-	RCLCPP_INFO_STREAM("(aist_ftsensor_controller) " << res.message);
-    }
-    catch (const std::exception& err)
-    {
-	res.success = false;
-	res.message = std::string("save_calibration failed: ") + err.what();
-	RCLCPP_ERROR_STREAM("(aist_ftsensor_controller) " << res.message);
-    }
-
-    return true;
-}
-
-bool
-ForceTorqueSensorBroadcaster::clear_samples_cb(
-    std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
-{
-    for (const auto& sensor : _sensors)
-	sensor->clear_samples();
-
-    res.success = true;
-    res.message = "clear_samples succeeded.";
-    RCLCPP_INFO_STREAM("(aist_ftsensor_controller) " << res.message);
-
-    return true;
-}
-
-bool
-ForceTorqueSensorBroadcaster::reset_bias_cb(
-    std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
-{
-    for (const auto& sensor : _sensors)
-	sensor->reset_bias();
-
-    res.success = true;
-    res.message = "reset_bias succeeded.";
-    RCLCPP_INFO_STREAM("(aist_ftsensor_controller) " << res.message);
-
-    return true;
-}
-
-/************************************************************************
-*  class ForceTorqueSensorBroadcaster::Sensor				*
-************************************************************************/
-ForceTorqueSensorBroadcaster::Sensor
-			   ::Sensor(interface_t* hw,
-				    ros::NodeHandle& root_nh,
-				    const ros::NodeHandle& controller_nh,
-				    const std::string& name,
-				    double pub_rate,
-				    const controller_t& controller)
-    :_hw_handle(hw->getHandle(name)),
-     _nh(controller_nh, "sensors/" + name),
-     _frame_id(
-	 _nh.param<std::string>(
-	     "frame_id",
-	     _hw_handle.getFrameId().substr(
-		 0, _hw_handle.getFrameId().find("_controller")))),
-     _pub_org(new publisher_t(root_nh, name + "_org", 4)),
-     _pub(new publisher_t(root_nh, name, 4)),
-     _pub_interval(1.0/pub_rate),
-     _last_pub_time(0),
+     _wrench_org_pub(),
+     _wrench_pub(),
+     _wrench_rt_pub(),
+     _pub_interval(),
+     _last_pub_time(),
+     
+     _take_sample(),
+     _compute_calibration(),
+     _save_calibration(),
+     _clear_samples(),
+     _reset_bias(),
+     _calib_file(),
+     
      _ddr(_nh),
+
      _ft(ft_t::Zero()),
      _filter(2, 15.0*_pub_interval.toSec()),
      _ft_mtx(),
+     
      _controller(controller),
      _chain(),
      _joint_names(),
      _joint_positions(),
      _fksolver(),
+     
      _compensate_gravity(false),
      _mg(G*_nh.param<double>("effector_mass", 0.0)),
      _q(quaternion_param("rotation")),
      _r(vector_param("mass_center")),
      _f0(vector_param("force_offset")),
      _m0(vector_param("torque_offset")),
+     
      _do_sample(false),
      _do_reset(false),
      _nsamples(0),
@@ -527,85 +296,122 @@ ForceTorqueSensorBroadcaster::Sensor
      _mm_sum(matrix_t::Zero()),
      _fout()
 {
-    if (_frame_id == "")
-	throw std::runtime_error("Parameter frame_id is not specified");
-
-  // Get chain from gravity frame to sensor frame.
-    const auto	gravity_frame = controller_nh.param<std::string>(
-				    "gravity_frame", "world");
-    if (!_controller.get_tree().getChain(gravity_frame, _frame_id, _chain))
-	throw std::runtime_error("Couldn't create chain from "
-				 + gravity_frame + " to " + _frame_id);
-
-  // Get names of joints contained in the chain.
-    for (size_t i = 0; i < _chain.getNrOfSegments(); ++i)
-    {
-	const auto&	joint = _chain.getSegment(i).getJoint();
-	if (joint.getType() != KDL::Joint::None)
-	    _joint_names.push_back(joint.getName());
-    }
-    _joint_positions.resize(_joint_names.size());
-
-  // Create FK solver for the chain.
-    _fksolver.reset(new KDL::ChainFkSolverPos_recursive(_chain));
-
-  // Setup dynamic reconfigure server
-    _ddr.registerVariable<int>(
-	"filter_half_order", _filter.half_order(),
-	boost::bind(&Sensor::set_filter_half_order, this, _1),
-	"Half order of input low pass filter", 1, 5);
-    _ddr.registerVariable<double>(
-	"filter_cutoff_frequency", _filter.cutoff()/_pub_interval.toSec(),
-	boost::bind(&Sensor::set_filter_cutoff_frequency, this, _1),
-	"Cutoff frequency of input low pass filter", 0.5, pub_rate);
-    _ddr.registerVariable<bool>(
-	"compensate_gravity", &_compensate_gravity,
-	"Compensate gravity if true", false, true);
-    _ddr.publishServicesTopicsAndUpdateConfigData();
-
-    RCLCPP_INFO_STREAM('(' << _nh.getNamespace()
-		    << ") got sensor. gravity_frame=" << gravity_frame
-		    << ", frame_id=" << _frame_id );
 }
 
-void
-ForceTorqueSensorBroadcaster::Sensor::starting(const ros::Time& time)
+ForceTorqueSensorBroadcaster::cb_result_t
+ForceTorqueSensorBroadcaster::on_init(const lc_state& prev_state)
 {
-    _last_pub_time = time;
+  // Load contents of "robot_description" parameter.
+    const auto
+	param_name = ddynamic_reconfigure2::
+			declare_read_only_parameter<std::string>(
+			    "robot_description", "/robot_description");
+    const auto
+	robot_desc_string = ddynamic_reconfigure2::
+				declare_read_only_parameter<std::string>(
+				    paramname, "");
+    if (robot_desc_string == "")
+    {
+	RCLCPP_ERROR_STREAM(get_loggeer(), "Robot description parameter["
+			    << param_name << "] not found");
+	return cb_return_t::ERROR;
+    }
+
+  // Construct KDL tree from robot_description parameter.
+    if (!kdl_parser::treeFromString(robot_desc_string, _tree))
+    {
+	RCLCPP_ERROR_STREAM(get_logger(), "Failed to construct kdl tree");
+	return cb_return_t::ERROR;
+    }
+
+  // Get calibration file name from parameter server.
+    _calib_file = std::string(getenv("HOME"))
+		+ "/.ros/aist_ftsensor"
+		+ get_node()->get_name() + ".yaml";
+
+    return cb_return_t::SUCCESS;
 }
 
-void
-ForceTorqueSensorBroadcaster::Sensor::update(const ros::Time& time,
-					    const ros::Duration& period)
+ForceTorqueSensorBroadcaster::cb_result_t
+ForceTorqueSensorBroadcaster::on_configure(const lc_state& prev_state)
+{
+  // Get publishing period.
+    const auto	pub_rate = controller_nh.param<double>("publish_rate", 0.0);
+    if (pub_rate <= 0.0)
+    {
+	RCLCPP_ERROR_STREAM(get_logger(),
+			    "Value of parameter 'publish_rate' is "
+			    << pub_rate << ", but must be positive.");
+	return false;
+    }
+
+    _ft_sensor = std::make_unique<ft_sensor_t>(ft_sensor_t());
+
+    _take_sample = get_node()->create_service<trigger_t>(
+		       "~/take_sample",
+		       std::bind(&ForceToruqeSensorController::take_sample_cb,
+				 this,
+				 std::placeholders::_1,
+				 std::placeholders::_2));
+    _compute_calibration = get_node()->create_service<trigger_t>(
+			       "~/compute_calibaration",
+			       std::bind(&ForceToruqeSensorController::
+					 compute_calibration_cb, this,
+					 std::placeholders::_1,
+					 std::placeholders::_2));
+    _save_calibration = get_node()->create_service<trigger_t>(
+			    "~/save_calibration",
+			    std::bind(&ForceToruqeSensorController::
+				      save_calibration_cb, this,
+				      std::placeholders::_1,
+				      std::placeholders::_2));
+    _clear_samples = get_node()->create_service<trigger_t>(
+			 "~/clear_samples",
+			 std::bind(&ForceToruqeSensorController::
+				   clear_samples_cb, this,
+				   std::placeholders::_1,
+				   std::placeholders::_2));
+    _reset_bias = get_node()->create_service<trigger_t>(
+		      "~/reset_bias",
+		      std::bind(&ForceToruqeSensorController::reset_bias,
+				this,
+				std::placeholders::_1, std::placeholders::_2));
+
+    RCLCPP_INFO(get_node()->get_logger(), "configure successful");
+    return cb_return_t::SUCCESS;
+}
+
+ForceTorqueSensorBroadcaster::cb_result_t
+ForceTorqueSensorBroadcaster::on_activate(const lc_state& prev_state)
+{
+    _ft_sensor->assign_loaned_state_interfaces(_state_interfaces);
+    return cb_return_t::SUCCESS;
+}
+
+ForceTorqueSensorBroadcaster::cb_result_t
+ForceTorqueSensorBroadcaster::on_deactivate(const lc_state& prev_state)
+{
+    _ft_sensor->release_interfaces();
+    return cb_return_t::SUCCESS;
+}
+
+ForceTorqueSensroBoradCaster::ci_return_t
+ForceTorqueSensorBroadcaster::update_and_write_commands(
+    const rclcpp::Time& time, const rclcpp::Duration& period)
 {
     if (time < _last_pub_time + _pub_interval)
 	return;
 
-  // Get current force-torque values.
-    {
-	std::lock_guard<std::mutex> lock(_ft_mtx);
-
-	_ft(0) = _hw_handle.getForce()[0];
-	_ft(1) = _hw_handle.getForce()[1];
-	_ft(2) = _hw_handle.getForce()[2];
-	_ft(3) = _hw_handle.getTorque()[0];
-	_ft(4) = _hw_handle.getTorque()[1];
-	_ft(5) = _hw_handle.getTorque()[2];
-    }
-
+    wrench_t	wrench;
+    _ft_sensor->get_values_as_message(wrench);
+    
   // Publish unfiltered force-torque signal.
-    if (_pub_org->trylock())
+    if (_wrench_org_pub->trylock())
     {
-	_pub_org->msg_.header.stamp    = time;
-	_pub_org->msg_.header.frame_id = _frame_id;
-	_pub_org->msg_.wrench.force.x  = _ft(0);
-	_pub_org->msg_.wrench.force.y  = _ft(1);
-	_pub_org->msg_.wrench.force.z  = _ft(2);
-	_pub_org->msg_.wrench.torque.x = _ft(3);
-	_pub_org->msg_.wrench.torque.y = _ft(4);
-	_pub_org->msg_.wrench.torque.z = _ft(5);
-
-	_pub_org->unlockAndPublish();
+	_wrench_org_pub->msg_.wrench = wrench;
+	_wrench_org_pub->msg_.header.stamp    = time;
+	_wrench_org_pub->msg_.header.frame_id = _frame_id;
+	_wrench_org_pub->unlockAndPublish();
     }
 
   // Lookup current joint positions contained in the chain.
@@ -668,16 +474,139 @@ ForceTorqueSensorBroadcaster::Sensor::update(const ros::Time& time,
 	_pub->unlockAndPublish();
 	_last_pub_time = time;
     }
+
+    return ci_return_t::OK;
+}
+
+ForceTorqueSensroBoradCaster::ci_return_t
+ForceTorqueSensorBroadcaster::update_reference_from_subscribers(
+    const rclcpp::Time& time, const rclcpp::Duration& period)
+{
+    return ci_return_t::OK;
 }
 
 void
-ForceTorqueSensorBroadcaster::Sensor::take_sample()
+ForceTorqueSensorBroadcaster::joint_state_cb(const joint_state_cp& joint_state)
+{
+    std::lock_guard<std::mutex>	lock(_joint_state_mtx);
+
+    for (size_t i = 0; i < joint_state->name.size(); ++i)
+	_joint_positions[joint_state->name[i]] = joint_state->position[i];
+}
+
+void
+ForceTorqueSensorBroadcaster::take_sample_cb(const trigger_req& req,
+					     const trigger_res& res)
+{
+    for (const auto& sensor : _sensors)
+	sensor->take_sample();
+
+    res->success = true;
+    res->message = "take_sample succeeded.";
+    RCLCPP_INFO_STREAM(res.message);
+}
+
+void
+ForceTorqueSensorBroadcaster::compute_calibration_cb(const trigger_req& req,
+						     const trigger_res& res)
+{
+    for (const auto& sensor : _sensors)
+	if (!sensor->compute_calibration())
+	{
+	    res.success = false;
+	    res.message = "compute_calibration failed.";
+	    RCLCPP_ERROR_STREAM("(aist_ftsensor_controller) " << res.message);
+
+	    return true;
+	}
+
+    res->success = true;
+    res->message = "compute_calibration succeeded.";
+    RCLCPP_INFO_STREAM(res.message);
+}
+
+void
+ForceTorqueSensorBroadcaster::save_calibration_cb(const trigger_req& req,
+						  const trigger_res& res)
+{
+    try
+    {
+      // Open/create parent directory of the calibration file.
+	const auto   dir = _calib_file.substr(0,
+					      _calib_file.find_last_of('/'));
+	struct stat buf;
+	if (stat(dir.c_str(), &buf) && mkdir(dir.c_str(), S_IRWXU))
+	    throw std::runtime_error("cannot create " + dir + ": "
+						      + strerror(errno));
+
+      // Open calibration file and save calibration results.
+	std::ofstream	out(_calib_file.c_str());
+	if (!out)
+	    throw std::runtime_error("cannot open " + _calib_file + ": "
+						    + strerror(errno));
+	for (const auto& sensor : _sensors)
+	    sensor->save_calibration(out);
+
+	res->success = true;
+	res->message = "save_calibration succeeded.";
+	RCLCPP_INFO_STREAM("(aist_ftsensor_controller) " << res.message);
+    }
+    catch (const std::exception& err)
+    {
+	res->success = false;
+	res->message = std::string("save_calibration failed: ") + err.what();
+	RCLCPP_ERROR_STREAM(res.message);
+    }
+}
+
+void
+ForceTorqueSensorBroadcaster::clear_samples_cb(const trigger_req& req,
+					       const trigger_res& res)
+{
+    for (const auto& sensor : _sensors)
+	sensor->clear_samples();
+
+    res->success = true;
+    res->message = "clear_samples succeeded.";
+    RCLCPP_INFO_STREAM(res.message);
+}
+
+void
+ForceTorqueSensorBroadcaster::reset_bias_cb(const trigger_req& req,
+					    const trigger_res& res)
+{
+    for (const auto& sensor : _sensors)
+	sensor->reset_bias();
+
+    res->success = true;
+    res->message = "reset_bias succeeded.";
+    RCLCPP_INFO_STREAM(res.message);
+}
+
+const KDL::Tree&
+ForceTorqueSensorBroadcaster::get_tree() const
+{
+    return _tree;
+}
+
+void
+ForceTorqueSensorBroadcaster::get_jnt_pos(
+    const std::vector<std::string>& jnt_name, KDL::JntArray& jnt_pos) const
+{
+    std::lock_guard<std::mutex>	lock(_joint_state_mtx);
+
+    for (size_t i = 0; i < jnt_name.size(); ++i)
+	jnt_pos(i) = _joint_positions.at(jnt_name[i]);
+}
+
+void
+ForceTorqueSensorBroadcaster::take_sample()
 {
     _do_sample = true;
 }
 
 bool
-ForceTorqueSensorBroadcaster::Sensor::compute_calibration()
+ForceTorqueSensorBroadcaster::compute_calibration()
 {
     using namespace	Eigen;
     using namespace	aist_utility;
@@ -744,7 +673,7 @@ ForceTorqueSensorBroadcaster::Sensor::compute_calibration()
 }
 
 void
-ForceTorqueSensorBroadcaster::Sensor::save_calibration(std::ostream& out) const
+ForceTorqueSensorBroadcaster::save_calibration(std::ostream& out) const
 {
     const auto	ns   = _nh.getNamespace();
     const auto	name = ns.substr(ns.find_last_of('/') + 1);
@@ -784,7 +713,7 @@ ForceTorqueSensorBroadcaster::Sensor::save_calibration(std::ostream& out) const
 }
 
 void
-ForceTorqueSensorBroadcaster::Sensor::clear_samples()
+ForceTorqueSensorBroadcaster::clear_samples()
 {
     _nsamples = 0;
     _k_sum    = vector_t::Zero();
@@ -799,15 +728,15 @@ ForceTorqueSensorBroadcaster::Sensor::clear_samples()
 }
 
 void
-ForceTorqueSensorBroadcaster::Sensor::reset_bias()
+ForceTorqueSensorBroadcaster::reset_bias()
 {
     _do_reset = true;
 }
 
 void
-ForceTorqueSensorBroadcaster::Sensor::take_sample(const vector_t& k,
-						  const vector_t& f,
-						  const vector_t& m)
+ForceTorqueSensorBroadcaster::take_sample(const vector_t& k,
+					  const vector_t& f,
+					  const vector_t& m)
 {
     using	namespace aist_utility;
 
@@ -828,7 +757,7 @@ ForceTorqueSensorBroadcaster::Sensor::take_sample(const vector_t& k,
 }
 
 void
-ForceTorqueSensorBroadcaster::Sensor::set_filter_half_order(int half_order)
+ForceTorqueSensorBroadcaster::set_filter_half_order(int half_order)
 {
     std::lock_guard<std::mutex> lock(_ft_mtx);
 
@@ -837,8 +766,8 @@ ForceTorqueSensorBroadcaster::Sensor::set_filter_half_order(int half_order)
 }
 
 void
-ForceTorqueSensorBroadcaster::Sensor
-::set_filter_cutoff_frequency(double cutoff_frequency)
+ForceTorqueSensorBroadcaster::set_filter_cutoff_frequency(
+    double cutoff_frequency)
 {
     std::lock_guard<std::mutex> lock(_ft_mtx);
 
@@ -847,9 +776,8 @@ ForceTorqueSensorBroadcaster::Sensor
     _filter.reset(_ft);
 }
 
-ForceTorqueSensorBroadcaster::Sensor::vector_t
-ForceTorqueSensorBroadcaster::Sensor
-			    ::vector_param(const std::string& name) const
+ForceTorqueSensorBroadcaster::vector_t
+ForceTorqueSensorBroadcaster::vector_param(const std::string& name) const
 {
     if (_nh.hasParam(name))
     {
@@ -867,9 +795,8 @@ ForceTorqueSensorBroadcaster::Sensor
     return vector_t::Zero();
 }
 
-ForceTorqueSensorBroadcaster::Sensor::quaternion_t
-ForceTorqueSensorBroadcaster::Sensor
-			    ::quaternion_param(const std::string& name) const
+ForceTorqueSensorBroadcaster::quaternion_t
+ForceTorqueSensorBroadcaster::quaternion_param(const std::string& name) const
 {
     if (_nh.hasParam(name))
     {
@@ -883,9 +810,76 @@ ForceTorqueSensorBroadcaster::Sensor
     return {1.0, 0.0, 0.0, 0.0};
 }
 
+ForceTorqueSensorBroadcaster::Sensor
+			   ::Sensor(interface_t* hw,
+				    ros::NodeHandle& root_nh,
+				    const ros::NodeHandle& controller_nh,
+				    const std::string& name,
+				    double pub_rate,
+				    const controller_t& controller)
+    :_hw_handle(hw->getHandle(name)),
+     _nh(controller_nh, "sensors/" + name),
+     _frame_id(
+	 _nh.param<std::string>(
+	     "frame_id",
+	     _hw_handle.getFrameId().substr(
+		 0, _hw_handle.getFrameId().find("_controller")))),
+     _pub_org(new publisher_t(root_nh, name + "_org", 4)),
+     _pub(new publisher_t(root_nh, name, 4)),
+     _pub_interval(1.0/pub_rate),
+     _last_pub_time(0),
+{
+    if (_frame_id == "")
+	throw std::runtime_error("Parameter frame_id is not specified");
+
+  // Get chain from gravity frame to sensor frame.
+    const auto	gravity_frame = controller_nh.param<std::string>(
+				    "gravity_frame", "world");
+    if (!_controller.get_tree().getChain(gravity_frame, _frame_id, _chain))
+	throw std::runtime_error("Couldn't create chain from "
+				 + gravity_frame + " to " + _frame_id);
+
+  // Get names of joints contained in the chain.
+    for (size_t i = 0; i < _chain.getNrOfSegments(); ++i)
+    {
+	const auto&	joint = _chain.getSegment(i).getJoint();
+	if (joint.getType() != KDL::Joint::None)
+	    _joint_names.push_back(joint.getName());
+    }
+    _joint_positions.resize(_joint_names.size());
+
+  // Create FK solver for the chain.
+    _fksolver.reset(new KDL::ChainFkSolverPos_recursive(_chain));
+
+  // Setup dynamic reconfigure server
+    _ddr.registerVariable<int>(
+	"filter_half_order", _filter.half_order(),
+	boost::bind(&Sensor::set_filter_half_order, this, _1),
+	"Half order of input low pass filter", 1, 5);
+    _ddr.registerVariable<double>(
+	"filter_cutoff_frequency", _filter.cutoff()/_pub_interval.toSec(),
+	boost::bind(&Sensor::set_filter_cutoff_frequency, this, _1),
+	"Cutoff frequency of input low pass filter", 0.5, pub_rate);
+    _ddr.registerVariable<bool>(
+	"compensate_gravity", &_compensate_gravity,
+	"Compensate gravity if true", false, true);
+    _ddr.publishServicesTopicsAndUpdateConfigData();
+
+    RCLCPP_INFO_STREAM('(' << _nh.getNamespace()
+		    << ") got sensor. gravity_frame=" << gravity_frame
+		    << ", frame_id=" << _frame_id );
+}
+
+void
+ForceTorqueSensorBroadcaster::Sensor::starting(const ros::Time& time)
+{
+    _last_pub_time = time;
+}
+
+
 }	// namespace aist_ftsensor
 
 #include <pluginlib/class_list_macros.hpp>
 
 PLUGINLIB_EXPORT_CLASS(aist_ftsensor::ForceTorqueSensorBroadcaster,
-		       controller_interface::ControllerBase)
+		       controller_interface::ChainableControllerInterface)
