@@ -75,7 +75,7 @@ class Multiplexer : public rclcpp::Node
 	const rclcpp::Subscription<camera_info_t>::SharedPtr _camera_info_sub;
     };
 
-    using ddynamic_reconfigure_t = ddynamic_reconfigure2::DDynamicReconfigure;
+    using ddr_t	= ddynamic_reconfigure2::DDynamicReconfigure<>;
 
   public:
     Multiplexer(const rclcpp::NodeOptions& options)			;
@@ -89,7 +89,7 @@ class Multiplexer : public rclcpp::Node
     std::vector<Subscribers>				_subscribers;
     size_t						_active_camera_number;
 
-    ddynamic_reconfigure_t				_ddr;
+    ddr_t						_ddr;
 
     image_transport::ImageTransport			_it;
     const image_transport::Publisher			_image_pub;
@@ -165,9 +165,9 @@ Multiplexer::Multiplexer(const rclcpp::NodeOptions& options)
 			  node_name() + "/camera_info", 1))
 {
     const auto	camera_names = ddynamic_reconfigure2::
-			       declare_read_only_parameter<
-				   std::vector<std::string> >(
-				       this, "camera_names", {});
+			       declare_read_only_parameter(
+				   this, "camera_names",
+				   std::vector<std::string>{});
     if (camera_names.empty())
     {
 	RCLCPP_ERROR_STREAM(get_logger(), "No camera names specified.");

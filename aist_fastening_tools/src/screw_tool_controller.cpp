@@ -87,7 +87,7 @@ class ScrewToolController : public rclcpp::Node
     using goal_handle_p		= std::shared_ptr<goal_handle_t>;
     using goal_response_t	= rclcpp_action::GoalResponse;
     using cancel_response_t	= rclcpp_action::CancelResponse;
-    using ddynamic_reconfigure_t= ddynamic_reconfigure2::DDynamicReconfigure;
+    using ddynamic_reconfigure_t= ddynamic_reconfigure2::DDynamicReconfigure<>;
     using filter_t		= aist_utility::ButterworthLPF<double, double>;
 
     using callback_group_p	= rclcpp::CallbackGroup::SharedPtr;
@@ -142,7 +142,7 @@ class ScrewToolController : public rclcpp::Node
     std::mutex					_current_goal_mtx;
 
   // Parameters
-    ddynamic_reconfigure2::DDynamicReconfigure	_ddr;
+    ddynamic_reconfigure_t			_ddr;
     rclcpp::Duration				_loosen_period;      // period before retighten
     double					_max_stall_speed;
     rclcpp::Duration				_min_stall_period;
@@ -157,11 +157,10 @@ class ScrewToolController : public rclcpp::Node
 
 ScrewToolController::ScrewToolController(const rclcpp::NodeOptions& options)
     :rclcpp::Node("screw_tool_controller", options),
-     _driver_ns(ddynamic_reconfigure2::
-		declare_read_only_parameter<std::string>(
+     _driver_ns(ddynamic_reconfigure2::declare_read_only_parameter(
 		    this, "driver_ns", "screw_tools_fastening_driver")),
-     _motor_id(ddynamic_reconfigure2::
-	       declare_read_only_parameter<int>(this, "motor_id", 1)),
+     _motor_id(ddynamic_reconfigure2::declare_read_only_parameter(
+		   this, "motor_id", 1)),
      _stage(DONE),
      _start_time(),
      _dxl_states_sub(create_subscription<dynamixel_states_t>(
@@ -190,10 +189,9 @@ ScrewToolController::ScrewToolController(const rclcpp::NodeOptions& options)
      _min_stall_period(std::chrono::duration<double>(0.5)),
      _max_noload_current(0.3),
      _min_noload_period(std::chrono::duration<double>(0.5)),
-     _control_period(
-	 std::chrono::duration<double>(
-	     ddynamic_reconfigure2::declare_read_only_parameter<double>(
-		 this, "control_period", 0.01))),
+     _control_period(std::chrono::duration<double>(
+			 ddynamic_reconfigure2::declare_read_only_parameter(
+			     this, "control_period", 0.01))),
      _current(0.0),
      _filter(2, 7.0*_control_period.seconds())
 {

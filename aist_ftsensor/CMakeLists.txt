@@ -17,8 +17,9 @@ set(
     rclpy
     controller_interface
     hardware_interface
-    plubinlib
+    pluginlib
     realtime_tools
+    std_srvs
     std_msgs
     geometry_msgs
     sensor_msgs
@@ -39,36 +40,36 @@ pkg_check_modules(YAML-CPP yaml-cpp REQUIRED)
 ###########
 ## Build ##
 ###########
+# add_library(
+#   dynpick_driver SHARED
+#     src/dynpick_driver.cpp
+# )
+
+# target_compile_features(
+#   dynpick_driver PUBLIC
+#     cxx_std_17
+# )
+
+# target_link_libraries(
+#   dynpick_driver PUBLIC
+#     controller_interface::controller_interface
+#     hardware_interface::hardware_interface
+#     pluginlib::pluginlib
+#     rclcpp::rclcpp
+#     rclcpp_lifecycle::rclcpp_lifecycle
+#     realtime_tools::realtime_tools
+#     ${std_msgs_TARGETS}
+#     ${geometry_msgs_TARGETS}
+#     ${sensor_msgs_TARGETS}
+# )
+
+# pluginlib_export_plugin_description_file(
+#   controller_interface
+#     force_torque_sensor_broadcaster.xml
+# )
+
 add_library(
-  dynpick_driver SHARED
-    src/dynpick_driver.cpp
-)
-
-target_compile_features(
-  dynpick_driver PUBLIC
-    cxx_std_17
-)
-
-target_link_libraries(
-  dynpick_driver PUBLIC
-    controller_interface::controller_interface
-    hardware_interface::hardware_interface
-    pluginlib::pluginlib
-    rclcpp::rclcpp
-    rclcpp_lifecycle::rclcpp_lifecycle
-    realtime_tools::realtime_tools
-    ${std_msgs_TARGETS}
-    ${geometry_msgs_TARGETS}
-    ${sensor_msgs_TARGETS}
-)
-
-pluginlib_export_plugin_description_file(
-  controller_interface
-    force_torque_sensor_broadcaster.xml
-)
-
-add_library(
-  ${PROJECT_NAME}_broadcaster PUBLIC
+  ${PROJECT_NAME}_broadcaster SHARED
     src/aist_ftsensor_broadcaster.cpp
 )
 
@@ -85,10 +86,14 @@ target_link_libraries(
     rclcpp::rclcpp
     rclcpp_lifecycle::rclcpp_lifecycle
     realtime_tools::realtime_tools
+    ${ddynamic_reconfigure2_TARGETS}
+    ${aist_utility_TARGETS}
+    ${std_srvs_TARGETS}
     ${std_msgs_TARGETS}
     ${geometry_msgs_TARGETS}
     ${sensor_msgs_TARGETS}
-    ${orocos_kdl_LIBRARIES}
+    ${kdl_parser_TARGETS}
+    ${orocos_kdl_TARGETS}
     yaml-cpp
 )
 
@@ -97,7 +102,8 @@ target_link_libraries(
 #############
 # Install targets
 install(
-  TARGETS dynpick_driver ${PROJECT_NAME}_broadcaster
+#  TARGETS dynpick_driver ${PROJECT_NAME}_broadcaster
+  TARGETS ${PROJECT_NAME}_broadcaster
   EXPORT  export_${PROJECT_NAME}_broadcaster
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib

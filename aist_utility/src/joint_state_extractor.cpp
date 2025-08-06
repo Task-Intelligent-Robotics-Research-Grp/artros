@@ -22,7 +22,7 @@ class JointStateExtractor : public rclcpp::Node
     void	joint_state_cb(joint_state_p joint_state)		;
 
   private:
-    ddynamic_reconfigure2::DDynamicReconfigure		 _ddr;
+    ddynamic_reconfigure2::DDynamicReconfigure<>	 _ddr;
     const rclcpp::Subscription<joint_state_t>::SharedPtr _joint_state_sub;
     const rclcpp::Publisher<joint_state_t>::SharedPtr	 _joint_state_pub;
     joint_state_t					 _joint_state;
@@ -40,9 +40,8 @@ JointStateExtractor::JointStateExtractor(const rclcpp::NodeOptions& options)
      _joint_state()
 {
 
-    _joint_state.name = ddynamic_reconfigure2::declare_read_only_parameter<
-			    std::vector<std::string> >(this,
-						       "joint_names", {});
+    _joint_state.name = ddynamic_reconfigure2::declare_read_only_parameter(
+			    this, "joint_names", std::vector<std::string>{});
 
     const auto	njoints = _joint_state.name.size();
     _joint_state.position.resize(njoints);

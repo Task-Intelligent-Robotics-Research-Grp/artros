@@ -99,7 +99,7 @@ class Detector3D : public rclcpp::Node
     using marker_info_t		= aruco::Marker3DInfo;
     using marker_map_t		= aruco::MarkerMap;
     using point3_t		= cv::Vec<float, 3>;
-    using ddynamic_reconfigure_t= ddynamic_reconfigure2::DDynamicReconfigure;
+    using ddynamic_reconfigure_t= ddynamic_reconfigure2::DDynamicReconfigure<>;
 
     struct rgb_t		{ uint8_t r, g, b; };
 
@@ -181,8 +181,7 @@ Detector3D::Detector3D(const rclcpp::NodeOptions& options)
     :rclcpp::Node("detector_3d", options),
      _ddr(rclcpp::Node::SharedPtr(this)),
      _broadcaster(*this),
-     _marker_frame(ddynamic_reconfigure2::
-		   declare_read_only_parameter<std::string>(
+     _marker_frame(ddynamic_reconfigure2::declare_read_only_parameter(
 		       this, "marker_frame", "marker_frame")),
      _it(rclcpp::Node::SharedPtr(this)),
      _image_sub(this, "/image", "raw"),
@@ -209,8 +208,8 @@ Detector3D::Detector3D(const rclcpp::NodeOptions& options)
 
   // Load marker map.
     if (const auto marker_map_name = ddynamic_reconfigure2::
-				     declare_read_only_parameter<std::string>(
-					 this, "marker_map", "");
+					 declare_read_only_parameter(
+					     this, "marker_map", "");
 	marker_map_name != "")
     {
 	const auto mMapFile = ddynamic_reconfigure2::

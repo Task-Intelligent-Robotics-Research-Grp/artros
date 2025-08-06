@@ -57,21 +57,21 @@ class PCDCapturer : public rclcpp::Node
     std::string	open_dir()					const	;
 
   private:
-    ddynamic_reconfigure2::DDynamicReconfigure	_ddr;
-    image_transport::ImageTransport		_it;
-    image_transport::SubscriberFilter		_color_sub;
-    image_transport::SubscriberFilter		_depth_sub;
-    message_filters::Subscriber<camera_info_t>	_camera_info_sub;
-    sync_t					_sync;
-    const rclcpp::Publisher<cloud_t>::SharedPtr	_cloud_pub;
-    const rclcpp::Service<trigger_t>::SharedPtr	_save_cloud;
+    ddynamic_reconfigure2::DDynamicReconfigure<>	_ddr;
+    image_transport::ImageTransport			_it;
+    image_transport::SubscriberFilter			_color_sub;
+    image_transport::SubscriberFilter			_depth_sub;
+    message_filters::Subscriber<camera_info_t>		_camera_info_sub;
+    sync_t						_sync;
+    const rclcpp::Publisher<cloud_t>::SharedPtr		_cloud_pub;
+    const rclcpp::Service<trigger_t>::SharedPtr		_save_cloud;
 
-    tf2_ros::Buffer				_buffer;
-    const tf2_ros::TransformListener		_listener;
-    const std::string				_cloud_frame;
-    const bool					_save_as_binary;
-    size_t					_file_num;
-    cloud_t					_cloud;
+    tf2_ros::Buffer					_buffer;
+    const tf2_ros::TransformListener			_listener;
+    const std::string					_cloud_frame;
+    const bool						_save_as_binary;
+    size_t						_file_num;
+    cloud_t						_cloud;
 };
 
 PCDCapturer::PCDCapturer(const rclcpp::NodeOptions& options)
@@ -89,9 +89,9 @@ PCDCapturer::PCDCapturer(const rclcpp::NodeOptions& options)
 			       std::placeholders::_1, std::placeholders::_2))),
      _buffer(get_clock()),
      _listener(_buffer),
-     _cloud_frame(ddynamic_reconfigure2::declare_read_only_parameter<
-		      std::string>(this, "cloud_frame", "base_link")),
-     _save_as_binary(ddynamic_reconfigure2::declare_read_only_parameter<bool>(
+     _cloud_frame(ddynamic_reconfigure2::declare_read_only_parameter(
+		      this, "cloud_frame", "base_link")),
+     _save_as_binary(ddynamic_reconfigure2::declare_read_only_parameter(
 			 this, "save_as_binary", false)),
      _file_num(0),
      _cloud()

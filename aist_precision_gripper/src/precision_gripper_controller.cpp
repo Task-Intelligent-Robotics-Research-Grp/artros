@@ -70,7 +70,7 @@ class PrecisionGripperController : public rclcpp::Node
     using goal_handle_p		= std::shared_ptr<goal_handle_t>;
     using goal_response_t	= rclcpp_action::GoalResponse;
     using cancel_response_t	= rclcpp_action::CancelResponse;
-    using ddynamic_reconfigure_t= ddynamic_reconfigure2::DDynamicReconfigure;
+    using ddynamic_reconfigure_t= ddynamic_reconfigure2::DDynamicReconfigure<>;
 
     using callback_group_p	= rclcpp::CallbackGroup::SharedPtr;
     template <class MSG>
@@ -142,30 +142,28 @@ class PrecisionGripperController : public rclcpp::Node
 PrecisionGripperController::PrecisionGripperController(
     const rclcpp::NodeOptions& options)
     :rclcpp::Node("precision_gripper_controller", options),
-     _driver_ns(ddynamic_reconfigure2::
-		declare_read_only_parameter<std::string>(
+     _driver_ns(ddynamic_reconfigure2::declare_read_only_parameter(
 		    this, "driver_ns", "precision_grippers_fastening_driver")),
-     _motor_id(ddynamic_reconfigure2::declare_read_only_parameter<int>(
+     _motor_id(ddynamic_reconfigure2::declare_read_only_parameter(
 		   this, "motor_id", 1)),
-     _min_position(ddynamic_reconfigure2::declare_read_only_parameter<double>(
+     _min_position(ddynamic_reconfigure2::declare_read_only_parameter(
 		       this, "min_position", 0.000)),
-     _max_position(ddynamic_reconfigure2::declare_read_only_parameter<double>(
+     _max_position(ddynamic_reconfigure2::declare_read_only_parameter(
 		       this, "max_position", 0.010)),
-     _max_effort(ddynamic_reconfigure2::declare_read_only_parameter<double>(
+     _max_effort(ddynamic_reconfigure2::declare_read_only_parameter(
 		     this, "max_effort", 0.5)),
-     _min_pos(ddynamic_reconfigure2::declare_read_only_parameter<int>(
+     _min_pos(ddynamic_reconfigure2::declare_read_only_parameter(
 		  this, "min_position_count", 2300)),
-     _max_pos(ddynamic_reconfigure2::declare_read_only_parameter<int>(
+     _max_pos(ddynamic_reconfigure2::declare_read_only_parameter(
 		  this, "max_position_count", 2050)),
-     _min_cur(ddynamic_reconfigure2::declare_read_only_parameter<int>(
+     _min_cur(ddynamic_reconfigure2::declare_read_only_parameter(
 		  this, "min_effort_count", 7)),
-     _max_cur(ddynamic_reconfigure2::declare_read_only_parameter<int>(
+     _max_cur(ddynamic_reconfigure2::declare_read_only_parameter(
 		  this, "max_effort_count", 13)),
      _position_per_tick((_max_position - _min_position)/(_max_pos - _min_pos)),
      _effort_per_tick(_max_effort/_max_cur),
      _stall_timeout(std::chrono::duration<double>(
-			ddynamic_reconfigure2::
-			declare_read_only_parameter<double>(
+			ddynamic_reconfigure2::declare_read_only_parameter(
 			    this, "stall_timeout", 1.0))),
      _dxl_states_sub(create_subscription<dynamixel_states_t>(
 			 _driver_ns + "/dynamixel_state", 1,

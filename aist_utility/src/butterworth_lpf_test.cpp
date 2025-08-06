@@ -30,7 +30,7 @@ class ButterworthLPFTest : public rclcpp::Node
     void	flt_cb(flt_p in)				const	;
 
   private:
-    ddynamic_reconfigure2::DDynamicReconfigure		_ddr;
+    ddynamic_reconfigure2::DDynamicReconfigure<>	_ddr;
     double						_rate;
     const rclcpp::Subscription<flt_t>::SharedPtr	_sub;
     const rclcpp::Publisher<flt_t>::SharedPtr		_pub;
@@ -41,7 +41,7 @@ class ButterworthLPFTest : public rclcpp::Node
 ButterworthLPFTest::ButterworthLPFTest(const rclcpp::NodeOptions& options)
     :rclcpp::Node("butterworth_lpf_test", options),
      _ddr(rclcpp::Node::SharedPtr(this)),
-     _rate(ddynamic_reconfigure2::declare_read_only_parameter<double>(
+     _rate(ddynamic_reconfigure2::declare_read_only_parameter(
 	       this, "rate", 10.0)),
      _sub(create_subscription<flt_t>("/in", 1,
 				     std::bind(&ButterworthLPFTest::flt_cb,

@@ -189,33 +189,32 @@ Calibrator::Calibrator(const rclcpp::NodeOptions& options)
 			      this, "use_dual_quaternion", true)),
      _eye_on_hand(ddynamic_reconfigure2::declare_read_only_parameter(
 		      this, "eye_on_hand", true)),
-     _camera_name(ddynamic_reconfigure2::declare_read_only_parameter<
-		      std::string>(this, "camera_name", "camera"))
+     _camera_name(ddynamic_reconfigure2::declare_read_only_parameter(
+		      this, "camera_name", "camera"))
 {
     RCLCPP_INFO_STREAM(get_logger(), "initializing calibrator...");
 
     if (_eye_on_hand)
     {
 	_Tec.header.frame_id = ddynamic_reconfigure2::
-			       declare_read_only_parameter<std::string>(
+			       declare_read_only_parameter(
 				   this, "robot_effector_frame", "tool0");
 	_Twm.header.frame_id = ddynamic_reconfigure2::
-			       declare_read_only_parameter<std::string>(
+			       declare_read_only_parameter(
 				   this, "robot_base_frame", "base_link");
     }
     else
     {
 	_Twm.header.frame_id = ddynamic_reconfigure2::
-			       declare_read_only_parameter<std::string>(
+			       declare_read_only_parameter(
 				   this, "robot_effector_frame", "tool0");
 	_Tec.header.frame_id = ddynamic_reconfigure2::
-			       declare_read_only_parameter<std::string>(
+			       declare_read_only_parameter(
 				   this, "robot_base_frame", "base_link");
     }
 
     _Tec.child_frame_id = "";
-    _Twm.child_frame_id = ddynamic_reconfigure2::
-			  declare_read_only_parameter<std::string>(
+    _Twm.child_frame_id = ddynamic_reconfigure2::declare_read_only_parameter(
 			      this, "marker_frame", "marker_frame");
 }
 

@@ -33,7 +33,7 @@ class SplineExtrapolatorTest : public rclcpp::Node
     void	flt_cb(flt_p flt)					;
 
   private:
-    ddynamic_reconfigure2::DDynamicReconfigure		_ddr;
+    ddynamic_reconfigure2::DDynamicReconfigure<>	_ddr;
     const rclcpp::Subscription<flt_t>::SharedPtr	_sub;
     const rclcpp::Publisher<vector3_t>::SharedPtr	_pub;
     SplineExtrapolator<value_type, 2>			_extrapolator2;
@@ -55,7 +55,7 @@ SplineExtrapolatorTest::SplineExtrapolatorTest(
      _extrapolator4(get_clock()->now()),
      _timer(create_wall_timer(std::chrono::duration<double>(
 				  1.0/ddynamic_reconfigure2::
-				      declare_read_only_parameter<double>(
+				      declare_read_only_parameter(
 					  this, "rate", 100.0)),
 			      std::bind(&SplineExtrapolatorTest::tick, this)))
 {

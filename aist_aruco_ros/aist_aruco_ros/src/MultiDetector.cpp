@@ -43,7 +43,7 @@ class MultiDetector : public rclcpp::Node
     using point2_t	= cv::Point2f;
     using point3_t	= cv::Point3f;
 
-    using ddynamic_reconfigure_t = ddynamic_reconfigure2::DDynamicReconfigure;
+    using ddynamic_reconfigure_t = ddynamic_reconfigure2::DDynamicReconfigure<>;
 
     struct rgb_t		{ uint8_t r, g, b; };
 
@@ -137,8 +137,8 @@ class MultiDetector : public rclcpp::Node
 MultiDetector::MultiDetector(const rclcpp::NodeOptions& options)
     :rclcpp::Node("multi_detector", options),
      _ddr(rclcpp::Node::SharedPtr(this)),
-     _camera_names(ddynamic_reconfigure2::declare_read_only_parameter<
-		       std::vector<std::string> >(this, "camera_names", {})),
+     _camera_names(ddynamic_reconfigure2::declare_read_only_parameter(
+		       this, "camera_names", std::vector<std::string>{})),
      _it(rclcpp::Node::SharedPtr(this)),
      _image_sub(),
      _image_subs(),
@@ -149,10 +149,10 @@ MultiDetector::MultiDetector(const rclcpp::NodeOptions& options)
      _sync(),
      _tf2_buffer(get_clock()),
      _tf2_listener(_tf2_buffer),
-     _reference_frame(ddynamic_reconfigure2::declare_read_only_parameter<
-			  std::string>(this, "reference_frame", "")),
-     _marker_frame(ddynamic_reconfigure2::declare_read_only_parameter<
-		       std::string>(this, "marker_frame", "marker_frame")),
+     _reference_frame(ddynamic_reconfigure2::declare_read_only_parameter(
+			  this, "reference_frame", "")),
+     _marker_frame(ddynamic_reconfigure2::declare_read_only_parameter(
+		       this, "marker_frame", "marker_frame")),
      _marker_detector(),
      _marker_map(),
      _correspondences_set()
@@ -257,8 +257,8 @@ MultiDetector::MultiDetector(const rclcpp::NodeOptions& options)
 
   // Load marker map.
     const auto marker_map_name = ddynamic_reconfigure2::
-				 declare_read_only_parameter<std::string>(
-				     this, "marker_map", "");
+				     declare_read_only_parameter(
+					 this, "marker_map", "");
     if (marker_map_name == "")
     {
 	RCLCPP_ERROR_STREAM(get_logger(), "Marker map not specified!");
