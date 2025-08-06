@@ -1,9 +1,7 @@
-from launch                   import LaunchDescription
-from launch.actions           import DeclareLaunchArgument, OpaqueFunction
-from launch.substitutions     import (LaunchConfiguration,
-                                      PathJoinSubstitution, ThisLaunchFileDir)
-from launch.conditions        import IfCondition, UnlessCondition
-from launch_ros.actions       import Node
+from launch               import LaunchDescription
+from launch.actions       import DeclareLaunchArgument, OpaqueFunction
+from launch.substitutions import LaunchConfiguration
+from launch_ros.actions   import Node
 
 launch_arguments = [
     {'name':        'prefix',
@@ -36,8 +34,8 @@ def launch_setup(context):
                  package='aist_robotiq',
                  executable='test_' + client_type + '_client.py',
                  parameters=[params],
-                 emulate_tty=True,
-                 output='log')]
+                 prefix=['xterm -fn 7x14 -e'],
+                 output='screen')]
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import rclpy, threading
+import rclpy, sys, threading
 import numpy as np
 from rclpy.node           import Node
 from aist_fastening_tools import ScrewTool
@@ -50,9 +50,11 @@ class ScrewToolTest(Node):
         self.destroy_node()
         rclpy.shutdown()
 
-
-if __name__ == '__main__':
+def main():
     rclpy.init()
 
     test = ScrewToolTest('screw_tool_test')
     rclpy.spin(test)
+
+if __name__ == '__main__':
+    main()

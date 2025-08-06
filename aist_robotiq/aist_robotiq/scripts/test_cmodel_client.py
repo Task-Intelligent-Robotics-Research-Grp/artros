@@ -35,7 +35,7 @@
 #
 # Author: Toshio Ueshiba
 #
-import rclpy, threading
+import rclpy, sys, threading
 from rclpy.node   import Node
 from aist_robotiq import RobotiqGripper
 
@@ -88,9 +88,11 @@ class TestCModelClient(Node):
         self.destroy_node()
         rclpy.shutdown()
 
-
-if __name__ == '__main__':
-    rclpy.init()
+def main():
+    rclpy.init(args=sys.argv)
 
     test = TestCModelClient('test_cmodel_client')
     rclpy.spin(test)
+
+if __name__ == '__main__':
+    main()

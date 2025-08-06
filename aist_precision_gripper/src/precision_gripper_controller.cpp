@@ -404,10 +404,10 @@ PrecisionGripperController::is_moving(int vel) const
 bool
 PrecisionGripperController::reached_goal(int pos, int vel) const
 {
-    RCLCPP_INFO_STREAM(get_logger(), "*** pos=" << pos << ", goal_pos="
-		       << goal_pos(_current_goal_handle
-				   ->get_goal()->command.position)
-		       << ", vel=" << vel);
+    RCLCPP_DEBUG_STREAM(get_logger(), "*** pos=" << pos << ", goal_pos="
+			<< goal_pos(_current_goal_handle
+				    ->get_goal()->command.position)
+			<< ", vel=" << vel);
     return !is_moving(vel) &&
 	   std::abs(pos - goal_pos(_current_goal_handle
 				   ->get_goal()->command.position)) <= 1;

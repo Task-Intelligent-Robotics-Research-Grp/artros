@@ -49,7 +49,7 @@ class TestGripperClient(Node):
         controller_ns = self.declare_parameter(
                             'controller_ns',
                             'precision_gripper_controller').value
-        self._gripper = GenericGripper(self, controller_ns)
+        self._gripper = GenericGripper(self, controller_ns + '/gripper_cmd')
         self.get_logger().info('started')
 
         cli_thread = threading.Thread(target=self.interactive)
