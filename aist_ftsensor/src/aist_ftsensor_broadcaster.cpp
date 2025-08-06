@@ -175,10 +175,6 @@ class ForceTorqueSensorBroadcaster
     void	set_filter_half_order(int half_order)			;
     void	set_filter_cutoff_frequency(double cutoff_frequency)	;
 
-    vector_t	vector_param(const std::string& name)		const	;
-    quaternion_t
-		quaternion_param(const std::string& name)	const	;
-
   private:
   // JointState stuffs
     subscription_p<joint_state_t>	_joint_state_sub;
@@ -259,11 +255,11 @@ ForceTorqueSensorBroadcaster::ForceTorqueSensorBroadcaster()
      _fksolver(),
 
      _compensate_gravity(false),
-     _mg(G*_nh.param<double>("effector_mass", 0.0)),
-     _q(quaternion_param("rotation")),
-     _r(vector_param("mass_center")),
-     _f0(vector_param("force_offset")),
-     _m0(vector_param("torque_offset")),
+     _mg(0.0),
+     _q(1.0, 0.0, 0.0, 0.0),
+     _r(0.0, 0.0, 0.0),
+     _f0(0.0, 0.0, 0.0),
+     _m0(0.0, 0.0, 0.0),
 
      _calib_file(),
      _do_sample(false),
@@ -373,6 +369,18 @@ ForceTorqueSensorBroadcaster::on_init(const lc_state_t& prev_state)
 
   // Create FK solver for the chain.
     _fksolver.reset(new KDL::ChainFkSolverPos_recursive(_chain));
+
+  //
+    _compensate_gravity = ddynamic_reconfigure2::declare_read_only_parameter(
+			      get_node(), "compensate_gravity", false);
+    _mg = G * ddynamic_reconfigure2::declare_read_only_parameter(
+			      get_node(), "effector_mass", 0.0);
+    _q = ddynamic_reconfigure2::declare_read_only_parameter(
+	     get_node(), "rotation", std::vector<double>{{0.0, 0.0, 0.0, 1.0}});
+
+
+
+
 
     RCLCPP_INFO_STREAM(get_node()->get_logger(), '(' << _nh.getNamespace()
 		       << ") got sensor. gravity_frame=" << gravity_frame
@@ -817,40 +825,6 @@ ForceTorqueSensorBroadcaster::set_filter_cutoff_frequency(
     _filter.initialize(_filter.half_order(),
 		       cutoff_frequency*_pub_interval.seconds());
     _filter.reset(_ft);
-}
-
-ForceTorqueSensorBroadcaster::vector_t
-ForceTorqueSensorBroadcaster::vector_param(const std::string& name) const
-{
-    if (_nh.hasParam(name))
-    {
-	std::vector<double>	v;
-	_nh.getParam(name, v);
-
-	if (v.size() == 3)
-	{
-	    vector_t	vec;
-	    vec << v[0], v[1], v[2];
-	    return vec;
-	}
-    }
-
-    return vector_t::Zero();
-}
-
-ForceTorqueSensorBroadcaster::quaternion_t
-ForceTorqueSensorBroadcaster::quaternion_param(const std::string& name) const
-{
-    if (_nh.hasParam(name))
-    {
-	std::vector<double>	v;
-	_nh.getParam(name, v);
-
-	if (v.size() == 4)
-	    return {v[3], v[0], v[1], v[2]};
-    }
-
-    return {1.0, 0.0, 0.0, 0.0};
 }
 }	// namespace aist_ftsensor
 
