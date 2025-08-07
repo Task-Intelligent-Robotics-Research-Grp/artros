@@ -58,6 +58,8 @@ class ButterworthLPF
     using value_type	= T;	//!< type of signal to be filtered
 
   public:
+    explicit	ButterworthLPF()	:_cutoff(0)			{}
+
   /*!
     バタワースフィルタを生成
     \param half_order	フィルタの次数の半分

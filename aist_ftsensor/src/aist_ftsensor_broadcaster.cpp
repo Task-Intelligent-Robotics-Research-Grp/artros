@@ -84,7 +84,7 @@ fromKDL(const KDL::Vector& v)
 std::ostream&
 operator <<(std::ostream& out, const KDL::JntArray& joints)
 {
-    for (unsigned int i = 0; i < joints.rows(); ++i)
+    for (u_int i = 0; i < joints.rows(); ++i)
 	out << ' ' << joints(i);
     return out << std::endl;
 }
@@ -96,58 +96,67 @@ class ForceTorqueSensorBroadcaster
     : public controller_interface::ChainableControllerInterface
 {
   public:
-    using cb_return_t	= controller_interface::CallbackReturn;
-    using ci_return_t	= controller_interface::return_type;
-    using lc_state_t	= rclcpp_lifecycle::State;
+    using if_config_t	 = controller_interface::InterfaceConfiguration;
+    using cb_return_t	 = controller_interface::CallbackReturn;
+    using ci_return_t	 = controller_interface::return_type;
+    using lc_state_t	 = rclcpp_lifecycle::State;
+    using hw_state_if_t	 = hardware_interface::StateInterface;
+    
+    using wrench_t	 = geometry_msgs::msg::WrenchStamped;
+    using joint_state_t  = sensor_msgs::msg::JointState;
+    using joint_state_cp = joint_state_t::ConstSharedPtr;
 
-    using wrench_t	= geometry_msgs::msg::WrenchStamped;
-    using joint_state_t = sensor_msgs::msg::JointState;
-    using joint_state_cp= joint_state_t::ConstSharedPtr;
+    using fksolver_p	 = std::unique_ptr<KDL::ChainFkSolverPos>;
+    using controller_t	 = ForceTorqueSensorBroadcaster;
+    using vector_t	 = Eigen::Vector3d;
+    using matrix_t	 = Eigen::Matrix3d;
+    using quaternion_t	 = Eigen::Quaterniond;
+    using ft_t		 = Eigen::Matrix<double, 6, 1>;
+    using filter_t	 = aist_utility::ButterworthLPF<double, ft_t>;
+    using ddr_t		 = ddynamic_reconfigure2::DDynamicReconfigure<
+			       rclcpp_lifecycle::LifecycleNode>;
 
-    using fksolver_p	= std::unique_ptr<KDL::ChainFkSolverPos>;
-    using controller_t	= ForceTorqueSensorBroadcaster;
-    using vector_t	= Eigen::Vector3d;
-    using matrix_t	= Eigen::Matrix3d;
-    using quaternion_t	= Eigen::Quaterniond;
-    using ft_t		= Eigen::Matrix<double, 6, 1>;
-    using filter_t		= aist_utility::ButterworthLPF<double, ft_t>;
-    using ddr_t		= ddynamic_reconfigure2::DDynamicReconfigure<
-			      rclcpp_lifecycle::LifecycleNode>;
+    using ft_sensor_t	 = semantic_components::ForceTorqueSensor;
 
-    using ft_sensor_t	= semantic_components::ForceTorqueSensor;
-
-    using trigger_t	= std_srvs::srv::Trigger;
-    using trigger_req	= trigger_t::Request::SharedPtr;
-    using trigger_res	= trigger_t::Response::SharedPtr;
+    using trigger_t	 = std_srvs::srv::Trigger;
+    using trigger_req	 = trigger_t::Request::SharedPtr;
+    using trigger_res	 = trigger_t::Response::SharedPtr;
 
     template <class MSG>
-    using publisher_p	= typename rclcpp::Publisher<MSG>::SharedPtr;
+    using publisher_p	 = typename rclcpp::Publisher<MSG>::SharedPtr;
     template <class MSG>
-    using rt_publisher_t= typename realtime_tools::RealtimePublisher<MSG>;
+    using rt_publisher_t = typename realtime_tools::RealtimePublisher<MSG>;
     template <class MSG>
-    using rt_publisher_p= std::unique_ptr<rt_publisher_t<MSG> >;
+    using rt_publisher_p = std::unique_ptr<rt_publisher_t<MSG> >;
     template <class MSG>
-    using subscription_p= typename rclcpp::Subscription<MSG>::SharedPtr;
+    using subscription_p = typename rclcpp::Subscription<MSG>::SharedPtr;
     template <class SRV>
-    using service_p	= typename rclcpp::Service<SRV>::SharedPtr;
+    using service_p	 = typename rclcpp::Service<SRV>::SharedPtr;
 
     constexpr static double	G = 9.80665;
 
   public:
 		ForceTorqueSensorBroadcaster()				;
 
-    cb_return_t	on_init(const lc_state_t& prev_state)			;
-    cb_return_t	on_configure(const lc_state_t& prev_state)		;
-    cb_return_t	on_activate(const lc_state_t& prev_state)		;
-    cb_return_t	on_deactivate(const lc_state_t& prev_state)		;
+    if_config_t	command_interface_configuration()	const	override;
+    if_config_t	state_interface_configuration()		const	override;
+    
+    cb_return_t	on_init()					override;
+    cb_return_t	on_configure(const lc_state_t& prev_state)	override;
+    cb_return_t	on_activate(const lc_state_t& prev_state)	override;
+    cb_return_t	on_deactivate(const lc_state_t& prev_state)	override;
 
     ci_return_t	update_and_write_commands(
 		    const rclcpp::Time& time,
-		    const rclcpp::Duration& period)			;
+		    const rclcpp::Duration& period)		override;
     ci_return_t	update_reference_from_subscribers(
 		    const rclcpp::Time& time,
-		    const rclcpp::Duration& period)			;
+		    const rclcpp::Duration& period)		override;
 
+    // std::vector<hw_state_if_t>
+    // 		on_export_state_interfaces()			override;
+
+  private:
     void	joint_state_cb(const joint_state_cp& joint_state)	;
     void	take_sample_cb(const trigger_req& req,
 			       const trigger_res& res)			;
@@ -160,10 +169,6 @@ class ForceTorqueSensorBroadcaster
     void	reset_bias_cb(const trigger_req& req,
 			      const trigger_res& res)			;
 
-    void	get_jnt_pos(const std::vector<std::string>& jnt_name,
-			    KDL::JntArray& jnt_pos)		const	;
-
-  private:
     void	take_sample()						;
     bool	compute_calibration()					;
     void	save_calibration(std::ostream& out)		const	;
@@ -175,34 +180,41 @@ class ForceTorqueSensorBroadcaster
     void	set_filter_half_order(int half_order)			;
     void	set_filter_cutoff_frequency(double cutoff_frequency)	;
 
-  private:
-  // JointState stuffs
-    subscription_p<joint_state_t>	_joint_state_sub;
-    std::map<std::string, double>	_joint_positions;
-    mutable std::mutex			_joint_state_mtx;
+    vector_t	vector_param(const std::string& name)			;
+    quaternion_t
+		quaternion_param(const std::string& name)		;
+    KDL::JntArray
+		get_jnt_pos(
+		    const std::vector<std::string>& jnt_name)	const	;
 
-  // Wrench stuffs
+  private:
+  // [A] Wrench stuffs
     std::string				_frame_id;
     std::unique_ptr<ft_sensor_t>	_ft_sensor;
     publisher_p<wrench_t>		_wrench_org_pub;
+    rt_publisher_p<wrench_t>		_wrench_org_rt_pub;
     publisher_p<wrench_t>		_wrench_pub;
     rt_publisher_p<wrench_t>		_wrench_rt_pub;
     rclcpp::Duration			_pub_interval;
     rclcpp::Time			_last_pub_time;
 
-  // Filtering stuffs
+  // [B] Filtering stuffs
+    filter_t				_filter;
     ddr_t				_ddr;
     ft_t				_ft;
-    filter_t				_filter;
     mutable std::mutex			_ft_mtx;
 
-  // Forward kinematics stuffs
+  // [C] JointState stuffs
+    subscription_p<joint_state_t>	_joint_state_sub;
+    std::map<std::string, double>	_joint_positions;
+    mutable std::mutex			_joint_positions_mtx;
+
+  // [D] Forward kinematics stuffs
     KDL::Chain				_chain;
     std::vector<std::string>		_joint_names;
-    KDL::JntArray			_joint_array;
     fksolver_p				_fksolver;
 
-  // Gravity compensation stuffs
+  // [E] Gravity compensation stuffs
     bool				_compensate_gravity;
     double				_mg;		// effector mass
     quaternion_t			_q;		// rotation
@@ -210,7 +222,7 @@ class ForceTorqueSensorBroadcaster
     vector_t				_f0;		// force offset
     vector_t				_m0;		// torque offset
 
-  // Calibration stuffs
+  // [F] Calibration stuffs
     std::string				_calib_file;
     bool				_do_sample;
     bool				_do_reset;
@@ -232,26 +244,26 @@ class ForceTorqueSensorBroadcaster
 
 ForceTorqueSensorBroadcaster::ForceTorqueSensorBroadcaster()
     :controller_interface::ChainableControllerInterface(),
-     _joint_state_sub(),
-     _joint_positions(),
-     _joint_state_mtx(),
-
      _frame_id(),
      _ft_sensor(),
      _wrench_org_pub(),
+     _wrench_org_rt_pub(),
      _wrench_pub(),
      _wrench_rt_pub(),
      _pub_interval(0, 0),
      _last_pub_time(),
 
+     _filter(),
      _ddr(get_node()),
      _ft(ft_t::Zero()),
-     _filter(2, 15.0*_pub_interval.seconds()),
      _ft_mtx(),
+
+     _joint_state_sub(),
+     _joint_positions(),
+     _joint_positions_mtx(),
 
      _chain(),
      _joint_names(),
-     _joint_array(),
      _fksolver(),
 
      _compensate_gravity(false),
@@ -281,20 +293,39 @@ ForceTorqueSensorBroadcaster::ForceTorqueSensorBroadcaster()
 {
 }
 
-ForceTorqueSensorBroadcaster::cb_return_t
-ForceTorqueSensorBroadcaster::on_init(const lc_state_t& prev_state)
+ForceTorqueSensorBroadcaster::if_config_t
+ForceTorqueSensorBroadcaster::command_interface_configuration() const
 {
-  // Setup frame_id to which wrench is published.
+    if_config_t	if_config;
+    if_config.type = controller_interface::interface_configuration_type::NONE;
+    return if_config;
+}
+
+ForceTorqueSensorBroadcaster::if_config_t
+ForceTorqueSensorBroadcaster::state_interface_configuration() const
+{
+    if_config_t	if_config;
+    if_config.type  = controller_interface::interface_configuration_type
+					  ::INDIVIDUAL;
+    if_config.names = _ft_sensor->get_state_interface_names();
+    return if_config;
+}
+
+ForceTorqueSensorBroadcaster::cb_return_t
+ForceTorqueSensorBroadcaster::on_init()
+{
+  // [A] Wrench stuffs
+  // [A-1] Setup frame_id of FT-sensor
     _frame_id = ddynamic_reconfigure2::declare_read_only_parameter(
 		    get_node(), "frame_id", "");
-    if (_frame_id == "")
+    if (_frame_id.empty())
     {
 	RCLCPP_ERROR_STREAM(get_node()->get_logger(),
 			    "Parameter frame_id is not specified");
 	return cb_return_t::ERROR;
     }
 
-  // Setup interval period of publishing wrench.
+  // [A-2] Setup interval period of publishing wrench.
     const auto	pub_rate = ddynamic_reconfigure2::declare_read_only_parameter(
 			       get_node(), "publish_rate", 0.0);
     if (pub_rate <= 0.0)
@@ -306,7 +337,11 @@ ForceTorqueSensorBroadcaster::on_init(const lc_state_t& prev_state)
     }
     _pub_interval = std::chrono::duration<double>(1.0/pub_rate);
 
-  // Setup dynamic reconfigure server
+  // [B] Filtering stuffs
+  // [B-1] Initialize Butterworth LPF
+    _filter.initialize(2, 15.0*_pub_interval.seconds());
+    
+  // [B-2] Setup dynamic reconfigure server
     _ddr.registerVariable<int>(
 	"filter_half_order", int(_filter.half_order()),
 	std::bind(&ForceTorqueSensorBroadcaster::set_filter_half_order,
@@ -317,11 +352,9 @@ ForceTorqueSensorBroadcaster::on_init(const lc_state_t& prev_state)
 	std::bind(&ForceTorqueSensorBroadcaster::set_filter_cutoff_frequency,
 		  this, std::placeholders::_1),
 	"Cutoff frequency of input low pass filter", {0.5, pub_rate});
-    _ddr.registerVariable<bool>(
-	"compensate_gravity", &_compensate_gravity,
-	"Compensate gravity if true");
 
-  // Load contents of "robot_description" parameter.
+  // [D] Forward kinematics stuffs
+  // [D-1] Load contents of "robot_description" parameter.
     const auto
 	robot_desc_name = ddynamic_reconfigure2::declare_read_only_parameter(
 			      get_node(),
@@ -329,15 +362,15 @@ ForceTorqueSensorBroadcaster::on_init(const lc_state_t& prev_state)
     const auto
 	robot_desc_string = ddynamic_reconfigure2::declare_read_only_parameter(
 			        get_node(), robot_desc_name, "");
-    if (robot_desc_string == "")
+    if (robot_desc_string.empty())
     {
 	RCLCPP_ERROR_STREAM(get_node()->get_logger(),
 			    "Robot description parameter["
-			    << param_name << "] not found");
+			    << robot_desc_name << "] not found");
 	return cb_return_t::ERROR;
     }
 
-  // Construct KDL tree from robot_description parameter.
+  // [D-2] Construct KDL tree from robot_description parameter.
     KDL::Tree	tree;
     if (!kdl_parser::treeFromString(robot_desc_string, tree))
     {
@@ -346,7 +379,7 @@ ForceTorqueSensorBroadcaster::on_init(const lc_state_t& prev_state)
 	return cb_return_t::ERROR;
     }
 
-  // Get chain from gravity frame to sensor frame.
+  // [D-3] Get chain from gravity frame to sensor frame.
     const auto
 	gravity_frame = ddynamic_reconfigure2::declare_read_only_parameter(
 			    get_node(), "gravity_frame", "world");
@@ -358,56 +391,64 @@ ForceTorqueSensorBroadcaster::on_init(const lc_state_t& prev_state)
 	return cb_return_t::ERROR;
     }
 
-  // Get names of joints contained in the chain.
-    for (size_t i = 0; i < _chain.getNrOfSegments(); ++i)
+  // [D-4] Get names of joints contained in the chain.
+    for (u_int i = 0; i < _chain.getNrOfSegments(); ++i)
     {
 	const auto&	joint = _chain.getSegment(i).getJoint();
 	if (joint.getType() != KDL::Joint::None)
 	    _joint_names.push_back(joint.getName());
     }
-    _joint_positions.resize(_joint_names.size());
 
-  // Create FK solver for the chain.
+  // [D-5] Create FK solver for the chain.
     _fksolver.reset(new KDL::ChainFkSolverPos_recursive(_chain));
 
-  //
-    _compensate_gravity = ddynamic_reconfigure2::declare_read_only_parameter(
-			      get_node(), "compensate_gravity", false);
-    _mg = G * ddynamic_reconfigure2::declare_read_only_parameter(
-			      get_node(), "effector_mass", 0.0);
-    _q = ddynamic_reconfigure2::declare_read_only_parameter(
-	     get_node(), "rotation", std::vector<double>{{0.0, 0.0, 0.0, 1.0}});
-
-
-
-
-
-    RCLCPP_INFO_STREAM(get_node()->get_logger(), '(' << _nh.getNamespace()
-		       << ") got sensor. gravity_frame=" << gravity_frame
-		       << ", frame_id=" << _frame_id );
-  // Get calibration file name from parameter server.
+  // [E] Gravity compensation stuffs
+    _ddr.registerVariable<bool>(
+	"compensate_gravity", &_compensate_gravity,
+	"Compensate gravity if true");
+    _mg	= G * ddynamic_reconfigure2::declare_read_only_parameter(
+		  get_node(), "effector_mass", 0.0);
+    _q	= quaternion_param("rotation");
+    _r	= vector_param("mass_center");
+    _f0	= vector_param("force_offset");
+    _m0	= vector_param("torque_offset");
+    
+  // [F] Calibration stuffs
     _calib_file = std::string(getenv("HOME"))
 		+ "/.ros/aist_ftsensor"
 		+ get_node()->get_name() + ".yaml";
 
+    RCLCPP_INFO_STREAM(get_node()->get_logger(),
+		       "gravity_frame=" << gravity_frame
+		       << ", frame_id=" << _frame_id );
     return cb_return_t::SUCCESS;
 }
 
 ForceTorqueSensorBroadcaster::cb_return_t
-ForceTorqueSensorBroadcaster::on_configure(const lc_state_t& prev_state)
+ForceTorqueSensorBroadcaster::on_configure(const lc_state_t&)
 {
-  // Get publishing period.
-    const auto	pub_rate = controller_nh.param<double>("publish_rate", 0.0);
-    if (pub_rate <= 0.0)
-    {
-	RCLCPP_ERROR_STREAM(get_node()->get_logger(),
-			    "Value of parameter 'publish_rate' is "
-			    << pub_rate << ", but must be positive.");
-	return cb_return_t::ERROR;
-    }
+  // [A] Wrench stuffs
+    const auto
+	sensor_name = ddynamic_reconfigure2::declare_read_only_parameter(
+			  get_node(), "sensor_name", "");
+    _ft_sensor	       = std::make_unique<ft_sensor_t>(sensor_name);
+    _wrench_org_pub    = get_node()->create_publisher<wrench_t>(
+			     "~/wrench_org", rclcpp::SystemDefaultsQoS());
+    _wrench_org_rt_pub = std::make_unique<rt_publisher_t<wrench_t> >(
+			     _wrench_org_pub);
+    _wrench_pub	       = get_node()->create_publisher<wrench_t>(
+			     "~/wrench", rclcpp::SystemDefaultsQoS());
+    _wrench_rt_pub     = std::make_unique<rt_publisher_t<wrench_t> >(
+			     _wrench_pub);
+    
+  // [C] JointSate stuffs
+    _joint_state_sub = get_node()->create_subscription<joint_state_t>(
+			   "joint_states", 1,
+			   std::bind(
+			       &ForceTorqueSensorBroadcaster::joint_state_cb,
+			       this, std::placeholders::_1));
 
-    _ft_sensor = std::make_unique<ft_sensor_t>(ft_sensor_t());
-
+  // [E] Calibration stuffs
     _take_sample = get_node()->create_service<trigger_t>(
 		       "~/take_sample",
 		       std::bind(&ForceTorqueSensorBroadcaster::take_sample_cb,
@@ -434,7 +475,7 @@ ForceTorqueSensorBroadcaster::on_configure(const lc_state_t& prev_state)
 				   std::placeholders::_2));
     _reset_bias = get_node()->create_service<trigger_t>(
 		      "~/reset_bias",
-		      std::bind(&ForceTorqueSensorBroadcaster::reset_bias,
+		      std::bind(&ForceTorqueSensorBroadcaster::reset_bias_cb,
 				this,
 				std::placeholders::_1, std::placeholders::_2));
 
@@ -443,14 +484,14 @@ ForceTorqueSensorBroadcaster::on_configure(const lc_state_t& prev_state)
 }
 
 ForceTorqueSensorBroadcaster::cb_return_t
-ForceTorqueSensorBroadcaster::on_activate(const lc_state_t& prev_state)
+ForceTorqueSensorBroadcaster::on_activate(const lc_state_t&)
 {
-    _ft_sensor->assign_loaned_state_interfaces(_state_interfaces);
+    _ft_sensor->assign_loaned_state_interfaces(state_interfaces_);
     return cb_return_t::SUCCESS;
 }
 
 ForceTorqueSensorBroadcaster::cb_return_t
-ForceTorqueSensorBroadcaster::on_deactivate(const lc_state_t& prev_state)
+ForceTorqueSensorBroadcaster::on_deactivate(const lc_state_t&)
 {
     _ft_sensor->release_interfaces();
     return cb_return_t::SUCCESS;
@@ -458,39 +499,52 @@ ForceTorqueSensorBroadcaster::on_deactivate(const lc_state_t& prev_state)
 
 ForceTorqueSensorBroadcaster::ci_return_t
 ForceTorqueSensorBroadcaster::update_and_write_commands(
-    const rclcpp::Time& time, const rclcpp::Duration& period)
+    const rclcpp::Time& time, const rclcpp::Duration&)
 {
     if (time < _last_pub_time + _pub_interval)
-	return;
+	return ci_return_t::OK;
 
-    wrench_t	wrench;
+  // Get current force-torque values.
+    geometry_msgs::msg::Wrench	wrench;
     _ft_sensor->get_values_as_message(wrench);
+    {
+	std::lock_guard<std::mutex>	lock(_ft_mtx);
+
+	_ft(0) = wrench.force.x;
+	_ft(1) = wrench.force.y;
+	_ft(2) = wrench.force.z;
+	_ft(3) = wrench.torque.x;
+	_ft(4) = wrench.torque.x;
+	_ft(5) = wrench.torque.x;
+    }
 
   // Publish unfiltered force-torque signal.
-    if (_wrench_org_pub->trylock())
+    if (_wrench_org_rt_pub->trylock())
     {
-	_wrench_org_pub->msg_.wrench = wrench;
-	_wrench_org_pub->msg_.header.stamp    = time;
-	_wrench_org_pub->msg_.header.frame_id = _frame_id;
-	_wrench_org_pub->unlockAndPublish();
+	_wrench_org_rt_pub->msg_.header.stamp    = time;
+	_wrench_org_rt_pub->msg_.header.frame_id = _frame_id;
+	_wrench_org_rt_pub->msg_.wrench		 = wrench;
+
+	_wrench_org_rt_pub->unlockAndPublish();
     }
 
   // Lookup current joint positions contained in the chain.
+    KDL::JntArray	jnt_pos;
     try
     {
-	_controller.get_jnt_pos(_joint_names, _joint_positions);
+	jnt_pos = get_jnt_pos(_joint_names);
     }
     catch (const std::out_of_range& err)
     {
-	RCLCPP_WARN_STREAM(get_node()->get_logger(), '(' << _nh.getNamespace()
-			<< ") joint_state not available yet: " << err.what());
-	return;
+	RCLCPP_WARN_STREAM(get_node()->get_logger(),
+			   "joint_state not available yet: " << err.what());
+	return ci_return_t::ERROR;
     }
 
   // Get transform from sensor frame to gravity frame
-  // for current joint positions.
+  // at the current joint positions.
     KDL::Frame	Tgs;
-    _fksolver->JntToCart(_joint_positions, Tgs);
+    _fksolver->JntToCart(jnt_pos, Tgs);
 
   // Get gravity direction w.r.t. sensor frame.
     const vector_t	k = fromKDL(Tgs.M.Inverse(KDL::Vector(0, 0, -1)));
@@ -499,7 +553,7 @@ ForceTorqueSensorBroadcaster::update_and_write_commands(
     auto		ft = _filter.filter(_ft);
     const vector_t	f  = ft.head<3>();
     const vector_t	m  = ft.tail<3>();
-
+    
     if (_do_sample)
     {
 	take_sample(k, f, m);
@@ -521,18 +575,18 @@ ForceTorqueSensorBroadcaster::update_and_write_commands(
 
   // Publish filtered (and optionally gravity compensated)
   // force-torque signal.
-    if (_pub->trylock())
+    if (_wrench_rt_pub->trylock())
     {
-	_pub->msg_.header.stamp    = time;
-	_pub->msg_.header.frame_id = _hw_handle.getFrameId();
-	_pub->msg_.wrench.force.x  = ft(0);
-	_pub->msg_.wrench.force.y  = ft(1);
-	_pub->msg_.wrench.force.z  = ft(2);
-	_pub->msg_.wrench.torque.x = ft(3);
-	_pub->msg_.wrench.torque.y = ft(4);
-	_pub->msg_.wrench.torque.z = ft(5);
+	_wrench_rt_pub->msg_.header.stamp    = time;
+	_wrench_rt_pub->msg_.header.frame_id = _frame_id;
+	_wrench_rt_pub->msg_.wrench.force.x  = ft(0);
+	_wrench_rt_pub->msg_.wrench.force.y  = ft(1);
+	_wrench_rt_pub->msg_.wrench.force.z  = ft(2);
+	_wrench_rt_pub->msg_.wrench.torque.x = ft(3);
+	_wrench_rt_pub->msg_.wrench.torque.y = ft(4);
+	_wrench_rt_pub->msg_.wrench.torque.z = ft(5);
 
-	_pub->unlockAndPublish();
+	_wrench_rt_pub->unlockAndPublish();
 	_last_pub_time = time;
     }
 
@@ -541,22 +595,99 @@ ForceTorqueSensorBroadcaster::update_and_write_commands(
 
 ForceTorqueSensorBroadcaster::ci_return_t
 ForceTorqueSensorBroadcaster::update_reference_from_subscribers(
-    const rclcpp::Time& time, const rclcpp::Duration& period)
+    const rclcpp::Time&, const rclcpp::Duration&)
 {
     return ci_return_t::OK;
 }
+  /*
+std::vector<ForceTorqueSensorBroadcaster::hw_state_if_t>
+ForceTorqueSensorBroadcaster::on_export_state_interfaces()
+{
+    std::vector<hw_state_if_t>	exported_state_interfaces;
 
+    std::vector<std::string>	force_names({params_.interface_names.force.x,
+					     params_.interface_names.force.y,
+					     params_.interface_names.force.z});
+    std::vector<std::string>	torque_names({params_.interface_names.torque.x,
+					      params_.interface_names.torque.y,
+					      params_.interface_names.torque.z});
+    std::string			export_prefix = get_node()->get_name();
+    if (!params_.sensor_name.empty())
+    {
+	const auto	semantic_comp_itf_names = _force_torque_sensor
+						->get_state_interface_names();
+	std::copy(semantic_comp_itf_names.begin(),
+		  semantic_comp_itf_names.begin() + 3, force_names.begin());
+	std::copy(semantic_comp_itf_names.begin() + 3,
+		  semantic_comp_itf_names.end(), torque_names.begin());
+
+      // Update the prefix and get the proper force and torque names
+	export_prefix = export_prefix + "/" + params_.sensor_name;
+      // strip "/" and get the second part of the information
+      // e.g. /ft_sensor/force.x -> force.x
+	std::for_each(force_names.begin(), force_names.end(),
+		      [](std::string & name)
+		      { name = name.substr(name.find_last_of("/") + 1); });
+	std::for_each(torque_names.begin(), torque_names.end(),
+		      [](std::string & name)
+		      { name = name.substr(name.find_last_of("/") + 1); });
+    }
+    if (!force_names[0].empty())
+    {
+	exported_state_interfaces.emplace_back(
+	    hardware_interface::StateInterface(
+		export_prefix, force_names[0],
+		&realtime_publisher_->msg_.wrench.force.x));
+    }
+    if (!force_names[1].empty())
+    {
+	exported_state_interfaces.emplace_back(
+	    hardware_interface::StateInterface(
+		export_prefix, force_names[1],
+		&realtime_publisher_->msg_.wrench.force.y));
+    }
+    if (!force_names[2].empty())
+    {
+	exported_state_interfaces.emplace_back(
+	    hardware_interface::StateInterface(
+		export_prefix, force_names[2],
+		&realtime_publisher_->msg_.wrench.force.z));
+    }
+    if (!torque_names[0].empty())
+    {
+	exported_state_interfaces.emplace_back(
+	    hardware_interface::StateInterface(
+		export_prefix, torque_names[0],
+		&realtime_publisher_->msg_.wrench.torque.x));
+    }
+    if (!torque_names[1].empty())
+    {
+	exported_state_interfaces.emplace_back(
+	    hardware_interface::StateInterface(
+		export_prefix, torque_names[1],
+		&realtime_publisher_->msg_.wrench.torque.y));
+    }
+    if (!torque_names[2].empty())
+    {
+	exported_state_interfaces.emplace_back(
+	    hardware_interface::StateInterface(
+		export_prefix, torque_names[2],
+		&realtime_publisher_->msg_.wrench.torque.z));
+    }
+    return exported_state_interfaces;
+}
+  */
 void
 ForceTorqueSensorBroadcaster::joint_state_cb(const joint_state_cp& joint_state)
 {
-    std::lock_guard<std::mutex>	lock(_joint_state_mtx);
+    std::lock_guard<std::mutex>	lock(_joint_positions_mtx);
 
     for (size_t i = 0; i < joint_state->name.size(); ++i)
 	_joint_positions[joint_state->name[i]] = joint_state->position[i];
 }
 
 void
-ForceTorqueSensorBroadcaster::take_sample_cb(const trigger_req& req,
+ForceTorqueSensorBroadcaster::take_sample_cb(const trigger_req&,
 					     const trigger_res& res)
 {
     take_sample();
@@ -567,7 +698,7 @@ ForceTorqueSensorBroadcaster::take_sample_cb(const trigger_req& req,
 }
 
 void
-ForceTorqueSensorBroadcaster::compute_calibration_cb(const trigger_req& req,
+ForceTorqueSensorBroadcaster::compute_calibration_cb(const trigger_req&,
 						     const trigger_res& res)
 {
     res->success = compute_calibration();
@@ -585,7 +716,7 @@ ForceTorqueSensorBroadcaster::compute_calibration_cb(const trigger_req& req,
 }
 
 void
-ForceTorqueSensorBroadcaster::save_calibration_cb(const trigger_req& req,
+ForceTorqueSensorBroadcaster::save_calibration_cb(const trigger_req&,
 						  const trigger_res& res)
 {
     try
@@ -618,7 +749,7 @@ ForceTorqueSensorBroadcaster::save_calibration_cb(const trigger_req& req,
 }
 
 void
-ForceTorqueSensorBroadcaster::clear_samples_cb(const trigger_req& req,
+ForceTorqueSensorBroadcaster::clear_samples_cb(const trigger_req&,
 					       const trigger_res& res)
 {
     clear_samples();
@@ -629,7 +760,7 @@ ForceTorqueSensorBroadcaster::clear_samples_cb(const trigger_req& req,
 }
 
 void
-ForceTorqueSensorBroadcaster::reset_bias_cb(const trigger_req& req,
+ForceTorqueSensorBroadcaster::reset_bias_cb(const trigger_req&,
 					    const trigger_res& res)
 {
     reset_bias();
@@ -637,16 +768,6 @@ ForceTorqueSensorBroadcaster::reset_bias_cb(const trigger_req& req,
     res->success = true;
     res->message = "reset_bias succeeded.";
     RCLCPP_INFO_STREAM(get_node()->get_logger(), res->message);
-}
-
-void
-ForceTorqueSensorBroadcaster::get_jnt_pos(
-    const std::vector<std::string>& jnt_name, KDL::JntArray& jnt_pos) const
-{
-    std::lock_guard<std::mutex>	lock(_joint_state_mtx);
-
-    for (size_t i = 0; i < jnt_name.size(); ++i)
-	jnt_pos(i) = _joint_positions.at(jnt_name[i]);
 }
 
 void
@@ -689,7 +810,7 @@ ForceTorqueSensorBroadcaster::compute_calibration()
 	V.col(2) *= -1;
     _q = V * Ut;					// rotation
 
-    const auto	k_var = _k_sqsum / _nsamples - k_mean.squaredNorm();
+    const auto	k_var = _k_sqsum / double(_nsamples) - k_mean.squaredNorm();
     const auto	scale = (svd.singularValues()(0) +
 			 svd.singularValues()(1)) / k_var;
     _m0 = m_mean - scale * (_q * normal.cross(k_mean));	// torque offset
@@ -726,8 +847,7 @@ ForceTorqueSensorBroadcaster::compute_calibration()
 void
 ForceTorqueSensorBroadcaster::save_calibration(std::ostream& out) const
 {
-    const auto	ns   = _nh.getNamespace();
-    const auto	name = ns.substr(ns.find_last_of('/') + 1);
+    const auto	name = get_node()->get_name();
 
     YAML::Emitter emitter;
     emitter << YAML::BeginMap;
@@ -825,6 +945,44 @@ ForceTorqueSensorBroadcaster::set_filter_cutoff_frequency(
     _filter.initialize(_filter.half_order(),
 		       cutoff_frequency*_pub_interval.seconds());
     _filter.reset(_ft);
+}
+
+ForceTorqueSensorBroadcaster::vector_t
+ForceTorqueSensorBroadcaster::vector_param(const std::string& name)
+{
+    const auto	v = ddynamic_reconfigure2::declare_read_only_parameter(
+			get_node(), name,
+			std::vector<double>({0.0, 0.0, 0.0}));
+    if (v.size() == 3)
+	return {v[0], v[1], v[2]};
+
+    return {0.0, 0.0, 0.0};
+}
+
+ForceTorqueSensorBroadcaster::quaternion_t
+ForceTorqueSensorBroadcaster::quaternion_param(const std::string& name)
+{
+    const auto	v = ddynamic_reconfigure2::declare_read_only_parameter(
+			get_node(), name,
+			std::vector<double>({0.0, 0.0, 0.0, 1.0}));
+    if (v.size() == 4)
+	return {v[3], v[0], v[1], v[2]};
+
+    return {1.0, 0.0, 0.0, 0.0};
+}
+
+KDL::JntArray
+ForceTorqueSensorBroadcaster::get_jnt_pos(
+    const std::vector<std::string>& jnt_name) const
+{
+    KDL::JntArray	jnt_pos(u_int(jnt_name.size()));
+
+    std::lock_guard<std::mutex>	lock(_joint_positions_mtx);
+
+    for (u_int i = 0; i < jnt_name.size(); ++i)
+	jnt_pos(i) = _joint_positions.at(jnt_name[i]);
+
+    return jnt_pos;
 }
 }	// namespace aist_ftsensor
 
