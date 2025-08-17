@@ -3,6 +3,9 @@
 
   <xacro:macro name="base_fixture" params="prefix parent *origin">
 
+    <xacro:include filename="$(find aist_description
+			     )/objects/urdf/primitive_inertia.urdf.xacro"/>
+
     <xacro:macro name="load_properties" params="filename">
       <xacro:property name="properties"
 		      value="${xacro.load_yaml(filename)['base_fixture']}"/>
@@ -42,9 +45,9 @@
 	<origin xyz="${body_vorigin[0]}
 		     ${body_vorigin[1]}
 		     ${body_vorigin[2]}"
-		rpy="${body_vorigin[3]*pi/180.0}
-		     ${body_vorigin[4]*pi/180.0}
-		     ${body_vorigin[5]*pi/180.0}"/>
+		rpy="${radians(body_vorigin[3])}
+		     ${radians(body_vorigin[4])}
+		     ${radians(body_vorigin[5])}"/>
         <geometry>
           <mesh filename="${visual_meshes[0]['url']}"
 		scale="${body_vscale[0]} ${body_vscale[1]} ${body_vscale[2]}"/>
@@ -58,18 +61,24 @@
 	<origin xyz="${body_corigin[0]}
 		     ${body_corigin[1]}
 		     ${body_corigin[2]}"
-		rpy="${body_corigin[3]*pi/180.0}
-		     ${body_corigin[4]*pi/180.0}
-		     ${body_corigin[5]*pi/180.0}"/>
+		rpy="${radians(body_corigin[3])}
+		     ${radians(body_corigin[4])}
+		     ${radians(body_corigin[5])}"/>
         <geometry>
 	  <box size="${body_cdims[0]} ${body_cdims[1]} ${body_cdims[2]}"/>
         </geometry>
       </collision>
       <inertial>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <mass value="0.86387"/>
-        <inertia ixx="1017560E-9" ixy="0" ixz="2235E-9"
-		 iyy="1028041E-9" iyz="0" izz="489810E-9"/>
+	<origin xyz="${body_corigin[0]}
+		     ${body_corigin[1]}
+		     ${body_corigin[2]}"
+		rpy="${radians(body_corigin[3])}
+		     ${radians(body_corigin[4])}
+		     ${radians(body_corigin[5])}"/>
+        <xacro:box_inertia width="${body_cdims[0]}"
+			   length="${body_cdims[1]}"
+			   height="${body_cdims[2]}"
+			   mass="0.86387"/>
       </inertial>
     </link>
 
@@ -96,9 +105,9 @@
       	<origin xyz="${piston_vorigin[0]}
       		     ${piston_vorigin[1]}
       		     ${piston_vorigin[2]}"
-      		rpy="${piston_vorigin[3]*pi/180.0}
-      		     ${piston_vorigin[4]*pi/180.0}
-      		     ${piston_vorigin[5]*pi/180.0}"/>
+      		rpy="${radians(piston_vorigin[3])}
+      		     ${radians(piston_vorigin[4])}
+      		     ${radians(piston_vorigin[5])}"/>
         <geometry>
           <mesh filename="${visual_meshes[1]['url']}"
       		scale="${piston_vscale[0]}
@@ -114,9 +123,9 @@
 	<origin xyz="${piston_corigin[0]}
 		     ${piston_corigin[1]}
 		     ${piston_corigin[2]}"
-		rpy="${piston_corigin[3]*pi/180.0}
-		     ${piston_corigin[4]*pi/180.0}
-		     ${piston_corigin[5]*pi/180.0}"/>
+		rpy="${radians(piston_corigin[3])}
+		     ${radians(piston_corigin[4])}
+		     ${radians(piston_corigin[5])}"/>
         <geometry>
 	  <box size="${piston_cdims[0]}
 		     ${piston_cdims[1]}
@@ -124,10 +133,17 @@
         </geometry>
       </collision>
       <inertial>
-        <origin xyz="0.02262 -0.00759 0.00738" rpy="0 0 0"/>
+	<origin xyz="${piston_corigin[0]}
+		     ${piston_corigin[1]}
+		     ${piston_corigin[2]}"
+		rpy="${radians(piston_corigin[3])}
+		     ${radians(piston_corigin[4])}
+		     ${radians(piston_corigin[5])}"/>
         <mass value="0.03804"/>
-        <inertia ixx="13567E-9" ixy="1849E-9" ixz="3622E-9"
-		 iyy="15784E-9" iyz="3616E-9" izz="7478E-9"/>
+        <xacro:box_inertia width="${piston_cdims[0]}"
+			   length="${piston_cdims[1]}"
+			   height="${piston_cdims[2]}"
+			   mass="0.03804"/>
       </inertial>
     </link>
 
@@ -140,9 +156,9 @@
       <origin xyz="${tip_link_origin[0]}
 		   ${tip_link_origin[1]}
 		   ${tip_link_origin[2]}"
-	      rpy="${tip_link_origin[3]*pi/180.0}
-		   ${tip_link_origin[4]*pi/180.0}
-		   ${tip_link_origin[5]*pi/180.0}"/>
+	      rpy="${radians(tip_link_origin[3])}
+		   ${radians(tip_link_origin[4])}
+		   ${radians(tip_link_origin[5])}"/>
     </joint>
     <link name="${prefix}tip_link"/>
 
@@ -155,9 +171,9 @@
       <origin xyz="${piston_head_origin[0]}
 		   ${piston_head_origin[1]}
 		   ${piston_head_origin[2]}"
-	      rpy="${piston_head_origin[3]*pi/180.0}
-		   ${piston_head_origin[4]*pi/180.0}
-		   ${piston_head_origin[5]*pi/180.0}"/>
+	      rpy="${radians(piston_head_origin[3])}
+		   ${radians(piston_head_origin[4])}
+		   ${radians(piston_head_origin[5])}"/>
     </joint>
     <link name="${prefix}piston_head"/>
 

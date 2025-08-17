@@ -1,7 +1,23 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro" name="b_bot_base_scene" >
 
-  <xacro:arg name="scene" default=""/>
+  <xacro:arg name="scene"	default=""/>
+  <xacro:arg name="sim"		default="false"/>
+
+  <!-- ur_robot_driver -->
+  <xacro:property name="b_bot_ip"	value="10.66.171.41"/>
+  <xacro:property name="script_filename"
+		  value="$(find ur_client_library
+			 )/resources/external_control.urscript"/>
+  <xacro:property name="output_recipe_filename"
+		  value="$(find ur_robot_driver
+			 )/resources/rtde_output_recipe.txt"/>
+  <xacro:property name="input_recipe_filename"
+		  value="$(find ur_robot_driver
+			 )/resources/rtde_input_recipe.txt"/>
+
+  <xacro:arg name="hw_interface"	default="PositionJointInterface"/>
+					<!-- or "VelocityJointInterface" -->
 
   <xacro:property name="b_bot_x"	value="0"/>
   <xacro:property name="b_bot_y"	value="0.4875"/>
@@ -87,26 +103,28 @@
   </xacro:suction_tool_holder>
 
   <!-- robot arms -->
-  <xacro:include filename="$(find ur_gazebo)/urdf/ur_macro.xacro"/>
-  <xacro:ur_robot_gazebo
-      prefix="b_bot_"
-      joint_limits_parameters_file="$(find ur_description
-				    )/config/ur5e/joint_limits.yaml"
-      physical_parameters_file="$(find ur_description
-				)/config/ur5e/physical_parameters.yaml"
-      visual_parameters_file="$(find ur_description
-			      )/config/ur5e/visual_parameters.yaml"
-      kinematics_parameters_file="$(find aist_bringup
-				  )/config/b_bot_calibration.yaml"
-      transmission_hw_interface="hardware_interface/PositionJointInterface"
+  <xacro:include
+      filename="$(find aist_description
+		)/devices/urdf/ur_robot_with_ros2_control.urdf.xacro"/>
+  <xacro:ur_robot_with_ros2_control
+      name="b_bot"
+      sim="$(arg sim)"
+      ur_type="ur5e"
+      tf_prefix="b_bot_"
+      parent="b_bot_table_top_center"
       safety_limits="true"
-      safety_pos_margin="0.3"/>
-
-  <joint name="b_bot_base_link_joint" type="fixed">
-    <parent link="b_bot_table_top_center"/>
-    <child  link="b_bot_base_link"/>
-    <origin xyz="0 0 0 " rpy="0 0 ${b_bot_theta}"/>
-  </joint>
+      safety_pos_margin="0.15"
+      script_filename=""
+      input_recipe_filename=""
+      output_recipe_filename=""
+      robot_ip="${b_bot_ip}"
+      reverse_port="50005"
+      script_sender_port="50006"
+      reverse_ip="0.0.0.0"
+      script_command_port="50008"
+      trajectory_port="50007">
+    <origin xyz="0 0 0" rpy="0 0 ${b_bot_theta}"/>
+  </xacro:ur_robot_with_ros2_control>
 
   <!-- Spawn and attach gripper -->
   <xacro:include filename="$(find aist_robotiq
@@ -144,12 +162,12 @@
 
   <!-- Add RealSense cameras -->
   <xacro:include filename="$(find aist_description
-  			   )/devices/urdf/sr305_on_2f85.urdf.xacro" />
+			   )/devices/urdf/sr305_on_2f85.urdf.xacro" />
   <xacro:sr305_on_2f85 prefix="b_bot_"
-  		       parent="b_bot_gripper_base_link"
-  		       use_nominal_extrinsics="true"/>
+		       parent="b_bot_gripper_base_link"
+		       use_nominal_extrinsics="true"/>
 
-  <!-- Add live camera -->
+  Add live camera
   <xacro:load_calibration filename="$(find aist_camera_calibration
 				    )/calib/live_camera.yaml"/>
   <link name="live_camera_optical_frame"/>

@@ -1,0 +1,6 @@
+<library path="dynpick_driver">
+  <class name="aist_ftsensor_broadcaster/dynpick_driver"
+	 type="aist_ftsensor::dynpick_driver"
+	 base_class_type="controller_interface::ChainableControllerInterface">
+  </class>
+</library>

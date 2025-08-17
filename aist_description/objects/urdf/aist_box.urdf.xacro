@@ -2,8 +2,10 @@
 <robot xmlns:xacro="http://wiki.ros.org/xacro">
   <xacro:macro name="aist_box"
 	       params="name width length height parent
-		       rgba:='0.7 0.7 0.7 1' color_name:=aist_color
+		       rgba:='0.7 0.7 0.7 1' color_name:=aist_color mass:=1.0
 		       *origin">
+    <xacro:include filename="$(find aist_description
+			     )/objects/urdf/primitive_inertia.urdf.xacro"/>
     <link name="${name}">
       <!-- w is in x, l is in y, h is in z -->
       <visual>
@@ -24,9 +26,9 @@
 
       <!-- This is required for Gazebo. -->
       <inertial>
-        <mass value="1.0"/>
-        <!-- <origin xyz="${width/2} ${length} ${height/2}" rpy="0 0 0"/> -->
-        <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
+	<origin xyz="${width/2} ${length} ${height/2}" rpy="0 0 0"/>
+	<xacro:box_inertia width="${width}" length="${length}"
+			   height="${height}" mass="${mass}"/>
       </inertial>
     </link>
     <gazebo reference="${name}">

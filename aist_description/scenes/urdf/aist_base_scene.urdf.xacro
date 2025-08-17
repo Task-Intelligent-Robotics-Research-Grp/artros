@@ -1,8 +1,23 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro" name="aist_base_scene" >
 
-  <xacro:arg name="scene" default=""/>
+  <xacro:arg name="scene"	default=""/>
+  <xacro:arg name="sim"		default="false"/>
 
+  <!-- ur_robot_driver -->
+  <xacro:property name="a_bot_ip"	value="10.66.171.40"/>
+  <xacro:property name="b_bot_ip"	value="10.66.171.41"/>
+  <xacro:property name="script_filename"
+		  value="$(find ur_client_library
+			 )/resources/external_control.urscript"/>
+  <xacro:property name="output_recipe_filename"
+		  value="$(find ur_robot_driver
+			 )/resources/rtde_output_recipe.txt"/>
+  <xacro:property name="input_recipe_filename"
+		  value="$(find ur_robot_driver
+			 )/resources/rtde_input_recipe.txt"/>
+
+  <!-- location of robot arms -->
   <xacro:property name="a_bot_x"	value="0"/>
   <xacro:property name="a_bot_y"	value="-0.4875"/>
   <xacro:property name="a_bot_z"	value="0.766"/>
@@ -103,40 +118,48 @@
   </xacro:suction_tool_holder>
 
   <!-- robot arms -->
-  <xacro:include filename="$(find ur_description)/urdf/ur_macro.xacro"/>
-  <xacro:ur_robot
+  <xacro:include
+      filename="$(find aist_description
+		)/devices/urdf/ur_robot_with_ros2_control.urdf.xacro"/>
+  <xacro:ur_robot_with_ros2_control
+      sim="$(arg sim)"
+      ur_type="ur5e"
       name="a_bot"
       tf_prefix="a_bot_"
       parent="a_bot_table_top_center"
-      joint_limits_parameters_file="$(find ur_description
-				    )/config/ur5e/joint_limits.yaml"
-      physical_parameters_file="$(find ur_description
-				)/config/ur5e/physical_parameters.yaml"
-      visual_parameters_file="$(find ur_description
-			      )/config/ur5e/visual_parameters.yaml"
-      kinematics_parameters_file="$(find aist_description
-				  )/scenes/calib/a_bot.yaml"
       safety_limits="true"
-      safety_pos_margin="0.15">
+      safety_pos_margin="0.15"
+      script_filename="${script_filename}"
+      input_recipe_filename="${input_recipe_filename}"
+      output_recipe_filename="${output_recipe_filename}"
+      robot_ip="${a_bot_ip}"
+      reverse_port="50001"
+      script_sender_port="50002"
+      reverse_ip="0.0.0.0"
+      script_command_port="50004"
+      trajectory_port="50003">
     <origin xyz="0 0 0 " rpy="0 0 0"/>
-  </xacro:ur_robot>
+  </xacro:ur_robot_with_ros2_control>
 
-  <xacro:ur_robot
+  <xacro:ur_robot_with_ros2_control
+      sim="$(arg sim)"
+      ur_type="ur5e"
       name="b_bot"
       tf_prefix="b_bot_"
       parent="b_bot_table_top_center"
-      joint_limits_parameters_file="$(find ur_description
-				    )/config/ur5e/joint_limits.yaml"
-      physical_parameters_file="$(find ur_description
-				)/config/ur5e/physical_parameters.yaml"
-      visual_parameters_file="$(find ur_description
-			      )/config/ur5e/visual_parameters.yaml"
-      kinematics_parameters_file="$(find aist_description
-				  )/scenes/calib/b_bot.yaml"
       safety_limits="true"
-      safety_pos_margin="0.15">
+      safety_pos_margin="0.15"
+      script_filename=""
+      input_recipe_filename=""
+      output_recipe_filename=""
+      robot_ip="${b_bot_ip}"
+      reverse_port="50005"
+      script_sender_port="50006"
+      reverse_ip="0.0.0.0"
+      script_command_port="50008"
+      trajectory_port="50007">
     <origin xyz="0 0 0" rpy="0 0 ${b_bot_theta}"/>
-  </xacro:ur_robot>
+  </xacro:ur_robot_with_ros2_control>
 
   <!-- Spawn and attach grippers -->
   <xacro:include filename="$(find aist_robotiq
@@ -191,17 +214,17 @@
   </xacro:motioncam_m_camera>
 
   <!-- Add RealSense cameras -->
-  <!-- <xacro:include filename="$(find aist_description -->
-  <!-- 			   )/devices/urdf/sr305_on_2f140.urdf.xacro" /> -->
-  <!-- <xacro:sr305_on_2f140 prefix="a_bot_" -->
-  <!-- 			parent="a_bot_gripper_base_link" -->
-  <!-- 			use_nominal_extrinsics="true"/> -->
-  <!-- <xacro:include filename="$(find aist_description -->
-  <!-- 			   )/devices/urdf/sr305_on_2f85.urdf.xacro" /> -->
-  <!-- <xacro:sr305_on_2f85 prefix="b_bot_" -->
-  <!-- 		       parent="b_bot_gripper_base_link" -->
-  <!-- 		       use_nominal_extrinsics="true"/> -->
-
+  <xacro:include filename="$(find aist_description
+			   )/devices/urdf/sr305_on_2f140.urdf.xacro" />
+  <xacro:sr305_on_2f140 prefix="a_bot_"
+			parent="a_bot_gripper_base_link"
+			use_nominal_extrinsics="true"/>
+  <xacro:include filename="$(find aist_description
+			   )/devices/urdf/sr305_on_2f85.urdf.xacro" />
+  <xacro:sr305_on_2f85 prefix="b_bot_"
+		       parent="b_bot_gripper_base_link"
+		       use_nominal_extrinsics="true"/>
+l
   <!-- Add live camera -->
   <xacro:load_calibration filename="$(find aist_description
 				    )/scenes/calib/live_camera.yaml"/>

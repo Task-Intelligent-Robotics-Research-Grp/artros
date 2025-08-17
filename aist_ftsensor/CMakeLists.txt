@@ -111,14 +111,19 @@ install(
 )
 
 # Intall plugins
-install(FILES aist_ftsensor_plugin.xml
-              config/ftsensor_controller.yaml
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+install(
+  FILES       aist_ftsensor_plugin.xml
+  DESTINATION share/${PROJECT_NAME}
 )
 
 install(
-  PROGRAMS scripts/run_calibration.py
+  PROGRAMS    scripts/run_calibration.py
   DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  DIRECTORY   config launch
+  DESTINATION share/${PROJECT_NAME}
 )
 
 ament_export_targets(export_${PROJECT_NAME}_broadcaster HAS_LIBRARY_TARGET)

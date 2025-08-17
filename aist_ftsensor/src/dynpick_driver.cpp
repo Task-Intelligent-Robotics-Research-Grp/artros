@@ -38,7 +38,6 @@
  *  \brief	ROS driver for Wacohtech DYNPICK force-torque sensors
  */
 #include <rclcpp/rclcpp.hpp>
-#include <controller_manager/controller_manager.h>
 #include <hardware_interface/sensor_interface.hpp>
 #include <cstdio>
 #include <cstring>
@@ -55,43 +54,81 @@ namespace aist_ftsensor
 class dynpick_driver : public hardware_interface::SensorInterface
 {
   private:
-    using interface_t	= hardware_interface::ForceTorqueSensorInterface;
-    using handle_t	= hardware_interface::ForceTorqueSensorHandle;
-    using manager_t	= controller_manager::ControllerManager;
+    using super		= hardware_interface::SensorInterface;
+    using hw_info_t	= hardware_interface::HardwareInfo;
+    using cb_return_t	= hardware_interface::CallbackReturn;
+    using hi_return_t	= hardware_interface::return_type;
+    using lc_state_t	= rclcpp_lifecycle::State;
+
     using response_t	= std::array<char, 256>;
     using vector6_t	= std::array<double, 6>;
     using timer_p	= rclcpp::TimerBase::SharedPtr;
 
   public:
-			dynpick_driver()				;
-    virtual		~dynpick_driver()				;
+		dynpick_driver()					;
 
-    void		run()						;
-    virtual void	read(const rclcpp::Time&,
-			     const rclcpp::Duration&)			;
-
-  private:
-    vector6_t		get_gains()				const	;
-    static int		open_tty(const char* dev, u_int baud)		;
-    void		put_command(const char* cmd)		const	;
-    response_t		get_response()				const	;
+    cb_return_t	on_init(const hw_info_t& info)			override;
+    cb_return_t	on_activate(const lc_state_t& prev_state)	override;
+    cb_return_t	on_deactivate(const lc_state_t& prev_state)	override;
+    
+    hi_return_t read(const rclcpp::Time&,
+		     const rclcpp::Duration&)			override;
 
   private:
-    const int		_fd;
+    vector6_t	get_gains()					const	;
+    static int	open_tty(const char* dev, u_int baud)			;
+    void	put_command(const char* cmd)			const	;
+    response_t	get_response()					const	;
+
+  private:
+    rclcpp::logger	_klogger;
+    int			_fd;
     interface_t		_interface;
-    const vector6_t	_gains;
+    vector6_t		_gains;
     vector6_t		_ft;
 };
 
 dynpick_driver::dynpick_driver()
-    :_fd(open_tty(_nh.param<std::string>("dev", "/dev/ttyUSB0").c_str(),
-		  _nh.param<int>("baud", 921600))),
+    :_klogger(rclcpp::get_logger("dynpick_driver")),
+     _fd(-1),
      _interface(),
-     _gains(get_gains()),
+     _gains{0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
      _ft{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}
 {
+}
+
+dynpick_driver::cb_return_t    
+dynpick_driver::on_init(const hw_info_t& info)
+{
+    if (super::on_init(info) != cb_return_t::SUCCESS)
+	return cb_return_t::ERROR;
+
+    const auto	dev  = info_.hardware_parameters["dev"];
+    const auto	baud = std::stoi(info._hardware_parameters["baud"]);
+
+    _fd = open_tty(dev.c_str(), baud);
+
+    if (_fd < 0)
+    {
+	RCLCPP_ERROR_STREAM(_klogger, "failed open tty["
+			    << dev << "] with baud[" << baud << ']');
+	return cb_return_t::ERROR;
+    }
+    
+    RCLCPP_INFO_STREAM(_klogger, "successfully opened tty["
+		       << dev << "] with baud[" << baud << ']');
+    return cb_return_t::SUCCESS;
+}
+
+dynpick_driver::cb_return_t    
+dynpick_driver::on_activate(const li_state_t&)
+{
+  // Get gains
+    _gains = get_gains();
+    
   // Reset offsets.
-    if (_nh.param<bool>("reset_offsets", false))
+    if (const auto reset_offsets = info_.hardware_parameters["reset_offsets"];
+	reset_offsets == "True" || reset_offsets == "true")
     {
 	put_command("O");
 	put_command("O");
@@ -99,13 +136,15 @@ dynpick_driver::dynpick_driver()
 	put_command("R");
 	const auto&	res = get_response();
 
-	RCLCPP_INFO_STREAM(get_logger(),
-			   "(dynpick_driver) reset_offsets: " << res.data());
+	RCLCPP_INFO_STREAM(_klogger,
+			   "reset_offsets: " << res.data());
     }
 
   // Set number of points used for averaging filter.
-    const auto	avg_npoints = _nh.param<int>("avg_npoints", 1);
-    switch (avg_npoints)
+    
+    switch (const auto
+	    avg_npoints = std::stoi(info_.hardward_parameters["avg_npoints"]);
+	    avg_npoints)
     {
       case 1:
 	put_command("1F");
@@ -120,10 +159,10 @@ dynpick_driver::dynpick_driver()
 	put_command("8F");
 	break;
       default:
-	RCLCPP_ERROR_STREAM(get_logger(),
+	RCLCPP_ERROR_STREAM(_klogger,
 			    "(dynpick_driver) unsupported avg_npoints value["
 			    << avg_npoints << ']');
-	throw;
+	return cb_return_t::ERROR;
     }
 
   // Register hardware interface handle.
@@ -131,14 +170,8 @@ dynpick_driver::dynpick_driver()
     _interface.registerHandle(handle_t("wrench", frame_id, &_ft[0], &_ft[3]));
     registerInterface(&_interface);
 
-    RCLCPP_INFO_STREAM(get_logger(),
-		       "(dynpick_driver) dynpick_driver started.");
-}
-
-dynpick_driver::~dynpick_driver()
-{
-    if (_fd >= 0)
-	::close(_fd);
+    RCLCPP_INFO_STREAM(_klogger, "driver activated");
+    return cb_return_t::SUCCESS;
 }
 
 void
@@ -160,7 +193,7 @@ dynpick_driver::run()
     spinner.stop();
 }
 
-void
+dynpick_driver::hi_return_t
 dynpick_driver::read(const ros::Time&, const ros::Duration&)
 {
     put_command("R");
@@ -177,6 +210,8 @@ dynpick_driver::read(const ros::Time&, const ros::Duration&)
     _ft[3] = _gains[3] * (data[3] - 8192);
     _ft[4] = _gains[4] * (data[4] - 8192);
     _ft[5] = _gains[5] * (data[5] - 8192);
+
+    return hi_return_t::OK;
 }
 
 dynpick_driver::vector6_t
@@ -184,8 +219,7 @@ dynpick_driver::get_gains() const
 {
     put_command("p");
     const auto&	res = get_response();
-    RCLCPP_INFO_STREAM(get_logger(),
-		       "(dynpick_driver) sensitivities: " << res.data());
+    RCLCPP_INFO_STREAM(_klogger, "sensitivities: " << res.data());
 
     vector6_t	gains;
     sscanf(res.data(), "%lf,%lf,%lf,%lf,%lf,%lf",
@@ -204,9 +238,8 @@ dynpick_driver::open_tty(const char* dev, u_int baud)
     const auto	fd = ::open(dev, O_RDWR | O_NOCTTY);
     if (fd < 0)
     {
-	RCLCPP_ERROR_STREAM(get_logger(),
-			    "(dynpick_driver) failed to open tty: "
-			    << strerror(errno));
+	RCLCPP_ERROR_STREAM(_klogger,
+			    "failed to open tty: " << strerror(errno));
 	throw;
     }
 
@@ -234,9 +267,8 @@ dynpick_driver::open_tty(const char* dev, u_int baud)
 	    baud = B921600;
 	    break;
 	  default:
-	    RCLCPP_ERROR_STREAM(get_logger(),
-				"(dynpick_driver) unsupported baud rate["
-				<< baud << ']');
+	    RCLCPP_ERROR_STREAM(_klogger,
+				"unsupported baud rate[" << baud << ']');
 	    throw;
 	}
 
@@ -279,9 +311,8 @@ dynpick_driver::put_command(const char* cmd) const
 {
     if (::write(_fd, cmd, ::strlen(cmd)) < 0)
     {
-	RCLCPP_ERROR_STREAM(get_logger(),
-			    "(ftsensor) failed to write to tty: "
-			    << strerror(errno));
+	RCLCPP_ERROR_STREAM(_klogger,
+			    "failed to write to tty: " << strerror(errno));
 	throw;
     }
 }
@@ -296,8 +327,8 @@ dynpick_driver::get_response() const
 	const auto	n = ::read(_fd, &res[nbytes], res.size() - nbytes);
 	if (n < 0)
 	{
-	    RCLCPP_ERROR_STREAM(get_logger(),
-				"(ftsensor) failed to read from tty: "
+	    RCLCPP_ERROR_STREAM(_klogger,
+				"failed to read from tty: "
 				<< strerror(errno));
 	    throw;
 	}
@@ -310,6 +341,8 @@ dynpick_driver::get_response() const
 
 }	// namepsace aist_ftsensor
 
-#include <rclcpp_components/register_node_macro.hpp>
+#include <pluginlib/class_list_macros.hpp>
 
-RCLCPP_COMPONENTS_REGISTER_NODE(aist_ftsensor::dynpick_driver)
+PLUGINLIB_EXPORT_CLASS(aist_ftsensor::dynpick_driver,
+		       hardware_interface::SensorInterface)
+

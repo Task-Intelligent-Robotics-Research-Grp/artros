@@ -1,0 +1,110 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+
+  <xacro:macro name="ur_robot_with_ros2_control"
+	       params="sim
+		       ur_type
+		       name
+		       tf_prefix
+		       parent
+		       *origin
+		       safety_limits:=false
+		       safety_pos_margin:=0.15
+		       safety_k_position:=20
+		       force_abs_paths:=false
+		       robot_ip
+		       script_filename
+		       input_recipe_filename
+		       output_recipe_filename
+		       transmission_hw_interface:=hardware_interface/PositionJointInterface
+		       use_mock_hardware:=false
+		       mock_sensor_commands:=false
+		       headless_mode:=false
+		       initial_positions:=${dict(shoulder_pan_joint=0.0,shoulder_lift_joint=-1.57,elbow_joint=0.0,wrist_1_joint=-1.57,wrist_2_joint=0.0,wrist_3_joint=0.0)}
+		       use_tool_communication:=false
+		       tool_voltage:=0
+		       tool_parity:=0
+		       tool_baud_rate:=115200
+		       tool_stop_bits:=1
+		       tool_rx_idle_chars:=1.5
+		       tool_tx_idle_chars:=3.5
+		       tool_device_name:=/tmp/ttyUR
+		       tool_tcp_port:=54321
+		       reverse_port:=50001
+		       script_sender_port:=50002
+		       reverse_ip:=0.0.0.0
+		       script_command_port:=50004
+		       trajectory_port:=50003
+		       non_blocking_read:=true
+		       robot_receive_timeout:=0.04">
+
+    <xacro:include filename="$(find ur_description)/urdf/ur_macro.xacro"/>
+    <xacro:ur_robot
+	name="${name}"
+	tf_prefix="${tf_prefix}"
+	parent="${parent}"
+	joint_limits_parameters_file="$(find ur_description
+				      )/config/${ur_type}/joint_limits.yaml"
+	physical_parameters_file="$(find ur_description
+				  )/config/${ur_type}/physical_parameters.yaml"
+	visual_parameters_file="$(find ur_description
+				)/config/${ur_type}/visual_parameters.yaml"
+	kinematics_parameters_file="$(find aist_description
+				    )/scenes/calib/${name}.yaml"
+	safety_limits="${safety_limits}"
+	safety_pos_margin="${safety_pos_margin}"
+	safety_k_position="${safety_k_position}"
+	force_abs_paths="${force_abs_paths}">
+      <xacro:insert_block name="origin"/>
+    </xacro:ur_robot>
+
+    <!-- ros2_control settings for real arms -->
+    <xacro:unless value="$(arg sim)">
+      <xacro:include filename="$(find ur_robot_driver
+			       )/urdf/ur.ros2_control.xacro"/>
+      <xacro:ur_ros2_control
+	  name="${name}"
+	  tf_prefix="${tf_prefix}"
+	  kinematics_parameters_file="$(find aist_description
+				      )/scenes/calib/${name}.yaml"
+	  robot_ip="${robot_ip}"
+	  script_filename="${script_filename}"
+	  input_recipe_filename="${input_recipe_filename}"
+	  output_recipe_filename="${output_recipe_filename}"
+	  transmission_hw_interface="${transmission_hw_interface}"
+	  use_mock_hardware="${use_mock_hardware}"
+	  mock_sensor_commands="${mock_sensor_commands}"
+	  headless_mode="${headless_mode}"
+	  initial_positions="${initial_positions}"
+	  use_tool_communication="{use_tool_communications}"
+	  tool_voltage="${tool_voltage}"
+	  tool_parity="${tool_parity}"
+	  tool_baud_rate="${tool_baud_rate}"
+	  tool_stop_bits="${tool_stop_bits}"
+	  tool_rx_idle_chars="${tool_rx_idle_chars}"
+	  tool_tx_idle_chars="${tool_tx_idle_chars}"
+	  tool_device_name="${tool_device_name}"
+	  tool_tcp_port="${tool_tcp_port}"
+	  reverse_port="${reverse_port}"
+	  script_sender_port="${script_sender_port}"
+	  reverse_ip="${reverse_ip}"
+	  script_command_port="${script_command_port}"
+	  trajectory_port="${trajectory_port}"
+	  non_blocking_read="${non_blocking_read}"
+	  robot_receive_timeout="${robot_receive_timeout}"/>
+    </xacro:unless>
+
+    <!-- ros2_control settings for gazebo -->
+    <xacro:if value="$(arg sim)">
+      <xacro:include filename="$(find ur_simulation_gz
+			       )/urdf/ur_gz.ros2_control.xacro"/>
+      <xacro:ur_gz_ros2_control
+	  name="${name}"
+	  tf_prefix="${tf_prefix}"
+	  transmission_hw_interface="${transmission_hw_interface}"
+	  initial_positions="${initial_positions}"/>
+    </xacro:if>
+
+  </xacro:macro>
+
+</robot>

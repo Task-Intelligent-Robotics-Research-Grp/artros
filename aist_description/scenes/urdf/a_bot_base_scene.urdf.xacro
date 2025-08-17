@@ -1,7 +1,21 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro" name="a_bot_base_scene" >
 
-  <xacro:arg name="scene"		default=""/>
+  <xacro:arg name="scene"	default=""/>
+  <xacro:arg name="sim"		default="false"/>
+
+  <!-- ur_robot_driver -->
+  <xacro:property name="a_bot_ip"	value="10.66.171.40"/>
+  <xacro:property name="script_filename"
+		  value="$(find ur_client_library
+			 )/resources/external_control.urscript"/>
+  <xacro:property name="output_recipe_filename"
+		  value="$(find ur_robot_driver
+			 )/resources/rtde_output_recipe.txt"/>
+  <xacro:property name="input_recipe_filename"
+		  value="$(find ur_robot_driver
+			 )/resources/rtde_input_recipe.txt"/>
+
   <xacro:arg name="hw_interface"	default="PositionJointInterface"/>
 					<!-- or "VelocityJointInterface" -->
 
@@ -94,26 +108,28 @@
   </xacro:suction_tool_holder>
 
   <!-- robot arms -->
-  <xacro:include filename="$(find ur_gazebo)/urdf/ur_macro.xacro"/>
-  <xacro:ur_robot_gazebo
-      prefix="a_bot_"
-      joint_limits_parameters_file="$(find ur_description
-				    )/config/ur5e/joint_limits.yaml"
-      physical_parameters_file="$(find ur_description
-				)/config/ur5e/physical_parameters.yaml"
-      visual_parameters_file="$(find ur_description
-			      )/config/ur5e/visual_parameters.yaml"
-      kinematics_parameters_file="$(find aist_bringup
-				  )/config/a_bot_calibration.yaml"
-      transmission_hw_interface="hardware_interface/$(arg hw_interface)"
+  <xacro:include
+      filename="$(find aist_description
+		)/devices/urdf/ur_robot_with_ros2_control.urdf.xacro"/>
+  <xacro:ur_robot_with_ros2_control
+      name="a_bot"
+      sim="$(arg sim)"
+      ur_type="ur5e"
+      tf_prefix="a_bot_"
+      parent="a_bot_table_top_center"
       safety_limits="true"
-      safety_pos_margin="0.3"/>
-
-  <joint name="a_bot_base_link_joint" type="fixed">
-    <parent link="a_bot_table_top_center"/>
-    <child  link="a_bot_base_link"/>
+      safety_pos_margin="0.15"
+      script_filename="${script_filename}"
+      input_recipe_filename="${input_recipe_filename}"
+      output_recipe_filename="${output_recipe_filename}"
+      robot_ip="${a_bot_ip}"
+      reverse_port="50001"
+      script_sender_port="50002"
+      reverse_ip="0.0.0.0"
+      script_command_port="50004"
+      trajectory_port="50003">
     <origin xyz="0 0 0 " rpy="0 0 0"/>
-  </joint>
+  </xacro:ur_robot_with_ros2_control>
 
   <!-- Set gazebo plugin for FT-sensors -->
   <xacro:include filename="$(find aist_description
@@ -148,12 +164,12 @@
     <origin xyz="0.000 -0.051 0.000" rpy="${pi/2} ${-pi/2} 0"/>
   </xacro:usb_repeater>
 
-  <!-- RealSense cameras -->
+  <!-- <!-\- RealSense cameras -\-> -->
   <xacro:include filename="$(find aist_description
-  			   )/devices/urdf/sr305_on_2f140.urdf.xacro" />
+			   )/devices/urdf/sr305_on_2f140.urdf.xacro" />
   <xacro:sr305_on_2f140 prefix="a_bot_"
-  			parent="a_bot_gripper_base_link"
-  			use_nominal_extrinsics="true"/>
+			parent="a_bot_gripper_base_link"
+			use_nominal_extrinsics="true"/>
 
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
   <link name="world"/>
