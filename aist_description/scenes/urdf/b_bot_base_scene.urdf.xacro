@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro" name="b_bot_base_scene" >
 
-  <xacro:arg name="scene"	default=""/>
-  <xacro:arg name="sim"		default="false"/>
+  <xacro:arg name="scene"			default=""/>
+  <xacro:arg name="simulation_controllers"	default=""/>
 
   <!-- ur_robot_driver -->
   <xacro:property name="b_bot_ip"	value="10.66.171.41"/>
@@ -108,7 +108,7 @@
 		)/devices/urdf/ur_robot_with_ros2_control.urdf.xacro"/>
   <xacro:ur_robot_with_ros2_control
       name="b_bot"
-      sim="$(arg sim)"
+      simulation_controllers="$(arg simulation_controllers)"
       ur_type="ur5e"
       tf_prefix="b_bot_"
       parent="b_bot_table_top_center"
@@ -151,8 +151,8 @@
   <!-- Add Motioncam-3D scanner -->
   <xacro:include filename="$(find aist_description
 			   )/scenes/urdf/load_calibration.urdf.xacro"/>
-  <xacro:load_calibration filename="$(find aist_handeye_calibration
-				    )/calib/a_motioncam.yaml"/>
+  <xacro:load_calibration filename="$(find aist_description
+				    )/scenes/calib/a_motioncam.yaml"/>
   <xacro:include filename="$(find aist_phoxi_camera
 			   )/urdf/motioncam_m_camera.urdf.xacro"/>
   <xacro:motioncam_m_camera name="a_motioncam" parent="workspace_center">
@@ -167,9 +167,9 @@
 		       parent="b_bot_gripper_base_link"
 		       use_nominal_extrinsics="true"/>
 
-  Add live camera
-  <xacro:load_calibration filename="$(find aist_camera_calibration
-				    )/calib/live_camera.yaml"/>
+  <!-- Add live camera -->
+  <xacro:load_calibration filename="$(find aist_description
+				    )/scenes/calib/live_camera.yaml"/>
   <link name="live_camera_optical_frame"/>
   <joint name="live_camera_joint" type="fixed">
     <parent link="workspace_center"/>

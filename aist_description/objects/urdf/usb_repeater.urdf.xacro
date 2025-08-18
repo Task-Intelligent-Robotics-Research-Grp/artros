@@ -47,7 +47,7 @@
 	<material>Gazebo/White</material>
       </gazebo>
 
-      <joint name="${name}" type="fixed">
+      <joint name="${name}_joint" type="fixed">
 	<parent link="${parent}"/>
 	<child  link="${name}"/>
 	<xacro:insert_block name="origin"/>
@@ -56,7 +56,7 @@
     </xacro:macro>
 
     <link name="${prefix}base_link"/>
-    <joint name="${prefix}base_link" type="fixed">
+    <joint name="${prefix}base_link_joint" type="fixed">
       <parent link="${parent}"/>
       <child  link="${prefix}base_link"/>
       <xacro:insert_block name="origin"/>
@@ -113,7 +113,7 @@
       <material>Gazebo/Black</material>
     </gazebo>
 
-    <joint name="${prefix}body" type="fixed">
+    <joint name="${prefix}body_joint" type="fixed">
       <parent link="${prefix}plate"/>
       <child  link="${prefix}body"/>
       <origin xyz="0 0 ${plate_thickness + repeater_height/2}" rpy="0 0 0"/>

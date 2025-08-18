@@ -35,7 +35,7 @@
       <material>Gazebo/${color_name}</material>
     </gazebo>
 
-    <joint name="${name}" type="fixed">
+    <joint name="${name}_joint" type="fixed">
       <parent link="${parent}"/>
       <child  link="${name}"/>
       <xacro:insert_block name="origin"/>
