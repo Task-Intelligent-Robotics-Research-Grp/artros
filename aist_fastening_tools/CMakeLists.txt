@@ -31,23 +31,6 @@ rclcpp_components_register_nodes(
     EXECUTABLE screw_tool_controller_node
 )
 
-#############
-#  Install  #
-#############
-install(
-  TARGETS  ${PROJECT_NAME}
-  EXPORT   export_${PROJECT_NAME}
-  ARCHIVE  DESTINATION lib
-  LIBRARY  DESTINATION lib
-  RUNTIME  DESTINATION bin
-  INCLUDES DESTINATION include
-)
-
-install(
-  DIRECTORY launch config urdf meshes
-  DESTINATION share/${PROJECT_NAME}/
-)
-
 ########################
 #  Python executables  #
 ########################
@@ -73,4 +56,4 @@ ament_environment_hooks(
   "${CMAKE_CURRENT_SOURCE_DIR}/hooks/${PROJECT_NAME}.sh.in"
 )
 
-ament_auto_package()
+ament_auto_package(INSTALL_TO_SHARE launch config urdf meshes)

@@ -106,10 +106,10 @@
 	<plugin filename="gz_ros2_control-system"
 		name="gz_ros2_control::GazeboSimROS2ControlPlugin">
 	  <parameters>${simulation_controllers}</parameters>
-	  <controller_manager_node_name>${name}_controller_manager</controller_manager_node_name>
-	  <ros>
-	    <namepsace>${name}</namepsace>
-	  </ros>
+	  <controller_manager_name>${name}_controller_manager</controller_manager_name>
+	  <!-- <ros> -->
+	  <!--   <namepsace>/${name}</namepsace> -->
+	  <!-- </ros> -->
 	</plugin>
       </gazebo>
     </xacro:unless>

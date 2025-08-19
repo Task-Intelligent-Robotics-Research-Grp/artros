@@ -32,22 +32,6 @@ rclcpp_components_register_nodes(
     ${PROJECT_NAME}::MultiDetector
 )
 
-#############
-#  install  #
-#############
-install(
-  TARGETS  ${PROJECT_NAME}
-  ARCHIVE  DESTINATION lib
-  LIBRARY  DESTINATION lib
-  RUNTIME  DESTINATION bin
-  INCLUDES DESTINATION include
-)
-
-install(
-  DIRECTORY   launch config urdf media
-  DESTINATION share/${PROJECT_NAME}/
-)
-
 ##########
 #  test  #
 ##########
@@ -75,4 +59,4 @@ ament_environment_hooks(
   "${CMAKE_CURRENT_SOURCE_DIR}/hooks/${PROJECT_NAME}.sh.in"
 )
 
-ament_auto_package()
+ament_auto_package(INSTALL_TO_SHARE launch config urdf media)

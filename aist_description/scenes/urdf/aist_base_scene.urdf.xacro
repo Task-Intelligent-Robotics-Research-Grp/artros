@@ -260,4 +260,16 @@ l
 			     scene).urdf.xacro"/>
   </xacro:if>
 
+  <!-- Import gz plusins -->
+  <xacro:if value="${'$(arg simulation_controllers)' != ''}">
+    <gazebo reference="world">
+    </gazebo>
+    <gazebo>
+      <plugin filename="gz-sim-sensors-system"
+	      name="gz::sim::systems::Sensors">
+	<render_engine>ogre2</render_engine>
+      </plugin>
+    </gazebo>
+  </xacro:if>
+
 </robot>

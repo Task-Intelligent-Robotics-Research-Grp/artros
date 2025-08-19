@@ -1,7 +1,4 @@
-##########################################################################
-# Set minimum required version of cmake, project name and compile options
-##########################################################################
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.8)
 project(aist_precision_gripper)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
@@ -15,7 +12,9 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# find dependencies
+##################
+#  Dependencies  #
+##################
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
@@ -33,22 +32,6 @@ rclcpp_components_register_nodes(
     EXECUTABLE ${PROJECT_NAME}_node
 )
 
-#############
-#  Install  #
-#############
-install(
-  TARGETS  ${PROJECT_NAME}
-#  EXPORT   export_${PROJECT_NAME}
-  ARCHIVE  DESTINATION lib
-  LIBRARY  DESTINATION lib
-  RUNTIME  DESTINATION bin
-)
-
-install(
-  DIRECTORY launch config urdf meshes
-  DESTINATION share/${PROJECT_NAME}/
-)
-
 ########################
 #  Python executables  #
 ########################
@@ -61,4 +44,4 @@ install(
     lib/${PROJECT_NAME}
 )
 
-ament_auto_package()
+ament_auto_package(INSTALL_TO_SHARE launch config urdf meshes)

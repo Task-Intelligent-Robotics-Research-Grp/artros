@@ -112,27 +112,6 @@ rclcpp_components_register_node(
 #  Install  #
 #############
 install(
-  TARGETS
-    ${PROJECT_NAME} joint_state_extractor capture_pcd
-    butterworth_lpf_test spline_extrapolator_test
-  EXPORT   export_${PROJECT_NAME}
-  LIBRARY  DESTINATION lib
-  ARCHIVE  DESTINATION lib
-  RUNTIME  DESTINATION bin
-  INCLUDES DESTINATION include
-)
-
-install(
-  DIRECTORY   include/
-  DESTINATION include
-)
-
-install(
-  DIRECTORY   launch
-  DESTINATION share/${PROJECT_NAME}
-)
-
-install(
   PROGRAMS    scripts/gensig.py
   DESTINATION lib/${PROJECT_NAME}
 )
@@ -159,4 +138,7 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-ament_auto_package()
+ament_auto_package(
+  USE_SCOPED_HEADER_INSTALL_DIR
+  INSTALL_TO_SHARE launch
+)

@@ -49,22 +49,6 @@ install(
     lib/${PROJECT_NAME}
 )
 
-#############
-#  Install  #
-#############
-install(
-  TARGETS  ${PROJECT_NAME}
-  ARCHIVE  DESTINATION lib
-  LIBRARY  DESTINATION lib
-  RUNTIME  DESTINATION bin
-  INCLUDES DESTINATION include
-)
-
-install(
-  DIRECTORY launch config calib
-  DESTINATION share/${PROJECT_NAME}/
-)
-
 ##########
 #  Test  #
 ##########
@@ -82,4 +66,4 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-ament_auto_package()
+ament_auto_package(INSTALL_TO_SHARE launch config calib)

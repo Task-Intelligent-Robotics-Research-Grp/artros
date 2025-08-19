@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.8)
 project(aist_description)
 
-find_package(ament_cmake_core REQUIRED)
+find_package(ament_cmake_auto REQUIRED)
+ament_auto_find_build_dependencies()
 
 #############
 ## Install ##
@@ -14,11 +15,6 @@ install(
     lib/${PROJECT_NAME}
 )
 
-install(
-  DIRECTORY launch devices objects parts scenes wrc
-  DESTINATION share/${PROJECT_NAME}/
-)
-
 ##############################
 #  environment hooks for gz  #
 ##############################
@@ -29,4 +25,4 @@ ament_environment_hooks(
   "${CMAKE_CURRENT_SOURCE_DIR}/hooks/${PROJECT_NAME}.sh.in"
 )
 
-ament_package()
+ament_auto_package(INSTALL_TO_SHARE launch devices objects parts scenes wrc)
