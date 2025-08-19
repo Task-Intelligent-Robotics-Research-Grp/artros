@@ -13,7 +13,7 @@
           <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_base_link.stl" />
         </geometry>
         <material name="">
-          <color rgba="0.1 0.1 0.1 1" />
+          <color rgba="0 0 0 1" />
         </material>
       </visual>
       <collision>
@@ -23,9 +23,6 @@
         </geometry>
       </collision>
     </link>
-    <gazebo reference="${prefix}robotiq_arg2f_base_link">
-      <material>Gazebo/Black</material>
-    </gazebo>
   </xacro:macro>
 
   <xacro:macro name="finger_joints" params="prefix fingerprefix reflect">

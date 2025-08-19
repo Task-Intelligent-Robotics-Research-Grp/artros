@@ -20,7 +20,7 @@
         <geometry>
           <mesh filename="${mesh_file}" scale="0.001 0.001 0.001"/>
         </geometry>
-        <material name="orange">
+        <material name="">
           <color rgba="1 0.5088 0.0468 1"/>
         </material>
       </visual>
@@ -31,9 +31,6 @@
         </geometry>
       </collision>
     </link>
-    <gazebo reference="${binname}">
-      <material>Gazebo/Orange</material>
-    </gazebo>
 
     <joint name="${binname}_joint" type="fixed">
       <parent link="${parent}" />

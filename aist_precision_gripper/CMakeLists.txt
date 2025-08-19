@@ -16,41 +16,15 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 # find dependencies
-find_package(ament_cmake REQUIRED)
-find_package(rclcpp_components REQUIRED)
-find_package(rclcpp_action REQUIRED)
-find_package(dynamixel_workbench_msgs REQUIRED)
-find_package(ddynamic_reconfigure2 REQUIRED)
-find_package(control_msgs REQUIRED)
-find_package(sensor_msgs REQUIRED)
+find_package(ament_cmake_auto REQUIRED)
+ament_auto_find_build_dependencies()
 
 ###########
 #  Build  #
 ###########
-add_library(
+ament_auto_add_library(
   ${PROJECT_NAME} SHARED
     src/precision_gripper_controller.cpp
-)
-
-target_include_directories(
-  ${PROJECT_NAME} PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-)
-
-target_compile_definitions(
-  ${PROJECT_NAME} PRIVATE
-    COMPOSITION_BUILDING_DLL
-)
-
-ament_target_dependencies(
-  ${PROJECT_NAME}
-    rclcpp_components
-    rclcpp_action
-    dynamixel_workbench_msgs
-    ddynamic_reconfigure2
-    control_msgs
-    sensor_msgs
 )
 
 rclcpp_components_register_nodes(
@@ -87,9 +61,4 @@ install(
     lib/${PROJECT_NAME}
 )
 
-#############
-#  Exports  #
-#############
-ament_export_libraries(${PROJECT_NAME})
-
-ament_package()
+ament_auto_package()

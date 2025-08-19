@@ -27,7 +27,7 @@
           <geometry>
             <cylinder radius="${radius}" length="${thickness}"/>
           </geometry>
-          <material name="White">
+          <material name="">
             <color rgba="1.0 1.0 1.0 1.0"/>
           </material>
 	</visual>
@@ -43,9 +43,6 @@
 				  mass="${mass}"/>
 	</inertial>
       </link>
-      <gazebo reference="${name}">
-	<material>Gazebo/White</material>
-      </gazebo>
 
       <joint name="${name}_joint" type="fixed">
 	<parent link="${parent}"/>
@@ -93,7 +90,7 @@
         <geometry>
           <box size="${repeater_width} ${repeater_length} ${repeater_height}"/>
         </geometry>
-        <material name="Black">
+        <material name="">
           <color rgba="0.0 0.0 0.0 1.0"/>
         </material>
       </visual>
@@ -109,9 +106,6 @@
 			   mass="${repeater_mass}"/>
       </inertial>
     </link>
-    <gazebo reference="${prefix}body">
-      <material>Gazebo/Black</material>
-    </gazebo>
 
     <joint name="${prefix}body_joint" type="fixed">
       <parent link="${prefix}plate"/>

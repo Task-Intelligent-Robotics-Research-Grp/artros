@@ -50,19 +50,6 @@ include_directories(
 link_directories(${ros_gz_sim_LIBRARY_DIRS})
 include_directories(${ros_gz_sim_INCLUDE_DIRS})
 
-###############################
-## gazebo_mimic_joint_plugin ##
-###############################
-#add_library(
-#  gz_mimic_joint_plugin SHARED
-#    src/mimic_joint_plugin.cpp
-#)
-
-#target_include_directories(
-#  gz_mimic_joint_plugin PUBLIC
-#    ${ros_gz_sim_INCLUDE_DIRS}
-#)
-
 ##################
 ## ft300_driver ##
 ##################
@@ -93,12 +80,11 @@ include_directories(${ros_gz_sim_INCLUDE_DIRS})
 ## Install ##
 #############
 #install(
-#  TARGETS
-#    gz_mimic_joint_plugin
-#  EXPORT   export_${PROJECT_NAME}
-#  LIBRARY  DESTINATION lib
-#  ARCHIVE  DESTINATION lib
-#  RUNTIME  DESTINATION bin
+#  TARGETS ft300_driver
+#  EXPORT  export_${PROJECT_NAME}
+#  LIBRARY DESTINATION lib
+#  ARCHIVE ESTINATION lib
+#  RUNTIME DESTINATION bin
 #)
 
 install(
@@ -138,6 +124,9 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+##############################
+#  environment hooks for gz  #
+##############################
 ament_environment_hooks(
   "${CMAKE_CURRENT_SOURCE_DIR}/hooks/${PROJECT_NAME}.dsv.in"
 )

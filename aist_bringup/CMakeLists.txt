@@ -1,21 +1,14 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.8)
 project(aist_bringup)
 
-find_package(catkin REQUIRED COMPONENTS)
-
-###################################
-## catkin specific configuration ##
-###################################
-catkin_package()
-
-###########
-## Build ##
-###########
+find_package(ament_cmake_core REQUIRED)
 
 #############
 ## Install ##
 #############
+install(
+  DIRECTORY launch config
+  DESTINATION share/${PROJECT_NAME}/
+)
 
-## Mark executables and/or libraries for installation
-install(DIRECTORY config launch
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+ament_package()

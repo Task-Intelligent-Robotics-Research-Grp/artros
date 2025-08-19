@@ -19,7 +19,7 @@
 		scale="0.001 0.001 0.001"/>
         </geometry>
         <material name="">
-          <color rgba="0.1 0.1 0.1 1" />
+          <color rgba="0 0 0 1" />
         </material>
       </visual>
       <collision>
@@ -29,9 +29,6 @@
         </geometry>
       </collision>
     </link>
-    <gazebo reference="${prefix}base_link">
-      <material>Gazebo/Black</material>
-    </gazebo>
 
     <joint name="${prefix}base_joint" type="fixed">
       <parent link="${parent}"/>

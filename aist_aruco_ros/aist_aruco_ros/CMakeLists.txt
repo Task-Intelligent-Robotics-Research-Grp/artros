@@ -11,59 +11,19 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# find dependencies
-find_package(ament_cmake REQUIRED)
-find_package(rclcpp_components REQUIRED)
-find_package(ament_index_cpp REQUIRED)
-find_package(aruco REQUIRED)
-find_package(geometry_msgs REQUIRED)
-find_package(sensor_msgs REQUIRED)
-find_package(visualization_msgs REQUIRED)
-find_package(image_transport REQUIRED)
-find_package(message_filters REQUIRED)
-find_package(cv_bridge REQUIRED)
-find_package(tf2_ros REQUIRED)
-find_package(tf2_geometry_msgs REQUIRED)
-find_package(ddynamic_reconfigure2 REQUIRED)
-find_package(aist_utility REQUIRED)
-find_package(aist_aruco_msgs REQUIRED)
-
-include_directories(
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-  $<INSTALL_INTERFACE:include>
-)
+##################
+#  dependencies  #
+##################
+find_package(ament_cmake_auto REQUIRED)
+ament_auto_find_build_dependencies()
 
 #####################################
 #  component: libaist_aruco_ros.so  #
 #####################################
-add_library(
+ament_auto_add_library(
   ${PROJECT_NAME} SHARED
     src/Detector3D.cpp
     src/MultiDetector.cpp
-)
-
-target_compile_definitions(
-  ${PROJECT_NAME} PRIVATE
-    COMPOSITION_BUILDING_DLL
-)
-
-ament_target_dependencies(
-  ${PROJECT_NAME}
-    rclcpp_components
-    ament_index_cpp
-    aruco
-    geometry_msgs
-    sensor_msgs
-    visualization_msgs
-    image_transport
-    message_filters
-    cv_bridge
-    tf2_ros
-    tf2_geometry_msgs
-    ddynamic_reconfigure2
-    aist_utility
-    aist_aruco_msgs
 )
 
 rclcpp_components_register_nodes(
@@ -84,22 +44,7 @@ install(
 )
 
 install(
-  DIRECTORY launch
-  DESTINATION share/${PROJECT_NAME}/
-)
-
-install(
-  DIRECTORY config
-  DESTINATION share/${PROJECT_NAME}/
-)
-
-install(
-  DIRECTORY urdf
-  DESTINATION share/${PROJECT_NAME}/
-)
-
-install(
-  DIRECTORY media
+  DIRECTORY   launch config urdf media
   DESTINATION share/${PROJECT_NAME}/
 )
 
@@ -120,4 +65,14 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-ament_package()
+##############################
+#  environment hooks for gz  #
+##############################
+ament_environment_hooks(
+  "${CMAKE_CURRENT_SOURCE_DIR}/hooks/${PROJECT_NAME}.dsv.in"
+)
+ament_environment_hooks(
+  "${CMAKE_CURRENT_SOURCE_DIR}/hooks/${PROJECT_NAME}.sh.in"
+)
+
+ament_auto_package()

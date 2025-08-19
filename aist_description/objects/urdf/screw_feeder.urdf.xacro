@@ -25,7 +25,7 @@
     <xacro:aist_box name="${prefix}base_link" parent="${parent}"
 		    width="${back_width}" length="${length}"
 		    height="${back_height}"
-		    rgba="0.2 0.2 0.2 1.0" color_name="black">
+		    rgba="0.2 0.2 0.2 1.0">
       <xacro:insert_block name="origin"/>
     </xacro:aist_box>
 
@@ -33,7 +33,7 @@
     <xacro:aist_box name="${prefix}front_left_side" parent="${prefix}base_link"
 		    width="${front_width}" length="${front_left_length}"
 		    height="${front_height}"
-		    rgba="0.2 0.2 0.2 1.0" color_name="black">
+		    rgba="0.2 0.2 0.2 1.0">
       <origin xyz="${back_width} 0 0" rpy="0 0 0"/>
     </xacro:aist_box>
 
@@ -41,7 +41,7 @@
     <xacro:aist_box name="${prefix}front_right_side" parent="${prefix}base_link"
 		    width="${front_width}" length="${front_right_length}"
 		    height="${front_height}"
-		    rgba="0.2 0.2 0.2 1.0" color_name="black">
+		    rgba="0.2 0.2 0.2 1.0">
       <origin xyz="${back_width} ${front_left_length + gap_width} 0"
 	      rpy="0 0 0"/>
     </xacro:aist_box>
@@ -50,7 +50,7 @@
     <xacro:aist_box name="${prefix}gap" parent="${prefix}front_left_side"
 		    width="${front_width}" length="${gap_width}"
 		    height="${gap_height}"
-		    rgba="0.6 0.6 0.6 1.0" color_name="grey">
+		    rgba="0.6 0.6 0.6 1.0">
       <origin xyz="0 ${front_left_length} 0" rpy="0 0 0"/>
     </xacro:aist_box>
 

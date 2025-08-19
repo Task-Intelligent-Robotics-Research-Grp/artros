@@ -74,7 +74,7 @@
   <xacro:property name="bot_table_size"	value="0.225"/>
   <xacro:table prefix="a_bot_table_"
 	       width="${bot_table_size}" length="${bot_table_size}"
-	       height="${a_bot_z}" parent="ground">
+	       height="${a_bot_z}" rgba="0.0 0.1 0.3 1" parent="ground">
     <origin xyz="${a_bot_x - bot_table_size/2} ${a_bot_y - bot_table_size/2} 0"
 	    rpy="0 0 0"/>
   </xacro:table>
@@ -115,7 +115,6 @@
       name="a_bot"
       simulation_controllers="$(arg simulation_controllers)"
       ur_type="ur5e"
-      tf_prefix="a_bot_"
       parent="a_bot_table_top_center"
       safety_limits="true"
       safety_pos_margin="0.15"
@@ -132,13 +131,13 @@
   </xacro:ur_robot_with_ros2_control>
 
   <!-- Set gazebo plugin for FT-sensors -->
-  <xacro:include filename="$(find aist_description
-			   )/devices/urdf/gazebo_ftsensor.urdf.xacro"/>
-  <xacro:gazebo_ftsensor name="a_bot_ftsensor"
-			 parent="a_bot_wrist_2_link"
-			 child="a_bot_wrist_3_link"
-			 joint="a_bot_wrist_3_joint"
-			 wrench="/a_bot/wrench"/>
+  <!-- <xacro:include filename="$(find aist_description -->
+  <!-- 			   )/devices/urdf/gazebo_ftsensor.urdf.xacro"/> -->
+  <!-- <xacro:gazebo_ftsensor name="a_bot_ftsensor" -->
+  <!-- 			 parent="a_bot_wrist_2_link" -->
+  <!-- 			 child="a_bot_wrist_3_link" -->
+  <!-- 			 joint="a_bot_wrist_3_joint" -->
+  <!-- 			 wrench="/a_bot/wrench"/> -->
 
   <!-- Spawn and attach gripper -->
   <xacro:include filename="$(find aist_robotiq
@@ -163,6 +162,18 @@
 		      parent="a_bot_wrist_2_link">
     <origin xyz="0.000 -0.051 0.000" rpy="${pi/2} ${-pi/2} 0"/>
   </xacro:usb_repeater>
+
+  <!-- Add Motioncam-3D scanner -->
+  <xacro:include filename="$(find aist_description
+			   )/scenes/urdf/load_calibration.urdf.xacro"/>
+  <xacro:load_calibration filename="$(find aist_description
+				    )/scenes/calib/a_motioncam.yaml"/>
+  <xacro:include filename="$(find aist_phoxi_camera
+			   )/urdf/motioncam_m_camera.urdf.xacro"/>
+  <xacro:motioncam_m_camera name="a_motioncam" parent="workspace_center">
+    <origin xyz="${origin[0]} ${origin[1]} ${origin[2]}"
+    	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/>
+  </xacro:motioncam_m_camera>
 
   <!-- RealSense cameras -->
   <xacro:include filename="$(find aist_description
@@ -189,7 +200,14 @@
 			     scene).urdf.xacro"/>
   </xacro:if>
 
-  <gazebo reference="world">
-  </gazebo>
+  <xacro:if value="${'$(arg simulation_controllers)' != ''}">
+    <gazebo reference="world">
+    </gazebo>
+    <!-- <gazebo> -->
+    <!--   <plugin filename="gz_ros2_control-system" name="gz::"> -->
+    <!-- 	<render_engine>ogre2</render_engine> -->
+    <!--   </plugin> -->
+    <!-- </gazebo> -->
+  </xacro:if>
 
 </robot>

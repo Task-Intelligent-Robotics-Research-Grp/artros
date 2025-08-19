@@ -51,7 +51,7 @@
           <mesh filename="${visual_meshes[0]['url']}"
 		scale="${base_vscale[0]} ${base_vscale[1]} ${base_vscale[2]}"/>
         </geometry>
-        <material name="Gazebo/Black">
+        <material name="">
           <color rgba="${base_vcolor[0]} ${base_vcolor[1]}
 		       ${base_vcolor[2]} ${base_vcolor[3]}"/>
         </material>
@@ -108,7 +108,7 @@
 		       ${left_finger_vscale[1]}
 		       ${left_finger_vscale[2]}"/>
         </geometry>
-        <material name="Gazebo/Grey">
+        <material name="">
           <color rgba="${left_finger_vcolor[0]} ${left_finger_vcolor[1]}
 		       ${left_finger_vcolor[2]} ${left_finger_vcolor[3]}"/>
         </material>
@@ -168,7 +168,7 @@
 		       ${right_finger_vscale[1]}
 		       ${right_finger_vscale[2]}"/>
         </geometry>
-        <material name="Gazebo/Grey">
+        <material name="">
           <color rgba="${right_finger_vcolor[0]} ${right_finger_vcolor[1]}
 		       ${right_finger_vcolor[2]} ${right_finger_vcolor[3]}"/>
         </material>
@@ -210,16 +210,6 @@
     </joint>
     <link name="${prefix}tip_link"/>
 
-    <gazebo reference="${prefix}base_link">
-      <material>Gazebo/FlatBlack</material>
-    </gazebo>
-    <gazebo reference="${prefix}left_finger">
-      <material>Gazebo/Grey</material>
-    </gazebo>
-    <gazebo reference="${prefix}right_finger">
-      <material>Gazebo/Grey</material>
-    </gazebo>
-
     <!-- Improve grasping physics -->
     <gazebo reference="${prefix}left_finger">
       <kp>1000000.0</kp>
@@ -237,13 +227,29 @@
     </gazebo>
 
     <!-- Mimic joints -->
+    <ros2_control name="GazeboSystem" type="system">
+      <hardware>
+	<plugin>gz_ros2_control/GazeboSimSystem</plugin>
+      </hardware>
+      <joint name="${prefix}finger_joint">
+	<command_interface name="position"/>
+	<state_interface name="position">
+          <param name="initial_value">0.15</param>
+	</state_interface>
+	<state_interface name="velocity"/>
+	<state_interface name="effort"/>
+      </joint>
+      <joint name="${prefix}right_finger_joint">
+	<state_interface name="position"/>
+	<state_interface name="velocity"/>
+	<state_interface name="effort"/>
+      </joint>
+    </ros2_control>
+
     <gazebo>
-      <plugin filename="libgazebo_mimic_joint_plugin.so"
-	      name="${prefix}mimic_precision">
-        <joint>${prefix}finger_joint</joint>
-        <mimicJoint>${prefix}right_finger_joint</mimicJoint>
-        <multiplier>1.0</multiplier>
-        <offset>0.0</offset>
+      <plugin filename="gz_ros2_control-system"
+	      name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+	<parameters>$(find gz_ros2_control_demos)/config/gripper_controller_position.yaml</parameters>
       </plugin>
     </gazebo>
 

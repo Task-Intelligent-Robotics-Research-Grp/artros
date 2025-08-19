@@ -24,9 +24,7 @@
           <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_${stroke}_outer_knuckle.stl"/>
         </geometry>
         <material name="">
-          <color rgba="0.792156862745098
-		       0.819607843137255
-		       0.933333333333333 1"/>
+          <color rgba="0.9 0.9 0.9 1"/>
         </material>
       </visual>
       <collision>
@@ -36,9 +34,6 @@
         </geometry>
       </collision>
     </link>
-    <gazebo reference="${prefix}${fingerprefix}_outer_knuckle">
-      <material>Gazebo/White</material>
-    </gazebo>
   </xacro:macro>
 
   <xacro:macro name="outer_finger" params="prefix fingerprefix stroke">
@@ -62,7 +57,7 @@
           <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_${stroke}_outer_finger.stl"/>
         </geometry>
         <material name="">
-          <color rgba="0.1 0.1 0.1 1"/>
+          <color rgba="0 0 0 1"/>
         </material>
       </visual>
       <collision>
@@ -72,9 +67,6 @@
         </geometry>
       </collision>
     </link>
-    <gazebo reference="${prefix}${fingerprefix}_outer_finger">
-      <material>Gazebo/Black</material>
-    </gazebo>
   </xacro:macro>
 
   <xacro:macro name="inner_knuckle" params="prefix fingerprefix stroke">
@@ -98,7 +90,7 @@
           <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_${stroke}_inner_knuckle.stl"/>
         </geometry>
         <material name="">
-          <color rgba="0.1 0.1 0.1 1"/>
+          <color rgba="0 0 0 1"/>
         </material>
       </visual>
       <collision>
@@ -108,9 +100,6 @@
         </geometry>
       </collision>
     </link>
-    <gazebo reference="${prefix}${fingerprefix}_inner_knuckle">
-      <material>Gazebo/Black</material>
-    </gazebo>
   </xacro:macro>
 
   <xacro:macro name="inner_finger" params="prefix fingerprefix stroke">
@@ -134,7 +123,7 @@
           <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_${stroke}_inner_finger.stl"/>
         </geometry>
         <material name="">
-          <color rgba="0.1 0.1 0.1 1"/>
+          <color rgba="0 0 0 1"/>
         </material>
       </visual>
       <collision>
@@ -144,9 +133,6 @@
         </geometry>
       </collision>
     </link>
-    <gazebo reference="${prefix}${fingerprefix}_inner_finger">
-      <material>Gazebo/White</material>
-    </gazebo>
   </xacro:macro>
 
   <!-- Finger pad link, the default are the "big pads" with rubber-->
@@ -171,9 +157,6 @@
         </material>
       </collision>
     </link>
-    <gazebo reference="${prefix}${fingerprefix}_inner_finger_pad">
-      <material>Gazebo/Black</material>
-    </gazebo>
   </xacro:macro>
 
   <xacro:macro name="short_inner_finger_pad" params="prefix fingerprefix">
@@ -307,35 +290,49 @@
     <xacro:robotiq_arg2f_transmission prefix="${prefix}"/>
 
     <!-- Mimic joints -->
+    <ros2_control name="GazeboSystem" type="system">
+      <hardware>
+	<plugin>gz_ros2_control/GazeboSimSystem</plugin>
+      </hardware>
+      <joint name="${prefix}finger_joint">
+	<command_interface name="position"/>
+	<state_interface name="position">
+          <param name="initial_value">0.15</param>
+	</state_interface>
+	<state_interface name="velocity"/>
+	<state_interface name="effort"/>
+      </joint>
+      <joint name="${prefix}right_outer_knuckle_joint">
+	<state_interface name="position"/>
+	<state_interface name="velocity"/>
+	<state_interface name="effort"/>
+      </joint>
+      <joint name="${prefix}left_inner_knuckle_joint">
+	<state_interface name="position"/>
+	<state_interface name="velocity"/>
+	<state_interface name="effort"/>
+      </joint>
+      <joint name="${prefix}right_inner_knuckle_joint">
+	<state_interface name="position"/>
+	<state_interface name="velocity"/>
+	<state_interface name="effort"/>
+      </joint>
+      <joint name="${prefix}left_inner_finger_joint">
+	<state_interface name="position"/>
+	<state_interface name="velocity"/>
+	<state_interface name="effort"/>
+      </joint>
+      <joint name="${prefix}right_inner_finger_joint">
+	<state_interface name="position"/>
+	<state_interface name="velocity"/>
+	<state_interface name="effort"/>
+      </joint>
+    </ros2_control>
+
     <gazebo>
-      <plugin filename="libgazebo_mimic_joint_plugin.so"
-	      name="${prefix}mimic_right_outer_knuckle_joint">
-        <joint>${prefix}finger_joint</joint>
-        <mimicJoint>${prefix}right_outer_knuckle_joint</mimicJoint>
-      </plugin>
-      <plugin filename="libgazebo_mimic_joint_plugin.so"
-	      name="${prefix}mimic_left_inner_knuckle_joint">
-        <joint>${prefix}finger_joint</joint>
-        <mimicJoint>${prefix}left_inner_knuckle_joint</mimicJoint>
-      </plugin>
-      <plugin filename="libgazebo_mimic_joint_plugin.so"
-	      name="${prefix}mimic_right_inner_knuckle_joint">
-        <joint>${prefix}finger_joint</joint>
-        <mimicJoint>${prefix}right_inner_knuckle_joint</mimicJoint>
-      </plugin>
-      <plugin filename="libgazebo_mimic_joint_plugin.so"
-	      name="${prefix}mimic_left_inner_finger_joint">
-        <joint>${prefix}finger_joint</joint>
-        <mimicJoint>${prefix}left_inner_finger_joint</mimicJoint>
-        <multiplier>-1.0</multiplier>
-        <offset>0.0</offset>
-      </plugin>
-      <plugin filename="libgazebo_mimic_joint_plugin.so"
-	      name="${prefix}mimic_right_inner_finger_joint">
-        <joint>${prefix}finger_joint</joint>
-        <mimicJoint>${prefix}right_inner_finger_joint</mimicJoint>
-        <multiplier>-1.0</multiplier>
-        <offset>0.0</offset>
+      <plugin filename="gz_ros2_control-system"
+	      name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+	<parameters>$(find gz_ros2_control_demos)/config/gripper_controller_position.yaml</parameters>
       </plugin>
     </gazebo>
 

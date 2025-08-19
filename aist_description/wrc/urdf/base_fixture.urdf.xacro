@@ -16,7 +16,7 @@
       <geometry>
         <mesh filename="${top_mesh}" scale=".0001 .0001 .0001"/>
       </geometry>
-      <material name="white">
+      <material name="">
         <color rgba=".9 .9 .9 1"/>
       </material>
     </visual>
@@ -53,7 +53,7 @@
       <geometry>
         <box size=".02 ${length} .08"/>
       </geometry>
-      <material name="grey">
+      <material name="">
         <color rgba=".4 .4 .4 1"/>
       </material>
     </visual>
@@ -77,7 +77,7 @@
         <box size=".02 ${length} .08"/>
         <!-- <mesh filename="${long_bar_mesh}" scale=".001 .001 .001"/> -->
       </geometry>
-      <material name="grey">
+      <material name="">
         <color rgba=".4 .4 .4 1"/>
       </material>
     </visual>
@@ -101,7 +101,7 @@
         <box size="${width-.04} .02 .08"/>
         <!-- <mesh filename="${long_bar_mesh}" scale=".001 .001 .001"/> -->
       </geometry>
-      <material name="grey">
+      <material name="">
         <color rgba=".4 .4 .4 1"/>
       </material>
     </visual>
@@ -125,7 +125,7 @@
         <box size="${width-.04} .02 .08"/>
         <!-- <mesh filename="${long_bar_mesh}" scale=".001 .001 .001"/> -->
       </geometry>
-      <material name="grey">
+      <material name="">
         <color rgba=".4 .4 .4 1"/>
       </material>
     </visual>

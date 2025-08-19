@@ -51,7 +51,7 @@
         <mesh filename="${mesh['url']}"
     	      scale="${scale[0]} ${scale[1]} ${scale[2]}"/>
       </geometry>
-      <material name="${name}/color_${id}">
+      <material name="">
 	<color rgba="${color[0]} ${color[1]} ${color[2]} ${color[3]}"/>
       </material>
     </xacro:macro>

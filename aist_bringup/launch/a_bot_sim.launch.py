@@ -43,8 +43,8 @@ def launch_setup(context):
     robot_description_content \
         = Command([PathJoinSubstitution([FindExecutable(name='xacro')]),
                    ' ',
-                   PathJoinSubstitution([ThisLaunchFileDir(),
-                                         '..', 'scenes', 'urdf',
+                   PathJoinSubstitution([FindPackageShare('aist_description'),
+                                         'scenes', 'urdf',
                                          [LaunchConfiguration('config'),
                                           '_base_scene.urdf.xacro']]),
                    ' scene:=', LaunchConfiguration('scene'),

@@ -43,7 +43,7 @@
           <mesh filename="package://aist_robotiq/meshes/visual/robotiq_hande.stl" scale="0.001 0.001 0.001"/>
         </geometry>
         <material name="">
-          <color rgba="0.1 0.1 0.1 1"/>
+          <color rgba="0 0 0 1"/>
         </material>
       </visual>
       <collision>
@@ -102,15 +102,6 @@
       </collision>
     </link>
 
-    <gazebo reference="${prefix}hande_link">
-      <material>Gazebo/FlatBlack</material>
-    </gazebo>
-    <gazebo reference="${prefix}right_finger">
-      <material>Gazebo/Grey</material>
-    </gazebo>
-    <gazebo reference="${prefix}left_finger">
-      <material>Gazebo/Grey</material>
-    </gazebo>
     <joint name="${prefix}finger_joint" type="prismatic">
       <origin rpy="0 0 0" xyz="0 0 0.099"/>
       <parent link="${prefix}hande_link"/>
@@ -144,13 +135,29 @@
     </gazebo>
 
     <!-- Mimic joints -->
+    <ros2_control name="GazeboSystem" type="system">
+      <hardware>
+	<plugin>gz_ros2_control/GazeboSimSystem</plugin>
+      </hardware>
+      <joint name="${prefix}finger_joint">
+	<command_interface name="position"/>
+	<state_interface name="position">
+          <param name="initial_value">0.15</param>
+	</state_interface>
+	<state_interface name="velocity"/>
+	<state_interface name="effort"/>
+      </joint>
+      <joint name="${prefix}right_finger_joint">
+	<state_interface name="position"/>
+	<state_interface name="velocity"/>
+	<state_interface name="effort"/>
+      </joint>
+    </ros2_control>
+
     <gazebo>
-      <plugin filename="libgazebo_mimic_joint_plugin.so"
-	      name="${prefix}mimic_robotiq_hande">
-        <joint>${prefix}finger_joint</joint>
-        <mimicJoint>${prefix}right_finger_joint</mimicJoint>
-        <multiplier>1.0</multiplier>
-        <offset>0.0</offset>
+      <plugin filename="gz_ros2_control-system"
+	      name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+	<parameters>$(find gz_ros2_control_demos)/config/gripper_controller_position.yaml</parameters>
       </plugin>
     </gazebo>
 

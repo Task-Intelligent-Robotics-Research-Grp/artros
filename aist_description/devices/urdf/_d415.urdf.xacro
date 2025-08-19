@@ -25,54 +25,39 @@ aluminum peripherial evaluation case.
 
     <!-- Reference should be color_frame because depth is alighed to color -->
     <gazebo reference="${name}_color_frame">
-      <sensor type="depth" name="${name}">
-	<always_on>true</always_on>
-	<visualize>true</visualize>
+      <sensor type="rgbd_camera" name="${name}">
 	<camera>
-	  <!-- Color sensor's FOV(HD): 69 deg. -->
+	  <!-- Color sensor's FOV(VGA): 68 deg. -->
           <horizontal_fov>1.2043</horizontal_fov>
-	  <!-- Color sensor's FOV(VGA): 42.27 deg. -->
-          <!-- <horizontal_fov>0.9091</horizontal_fov> -->
           <image>
 	    <!-- HD -->
             <width>1280</width>
             <height>720</height>
-	    <!-- VGA -->
-            <!-- <width>640</width> -->
-            <!-- <height>480</height> -->
             <format>R8G8B8</format>
           </image>
-          <depth_camera>
-          </depth_camera>
           <clip>
             <near>0.1</near>
             <far>100</far>
           </clip>
+	  <gz_frame_id>${name}_color_frame</gz_frame_id>
+	  <optical_frame_id>${name}_color_frame</optical_frame_id>
+	  <noise>
+	    <type>gaussian</type>
+	    <mean>0.0</mean>
+	    <stddev>0.007</stddev>
+	  </noise>
+          <distortion>
+	    <k1>0.0</k1>
+	    <k2>0.0</k2>
+	    <k3>0.0</k3>
+	    <p1>0.0</p1>
+	    <p2>0.0</p2>
+	  </distortion>
 	</camera>
-	<plugin name="${name}_controller"
-		filename="libgazebo_ros_openni_kinect.so">
-          <baseline>0.055</baseline>
-          <alwaysOn>true</alwaysOn>
-          <updateRate>10.0</updateRate>
-          <cameraName>${name}</cameraName>
-          <frameName>${name}_color_optical_frame</frameName>
-          <imageTopicName>color/image_raw</imageTopicName>
-          <cameraInfoTopicName>color/camera_info</cameraInfoTopicName>
-          <depthImageTopicName>aligned_depth_to_color/image_raw</depthImageTopicName>
-          <depthImageCameraInfoTopicName>aligned_depth_to_color/camera_info</depthImageCameraInfoTopicName>
-          <pointCloudTopicName>depth/color/points</pointCloudTopicName>
-          <pointCloudCutoff>0.1</pointCloudCutoff>
-          <!-- <hackBaseline>0.07</hackBaseline> -->
-          <distortionK1>0.0</distortionK1>
-          <distortionK2>0.0</distortionK2>
-          <distortionK3>0.0</distortionK3>
-          <distortionT1>0.0</distortionT1>
-          <distortionT2>0.0</distortionT2>
-          <CxPrime>0.0</CxPrime>
-          <Cx>0.0</Cx>
-          <Cy>0.0</Cy>
-          <focalLength>0.0</focalLength>
-	</plugin>
+	<always_on>true</always_on>
+        <updateRate>10.0</updateRate>
+	<visualize>true</visualize>
+	<topic>${name}</topic>
       </sensor>
     </gazebo>
 
