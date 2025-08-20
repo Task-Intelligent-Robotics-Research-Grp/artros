@@ -355,7 +355,9 @@ class ScrewTool(SuctionGripper):
                                         suck_min_period, blow_min_period)
 
     def grasp(self, timeout=rospy.Duration(-1)):
+        print('### Send seek command')
         self._send_fastening_command(self._parameters['seek_speed'], False)
+        print('### Send suction command')
         suctioned = super().grasp(timeout)
         self._fastening_client.cancel_goal()               # Stop seeking
         return suctioned

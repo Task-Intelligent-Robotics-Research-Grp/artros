@@ -11,56 +11,24 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# find dependencies
-find_package(ament_cmake REQUIRED)
-find_package(rclcpp_components REQUIRED)
-find_package(sensor_msgs REQUIRED)
-find_package(image_transport REQUIRED)
-find_package(ddynamic_reconfigure2 REQUIRED)
-
-find_package(ament_cmake_python REQUIRED)
-find_package(rclpy REQUIRED)
+##################
+#  dependencies  #
+##################
+find_package(ament_cmake_auto REQUIRED)
+ament_auto_find_build_dependencies()
 
 ##############################################
 #  component: libaist_camera_multiplexer.so  #
 ##############################################
-add_library(
+ament_auto_add_library(
   ${PROJECT_NAME} SHARED
     src/Multiplexer.cpp
-)
-
-target_compile_definitions(
-  ${PROJECT_NAME} PRIVATE
-    COMPOSITION_BUILDING_DLL
-)
-
-ament_target_dependencies(
-  ${PROJECT_NAME}
-    rclcpp_components
-    sensor_msgs
-    image_transport
-    ddynamic_reconfigure2
 )
 
 rclcpp_components_register_node(
   ${PROJECT_NAME}
     PLUGIN     ${PROJECT_NAME}::Multiplexer
     EXECUTABLE ${PROJECT_NAME}_node
-)
-
-#############
-#  install  #
-#############
-install(
-  TARGETS ${PROJECT_NAME}
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
-)
-
-install(
-  DIRECTORY launch config
-  DESTINATION share/${PROJECT_NAME}/
 )
 
 ############################################
@@ -76,11 +44,6 @@ install(
   DESTINATION
     lib/${PROJECT_NAME}
 )
-
-#############
-## Exports ##
-#############
-ament_export_libraries(${PROJECT_NAME})
 
 ##########
 #  test  #
@@ -99,4 +62,4 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-ament_package()
+ament_auto_package(INSTALL_TO_SHARE launch config)
