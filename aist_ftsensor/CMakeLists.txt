@@ -11,6 +11,9 @@ export_windows_symbols()
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
+find_package(PkgConfig)
+pkg_check_modules(YAML-CPP REQUIRED yaml-cpp)
+
 ###########
 #  Build  #
 ###########
@@ -45,6 +48,11 @@ ament_auto_find_build_dependencies()
 ament_auto_add_library(
   ${PROJECT_NAME}_broadcaster SHARED
     src/aist_ftsensor_broadcaster.cpp
+)
+
+ament_target_dependencies(
+  ${PROJECT_NAME}_broadcaster
+    YAML-CPP
 )
 
 #############

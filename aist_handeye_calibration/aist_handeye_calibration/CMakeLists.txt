@@ -17,6 +17,9 @@ endif()
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
+find_package(PkgConfig)
+pkg_check_modules(YAML-CPP REQUIRED yaml-cpp)
+
 ###########
 #  Build  #
 ###########
@@ -25,15 +28,25 @@ ament_auto_add_library(
     src/Calibrator.cpp
 )
 
+ament_target_dependencies(
+  ${PROJECT_NAME}
+    YAML-CPP
+)
+
 rclcpp_components_register_nodes(
   ${PROJECT_NAME}
     ${PROJECT_NAME}::Calibrator
 )
 
-# ament_auto_add_executable(
-#   test_calibrator
-#     src/test_calibrator.cpp
-# )
+ament_auto_add_executable(
+  test_calibrator
+    src/test_calibrator.cpp
+)
+
+ament_target_dependencies(
+  test_calibrator
+    YAML-CPP
+)
 
 ########################
 #  Python executables  #

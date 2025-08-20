@@ -26,7 +26,6 @@
   <depend>aist_msgs</depend>
   <depend>ddynamic_reconfigure2</depend>
   <depend>eigen</depend>
-  <depend>yaml-cpp</depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_lint_auto</test_depend>

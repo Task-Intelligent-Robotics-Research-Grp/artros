@@ -18,6 +18,7 @@ find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
 find_package(PkgConfig)
+pkg_check_modules(YAML-CPP REQUIRED yaml-cpp)
 pkg_check_modules(LIBTIFF REQUIRED libtiff-4)
 find_package(OpenCV REQUIRED)
 
@@ -40,6 +41,7 @@ ament_auto_add_library(
 
 ament_target_dependencies(
   ${PROJECT_NAME}
+    YAML-CPP
     LIBTIFF
     OpenCV
 )

@@ -30,7 +30,6 @@
   <depend>aist_utility</depend>
   <depend>boost</depend>
   <depend>eigen</depend>
-  <depend>yaml-cpp</depend>
   <depend>kdl_parser</depend>
 
   <test_depend>ament_cmake_gmock</test_depend>

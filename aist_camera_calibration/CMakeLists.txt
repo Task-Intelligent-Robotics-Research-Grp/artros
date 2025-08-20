@@ -15,7 +15,7 @@ set(CMAKE_CXX_BUILD_TYPE	Release)
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(Eigen3 REQUIRED)
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(YAML-CPP yaml-cpp REQUIRED)
+pkg_check_modules(YAML-CPP REQUIRED yaml-cpp)
 
 find_package(catkin REQUIRED
   COMPONENTS
