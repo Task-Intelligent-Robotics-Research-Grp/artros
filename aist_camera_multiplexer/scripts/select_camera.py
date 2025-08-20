@@ -2,8 +2,7 @@
 
 import rclpy, sys, threading
 from rclpy.node              import Node
-from rclpy.executors         import (ExternalShutdownException,
-                                     MultiThreadedExecutor)
+from rclpy.executors         import ExternalShutdownException
 from aist_camera_multiplexer import CameraMultiplexerClient
 
 
@@ -37,8 +36,6 @@ if __name__ == '__main__':
 
     try:
         selector = CameraSelector('camera_selector')
-        executor = MultiThreadedExecutor()
-        executor.add_node(selector)
-        executor.spin()
+        rclpy.spin(selector)
     except (KeyboradInterrupt, ExternalShutdownException):
         pass

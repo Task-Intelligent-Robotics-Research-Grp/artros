@@ -34,12 +34,9 @@
 # Author: Toshio Ueshiba
 #
 import rclpy, time
-from rclpy.node            import Node
-from rclpy.parameter       import Parameter, parameter_value_to_python
-from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
-from rcl_interfaces.srv    import GetParameters, SetParameters
-from rcl_interfaces.msg    import (ParameterDescriptor, ParameterType,
-                                   IntegerRange, FloatingPointRange)
+from rclpy.node         import Node
+from rclpy.parameter    import Parameter
+from rcl_interfaces.srv import GetParameters, SetParameters
 
 ######################################################################
 #  class CameraMultiplexerClient                                     #
@@ -48,19 +45,13 @@ class CameraMultiplexerClient(object):
     def __init__(self, node, server='camera_multiplexer'):
         super().__init__()
         self._logger     = node.get_logger()
-
-        self._get_cbg    = MutuallyExclusiveCallbackGroup()
         self._get_client = node.create_client(GetParameters,
-                                              server + '/get_parameters',
-                                              callback_group=self._get_cbg)
+                                              server + '/get_parameters')
         while not self._get_client.wait_for_service(timeout_sec=2.0):
             self._logger.info('service[%s/get_parameters] not available, waiting...' % server)
         self._get_future = None
-
-        self._set_cbg    = MutuallyExclusiveCallbackGroup()
         self._set_client = node.create_client(SetParameters,
-                                              server + '/set_parameters',
-                                              callback_group=self._set_cbg)
+                                              server + '/set_parameters')
         while not self._get_client.wait_for_service(timeout_sec=2.0):
             self._logger.info('service[%s/set_parameters] not available, waiting...' % server)
         self._set_future = None
@@ -91,7 +82,6 @@ class CameraMultiplexerClient(object):
         self._get_client.call_async(req) \
                         .add_done_callback(self._get_parameters_cb)
         while self._get_future is None or not self._get_future.done():
-            self._logger.info('_get_parameters(): waiting...')
             time.sleep(0.1)
         return self._get_future.result()
 
@@ -101,13 +91,13 @@ class CameraMultiplexerClient(object):
     def _set_parameters(self, param_names, param_values):
         self._set_future = None
         req = SetParameters.Request()
-        req.parameters = [Parameter(param_name, param_value)
+        req.parameters = [Parameter(param_name,
+                                    value=param_value).to_parameter_msg()
                           for param_name, param_value in zip(param_names,
                                                              param_values)]
         self._set_client.call_async(req) \
                         .add_done_callback(self._set_parameters_cb)
         while self._set_future is None or not self._set_future.done():
-            self._logger.info('_set_parameters(): waiting...')
             time.sleep(0.1)
         return self._set_future.result()
 
