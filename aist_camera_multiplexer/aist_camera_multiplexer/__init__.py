@@ -34,75 +34,36 @@
 # Author: Toshio Ueshiba
 #
 import rclpy, time
-from rclpy.node         import Node
-from rclpy.parameter    import Parameter
-from rcl_interfaces.srv import GetParameters, SetParameters
+from rclpy.node            import Node
+from rclpy.parameter       import Parameter
+from ddynamic_reconfigure2 import ParameterClient
 
 ######################################################################
 #  class CameraMultiplexerClient                                     #
 ######################################################################
 class CameraMultiplexerClient(object):
-    def __init__(self, node, server='camera_multiplexer'):
+    def __init__(self, node, remote_node_name='camera_multiplexer'):
         super().__init__()
-        self._logger     = node.get_logger()
-        self._get_client = node.create_client(GetParameters,
-                                              server + '/get_parameters')
-        while not self._get_client.wait_for_service(timeout_sec=2.0):
-            self._logger.info('service[%s/get_parameters] not available, waiting...' % server)
-        self._get_future = None
-        self._set_client = node.create_client(SetParameters,
-                                              server + '/set_parameters')
-        while not self._get_client.wait_for_service(timeout_sec=2.0):
-            self._logger.info('service[%s/set_parameters] not available, waiting...' % server)
-        self._set_future = None
-
+        self._logger       = node.get_logger()
+        self._param_client = ParameterClient(node, remote_node_name)
         self._logger.info('initialized CameraMultiplexerClient')
 
     @property
     def camera_names(self):
-        return self._get_parameters(['camera_names']) \
-                   .values[0].string_array_value
+        return self._param_client.get_parameters_sync(['camera_names'])[0]
 
     @property
     def active_camera(self):
-        return self._get_parameters(["active_camera"]) \
-                   .values[0].string_value
+        return self._param_client.get_parameters_sync(["active_camera"])[0]
 
     def activate_camera(self, camera_name):
         if camera_name in self.camera_names:
-            self._set_parameters(['active_camera'], [camera_name])
+            self._param_client.set_parameters_sync({'active_camera':
+                                                    camera_name})
             time.sleep(0.2)
             return True
         else:
             return False
-
-    def _get_parameters(self, param_names):
-        self._get_future = None
-        req = GetParameters.Request(names=param_names)
-        self._get_client.call_async(req) \
-                        .add_done_callback(self._get_parameters_cb)
-        while self._get_future is None or not self._get_future.done():
-            time.sleep(0.1)
-        return self._get_future.result()
-
-    def _get_parameters_cb(self, future):
-        self._get_future = future
-
-    def _set_parameters(self, param_names, param_values):
-        self._set_future = None
-        req = SetParameters.Request()
-        req.parameters = [Parameter(param_name,
-                                    value=param_value).to_parameter_msg()
-                          for param_name, param_value in zip(param_names,
-                                                             param_values)]
-        self._set_client.call_async(req) \
-                        .add_done_callback(self._set_parameters_cb)
-        while self._set_future is None or not self._set_future.done():
-            time.sleep(0.1)
-        return self._set_future.result()
-
-    def _set_parameters_cb(self, future):
-        self._set_future = future
 
 ######################################################################
 #  class RealSenseMultiplexerClient                                  #
