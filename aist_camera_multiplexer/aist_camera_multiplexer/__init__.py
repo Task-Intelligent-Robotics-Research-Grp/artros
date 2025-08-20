@@ -33,35 +33,86 @@
 #
 # Author: Toshio Ueshiba
 #
-from rclpy.node import Node
-import dynamic_reconfigure.client
+import rclpy, time
+from rclpy.node            import Node
+from rclpy.parameter       import Parameter, parameter_value_to_python
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
+from rcl_interfaces.srv    import GetParameters, SetParameters
+from rcl_interfaces.msg    import (ParameterDescriptor, ParameterType,
+                                   IntegerRange, FloatingPointRange)
 
 ######################################################################
 #  class CameraMultiplexerClient                                     #
 ######################################################################
 class CameraMultiplexerClient(object):
-    def __init__(self, server='camera_multiplexer'):
+    def __init__(self, node, server='camera_multiplexer'):
         super().__init__()
-        self._camera_names = rospy.get_param(server + '/camera_names')
-        self._ddr_client   = dynamic_reconfigure.client.Client(server,
-                                                               timeout=30.0)
+        self._logger     = node.get_logger()
+
+        self._get_cbg    = MutuallyExclusiveCallbackGroup()
+        self._get_client = node.create_client(GetParameters,
+                                              server + '/get_parameters',
+                                              callback_group=self._get_cbg)
+        while not self._get_client.wait_for_service(timeout_sec=2.0):
+            self._logger.info('service[%s/get_parameters] not available, waiting...' % server)
+        self._get_future = None
+
+        self._set_cbg    = MutuallyExclusiveCallbackGroup()
+        self._set_client = node.create_client(SetParameters,
+                                              server + '/set_parameters',
+                                              callback_group=self._set_cbg)
+        while not self._get_client.wait_for_service(timeout_sec=2.0):
+            self._logger.info('service[%s/set_parameters] not available, waiting...' % server)
+        self._set_future = None
+
+        self._logger.info('initialized CameraMultiplexerClient')
 
     @property
     def camera_names(self):
-        return self._camera_names
+        return self._get_parameters(['camera_names']) \
+                   .values[0].string_array_value
 
     @property
     def active_camera(self):
-        return self._ddr_client.get_configuration()['active_camera']
+        return self._get_parameters(["active_camera"]) \
+                   .values[0].string_value
 
     def activate_camera(self, camera_name):
         if camera_name in self.camera_names:
-            self._ddr_client.update_configuration({'active_camera':
-                                                   camera_name})
-            rospy.sleep(0.2)
+            self._set_parameters(['active_camera'], [camera_name])
+            time.sleep(0.2)
             return True
         else:
             return False
+
+    def _get_parameters(self, param_names):
+        self._get_future = None
+        req = GetParameters.Request(names=param_names)
+        self._get_client.call_async(req) \
+                        .add_done_callback(self._get_parameters_cb)
+        while self._get_future is None or not self._get_future.done():
+            self._logger.info('_get_parameters(): waiting...')
+            time.sleep(0.1)
+        return self._get_future.result()
+
+    def _get_parameters_cb(self, future):
+        self._get_future = future
+
+    def _set_parameters(self, param_names, param_values):
+        self._set_future = None
+        req = SetParameters.Request()
+        req.parameters = [Parameter(param_name, param_value)
+                          for param_name, param_value in zip(param_names,
+                                                             param_values)]
+        self._set_client.call_async(req) \
+                        .add_done_callback(self._set_parameters_cb)
+        while self._set_future is None or not self._set_future.done():
+            self._logger.info('_set_parameters(): waiting...')
+            time.sleep(0.1)
+        return self._set_future.result()
+
+    def _set_parameters_cb(self, future):
+        self._set_future = future
 
 ######################################################################
 #  class RealSenseMultiplexerClient                                  #
@@ -83,18 +134,16 @@ class RealSenseMultiplexerClient(CameraMultiplexerClient):
         def laser_power(self, value):
             self._ddr_client.update_configuration({'laser_power': value})
 
-    def __init__(self, server='camera_multiplexer', value=16):
+    def __init__(self, node, server='camera_multiplexer', value=16):
         try:
-            super().__init__(server)
+            super().__init__(node, server)
             self._cameras = dict(zip(self.camera_names,
                                  [RealSenseMultiplexerClient.RealSenseCamera(
                                      camera_name)
                                   for camera_name in self.camera_names]))
         except Exception as e:
-            rospy.logerr(str(e))
-            rospy.logerr("Cameras failed to initialize. "
-            "Are the camera nodes started? Does /camera_multiplexer/camera_names"
-            "contain unused cameras? camera_names: " + str(self.camera_names))
+            self._logger.error(str(e))
+            self._logger.error("Cameras failed to initialize. Are the camera nodes started? Does /camera_multiplexer/camera_names contain unused cameras? camera_names: " + str(self.camera_names))
         for camera in self._cameras.values():
             camera.laser_power = 0
         self._cameras[self.active_camera].laser_power = value

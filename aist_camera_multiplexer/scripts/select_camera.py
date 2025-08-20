@@ -1,17 +1,44 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-import sys, rclpy
+import rclpy, sys, threading
+from rclpy.node              import Node
+from rclpy.executors         import (ExternalShutdownException,
+                                     MultiThreadedExecutor)
 from aist_camera_multiplexer import CameraMultiplexerClient
 
-#########################################################################
-#  main                                                                 #
-#########################################################################
+
+class CameraSelector(Node):
+    def __init__(self, name):
+        super().__init__(name)
+
+        self._multiplexer = CameraMultiplexerClient(self,
+                                                    'camera_multiplexer')
+        self.get_logger().info('started')
+
+        cli_thread = threading.Thread(target=self.interactive)
+        cli_thread.daemon = True
+        cli_thread.start()
+
+    def interactive(self):
+        while rclpy.ok():
+            active_camera = self._multiplexer.active_camera
+            key = input('[active: %s]> ' % active_camera)
+
+            if key == 'q':
+                break
+            elif not self._multiplexer.activate_camera(key):
+                print('Unknown camera[%s]' % key)
+        self.destroy_node()
+        rclpy.shutdown()
+
+
 if __name__ == '__main__':
+    rclpy.init(args=sys.argv)
 
-    camera_name = sys.argv[1]
-
-    rospy.init_node('select_camera')
-    multiplexer = CameraMultiplexerClient('camera_multiplexer')
-
-    if not multiplexer.activate_camera(camera_name):
-        print('Unknown camera[{}]'.format(camera_name))
+    try:
+        selector = CameraSelector('camera_selector')
+        executor = MultiThreadedExecutor()
+        executor.add_node(selector)
+        executor.spin()
+    except (KeyboradInterrupt, ExternalShutdownException):
+        pass
