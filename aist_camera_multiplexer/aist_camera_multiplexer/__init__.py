@@ -33,73 +33,76 @@
 #
 # Author: Toshio Ueshiba
 #
-import rclpy, time
-from rclpy.node            import Node
-from rclpy.parameter       import Parameter
+import rclpy
 from ddynamic_reconfigure2 import ParameterClient
 
 ######################################################################
 #  class CameraMultiplexerClient                                     #
 ######################################################################
-class CameraMultiplexerClient(object):
-    def __init__(self, node, remote_node_name='camera_multiplexer'):
-        super().__init__()
-        self._logger       = node.get_logger()
-        self._param_client = ParameterClient(node, remote_node_name)
-        self._logger.info('initialized CameraMultiplexerClient')
+class CameraMultiplexerClient(ParameterClient):
+    def __init__(self, node, multiplexer_name='camera_multiplexer'):
+        super().__init__(node, multiplexer_name)
 
     @property
     def camera_names(self):
-        return self._param_client.get_parameters_sync(['camera_names'])[0]
+        return self.get_parameters_sync(['camera_names'])[0]
 
     @property
-    def active_camera(self):
-        return self._param_client.get_parameters_sync(["active_camera"])[0]
+    def active_camera_name(self):
+        return self.get_parameters_sync(["active_camera_name"])[0]
 
     def activate_camera(self, camera_name):
         if camera_name in self.camera_names:
-            self._param_client.set_parameters_sync({'active_camera':
-                                                    camera_name})
-            time.sleep(0.2)
-            return True
+            return self.set_parameters_sync([('active_camera_name',
+                                              camera_name)])[0].successful
         else:
             return False
 
 ######################################################################
-#  class RealSenseMultiplexerClient                                  #
+#  class RealsenseMultiplexerClient                                  #
 ######################################################################
-class RealSenseMultiplexerClient(CameraMultiplexerClient):
+class RealsenseMultiplexerClient(CameraMultiplexerClient):
 
-    class RealSenseCamera(object):
-        def __init__(self, camera_name):
-            super().__init__()
-            self._ddr_client = dynamic_reconfigure.client.Client(
-                                   camera_name + '/coded_light_depth_sensor',
-                                   timeout=5.0)
+    class RealsenseCamera(ParameterClient):
+        def __init__(self, node, camera_name):
+            super().__init__(node, camera_name)
 
         @property
         def laser_power(self):
-            return self._ddr_client.get_configuration()['laser_power']
+            return self.get_parameters_sync(
+                       ['coded_light_depth_sensor.laser_power'])
 
         @laser_power.setter
         def laser_power(self, value):
-            self._ddr_client.update_configuration({'laser_power': value})
+            return self.set_parameters_sync(
+                       [('coded_light_depth_sensor.laser_power',
+                         value)])[0].successful
 
-    def __init__(self, node, server='camera_multiplexer', value=16):
-        try:
-            super().__init__(node, server)
-            self._cameras = dict(zip(self.camera_names,
-                                 [RealSenseMultiplexerClient.RealSenseCamera(
-                                     camera_name)
-                                  for camera_name in self.camera_names]))
-        except Exception as e:
-            self._logger.error(str(e))
-            self._logger.error("Cameras failed to initialize. Are the camera nodes started? Does /camera_multiplexer/camera_names contain unused cameras? camera_names: " + str(self.camera_names))
-        for camera in self._cameras.values():
-            camera.laser_power = 0
-        self._cameras[self.active_camera].laser_power = value
+    def __init__(self, node, multiplexer_name='camera_multiplexer', value=16):
+        super().__init__(node, multiplexer_name)
+        self._node    = node
+        self._cameras = None
 
     def activate_camera(self, camera_name, value=16):
-        self._cameras[self.active_camera].laser_power = 0
-        super().activate_camera(camera_name)
-        self._cameras[self.active_camera].laser_power = value
+        active_camera_name = self.active_camera_name
+
+        if self._cameras is None:
+            try:
+                self._cameras \
+                    = {camera_name:
+                       RealsenseMultiplexerClient.RealsenseCamera(self._node,
+                                                                  camera_name)
+                       for camera_name in self.camera_names}
+            except Exception as e:
+                self._node.get_logger().error(str(e))
+                self._node.get_logger().error("Cameras failed to initialize. Are the camera nodes started? Does /camera_multiplexer/camera_names contain unused cameras? camera_names: " + str(self.camera_names))
+                return False
+            for camera in self._cameras.values():
+                camera.laser_power = 0
+            self._cameras[active_camera_name].laser_power = value
+
+        if not super().activate_camera(camera_name):
+            return False
+        self._cameras[active_camera_name].laser_power = 0
+        self._cameras[camera_name].laser_power = value
+        return True

@@ -10,9 +10,7 @@ class CameraSelector(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        self._multiplexer = CameraMultiplexerClient(self,
-                                                    'camera_multiplexer')
-        self.get_logger().info('started')
+        self._multiplexer = CameraMultiplexerClient(self, 'camera_multiplexer')
 
         cli_thread = threading.Thread(target=self.interactive)
         cli_thread.daemon = True
@@ -20,8 +18,8 @@ class CameraSelector(Node):
 
     def interactive(self):
         while rclpy.ok():
-            active_camera = self._multiplexer.active_camera
-            key = input('[active: %s]> ' % active_camera)
+            key = input('[active: %s]> '
+                        % self._multiplexer.active_camera_name)
 
             if key == 'q':
                 break

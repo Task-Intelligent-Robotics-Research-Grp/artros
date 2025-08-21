@@ -184,9 +184,10 @@ Multiplexer::Multiplexer(const rclcpp::NodeOptions& options)
     }
 
     _ddr.registerEnumVariable<std::string>(
-	"active_camera", _subscribers[_active_camera_number].camera_name(),
+	"active_camera_name",
+	_subscribers[_active_camera_number].camera_name(),
 	std::bind(&Multiplexer::activate_camera, this, std::placeholders::_1),
-	"Currently active camera", enum_cameras);
+	"Name of camera currently active", enum_cameras);
 }
 
 size_t

@@ -38,9 +38,8 @@ ament_python_install_package(${PROJECT_NAME})
 
 install(
   PROGRAMS
-    scripts/drealsense.py
     scripts/select_camera.py
-    scripts/select_realsense_camera.py
+    scripts/select_realsense.py
   DESTINATION
     lib/${PROJECT_NAME}
 )

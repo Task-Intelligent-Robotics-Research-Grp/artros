@@ -21,7 +21,7 @@ launch_arguments = [
      'description': 'path to YAML file for configuring the cameras'},
     {'name':        'active_camera_name',
      'default':     '',
-     'description': 'path to YAML file for configuring fastening tools'},
+     'description': 'name of the camera initialy activated'},
     {'name':        'external_container',
      'default':     'false',
      'description': 'use existing external container'},
@@ -88,7 +88,9 @@ def launch_setup(context):
             name=LaunchConfiguration('multiplexer_name'),
             package='aist_camera_multiplexer',
             plugin='aist_camera_multiplexer::Multiplexer',
-            parameters=[{'camera_names': camera_names}],
+            parameters=[{'camera_names': camera_names,
+                         'active_camera_name':
+                         LaunchConfiguration('active_camera_name')}],
             remappings=remappings,
             extra_arguments=[{'use_intra_process_comms': True}]))
 
@@ -103,6 +105,14 @@ def launch_setup(context):
             LoadComposableNodes(
                 target_container=LaunchConfiguration('container'),
                 composable_node_descriptions=composable_nodes),
+            Node(name='select_realsense',
+                 package='aist_camera_multiplexer',
+                 executable='select_realsense.py',
+                 output=LaunchConfiguration('output'),
+                 arguments=[LaunchConfiguration('active_camera_name')],
+                 condition=UnlessCondition(
+                     EqualsSubstitution(
+                         LaunchConfiguration('active_camera_name'), ''))),
             GroupAction(
                 condition=IfCondition(LaunchConfiguration('vis')),
                 actions=[
