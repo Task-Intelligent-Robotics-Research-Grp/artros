@@ -36,7 +36,16 @@
          aist_description/media/material. You also need to export
          gazebo_media_path in package.xml. -->
     <gazebo reference="${prefix}ar_marker">
-      <material>Aruco/${marker_name}</material>
+      <material>
+	<pbr>
+	  <diffuse>1.0 1.0 1.0</diffuse>
+	  <specular>1.0 1.0 1.0</specular>
+	  <metal>
+	    <albedo_map>model://aist_aruco_ros/media/materials/textures/${marker_name}.png</albedo_map>
+	    <normal_map>model://aist_aruco_ros/media/materials/textures/${marker_name}.png</normal_map>
+	  </metal>
+	</pbr>
+      </material>
     </gazebo>
   </xacro:macro>
 

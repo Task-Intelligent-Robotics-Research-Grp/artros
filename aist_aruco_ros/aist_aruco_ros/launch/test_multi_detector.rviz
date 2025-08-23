@@ -1,14 +1,12 @@
 Panels:
   - Class: rviz_common/Displays
-    Help Height: 78
+    Help Height: 0
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Global Options1
-        - /Status1
         - /TF1/Frames1
-      Splitter Ratio: 0.6615384817123413
-    Tree Height: 411
+      Splitter Ratio: 0.5076923370361328
+    Tree Height: 489
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -55,23 +53,15 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        camera_aligned_depth_to_infra1_frame:
-          Value: true
         camera_color_frame:
           Value: false
         camera_color_optical_frame:
-          Value: false
+          Value: true
         camera_depth_frame:
           Value: false
         camera_depth_optical_frame:
-          Value: true
-        camera_infra1_frame:
-          Value: true
-        camera_infra1_optical_frame:
-          Value: true
-        camera_link:
           Value: false
-        marker_frame:
+        camera_link:
           Value: false
       Marker Scale: 0.20000000298023224
       Name: TF
@@ -80,18 +70,12 @@ Visualization Manager:
       Show Names: true
       Tree:
         camera_link:
-          camera_aligned_depth_to_infra1_frame:
-            camera_infra1_optical_frame:
-              {}
           camera_color_frame:
             camera_color_optical_frame:
-              marker_frame:
-                {}
+              {}
           camera_depth_frame:
             camera_depth_optical_frame:
               {}
-          camera_infra1_frame:
-            {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -107,11 +91,11 @@ Visualization Manager:
       Channel Name: intensity
       Class: rviz_default_plugins/DepthCloud
       Color: 255; 255; 255
-      Color Image Topic: /realsense/color/image_raw
+      Color Image Topic: /a_bot_camera/color/image_raw
       Color Transformer: RGB8
       Color Transport Hint: raw
       Decay Time: 0
-      Depth Map Topic: /realsense/aligned_depth_to_color/image_raw
+      Depth Map Topic: /a_bot_camera/aligned_depth_to_color/image_raw
       Depth Map Transport Hint: raw
       Enabled: true
       Invert Rainbow: false
@@ -145,32 +129,12 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /detector_3d/result
-      Value: true
-    - Alpha: 1
-      Axes Length: 0.05000000074505806
-      Axes Radius: 0.004999999888241291
-      Class: rviz_default_plugins/Pose
-      Color: 255; 25; 0
-      Enabled: true
-      Head Length: 0.30000001192092896
-      Head Radius: 0.10000000149011612
-      Name: MarkerPose
-      Shaft Length: 1
-      Shaft Radius: 0.05000000074505806
-      Shape: Axes
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        Filter size: 10
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /detector_3d/pose
+        Value: /a_bot_camera/result
       Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: camera_color_optical_frame
+    Fixed Frame: camera_color_frame
     Frame Rate: 30
   Name: root
   Tools:
@@ -213,7 +177,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 0.42128682136535645
+      Distance: 0.7317600250244141
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -228,10 +192,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: -1.5697963237762451
+      Pitch: -0.20979738235473633
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.663583755493164
+      Yaw: 3.1085665225982666
     Saved: ~
 Window Geometry:
   Displays:

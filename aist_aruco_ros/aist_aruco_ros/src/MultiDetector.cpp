@@ -90,7 +90,6 @@ class MultiDetector : public rclcpp::Node
 		MultiDetector(const rclcpp::NodeOptions& options)	;
 
   private:
-    std::string	node_name()			const	{ return get_name(); }
     void	set_min_marker_size(double size)			;
     void	set_enclosed_marker(bool enable)			;
     void	set_detection_mode(int mode)				;
@@ -108,8 +107,6 @@ class MultiDetector : public rclcpp::Node
     static void	publish_image(const std_msgs::msg::Header& header,
 			      const cv::Mat& image,
 			      const image_transport::Publisher& pub)	;
-    const std::string&
-		getName()					const	;
 
   private:
     ddynamic_reconfigure_t				_ddr;
@@ -138,7 +135,7 @@ MultiDetector::MultiDetector(const rclcpp::NodeOptions& options)
     :rclcpp::Node("multi_detector", options),
      _ddr(rclcpp::Node::SharedPtr(this)),
      _camera_names(ddynamic_reconfigure2::declare_read_only_parameter(
-		       this, "camera_names", std::vector<std::string>{})),
+      		       this, "camera_names", std::vector<std::string>{})),
      _it(rclcpp::Node::SharedPtr(this)),
      _image_sub(),
      _image_subs(),
@@ -169,13 +166,9 @@ MultiDetector::MultiDetector(const rclcpp::NodeOptions& options)
     {
 	if (_camera_names.size() >= 2)
 	    _image_subs.emplace_back(std::make_unique<subscriber_t>(
-					 this,
-					 node_name() + '/' + camera_name
-						     + "/image", "raw"));
-	_result_pubs.emplace_back(_it.advertise(node_name() + '/'
-						+ camera_name + "/result",1));
-	_debug_pubs .emplace_back(_it.advertise(node_name() + camera_name
-						+ "/debug", 1));
+					 this, camera_name + "/image", "raw"));
+	_result_pubs.emplace_back(_it.advertise(camera_name + "/result", 1));
+	_debug_pubs .emplace_back(_it.advertise(camera_name + "/debug",  1));
 	RCLCPP_INFO_STREAM(get_logger(),
 			   "Subscribe camera[" << camera_name << ']');
     }
@@ -183,8 +176,7 @@ MultiDetector::MultiDetector(const rclcpp::NodeOptions& options)
     switch (_camera_names.size())
     {
       case 1:
-	_image_sub = _it.subscribe(node_name() + '/' + _camera_names[0]
-					       + "/image", 1,
+	_image_sub = _it.subscribe(_camera_names[0] + "/image", 1,
 				   &MultiDetector::image_cb<0>, this);
 	break;
       case 2:

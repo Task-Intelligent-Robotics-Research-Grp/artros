@@ -107,7 +107,6 @@ class Detector3D : public rclcpp::Node
 		Detector3D(const rclcpp::NodeOptions& options)		;
 
   private:
-    std::string	node_name()	const	{ return get_name(); }
     void	set_min_marker_size(double size)			;
     void	set_enclosed_marker(bool enable)			;
     void	set_detection_mode(int mode)				;
@@ -194,9 +193,9 @@ Detector3D::Detector3D(const rclcpp::NodeOptions& options)
      _useRectifiedImages(ddynamic_reconfigure2::declare_read_only_parameter(
 			     this, "image_is_rectified", false)),
      _rightToLeft(),
-     _result_pub(_it.advertise(node_name() + "/result", 1)),
-     _debug_pub( _it.advertise(node_name() + "/debug",  1)),
-     _pose_pub(create_publisher<pose_t>(node_name() + "/pose", 1)),
+     _result_pub(_it.advertise("~/result", 1)),
+     _debug_pub( _it.advertise("~/debug",  1)),
+     _pose_pub(create_publisher<pose_t>("~/pose", 1)),
      _marker_detector(),
      _marker_map(),
      _marker_size(ddynamic_reconfigure2::declare_read_only_parameter(
