@@ -1,4 +1,4 @@
-controller_manager:
+/a_bot/controller_manager:
   ros__parameters:
     update_rate: 500  # Hz
 
@@ -24,11 +24,11 @@ controller_manager:
       type: position_controllers/JointGroupPositionController
 
 
-speed_scaling_state_broadcaster:
+/a_bot/speed_scaling_state_broadcaster:
   ros__parameters:
     state_publish_rate: 100.0
 
-joint_trajectory_controller:
+/a_bot/joint_trajectory_controller:
   ros__parameters:
     joints:
       - a_bot_shoulder_pan_joint
@@ -56,7 +56,7 @@ joint_trajectory_controller:
       a_bot_wrist_3_joint: { trajectory: 0.2, goal: 0.1 }
 
 
-scaled_joint_trajectory_controller:
+/a_bot/scaled_joint_trajectory_controller:
   ros__parameters:
     joints:
       - a_bot_shoulder_pan_joint
@@ -84,7 +84,7 @@ scaled_joint_trajectory_controller:
       a_bot_wrist_2_joint: { trajectory: 0.2, goal: 0.1 }
       a_bot_wrist_3_joint: { trajectory: 0.2, goal: 0.1 }
 
-forward_velocity_controller:
+/a_bot/forward_velocity_controller:
   ros__parameters:
     joints:
       - a_bot_shoulder_pan_joint
@@ -95,7 +95,7 @@ forward_velocity_controller:
       - a_bot_wrist_3_joint
     interface_name: velocity
 
-forward_position_controller:
+/a_bot/forward_position_controller:
   ros__parameters:
     joints:
       - a_bot_shoulder_pan_joint

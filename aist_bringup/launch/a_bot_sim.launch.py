@@ -71,7 +71,7 @@ def launch_setup(context):
                                              value_type=str)}]),
             GroupAction(
                 actions=[
-#                    PushROSNamespace('a_bot')
+                    PushROSNamespace('a_bot'),
                     Node(package='controller_manager',
                          executable='spawner',
                          arguments=['joint_state_broadcaster',
