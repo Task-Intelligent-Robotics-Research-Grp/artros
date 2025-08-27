@@ -14,7 +14,7 @@ from launch.substitutions              import (Command, FindExecutable,
                                                IfElseSubstitution)
 from launch_ros.actions                import Node, PushROSNamespace
 from launch_ros.substitutions          import FindPackageShare
-from launch_ros.parameter_descriptions import ParameterValue
+from launch_ros.parameter_descriptions import ParameterValue, ParameterFile
 
 
 launch_arguments = [
@@ -53,7 +53,8 @@ def launch_setup(context):
                                           '_base_scene.urdf.xacro']]),
                    ' scene:=', LaunchConfiguration('scene'),
                    ' simulation_controllers:=',
-                   LaunchConfiguration('controllers_file')])
+                   ParameterFile(LaunchConfiguration('controllers_file'),
+                                 allow_substs=True)])
     # print(robot_description_content.perform(context))
 
     # General arguments
