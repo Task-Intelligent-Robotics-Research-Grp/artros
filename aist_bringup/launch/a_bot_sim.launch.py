@@ -35,6 +35,7 @@ launch_arguments = [
      'default':     'scaled_joint_trajectory_controller',
      'description': 'Robot controller to start'}]
 
+
 def declare_launch_arguments(args):
     return [DeclareLaunchArgument(arg['name'],
                                   default_value=arg.get('default'),
@@ -42,17 +43,53 @@ def declare_launch_arguments(args):
                                   choices=arg.get('choices')) \
             for arg in args]
 
-def launch_setup(context):
+def set_configurable_parameters(args):
+    return {arg['name']: LaunchConfiguration(arg['name']) for arg in args}
+
+def create_substituted_controllers_file(robot_name, controllers_file):
     # We must extend lifetime of the ParameterFile object by keeping it
-    # in a variable because the temporary file created by evaluationtemin
+    # in a variable because the temporary file created by evaluation
     # will be erased by the destructor of ParameterFile.
     parameter_file = ParameterFile(controllers_file, allow_substs=True)
 
     # Rename the created file to prevent from being erased.
-    substituted_controllers_file = "/tmp/" \
-                                 + tf_prefix.perform(context) \
-                                 + "controllers.yaml"
+    substituted_controllers_file = '/tmp/' + robot_name + '_controllers.yaml'
     os.rename(parameter_file.evaluate(context), substituted_controllers_file)
+
+def launch_setup(context):
+    actions = []
+    for robot_name in robot_names:
+        create_substituted_controllers_file(
+            robot_name, LaunchConfiguration(controllers_file))
+        actions.append(
+            PushROSNamespace(robot_name))
+        actions.append(
+            Node(package='controller_manager',
+                 executable='spawner',
+                 arguments=['joint_state_broadcaster',
+                            '-c', 'controller_manager']))
+        actions.append(
+            Node(package='controller_manager',
+                 executable='spawner',
+                 arguments=[LaunchConfiguration('initial_joint_controller'),
+                            '-c', 'controller_manager']))
+
+    actions.append(PushROSNamepsace('/'))
+    actions.append(Node(package="ros_gz_sim",
+                        executable="create",
+                        output="screen",
+                        arguments=["-topic", "/robot_description",
+                                   "-name",  LaunchConfiguration('config'),
+                                   "-allow_renaming", "true"]))
+    actions.append(
+        IncludeLaunchDescription(
+            PathJoinSubstitution([FindPackageShare("ros_gz_sim"), "launch",
+                                  "gz_sim.launch.py"]),
+            launch_arguments=[
+                ("gz_args", IfElseSubstitution(gazebo_gui,
+                                               [" -r -v 4 ", 'empty.sdf'],
+                                               [" -s -r -v 4 ", 'empty.sdf']))]
+        ))
 
     robot_description_content \
         = Command([PathJoinSubstitution([FindExecutable(name='xacro')]),
@@ -68,10 +105,10 @@ def launch_setup(context):
     # print(robot_description_content.perform(context))
 
     # General arguments
-    activate_joint_controller = LaunchConfiguration("activate_joint_controller")
-    initial_joint_controller = LaunchConfiguration("initial_joint_controller")
-    launch_rviz = LaunchConfiguration("launch_rviz")
-    rviz_config_file = LaunchConfiguration("rviz_config_file")
+    activate_joint_controller = LaunchConfiguration('activate_joint_controller')
+    initial_joint_controller = LaunchConfiguration('initial_joint_controller')
+    launch_rviz = LaunchConfiguration('launch_rviz')
+    rviz_config_file = LaunchConfiguration('rviz_config_file')
 
     return [Node(package='robot_state_publisher',
                  executable='robot_state_publisher',

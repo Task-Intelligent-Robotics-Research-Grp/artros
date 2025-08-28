@@ -2,7 +2,7 @@
 <robot xmlns:xacro="http://wiki.ros.org/xacro">
 
   <xacro:macro name="ur_robot_with_ros2_control"
-	       params="simulation_controllers
+	       params="sim
 		       ur_type
 		       name
 		       parent
@@ -58,7 +58,7 @@
     </xacro:ur_robot>
 
     <!-- ros2_control settings for real arms -->
-    <xacro:if value="${simulation_controllers == ''}">
+    <xacro:unless value="${sim}">
       <xacro:include filename="$(find ur_robot_driver
 			       )/urdf/ur.ros2_control.xacro"/>
       <xacro:ur_ros2_control
@@ -91,10 +91,10 @@
 	  trajectory_port="${trajectory_port}"
 	  non_blocking_read="${non_blocking_read}"
 	  robot_receive_timeout="${robot_receive_timeout}"/>
-    </xacro:if>
+    </xacro:unless>
 
     <!-- ros2_control settings for gazebo -->
-    <xacro:unless value="${simulation_controllers == ''}">
+    <xacro:if value="${sim}">
       <xacro:include filename="$(find ur_simulation_gz
 			       )/urdf/ur_gz.ros2_control.xacro"/>
       <xacro:ur_ros2_control
@@ -106,14 +106,14 @@
       <gazebo>
 	<plugin filename="gz_ros2_control-system"
 		name="gz_ros2_control::GazeboSimROS2ControlPlugin">
-	  <parameters>${simulation_controllers}</parameters>
+	  <parameters>/tmp/${name}_controllers.yaml</parameters>
 	  <ros>
-            <namespace>${name}</namespace>
+	    <namepsace>${name}</namepsace>
 	    <remapping>robot_description:=/robot_description</remapping>
 	  </ros>
 	</plugin>
       </gazebo>
-    </xacro:unless>
+    </xacro:if>
 
   </xacro:macro>
 
