@@ -101,14 +101,15 @@
 	  name="${name}"
 	  tf_prefix="${name}_"
 	  transmission_hw_interface="${transmission_hw_interface}"
-	  initial_positions="${initial_positions}"/>
+	  initial_positions="${initial_positions}">
+      </xacro:ur_ros2_control>
       <gazebo>
 	<plugin filename="gz_ros2_control-system"
 		name="gz_ros2_control::GazeboSimROS2ControlPlugin">
 	  <parameters>${simulation_controllers}</parameters>
-	  <controller_manager_name>controller_manager</controller_manager_name>
 	  <ros>
-	    <namepsace>${name}</namepsace>
+            <namespace>${name}</namespace>
+	    <remapping>robot_description:=/robot_description</remapping>
 	  </ros>
 	</plugin>
       </gazebo>

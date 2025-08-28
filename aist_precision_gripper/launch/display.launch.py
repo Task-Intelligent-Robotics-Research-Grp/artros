@@ -15,8 +15,9 @@ launch_arguments = [
 
 def declare_launch_arguments(args):
     return [DeclareLaunchArgument(arg['name'],
-                                  default_value=arg['default'],
-                                  description=arg['description']) \
+                                  default_value=arg.get('default'),
+                                  description=arg.get('description'),
+                                  choices=arg.get('choices')) \
             for arg in args]
 
 def launch_setup(context):

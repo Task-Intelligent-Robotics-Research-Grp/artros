@@ -26,9 +26,7 @@ launch_arguments = [
      'description': 'name of the scene'},
     {'name':        'controllers_file',
      'default':     PathJoinSubstitution([ThisLaunchFileDir(), '..', 'config',
-                                          'a_bot_controllers.yaml']),
-     # 'default':     PathJoinSubstitution([FindPackageShare('ur_simulation_gz'),
-     #                                      'config', 'ur_controllers.yaml']),
+                                          'ur_controllers.yaml']),
      'description': 'Absolute path to YAML file with the controllers configuration'},
     {'name':        'activate_joint_controller',
      'default':     'true',
@@ -39,11 +37,23 @@ launch_arguments = [
 
 def declare_launch_arguments(args):
     return [DeclareLaunchArgument(arg['name'],
-                                  default_value=arg['default'],
-                                  description=arg['description']) \
+                                  default_value=arg.get('default'),
+                                  description=arg.get('description'),
+                                  choices=arg.get('choices')) \
             for arg in args]
 
 def launch_setup(context):
+    # We must extend lifetime of the ParameterFile object by keeping it
+    # in a variable because the temporary file created by evaluationtemin
+    # will be erased by the destructor of ParameterFile.
+    parameter_file = ParameterFile(controllers_file, allow_substs=True)
+
+    # Rename the created file to prevent from being erased.
+    substituted_controllers_file = "/tmp/" \
+                                 + tf_prefix.perform(context) \
+                                 + "controllers.yaml"
+    os.rename(parameter_file.evaluate(context), substituted_controllers_file)
+
     robot_description_content \
         = Command([PathJoinSubstitution([FindExecutable(name='xacro')]),
                    ' ',

@@ -26,10 +26,12 @@ launch_arguments = [
      'description': 'name of external component container'},
     {'name':        'log_level',
      'default':     'info',
-     'description': 'debug log level [debug|info|warn|error|fatal]'},
+     'description': 'debug log level',
+     'choices':     ['debug', 'info', 'warn', 'error', 'fatal']},
     {'name':        'output',
      'default':     'both',
-     'description': 'pipe node output [screen|log]'}]
+     'description': 'pipe node output',
+     'choices':     ['screen', 'log', 'both']}]
 
 parameter_arguments = [
     {'name':        'marker_map_dir',
@@ -38,18 +40,13 @@ parameter_arguments = [
      'description': 'directory name containing marker map'},
     {'name':        'marker_map',
      'default':     'aruco-26-70x70-5',
-     'description': 'name of marker map'},
-    {'name':        'reference_frame',
-     'default':     '',
-     'description': 'marker frame ID'},
-    {'name':        'marker_frame',
-     'default':     'marker_frame',
-     'description': 'marker frame ID'}]
+     'description': 'name of marker map'}]
 
 def declare_launch_arguments(args):
     return [DeclareLaunchArgument(arg['name'],
-                                  default_value=arg['default'],
-                                  description=arg['description']) \
+                                  default_value=arg.get('default'),
+                                  description=arg.get('description'),
+                                  choices=arg.get('choices')) \
             for arg in args]
 
 def set_configurable_parameters(args):

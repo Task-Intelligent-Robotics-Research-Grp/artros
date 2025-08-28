@@ -39,8 +39,6 @@ aluminum peripherial evaluation case.
             <near>0.1</near>
             <far>100</far>
           </clip>
-	  <gz_frame_id>${name}_color_frame</gz_frame_id>
-	  <optical_frame_id>${name}_color_frame</optical_frame_id>
 	  <noise>
 	    <type>gaussian</type>
 	    <mean>0.0</mean>
@@ -53,6 +51,8 @@ aluminum peripherial evaluation case.
 	    <p1>0.0</p1>
 	    <p2>0.0</p2>
 	  </distortion>
+	  <gz_frame_id>${name}_color_frame</gz_frame_id>
+	  <optical_frame_id>${name}_color_frame</optical_frame_id>
 	</camera>
 	<always_on>true</always_on>
         <updateRate>10.0</updateRate>

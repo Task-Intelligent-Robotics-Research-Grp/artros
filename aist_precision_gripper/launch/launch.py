@@ -22,15 +22,18 @@ launch_arguments = [
      'description': 'name of component container'},
     {'name':        'log_level',
      'default':     'info',
-     'description': 'debug log level [DEBUG|INFO|WARN|ERROR|FATAL]'},
+     'description': 'debug log level',
+     'choices':     ['debug', 'info', 'warn', 'error', 'fatal']},
     {'name':        'output',
-     'default':     'screen',
-     'description': 'pipe node output [screen|log|both]'}]
+     'default':     'both',
+     'description': 'pipe node output',
+     'choices':     ['screen', 'log', 'both']}]
 
 def declare_launch_arguments(args):
     return [DeclareLaunchArgument(arg['name'],
-                                  default_value=arg['default'],
-                                  description=arg['description']) \
+                                  default_value=arg.get('default'),
+                                  description=arg.get('description'),
+                                  choices=arg.get('choices')) \
             for arg in args]
 
 def get_node_names(config_file):
