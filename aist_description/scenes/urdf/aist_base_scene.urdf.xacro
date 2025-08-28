@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro" name="aist_base_scene" >
 
-  <xacro:arg name="scene"			default=""/>
-  <xacro:arg name="simulation_controllers"	default=""/>
+  <xacro:arg name="scene"	default=""/>
+  <xacro:arg name="sim"		default="false"/>
 
   <!-- ur_robot_driver -->
   <xacro:property name="a_bot_ip"	value="10.66.171.40"/>
@@ -122,7 +122,7 @@
       filename="$(find aist_description
 		)/devices/urdf/ur_robot_with_ros2_control.urdf.xacro"/>
   <xacro:ur_robot_with_ros2_control
-      simulation_controllers="$(arg simulation_controllers)"
+      sim="$(arg sim)"
       ur_type="ur5e"
       name="a_bot"
       parent="a_bot_table_top_center"
@@ -141,7 +141,7 @@
   </xacro:ur_robot_with_ros2_control>
 
   <xacro:ur_robot_with_ros2_control
-      simulation_controllers="$(arg simulation_controllers)"
+      sim="$(arg sim)"
       ur_type="ur5e"
       name="b_bot"
       parent="b_bot_table_top_center"
@@ -261,7 +261,7 @@ l
   </xacro:if>
 
   <!-- Import gz plusins -->
-  <xacro:if value="${'$(arg simulation_controllers)' != ''}">
+  <xacro:if value="$(arg sim)">
     <gazebo reference="world">
     </gazebo>
     <gazebo>
