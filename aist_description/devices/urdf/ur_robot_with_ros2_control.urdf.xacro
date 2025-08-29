@@ -108,7 +108,7 @@
 		name="gz_ros2_control::GazeboSimROS2ControlPlugin">
 	  <parameters>/tmp/${name}_controllers.yaml</parameters>
 	  <ros>
-	    <namepsace>${name}</namepsace>
+	    <namespace>${name}</namespace>
 	    <remapping>robot_description:=/robot_description</remapping>
 	  </ros>
 	</plugin>

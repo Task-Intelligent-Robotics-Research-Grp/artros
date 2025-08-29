@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro" name="a_bot_base_scene" >
 
-  <xacro:arg name="scene"			default=""/>
-  <xacro:arg name="simulation_controllers"	default=""/>
+  <xacro:arg name="scene"	default=""/>
+  <xacro:arg name="sim"		default="false"/>
 
   <!-- ur_robot_driver -->
   <xacro:property name="a_bot_ip"	value="10.66.171.40"/>
@@ -15,6 +15,13 @@
   <xacro:property name="input_recipe_filename"
 		  value="$(find ur_robot_driver
 			 )/resources/rtde_input_recipe.txt"/>
+  <xacro:property name="initial_positions"
+		  value="${dict(shoulder_pan_joint=1.5708,
+			        shoulder_lift_joint=-2.1,
+				elbow_joint=1.4,
+				wrist_1_joint=-0.85,
+				wrist_2_joint=-1.5708,
+				wrist_3_joint=0.0)}"/>
 
   <xacro:arg name="hw_interface"	default="PositionJointInterface"/>
 					<!-- or "VelocityJointInterface" -->
@@ -112,8 +119,8 @@
       filename="$(find aist_description
 		)/devices/urdf/ur_robot_with_ros2_control.urdf.xacro"/>
   <xacro:ur_robot_with_ros2_control
+      sim="$(arg sim)"
       name="a_bot"
-      simulation_controllers="$(arg simulation_controllers)"
       ur_type="ur5e"
       parent="a_bot_table_top_center"
       safety_limits="true"
@@ -121,6 +128,7 @@
       script_filename="${script_filename}"
       input_recipe_filename="${input_recipe_filename}"
       output_recipe_filename="${output_recipe_filename}"
+      initial_positions="${initial_positions}"
       robot_ip="${a_bot_ip}"
       reverse_port="50001"
       script_sender_port="50002"
@@ -201,7 +209,7 @@
   </xacro:if>
 
   <!-- Import gz plusins -->
-  <xacro:if value="${'$(arg simulation_controllers)' != ''}">
+  <xacro:if value="$(arg sim)">
     <gazebo reference="world">
     </gazebo>
     <gazebo>

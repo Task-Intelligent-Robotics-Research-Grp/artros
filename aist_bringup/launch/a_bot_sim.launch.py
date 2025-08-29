@@ -1,5 +1,7 @@
+import os
 from launch                            import LaunchDescription
-from launch.actions                    import (DeclareLaunchArgument,
+from launch.actions                    import (SetLaunchConfiguration,
+                                               DeclareLaunchArgument,
                                                IncludeLaunchDescription,
                                                OpaqueFunction,
                                                RegisterEventHandler,
@@ -20,20 +22,33 @@ from launch_ros.parameter_descriptions import ParameterValue, ParameterFile
 launch_arguments = [
     {'name':        'config',
      'default':     'a_bot',
-     'description': 'configuration name of the scene'},
+     'description': 'Name of the hardware configuration'},
     {'name':        'scene',
      'default':     '',
-     'description': 'name of the scene'},
+     'description': 'Name of the scene'},
     {'name':        'controllers_file',
      'default':     PathJoinSubstitution([ThisLaunchFileDir(), '..', 'config',
                                           'ur_controllers.yaml']),
-     'description': 'Absolute path to YAML file with the controllers configuration'},
+     'description': 'Absolute path to YAML file configuring controllers'},
     {'name':        'activate_joint_controller',
      'default':     'true',
      'description': 'Enable headless mode for robot cotnrol'},
     {'name':        'initial_joint_controller',
      'default':     'scaled_joint_trajectory_controller',
-     'description': 'Robot controller to start'}]
+     'description': 'Robot controller to start'},
+    {'name':        'joint_state_pub_rate',
+     'default':     '50.0',
+     'description': 'Rate of publishing joint state'},
+    {'name':        'vis',
+     'default':     'true',
+     'description': 'Launch rviz2 if true',
+     'choices':     ['true', 'false']},
+    {'name':        'rviz_config_file',
+     'default':     PathJoinSubstitution([ThisLaunchFileDir(),
+                                          [LaunchConfiguration('config'),
+                                           '.rviz']])},
+    {'name':        'tf_prefix',
+     'default':     'a_bot_'}]
 
 
 def declare_launch_arguments(args):
@@ -46,104 +61,93 @@ def declare_launch_arguments(args):
 def set_configurable_parameters(args):
     return {arg['name']: LaunchConfiguration(arg['name']) for arg in args}
 
-def create_substituted_controllers_file(robot_name, controllers_file):
+def create_substituted_controllers_file(context, robot_name):
+    SetLaunchConfiguration('tf_prefix', value=robot_name + '_')
+    print(LaunchConfiguration('tf_prefix').perform(context))
+
     # We must extend lifetime of the ParameterFile object by keeping it
     # in a variable because the temporary file created by evaluation
     # will be erased by the destructor of ParameterFile.
-    parameter_file = ParameterFile(controllers_file, allow_substs=True)
-
+    parameter_file = ParameterFile(LaunchConfiguration('controllers_file'),
+                                   allow_substs=True)
     # Rename the created file to prevent from being erased.
-    substituted_controllers_file = '/tmp/' + robot_name + '_controllers.yaml'
-    os.rename(parameter_file.evaluate(context), substituted_controllers_file)
+    os.rename(parameter_file.evaluate(context),
+              '/tmp/' + robot_name + '_controllers.yaml')
 
 def launch_setup(context):
-    actions = []
+    robot_names = ['a_bot']
+
+    print('*** OK0')
     for robot_name in robot_names:
-        create_substituted_controllers_file(
-            robot_name, LaunchConfiguration(controllers_file))
-        actions.append(
-            PushROSNamespace(robot_name))
-        actions.append(
-            Node(package='controller_manager',
-                 executable='spawner',
-                 arguments=['joint_state_broadcaster',
-                            '-c', 'controller_manager']))
-        actions.append(
-            Node(package='controller_manager',
-                 executable='spawner',
-                 arguments=[LaunchConfiguration('initial_joint_controller'),
-                            '-c', 'controller_manager']))
-
-    actions.append(PushROSNamepsace('/'))
-    actions.append(Node(package="ros_gz_sim",
-                        executable="create",
-                        output="screen",
-                        arguments=["-topic", "/robot_description",
-                                   "-name",  LaunchConfiguration('config'),
-                                   "-allow_renaming", "true"]))
-    actions.append(
-        IncludeLaunchDescription(
-            PathJoinSubstitution([FindPackageShare("ros_gz_sim"), "launch",
-                                  "gz_sim.launch.py"]),
-            launch_arguments=[
-                ("gz_args", IfElseSubstitution(gazebo_gui,
-                                               [" -r -v 4 ", 'empty.sdf'],
-                                               [" -s -r -v 4 ", 'empty.sdf']))]
-        ))
-
+        print('*** OK1')
+        create_substituted_controllers_file(context, robot_name)
+        print('*** OK2')
     robot_description_content \
-        = Command([PathJoinSubstitution([FindExecutable(name='xacro')]),
+        = Command([FindExecutable(name='xacro'),
                    ' ',
                    PathJoinSubstitution([FindPackageShare('aist_description'),
                                          'scenes', 'urdf',
                                          [LaunchConfiguration('config'),
                                           '_base_scene.urdf.xacro']]),
                    ' scene:=', LaunchConfiguration('scene'),
-                   ' simulation_controllers:=',
-                   ParameterFile(LaunchConfiguration('controllers_file'),
-                                 allow_substs=True)])
-    # print(robot_description_content.perform(context))
+                   ' sim:=', 'true'])
+    print('*** OK3')
 
-    # General arguments
-    activate_joint_controller = LaunchConfiguration('activate_joint_controller')
-    initial_joint_controller = LaunchConfiguration('initial_joint_controller')
-    launch_rviz = LaunchConfiguration('launch_rviz')
-    rviz_config_file = LaunchConfiguration('rviz_config_file')
+    actions = [
+        Node(package="joint_state_publisher",
+             executable="joint_state_publisher",
+             parameters=[{"rate": LaunchConfiguration('joint_state_pub_rate')},
+                         {"source_list":
+                          [[robot_name, "/joint_states"] \
+                           for robot_name in robot_names]}],
+             output="log"),
+        Node(package="robot_state_publisher",
+             executable="robot_state_publisher",
+             parameters=[{"use_sim_time": True},
+                         {"robot_description":
+                          ParameterValue(robot_description_content,
+                                         value_type=str)}],
+             output="log")]
 
-    return [Node(package='robot_state_publisher',
-                 executable='robot_state_publisher',
-                 output='both',
-                 parameters=[{'use_sim_time': True,
-                              'robot_description':
-                              ParameterValue(robot_description_content,
-                                             value_type=str)}]),
-            GroupAction(
-                actions=[
-                    PushROSNamespace('a_bot'),
-                    Node(package='controller_manager',
-                         executable='spawner',
-                         arguments=['joint_state_broadcaster',
-                                    '--controller-manager',
-                                    'controller_manager']),
-                    Node(package='controller_manager',
-                         executable='spawner',
-                         arguments=[initial_joint_controller,
-                                    '-c', 'controller_manager'])]),
-            Node(package='ros_gz_sim',
-                 executable='create',
-                 output='screen',
-                 arguments=['-topic', '/robot_description',
-                            '-name', LaunchConfiguration('config'),
-                            '-allow_renaming', 'true']),
-            IncludeLaunchDescription(
-                PythonLaunchDescriptionSource(
-                    PathJoinSubstitution([FindPackageShare('ros_gz_sim'),
-                                          'launch', 'gz_sim.launch.py'])),
-                launch_arguments={'gz_args': '-r -v 4 empty.sdf'}.items()),
-            Node(package='ros_gz_bridge',
-                 executable='parameter_bridge',
-                 arguments=['/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'],
+    for robot_name in robot_names:
+        actions += [
+            PushROSNamespace(robot_name),
+            Node(package='controller_manager',
+                 executable='spawner',
+                 arguments=['joint_state_broadcaster',
+                            '-c', 'controller_manager'],
+                 output='screen'),
+            Node(package='controller_manager',
+                 executable='spawner',
+                 arguments=[LaunchConfiguration('initial_joint_controller'),
+                            '-c', 'controller_manager'],
                  output='screen')]
+    print('*** OK4')
+
+    actions += [
+        PushROSNamespace('/'),
+        Node(package='ros_gz_sim',
+             executable='create',
+             arguments=['-topic', '/robot_description',
+                        '-name',  [LaunchConfiguration('config'),
+                                   '_base_scene'],
+                        '-allow_renaming', 'true'],
+             output='log'),
+        IncludeLaunchDescription(
+            PathJoinSubstitution([FindPackageShare('ros_gz_sim'), 'launch',
+                                  'gz_sim.launch.py']),
+            launch_arguments=[('gz_args', [' -r -v 4 ', 'empty.sdf'])]),
+        Node(package='ros_gz_bridge',
+             executable='parameter_bridge',
+             arguments=['/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'],
+             output="log"),
+        Node(package="rviz2",
+             executable="rviz2",
+             name="rviz2",
+             arguments=["-d", LaunchConfiguration("rviz_config_file")],
+             output="log")]
+
+    return actions
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \
