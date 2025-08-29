@@ -16,6 +16,13 @@
   <xacro:property name="input_recipe_filename"
 		  value="$(find ur_robot_driver
 			 )/resources/rtde_input_recipe.txt"/>
+  <xacro:property name="initial_positions"
+		  value="${dict(shoulder_pan_joint=1.5708,
+			        shoulder_lift_joint=-2.1,
+				elbow_joint=1.4,
+				wrist_1_joint=-0.85,
+				wrist_2_joint=-1.5708,
+				wrist_3_joint=0.0)}"/>
 
   <!-- location of robot arms -->
   <xacro:property name="a_bot_x"	value="0"/>
@@ -123,14 +130,15 @@
 		)/devices/urdf/ur_robot_with_ros2_control.urdf.xacro"/>
   <xacro:ur_robot_with_ros2_control
       sim="$(arg sim)"
-      ur_type="ur5e"
       name="a_bot"
+      ur_type="ur5e"
       parent="a_bot_table_top_center"
       safety_limits="true"
       safety_pos_margin="0.15"
       script_filename="${script_filename}"
       input_recipe_filename="${input_recipe_filename}"
       output_recipe_filename="${output_recipe_filename}"
+      initial_positions="${initial_positions}"
       robot_ip="${a_bot_ip}"
       reverse_port="50001"
       script_sender_port="50002"
@@ -142,14 +150,15 @@
 
   <xacro:ur_robot_with_ros2_control
       sim="$(arg sim)"
-      ur_type="ur5e"
       name="b_bot"
+      ur_type="ur5e"
       parent="b_bot_table_top_center"
       safety_limits="true"
       safety_pos_margin="0.15"
       script_filename=""
       input_recipe_filename=""
       output_recipe_filename=""
+      initial_positions="${initial_positions}"
       robot_ip="${b_bot_ip}"
       reverse_port="50005"
       script_sender_port="50006"

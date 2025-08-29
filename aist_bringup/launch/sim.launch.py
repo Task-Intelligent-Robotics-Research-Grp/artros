@@ -46,9 +46,7 @@ launch_arguments = [
     {'name':        'rviz_config_file',
      'default':     PathJoinSubstitution([ThisLaunchFileDir(),
                                           [LaunchConfiguration('config'),
-                                           '.rviz']])},
-    {'name':        'tf_prefix',
-     'default':     'a_bot_'}]
+                                           '.rviz']])}]
 
 
 def declare_launch_arguments(args):
@@ -62,8 +60,8 @@ def set_configurable_parameters(args):
     return {arg['name']: LaunchConfiguration(arg['name']) for arg in args}
 
 def create_substituted_controllers_file(context, robot_name):
-    SetLaunchConfiguration('tf_prefix', value=robot_name + '_')
-    print(LaunchConfiguration('tf_prefix').perform(context))
+    SetLaunchConfiguration('tf_prefix',
+                           value=robot_name + '_').execute(context)
 
     # We must extend lifetime of the ParameterFile object by keeping it
     # in a variable because the temporary file created by evaluation
@@ -75,13 +73,34 @@ def create_substituted_controllers_file(context, robot_name):
               '/tmp/' + robot_name + '_controllers.yaml')
 
 def launch_setup(context):
-    robot_names = ['a_bot']
-
-    print('*** OK0')
+    robot_names = ['a_bot', 'b_bot']
     for robot_name in robot_names:
-        print('*** OK1')
         create_substituted_controllers_file(context, robot_name)
-        print('*** OK2')
+
+    actions = [
+        Node(package="joint_state_publisher",
+             executable="joint_state_publisher",
+             parameters=[{"rate": LaunchConfiguration('joint_state_pub_rate')},
+                         {"source_list":
+                          [[robot_name, "/joint_states"] \
+                           for robot_name in robot_names]}],
+             output="log")]
+
+    for robot_name in robot_names:
+        actions.append(
+            GroupAction(
+                actions=[
+                    PushROSNamespace(robot_name),
+                    Node(package='controller_manager',
+                         executable='spawner',
+                         arguments=['joint_state_broadcaster',
+                                    '-c', 'controller_manager']),
+                    Node(package='controller_manager',
+                         executable='spawner',
+                         arguments=[
+                             LaunchConfiguration('initial_joint_controller'),
+                             '-c', 'controller_manager'])]))
+
     robot_description_content \
         = Command([FindExecutable(name='xacro'),
                    ' ',
@@ -91,41 +110,15 @@ def launch_setup(context):
                                           '_base_scene.urdf.xacro']]),
                    ' scene:=', LaunchConfiguration('scene'),
                    ' sim:=', 'true'])
-    print('*** OK3')
 
-    actions = [
-        Node(package="joint_state_publisher",
-             executable="joint_state_publisher",
-             parameters=[{"rate": LaunchConfiguration('joint_state_pub_rate')},
-                         {"source_list":
-                          [[robot_name, "/joint_states"] \
-                           for robot_name in robot_names]}],
-             output="log"),
+    actions += [
         Node(package="robot_state_publisher",
              executable="robot_state_publisher",
              parameters=[{"use_sim_time": True},
                          {"robot_description":
                           ParameterValue(robot_description_content,
                                          value_type=str)}],
-             output="log")]
-
-    for robot_name in robot_names:
-        actions += [
-            PushROSNamespace(robot_name),
-            Node(package='controller_manager',
-                 executable='spawner',
-                 arguments=['joint_state_broadcaster',
-                            '-c', 'controller_manager'],
-                 output='screen'),
-            Node(package='controller_manager',
-                 executable='spawner',
-                 arguments=[LaunchConfiguration('initial_joint_controller'),
-                            '-c', 'controller_manager'],
-                 output='screen')]
-    print('*** OK4')
-
-    actions += [
-        PushROSNamespace('/'),
+             output="log"),
         Node(package='ros_gz_sim',
              executable='create',
              arguments=['-topic', '/robot_description',
