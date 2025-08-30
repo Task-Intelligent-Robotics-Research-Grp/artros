@@ -1,4 +1,4 @@
-import os
+import os, yaml
 from launch                            import LaunchDescription
 from launch.actions                    import (SetLaunchConfiguration,
                                                DeclareLaunchArgument,
@@ -21,11 +21,15 @@ from launch_ros.parameter_descriptions import ParameterValue, ParameterFile
 
 launch_arguments = [
     {'name':        'config',
-     'default':     'a_bot',
+     'default':     'aist',
      'description': 'Name of the hardware configuration'},
     {'name':        'scene',
      'default':     '',
      'description': 'Name of the scene'},
+    {'name':        'sim',
+     'default':     'false',
+     'description': 'Launch gz if true',
+     'choices':     ['true', 'false']},
     {'name':        'controllers_file',
      'default':     PathJoinSubstitution([ThisLaunchFileDir(), '..', 'config',
                                           'ur_controllers.yaml']),
@@ -40,7 +44,7 @@ launch_arguments = [
      'default':     '50.0',
      'description': 'Rate of publishing joint state'},
     {'name':        'vis',
-     'default':     'true',
+     'default':     LaunchConfiguration('sim'),
      'description': 'Launch rviz2 if true',
      'choices':     ['true', 'false']},
     {'name':        'rviz_config_file',
@@ -62,7 +66,6 @@ def set_configurable_parameters(args):
 def create_substituted_controllers_file(context, robot_name):
     SetLaunchConfiguration('tf_prefix',
                            value=robot_name + '_').execute(context)
-
     # We must extend lifetime of the ParameterFile object by keeping it
     # in a variable because the temporary file created by evaluation
     # will be erased by the destructor of ParameterFile.
@@ -73,9 +76,33 @@ def create_substituted_controllers_file(context, robot_name):
               '/tmp/' + robot_name + '_controllers.yaml')
 
 def launch_setup(context):
-    robot_names = ['a_bot', 'b_bot']
+    bridge_file = PathJoinSubstitution([FindPackageShare('aist_bringup'),
+                                        'config',
+                                        [LaunchConfiguration('config'),
+                                         '_ros_gz_bridge.yaml']])
+    config_file = PathJoinSubstitution([FindPackageShare('aist_bringup'),
+                                        'config',
+                                        [LaunchConfiguration('config'),
+                                         '_config.yaml']])
+    with open(config_file.perform(context), 'r') as f:
+        config = yaml.safe_load(f)
+
+    robot_names = config['robots'].keys()
+
+    # Create controller files instatiated from the template for each robot.
     for robot_name in robot_names:
         create_substituted_controllers_file(context, robot_name)
+
+    # Setup a command for loading the URDF describing robots and environment.
+    robot_description_content \
+        = Command([FindExecutable(name='xacro'),
+                   ' ',
+                   PathJoinSubstitution([FindPackageShare('aist_description'),
+                                         'scenes', 'urdf',
+                                         [LaunchConfiguration('config'),
+                                          '_base_scene.urdf.xacro']]),
+                   ' scene:=', LaunchConfiguration('scene'),
+                   ' sim:=',   LaunchConfiguration('sim')])
 
     actions = [
         Node(package="joint_state_publisher",
@@ -84,7 +111,42 @@ def launch_setup(context):
                          {"source_list":
                           [[robot_name, "/joint_states"] \
                            for robot_name in robot_names]}],
-             output="log")]
+             output="screen"),
+        Node(package="robot_state_publisher",
+             executable="robot_state_publisher",
+             parameters=[{"use_sim_time": True},
+                         {"robot_description":
+                          ParameterValue(robot_description_content,
+                                         value_type=str)}],
+             output="screen"),
+        GroupAction(
+            condition=IfCondition(LaunchConfiguration('sim')),
+            actions=[
+                Node(package='ros_gz_sim',
+                     executable='create',
+                     arguments=['-topic', 'robot_description',
+                                '-name',  [LaunchConfiguration('config'),
+                                           '_base_scene'],
+                                '-allow_renaming', 'true'],
+                     output='screen'),
+                IncludeLaunchDescription(
+                    PathJoinSubstitution([FindPackageShare('ros_gz_sim'),
+                                          'launch', 'gz_sim.launch.py']),
+                    launch_arguments=[
+                        ('gz_args',
+                         [' -r -v 4 empty.sdf',
+                          ' --physics-engine',
+                          ' gz-physics-bullet-featherstone-plugin'])]),
+                Node(package='ros_gz_bridge',
+                     executable='parameter_bridge',
+                     parameters=[{'config_file': bridge_file}],
+                     output="screen")]),
+        Node(condition=IfCondition(LaunchConfiguration('vis')),
+             package="rviz2",
+             executable="rviz2",
+             name="rviz2",
+             arguments=["-d", LaunchConfiguration("rviz_config_file")],
+             output="screen")]
 
     for robot_name in robot_names:
         actions.append(
@@ -100,45 +162,6 @@ def launch_setup(context):
                          arguments=[
                              LaunchConfiguration('initial_joint_controller'),
                              '-c', 'controller_manager'])]))
-
-    robot_description_content \
-        = Command([FindExecutable(name='xacro'),
-                   ' ',
-                   PathJoinSubstitution([FindPackageShare('aist_description'),
-                                         'scenes', 'urdf',
-                                         [LaunchConfiguration('config'),
-                                          '_base_scene.urdf.xacro']]),
-                   ' scene:=', LaunchConfiguration('scene'),
-                   ' sim:=', 'true'])
-
-    actions += [
-        Node(package="robot_state_publisher",
-             executable="robot_state_publisher",
-             parameters=[{"use_sim_time": True},
-                         {"robot_description":
-                          ParameterValue(robot_description_content,
-                                         value_type=str)}],
-             output="log"),
-        Node(package='ros_gz_sim',
-             executable='create',
-             arguments=['-topic', '/robot_description',
-                        '-name',  [LaunchConfiguration('config'),
-                                   '_base_scene'],
-                        '-allow_renaming', 'true'],
-             output='log'),
-        IncludeLaunchDescription(
-            PathJoinSubstitution([FindPackageShare('ros_gz_sim'), 'launch',
-                                  'gz_sim.launch.py']),
-            launch_arguments=[('gz_args', [' -r -v 4 ', 'empty.sdf'])]),
-        Node(package='ros_gz_bridge',
-             executable='parameter_bridge',
-             arguments=['/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'],
-             output="log"),
-        Node(package="rviz2",
-             executable="rviz2",
-             name="rviz2",
-             arguments=["-d", LaunchConfiguration("rviz_config_file")],
-             output="log")]
 
     return actions
 

@@ -274,6 +274,12 @@ l
     <gazebo reference="world">
     </gazebo>
     <gazebo>
+      <!-- <plugin filename="gz-sim-physics-system" -->
+      <!-- 	      name="gz::sim::systems::Physics"> -->
+      <!-- 	<engine> -->
+      <!-- 	  <filename>libgz-physics-bullet-featherstone-plugin.so</filename> -->
+      <!-- 	</engine> -->
+      <!-- </plugin> -->
       <plugin filename="gz-sim-sensors-system"
 	      name="gz::sim::systems::Sensors">
 	<render_engine>ogre2</render_engine>

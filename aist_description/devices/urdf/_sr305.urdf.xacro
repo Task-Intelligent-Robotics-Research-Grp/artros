@@ -34,8 +34,8 @@ The origin of the mesh is at the center of the back mount.
             <near>0.1</near>
             <far>100</far>
           </clip>
-	  <gz_frame_id>${name}_color_frame</gz_frame_id>
-	  <optical_frame_id>${name}_color_frame</optical_frame_id>
+	  <frame_id>${name}_color_frame</frame_id>
+	  <optical_frame_id>${name}_color_optical_frame</optical_frame_id>
 	  <noise>
 	    <type>gaussian</type>
 	    <mean>0.0</mean>
