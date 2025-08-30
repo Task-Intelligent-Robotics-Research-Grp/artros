@@ -231,7 +231,7 @@
   <xacro:sr305_on_2f85 prefix="b_bot_"
 		       parent="b_bot_gripper_base_link"
 		       use_nominal_extrinsics="true"/>
-l
+
   <!-- Add live camera -->
   <xacro:load_calibration filename="$(find aist_description
 				    )/scenes/calib/live_camera.yaml"/>
