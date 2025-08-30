@@ -60,9 +60,6 @@ def declare_launch_arguments(args):
                                   choices=arg.get('choices')) \
             for arg in args]
 
-def set_configurable_parameters(args):
-    return {arg['name']: LaunchConfiguration(arg['name']) for arg in args}
-
 def create_substituted_controllers_file(context, robot_name):
     SetLaunchConfiguration('tf_prefix',
                            value=robot_name + '_').execute(context)
