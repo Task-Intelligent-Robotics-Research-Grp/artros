@@ -1,7 +1,9 @@
 robots:
   a_bot:
+    type:            UniversalRobot
     default_gripper: a_bot_gripper
   b_bot:
+    type:            UniversalRobot
     default_gripper: b_bot_gripper
 
 grippers:
@@ -44,9 +46,13 @@ grippers:
     tip_link:                workbench_holder_link
 
 cameras:
-  a_motioncam:  PhoXiCamera
-  a_bot_camera: CodedLightRealSenseCamera
-  b_bot_camera: CodedLightRealSenseCamera
-#  a_bot_zivid:  ZividCamera
+  a_motioncam:
+    type: PhoXiCamera
+  a_bot_camera:
+    type: CodedLightRealSenseCamera
+  b_bot_camera:
+    type: CodedLightRealSenseCamera
+#  a_bot_zivid:
+#    type: ZividCamera
 
 moveit_eef_step: 0.002

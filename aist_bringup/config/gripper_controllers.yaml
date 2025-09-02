@@ -1,0 +1,17 @@
+/**:
+  controller_manager:
+    ros__parameters:
+      update_rate: 50  # Hz
+
+      joint_state_broadcaster:
+        type: joint_state_broadcaster/JointStateBroadcaster
+
+      gripper_controller:
+        type: position_controllers/GripperActionController
+
+  gripper_controller:
+    ros__parameters:
+      default:              true
+      joint:                $(var tf_prefix)finger_joint
+      use_effort_interface: true
+      use_speed_interface:  true

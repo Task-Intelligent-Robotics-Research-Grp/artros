@@ -55,7 +55,6 @@
         $(var tf_prefix)wrist_2_joint: { trajectory: 0.2, goal: 0.1 }
         $(var tf_prefix)wrist_3_joint: { trajectory: 0.2, goal: 0.1 }
 
-
   scaled_joint_trajectory_controller:
     ros__parameters:
       joints:

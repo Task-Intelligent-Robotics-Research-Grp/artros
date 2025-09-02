@@ -34,6 +34,10 @@ launch_arguments = [
      'default':     PathJoinSubstitution([ThisLaunchFileDir(), '..', 'config',
                                           'ur_controllers.yaml']),
      'description': 'Absolute path to YAML file configuring controllers'},
+    {'name':        'gripper_controllers_file',
+     'default':     PathJoinSubstitution([ThisLaunchFileDir(), '..', 'config',
+                                          'gripper_controllers.yaml']),
+     'description': 'Absolute path to YAML file configuring controllers'},
     {'name':        'activate_joint_controller',
      'default':     'true',
      'description': 'Enable headless mode for robot cotnrol'},
@@ -60,17 +64,15 @@ def declare_launch_arguments(args):
                                   choices=arg.get('choices')) \
             for arg in args]
 
-def create_substituted_controllers_file(context, robot_name):
-    SetLaunchConfiguration('tf_prefix',
-                           value=robot_name + '_').execute(context)
+def create_substituted_controllers_file(context, file_name, tf_prefix):
+    SetLaunchConfiguration('tf_prefix', value=tf_prefix).execute(context)
     # We must extend lifetime of the ParameterFile object by keeping it
     # in a variable because the temporary file created by evaluation
     # will be erased by the destructor of ParameterFile.
-    parameter_file = ParameterFile(LaunchConfiguration('controllers_file'),
-                                   allow_substs=True)
+    parameter_file = ParameterFile(file_name, allow_substs=True)
     # Rename the created file to prevent from being erased.
     os.rename(parameter_file.evaluate(context),
-              '/tmp/' + robot_name + '_controllers.yaml')
+              '/tmp/' + tf_prefix + 'controllers.yaml')
 
 def launch_setup(context):
     bridge_file = PathJoinSubstitution([FindPackageShare('aist_bringup'),
@@ -84,11 +86,20 @@ def launch_setup(context):
     with open(config_file.perform(context), 'r') as f:
         config = yaml.safe_load(f)
 
-    robot_names = config['robots'].keys()
+    robot_names   = config['robots'].keys()
+    gripper_names = config['grippers'].keys()
 
     # Create controller files instatiated from the template for each robot.
     for robot_name in robot_names:
-        create_substituted_controllers_file(context, robot_name)
+        create_substituted_controllers_file(
+            context, LaunchConfiguration('controllers_file'), robot_name + '_')
+
+    # Create controller files instatiated from the template for each gripper.
+    for gripper_name in gripper_names:
+        if config['grippers'][gripper_name]['type'] == 'RobotiqGripper':
+            create_substituted_controllers_file(
+                context, LaunchConfiguration('gripper_controllers_file'),
+                gripper_name + '_')
 
     # Setup a command for loading the URDF describing robots and environment.
     robot_description_content \
@@ -159,6 +170,20 @@ def launch_setup(context):
                          arguments=[
                              LaunchConfiguration('initial_joint_controller'),
                              '-c', 'controller_manager'])]))
+    for gripper_name in gripper_names:
+        if config['grippers'][gripper_name]['type'] == 'RobotiqGripper':
+            actions.append(
+                GroupAction(
+                    actions=[
+                        PushROSNamespace(gripper_name),
+                        Node(package='controller_manager',
+                             executable='spawner',
+                             arguments=['joint_state_broadcaster',
+                                        '-c', 'controller_manager']),
+                        Node(package='controller_manager',
+                             executable='spawner',
+                             arguments=['gripper_controller',
+                                        '-c', 'controller_manager'])]))
 
     return actions
 

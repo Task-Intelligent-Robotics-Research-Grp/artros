@@ -157,7 +157,11 @@
     <gazebo>
       <plugin filename="gz_ros2_control-system"
 	      name="gz_ros2_control::GazeboSimROS2ControlPlugin">
-	<parameters>$(find gz_ros2_control_demos)/config/gripper_controller_position.yaml</parameters>
+	<parameters>/tmp/${prefix}controllers.yaml</parameters>
+	<ros>
+	  <namespace>${prefix[0:-1]}</namespace>
+	  <remapping>robot_description:=/robot_description</remapping>
+	</ros>
       </plugin>
     </gazebo>
 
