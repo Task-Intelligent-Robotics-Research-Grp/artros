@@ -1,6 +1,23 @@
 robots:
   a_bot:
-    default_gripper: a_bot_gripper
+    type:               UniversalRobot
+    default_gripper:    a_bot_gripper
+    initial_controller: scaled_joint_trajectory_controller
+    consistent_controllers:
+      - joint_state_broadcaster
+      - io_and_status_controller
+      - speed_scaling_state_broadcaster
+      - force_torque_sensor_broadcaster
+      - tcp_pose_broadcaster
+      - ur_configuration_controller
+    inactive_controllers:
+      - joint_trajectory_controller
+      - forward_velocity_controller
+      - forward_position_controller
+      - force_mode_controller
+      - passthrough_trajectory_controller
+      - freedrive_mode_controller
+      - tool_contact_controller
 
 grippers:
   a_bot_gripper:
@@ -37,8 +54,9 @@ grippers:
     tip_link:                workbench_holder_link
 
 cameras:
-  a_motioncam:  PhoXiCamera
-#  a_bot_zivid:          ZividCamera
-  a_bot_camera: CodedLightRealSenseCamera
+  a_motioncam:
+    type: PhoXiCamera
+  a_bot_camera:
+    type: CodedLightRealSenseCamera
 
 moveit_eef_step: 0.002

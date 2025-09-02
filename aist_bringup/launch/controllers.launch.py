@@ -8,13 +8,12 @@ from launch.actions                    import (SetLaunchConfiguration,
                                                GroupAction)
 from launch.conditions                 import IfCondition, UnlessCondition
 from launch.event_handlers             import OnProcessExit
-from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions              import (Command, FindExecutable,
                                                LaunchConfiguration,
                                                ThisLaunchFileDir,
                                                PathJoinSubstitution,
                                                IfElseSubstitution)
-from launch_ros.actions                import Node, PushROSNamespace
+from launch_ros.actions                import Node
 from launch_ros.substitutions          import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue, ParameterFile
 
@@ -87,7 +86,9 @@ def launch_setup(context):
         config = yaml.safe_load(f)
 
     robot_names   = config['robots'].keys()
-    gripper_names = config['grippers'].keys()
+    gripper_names = [gripper_name for gripper_name in config['grippers'].keys()
+                     if config['grippers'][gripper_name]['type'] == 'RobotiqGripper']
+
 
     # Create controller files instatiated from the template for each robot.
     for robot_name in robot_names:
@@ -96,10 +97,9 @@ def launch_setup(context):
 
     # Create controller files instatiated from the template for each gripper.
     for gripper_name in gripper_names:
-        if config['grippers'][gripper_name]['type'] == 'RobotiqGripper':
-            create_substituted_controllers_file(
-                context, LaunchConfiguration('gripper_controllers_file'),
-                gripper_name + '_')
+        create_substituted_controllers_file(
+            context, LaunchConfiguration('gripper_controllers_file'),
+            gripper_name + '_')
 
     # Setup a command for loading the URDF describing robots and environment.
     robot_description_content \
@@ -118,7 +118,9 @@ def launch_setup(context):
              parameters=[{"rate": LaunchConfiguration('joint_state_pub_rate')},
                          {"source_list":
                           [[robot_name, "/joint_states"] \
-                           for robot_name in robot_names]}],
+                           for robot_name in robot_names] +
+                          [[gripper_name, "/joint_states"] \
+                           for gripper_name in gripper_names]}],
              output="screen"),
         Node(package="robot_state_publisher",
              executable="robot_state_publisher",
@@ -132,10 +134,7 @@ def launch_setup(context):
             actions=[
                 Node(package='ros_gz_sim',
                      executable='create',
-                     arguments=['-topic', 'robot_description',
-                                '-name',  [LaunchConfiguration('config'),
-                                           '_base_scene'],
-                                '-allow_renaming', 'true'],
+                     arguments=['-topic', 'robot_description'],
                      output='screen'),
                 IncludeLaunchDescription(
                     PathJoinSubstitution([FindPackageShare('ros_gz_sim'),
@@ -156,34 +155,41 @@ def launch_setup(context):
              arguments=["-d", LaunchConfiguration("rviz_config_file")],
              output="screen")]
 
+    # Controller spawners should be launched sequentially to reduce load of gz
+    previous_spawner = None
     for robot_name in robot_names:
-        actions.append(
-            GroupAction(
-                actions=[
-                    PushROSNamespace(robot_name),
-                    Node(package='controller_manager',
-                         executable='spawner',
-                         arguments=['joint_state_broadcaster',
-                                    '-c', 'controller_manager']),
-                    Node(package='controller_manager',
-                         executable='spawner',
-                         arguments=[
-                             LaunchConfiguration('initial_joint_controller'),
-                             '-c', 'controller_manager'])]))
-    for gripper_name in gripper_names:
-        if config['grippers'][gripper_name]['type'] == 'RobotiqGripper':
+        spawner = Node(namespace=robot_name,
+                       package='controller_manager',
+                       executable='spawner',
+                       arguments=['joint_state_broadcaster',
+                                  LaunchConfiguration(
+                                      'initial_joint_controller'),
+                                  '-c', 'controller_manager',
+                                  '--service-call-timeout', '30',
+                                  '--switch-timeout', '30'])
+        if previous_spawner is None:
+            actions.append(spawner)
+        else:
             actions.append(
-                GroupAction(
-                    actions=[
-                        PushROSNamespace(gripper_name),
-                        Node(package='controller_manager',
-                             executable='spawner',
-                             arguments=['joint_state_broadcaster',
-                                        '-c', 'controller_manager']),
-                        Node(package='controller_manager',
-                             executable='spawner',
-                             arguments=['gripper_controller',
-                                        '-c', 'controller_manager'])]))
+                RegisterEventHandler(
+                    event_handler=OnProcessExit(target_action=previous_spawner,
+                                                on_exit=[spawner])))
+        previous_spawner = spawner
+
+    for gripper_name in gripper_names:
+        spawner = Node(namespace=gripper_name,
+                       package='controller_manager',
+                       executable='spawner',
+                       arguments=['joint_state_broadcaster',
+                                  'gripper_controller',
+                                  '-c', 'controller_manager',
+                                  '--service-call-timeout', '30',
+                                  '--switch-timeout', '30'])
+        actions.append(
+            RegisterEventHandler(
+                event_handler=OnProcessExit(target_action=previous_spawner,
+                                            on_exit=[spawner])))
+        previous_spawner = spawner
 
     return actions
 
