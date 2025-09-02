@@ -1,0 +1,53 @@
+# MoveIt uses this configuration for controller management
+
+moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControllerManager
+
+moveit_simple_controller_manager:
+  controller_names:
+    - a_bot_controller
+    - b_bot_controller
+    - all_bots_controller
+    - a_bot_gripper_controller
+    - b_bot_gripper_controller
+
+  a_bot_controller:
+    type: FollowJointTrajectory
+    joints:
+      - a_bot_shoulder_pan_joint
+      - a_bot_shoulder_lift_joint
+      - a_bot_elbow_joint
+      - a_bot_wrist_1_joint
+      - a_bot_wrist_2_joint
+      - a_bot_wrist_3_joint
+  b_bot_controller:
+    type: FollowJointTrajectory
+    joints:
+      - b_bot_shoulder_pan_joint
+      - b_bot_shoulder_lift_joint
+      - b_bot_elbow_joint
+      - b_bot_wrist_1_joint
+      - b_bot_wrist_2_joint
+      - b_bot_wrist_3_joint
+  all_bots_controller:
+    type: FollowJointTrajectory
+    joints:
+      - a_bot_shoulder_pan_joint
+      - a_bot_shoulder_lift_joint
+      - a_bot_elbow_joint
+      - a_bot_wrist_1_joint
+      - a_bot_wrist_2_joint
+      - a_bot_wrist_3_joint
+      - b_bot_shoulder_pan_joint
+      - b_bot_shoulder_lift_joint
+      - b_bot_elbow_joint
+      - b_bot_wrist_1_joint
+      - b_bot_wrist_2_joint
+      - b_bot_wrist_3_joint
+  a_bot_gripper_controller:
+    type: FollowJointTrajectory
+    joints:
+      - a_bot_gripper_finger_joint
+  b_bot_gripper_controller:
+    type: FollowJointTrajectory
+    joints:
+      - b_bot_gripper_finger_joint
