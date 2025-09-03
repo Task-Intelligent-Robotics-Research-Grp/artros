@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro">
 
-  <xacro:macro name="ur_robot_with_ros2_control"
+  <xacro:macro name="ur_robot_ros2_control"
 	       params="sim
 		       ur_type
 		       name

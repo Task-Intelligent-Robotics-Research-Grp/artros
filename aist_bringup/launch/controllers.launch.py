@@ -112,6 +112,44 @@ def launch_setup(context):
                    ' scene:=', LaunchConfiguration('scene'),
                    ' sim:=',   LaunchConfiguration('sim')])
 
+    # driver_actions = []
+    # previous_node = None
+    # for robot_name in robot_names:
+    #     driver_actions.append(SetLaunchConfiguration('tf_prefix',
+    #                                                  value=robot_name + '_'))
+    #     node = Node(namespace=robot_name,
+    #                 package='controller_manager',
+    #                 executable='ros2_control_node',
+    #                 parameters=[
+    #                     {'update_rate': 500},
+    #                     ParameterFile(LaunchConfiguration('controllers_file'),
+    #                                   allow_substs=True)],
+    #                 remappings=[('robot_description', '/robot_description')],
+    #                 output='screen')
+    #     if previous_node is None:
+    #         drivers_action.append(node)
+    #     else:
+    #         drivers_action.append(
+    #             RegisterEventHandler(
+    #                 event_handler=OnProcessExit(target_action=previous_spawner,
+    #                                             on_exit=[spawner])))
+    #     previous_spawner = spawner
+
+    driver_actions = [
+        GroupAction(
+            actions=[
+                SetLaunchConfiguration('tf_prefix', value=robot_name + '_'),
+                Node(namespace=robot_name,
+                     package='controller_manager',
+                     executable='ros2_control_node',
+                     parameters=[
+                         {'update_rate': 500},
+                         ParameterFile(LaunchConfiguration('controllers_file'),
+                                       allow_substs=True)],
+                     remappings=[('robot_description', '/robot_description')],
+                     output='screen')])
+        for robot_name in robot_names]
+
     actions = [
         Node(package="joint_state_publisher",
              executable="joint_state_publisher",
@@ -148,6 +186,9 @@ def launch_setup(context):
                      executable='parameter_bridge',
                      parameters=[{'config_file': bridge_file}],
                      output="screen")]),
+        GroupAction(
+            condition=UnlessCondition(LaunchConfiguration('sim')),
+            actions=driver_actions),
         Node(condition=IfCondition(LaunchConfiguration('vis')),
              package="rviz2",
              executable="rviz2",

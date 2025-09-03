@@ -117,8 +117,8 @@
   <!-- robot arms -->
   <xacro:include
       filename="$(find aist_description
-		)/devices/urdf/ur_robot_with_ros2_control.urdf.xacro"/>
-  <xacro:ur_robot_with_ros2_control
+		)/devices/urdf/ur_robot_ros2_control.urdf.xacro"/>
+  <xacro:ur_robot_ros2_control
       sim="$(arg sim)"
       name="a_bot"
       ur_type="ur5e"
@@ -136,7 +136,7 @@
       script_command_port="50004"
       trajectory_port="50003">
     <origin xyz="0 0 0 " rpy="0 0 0"/>
-  </xacro:ur_robot_with_ros2_control>
+  </xacro:ur_robot_ros2_control>
 
   <!-- Set gazebo plugin for FT-sensors -->
   <!-- <xacro:include filename="$(find aist_description -->
@@ -155,13 +155,14 @@
     <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi/2}"/>
   </xacro:robotiq_arg2f_coupling>
 
-  <xacro:include filename="$(find aist_robotiq
-			   )/urdf/robotiq_140_gripper.urdf.xacro"/>
-  <xacro:robotiq_140_gripper prefix="a_bot_gripper_"
-			     parent="a_bot_gripper_coupling_flange_link"
-			     short_finger="true">
+  <xacro:include
+      filename="$(find aist_description
+		)/devices/urdf/robotiq_gripper_ros2_control.urdf.xacro"/>
+  <xacro:robotiq_gripper_ros2_control
+      sim="$(arg sim)" type="robotiq_140" name="a_bot_gripper"
+      parent="a_bot_gripper_coupling_flange_link" short_finger="true">
     <origin xyz="0 0 0" rpy="0 0 0"/>
-  </xacro:robotiq_140_gripper>
+  </xacro:robotiq_gripper_ros2_control>
 
   <!-- Add USB repeater -->
   <xacro:include filename="$(find aist_description
@@ -184,11 +185,11 @@
   </xacro:motioncam_m_camera>
 
   <!-- RealSense cameras -->
-  <xacro:include filename="$(find aist_description
-			   )/devices/urdf/sr305_on_2f140.urdf.xacro" />
-  <xacro:sr305_on_2f140 prefix="a_bot_"
-			parent="a_bot_gripper_base_link"
-			use_nominal_extrinsics="true"/>
+  <!-- <xacro:include filename="$(find aist_description -->
+  <!-- 			   )/devices/urdf/sr305_on_2f140.urdf.xacro" /> -->
+  <!-- <xacro:sr305_on_2f140 prefix="a_bot_" -->
+  <!-- 			parent="a_bot_gripper_base_link" -->
+  <!-- 			use_nominal_extrinsics="true"/> -->
 
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
   <link name="world"/>

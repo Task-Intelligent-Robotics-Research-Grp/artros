@@ -15,6 +15,13 @@
   <xacro:property name="input_recipe_filename"
 		  value="$(find ur_robot_driver
 			 )/resources/rtde_input_recipe.txt"/>
+  <xacro:property name="initial_positions"
+		  value="${dict(shoulder_pan_joint=1.5708,
+			        shoulder_lift_joint=-2.1,
+				elbow_joint=1.4,
+				wrist_1_joint=-0.85,
+				wrist_2_joint=-1.5708,
+				wrist_3_joint=0.0)}"/>
 
   <xacro:arg name="hw_interface"	default="PositionJointInterface"/>
 					<!-- or "VelocityJointInterface" -->
@@ -105,17 +112,18 @@
   <!-- robot arms -->
   <xacro:include
       filename="$(find aist_description
-		)/devices/urdf/ur_robot_with_ros2_control.urdf.xacro"/>
-  <xacro:ur_robot_with_ros2_control
+		)/devices/urdf/ur_robot_ros2_control.urdf.xacro"/>
+  <xacro:ur_robot_ros2_control
+      sim="$(arg sim)"
       name="b_bot"
-      simulation_controllers="$(arg simulation_controllers)"
       ur_type="ur5e"
       parent="b_bot_table_top_center"
       safety_limits="true"
       safety_pos_margin="0.15"
-      script_filename=""
-      input_recipe_filename=""
-      output_recipe_filename=""
+      script_filename="${script_filename}"
+      input_recipe_filename="${input_recipe_filename}"
+      output_recipe_filename="${output_recipe_filename}"
+      initial_positions="${initial_positions}"
       robot_ip="${b_bot_ip}"
       reverse_port="50005"
       script_sender_port="50006"
@@ -123,7 +131,7 @@
       script_command_port="50008"
       trajectory_port="50007">
     <origin xyz="0 0 0" rpy="0 0 ${b_bot_theta}"/>
-  </xacro:ur_robot_with_ros2_control>
+  </xacro:ur_robot_ros2_control>
 
   <!-- Spawn and attach gripper -->
   <xacro:include filename="$(find aist_robotiq
@@ -132,12 +140,14 @@
 				parent="b_bot_tool0">
     <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi/2}"/>
   </xacro:robotiq_arg2f_coupling>
-  <xacro:include filename="$(find aist_robotiq
-			   )/urdf/robotiq_85_gripper.urdf.xacro"/>
-  <xacro:robotiq_85_gripper prefix="b_bot_gripper_"
-			    parent="b_bot_gripper_coupling_flange_link">
+  <xacro:include
+      filename="$(find aist_description
+		)/devices/urdf/robotiq_gripper_ros2_control.urdf.xacro"/>
+  <xacro:robotiq_gripper_ros2_control
+      sim="$(arg sim)" type="robotiq_85" name="b_bot_gripper"
+      parent="b_bot_gripper_coupling_flange_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
-  </xacro:robotiq_85_gripper>
+  </xacro:robotiq_gripper_ros2_control>
 
   <!-- Add USB repeaters -->
   <xacro:include filename="$(find aist_description
