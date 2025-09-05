@@ -40,7 +40,7 @@ launch_arguments = [
      'default':     'true',
      'description': 'Enable headless mode for robot cotnrol'},
     {'name':        'initial_joint_controller',
-     'default':     'scaled_joint_trajectory_controller',
+     'default':     'joint_trajectory_controller',
      'description': 'Robot controller to start'},
     {'name':        'joint_state_pub_rate',
      'default':     '50.0',
@@ -62,15 +62,17 @@ def declare_launch_arguments(args):
                                   choices=arg.get('choices')) \
             for arg in args]
 
-def create_substituted_controllers_file(context, file_name, tf_prefix):
-    SetLaunchConfiguration('tf_prefix', value=tf_prefix).execute(context)
+def create_substituted_controllers_file(context, file_name):
     # We must extend lifetime of the ParameterFile object by keeping it
     # in a variable or the temporary file created by evaluating it
     # will be immediately erased by the destructor of ParameterFile.
     parameter_file = ParameterFile(file_name, allow_substs=True)
     # Rename the created file to prevent from being erased.
-    os.rename(parameter_file.evaluate(context),
-              '/tmp/' + tf_prefix + 'controllers.yaml')
+    substituted_controllers_file = '/tmp/' + LaunchConfiguration('tf_prefix')\
+                                            .perform(context) \
+                                 + 'controllers.yaml'
+    os.rename(parameter_file.evaluate(context), substituted_controllers_file)
+    return substituted_controllers_file
 
 def launch_setup(context):
     bridge_file = PathJoinSubstitution([FindPackageShare('aist_bringup'),
@@ -88,17 +90,23 @@ def launch_setup(context):
     gripper_names = [gripper_name for gripper_name in config['grippers'].keys()
                      if config['grippers'][gripper_name]['type'] == 'RobotiqGripper']
 
-
     # Create controller files instatiated from the template for each robot.
+    robot_controllers_files = []
     for robot_name in robot_names:
-        create_substituted_controllers_file(
-            context, LaunchConfiguration('controllers_file'), robot_name + '_')
+        SetLaunchConfiguration('tf_prefix',
+                               value=robot_name + '_').execute(context)
+        robot_controllers_files.append(
+            create_substituted_controllers_file(
+                context, LaunchConfiguration('controllers_file')))
 
     # Create controller files instatiated from the template for each gripper.
+    gripper_controllers_files = []
     for gripper_name in gripper_names:
-        create_substituted_controllers_file(
-            context, LaunchConfiguration('gripper_controllers_file'),
-            gripper_name + '_')
+        SetLaunchConfiguration('tf_prefix',
+                               value=gripper_name + '_').execute(context)
+        gripper_controllers_files.append(
+            create_substituted_controllers_file(
+                context, LaunchConfiguration('gripper_controllers_file')))
 
     # Setup a command for loading the URDF describing robots and environment.
     robot_description_content \
@@ -112,18 +120,9 @@ def launch_setup(context):
                    ' sim:=',   LaunchConfiguration('sim')])
 
     actions = [
-        # Node(package='joint_state_publisher',
-        #      executable='joint_state_publisher',
-        #      parameters=[{'rate': LaunchConfiguration('joint_state_pub_rate')},
-        #                  {'source_list':
-        #                   [robot_name + '/joint_states' \
-        #                    for robot_name in robot_names] +
-        #                   [[gripper_name, '/joint_states'] \
-        #                    for gripper_name in gripper_names]}],
-        #      output='screen'),
         Node(package='robot_state_publisher',
              executable='robot_state_publisher',
-             parameters=[{'use_sim_time': True},
+             parameters=[{'use_sim_time': LaunchConfiguration('sim')},
                          {'robot_description':
                           ParameterValue(robot_description_content,
                                          value_type=str)}],
@@ -152,13 +151,11 @@ def launch_setup(context):
             actions=[
                 Node(package='controller_manager',
                      executable='ros2_control_node',
-                     parameters=[{'update_rate': 500}] + \
-                                ['/tmp/' + robot_name + '_controllers.yaml' \
-                                 for robot_name in robot_names],
+                     parameters=[{'update_rate': 50}] \
+                               +robot_controllers_files \
+                               +gripper_controllers_files,
                          # ParameterFile(LaunchConfiguration('controllers_file'),
                          #               allow_substs=True)],
-                     # remappings=[('/controller_manager/robot_description',
-                     #              '/robot_description')],
                      output='screen')]),
         Node(condition=IfCondition(LaunchConfiguration('vis')),
              package='rviz2',
@@ -173,66 +170,16 @@ def launch_setup(context):
              arguments=[robot_name + '_joint_state_broadcaster',
                         [robot_name,  '_',
                          LaunchConfiguration('initial_joint_controller')],
-                        '-c', 'controller_manager',
-                        # '--p',
-                        # [ParameterFile(LaunchConfiguration('controllers_file'),
-                        #                allow_substs=True).evaluate(context)],
-                        '--service-call-timeout', '30',
                         '--switch-timeout', '30'])
         for robot_name in robot_names]
 
-    # for robot_name in robot_names:
-    #     actions += [
-    #         Node(package='controller_manager',
-    #              executable='spawner',
-    #              arguments=[robot_name + '_joint_state_broadcaster',
-    #                         '-c', 'controller_manager',
-    #                         '--service-call-timeout', '30',
-    #                         '--switch-timeout', '30']),
-    #         Node(package='controller_manager',
-    #              executable='spawner',
-    #              arguments=[[robot_name,  '_',
-    #                          LaunchConfiguration('initial_joint_controller')],
-    #                         '-c', 'controller_manager',
-    #                         '--service-call-timeout', '30',
-    #                         '--switch-timeout', '30'])]
-
-    # Controller spawners should be launched sequentially to reduce load of gz
-    # previous_spawner = None
-    # for robot_name in robot_names:
-    #     spawner = Node(package='controller_manager',
-    #                    executable='spawner',
-    #                    arguments=[robot_name + '_joint_state_broadcaster',
-    #                               [robot_name,  '_',
-    #                                LaunchConfiguration(
-    #                                    'initial_joint_controller')],
-    #                               '-c', 'controller_manager',
-    #                               # '--p',
-    #                               # [ParameterFile(LaunchConfiguration('controllers_file'),
-    #                               #                allow_substs=True).evaluate(context)],
-    #                               '--service-call-timeout', '30',
-    #                               '--switch-timeout', '30'])
-    #     if previous_spawner is None:
-    #         actions.append(spawner)
-    #     else:
-    #         actions.append(
-    #             RegisterEventHandler(
-    #                 event_handler=OnProcessExit(target_action=previous_spawner,
-    #                                             on_exit=[spawner])))
-    #     previous_spawner = spawner
-
-    # for gripper_name in gripper_names:
-    #     spawner = Node(package='controller_manager',
-    #                    executable='spawner',
-    #                    arguments=[[gripper_name, '_', 'gripper_controller'],
-    #                               '-c', 'controller_manager',
-    #                               '--service-call-timeout', '30',
-    #                               '--switch-timeout', '30'])
-    #     actions.append(
-    #         RegisterEventHandler(
-    #             event_handler=OnProcessExit(target_action=previous_spawner,
-    #                                         on_exit=[spawner])))
-    #     previous_spawner = spawner
+    actions += [
+        Node(package='controller_manager',
+             executable='spawner',
+             arguments=[gripper_name + '_joint_state_broadcaster',
+                        gripper_name + '_controller',
+                        '--switch-timeout', '30'])
+        for gripper_name in gripper_names]
 
     return actions
 

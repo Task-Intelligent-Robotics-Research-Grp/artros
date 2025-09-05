@@ -1,5 +1,8 @@
 controller_manager:
   ros__parameters:
+    $(var tf_prefix)joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
     $(var tf_prefix)controller:
       type: position_controllers/GripperActionController
 

@@ -3,6 +3,9 @@
 
   <xacro:arg name="scene"	default=""/>
   <xacro:arg name="sim"		default="false"/>
+  <xacro:arg name="transmission_hw_interface"
+	     default="hw_interface/PositionJointInterface"/>
+  <!-- or "hw_intercae/VelocityJointInterface" -->
 
   <!-- ur_robot_driver -->
   <xacro:property name="a_bot_ip"	value="10.66.171.40"/>
@@ -23,8 +26,6 @@
 				wrist_2_joint=-1.5708,
 				wrist_3_joint=0.0)}"/>
 
-  <xacro:arg name="hw_interface"	default="PositionJointInterface"/>
-					<!-- or "VelocityJointInterface" -->
 
   <xacro:property name="a_bot_x"	value="0"/>
   <xacro:property name="a_bot_y"	value="-0.4875"/>
@@ -115,28 +116,27 @@
   </xacro:suction_tool_holder>
 
   <!-- robot arms -->
-  <xacro:include
-      filename="$(find aist_description
-		)/devices/urdf/ur_robot_ros2_control.urdf.xacro"/>
-  <xacro:ur_robot_ros2_control
-      sim="$(arg sim)"
-      name="a_bot"
-      ur_type="ur5e"
-      parent="a_bot_table_top_center"
-      safety_limits="true"
-      safety_pos_margin="0.15"
-      script_filename="${script_filename}"
-      input_recipe_filename="${input_recipe_filename}"
-      output_recipe_filename="${output_recipe_filename}"
-      initial_positions="${initial_positions}"
-      robot_ip="${a_bot_ip}"
-      reverse_port="50001"
-      script_sender_port="50002"
-      reverse_ip="0.0.0.0"
-      script_command_port="50004"
-      trajectory_port="50003">
+  <xacro:include filename="$(find aist_description
+			   )/devices/urdf/ur_robot.urdf.xacro"/>
+  <xacro:ur_robot sim="$(arg sim)"
+		  name="a_bot"
+		  ur_type="ur5e"
+		  parent="a_bot_table_top_center"
+		  transmission_hw_interface="$(arg transmission_hw_interface)"
+		  initial_positions="${initial_positions}"
+		  safety_limits="true"
+		  safety_pos_margin="0.15"
+		  script_filename="${script_filename}"
+		  input_recipe_filename="${input_recipe_filename}"
+		  output_recipe_filename="${output_recipe_filename}"
+		  robot_ip="${a_bot_ip}"
+		  reverse_port="50001"
+		  script_sender_port="50002"
+		  reverse_ip="0.0.0.0"
+		  script_command_port="50004"
+		  trajectory_port="50003">
     <origin xyz="0 0 0 " rpy="0 0 0"/>
-  </xacro:ur_robot_ros2_control>
+  </xacro:ur_robot>
 
   <!-- Set gazebo plugin for FT-sensors -->
   <!-- <xacro:include filename="$(find aist_description -->
@@ -155,14 +155,15 @@
     <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi/2}"/>
   </xacro:robotiq_arg2f_coupling>
 
-  <xacro:include
-      filename="$(find aist_description
-		)/devices/urdf/robotiq_gripper_ros2_control.urdf.xacro"/>
-  <xacro:robotiq_gripper_ros2_control
-      sim="$(arg sim)" type="robotiq_140" name="a_bot_gripper"
-      parent="a_bot_gripper_coupling_flange_link" short_finger="true">
+  <xacro:include filename="$(find aist_description
+			   )/devices/urdf/robotiq_gripper.urdf.xacro"/>
+  <xacro:robotiq_gripper sim="$(arg sim)"
+			 type="robotiq_140"
+			 name="a_bot_gripper"
+			 parent="a_bot_gripper_coupling_flange_link"
+			 short_finger="true">
     <origin xyz="0 0 0" rpy="0 0 0"/>
-  </xacro:robotiq_gripper_ros2_control>
+  </xacro:robotiq_gripper>
 
   <!-- Add USB repeater -->
   <xacro:include filename="$(find aist_description
@@ -185,11 +186,11 @@
   </xacro:motioncam_m_camera>
 
   <!-- RealSense cameras -->
-  <!-- <xacro:include filename="$(find aist_description -->
-  <!-- 			   )/devices/urdf/sr305_on_2f140.urdf.xacro" /> -->
-  <!-- <xacro:sr305_on_2f140 prefix="a_bot_" -->
-  <!-- 			parent="a_bot_gripper_base_link" -->
-  <!-- 			use_nominal_extrinsics="true"/> -->
+  <xacro:include filename="$(find aist_description
+			   )/devices/urdf/sr305_on_2f140.urdf.xacro" />
+  <xacro:sr305_on_2f140 prefix="a_bot_"
+			parent="a_bot_gripper_base_link"
+			use_nominal_extrinsics="true"/>
 
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
   <link name="world"/>
@@ -209,11 +210,19 @@
 			     scene).urdf.xacro"/>
   </xacro:if>
 
-  <!-- Import gz plusins -->
+  <!-- Import gz plugins -->
   <xacro:if value="$(arg sim)">
     <gazebo reference="world">
     </gazebo>
     <gazebo>
+      <!-- Simulate arms and grippers -->
+      <plugin filename="gz_ros2_control-system"
+	      name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+	<parameters>/tmp/a_bot_controllers.yaml</parameters>
+	<parameters>/tmp/a_bot_gripper_controllers.yaml</parameters>
+      </plugin>
+
+      <!-- Simulate cameras -->
       <plugin filename="gz-sim-sensors-system"
 	      name="gz::sim::systems::Sensors">
 	<render_engine>ogre2</render_engine>

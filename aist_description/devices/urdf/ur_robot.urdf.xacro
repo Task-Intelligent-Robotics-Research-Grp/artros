@@ -1,12 +1,14 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro">
 
-  <xacro:macro name="ur_robot_ros2_control"
+  <xacro:macro name="ur_robot"
 	       params="sim
 		       ur_type
 		       name
 		       parent
 		       *origin
+		       transmission_hw_interface:=hardware_interface/PositionJointInterface
+		       initial_positions:=${dict(shoulder_pan_joint=0.0,shoulder_lift_joint=-1.57,elbow_joint=0.0,wrist_1_joint=-1.57,wrist_2_joint=0.0,wrist_3_joint=0.0)}
 		       safety_limits:=false
 		       safety_pos_margin:=0.15
 		       safety_k_position:=20
@@ -15,11 +17,9 @@
 		       script_filename
 		       input_recipe_filename
 		       output_recipe_filename
-		       transmission_hw_interface:=hardware_interface/PositionJointInterface
 		       use_mock_hardware:=false
 		       mock_sensor_commands:=false
 		       headless_mode:=false
-		       initial_positions:=${dict(shoulder_pan_joint=0.0,shoulder_lift_joint=-1.57,elbow_joint=0.0,wrist_1_joint=-1.57,wrist_2_joint=0.0,wrist_3_joint=0.0)}
 		       use_tool_communication:=false
 		       tool_voltage:=0
 		       tool_parity:=0
@@ -64,17 +64,17 @@
       <xacro:ur_ros2_control
 	  name="${name}"
 	  tf_prefix="${name}_"
+	  transmission_hw_interface="${transmission_hw_interface}"
+	  initial_positions="${initial_positions}"
 	  kinematics_parameters_file="$(find aist_description
 				      )/scenes/calib/${name}.yaml"
 	  robot_ip="${robot_ip}"
 	  script_filename="${script_filename}"
 	  input_recipe_filename="${input_recipe_filename}"
 	  output_recipe_filename="${output_recipe_filename}"
-	  transmission_hw_interface="${transmission_hw_interface}"
 	  use_mock_hardware="${use_mock_hardware}"
 	  mock_sensor_commands="${mock_sensor_commands}"
 	  headless_mode="${headless_mode}"
-	  initial_positions="${initial_positions}"
 	  use_tool_communication="{use_tool_communications}"
 	  tool_voltage="${tool_voltage}"
 	  tool_parity="${tool_parity}"
@@ -103,16 +103,6 @@
 	  transmission_hw_interface="${transmission_hw_interface}"
 	  initial_positions="${initial_positions}">
       </xacro:ur_ros2_control>
-      <gazebo>
-	<plugin filename="gz_ros2_control-system"
-		name="gz_ros2_control::GazeboSimROS2ControlPlugin">
-	  <parameters>/tmp/${name}_controllers.yaml</parameters>
-	  <!-- <ros> -->
-	  <!--   <namespace>${name}</namespace> -->
-	  <!--   <remapping>robot_description:=/robot_description</remapping> -->
-	  <!-- </ros> -->
-	</plugin>
-      </gazebo>
     </xacro:if>
 
   </xacro:macro>
