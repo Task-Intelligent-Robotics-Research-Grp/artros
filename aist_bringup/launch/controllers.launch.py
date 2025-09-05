@@ -4,14 +4,13 @@ from launch.actions                    import (SetLaunchConfiguration,
                                                DeclareLaunchArgument,
                                                IncludeLaunchDescription,
                                                OpaqueFunction,
-                                               RegisterEventHandler,
                                                GroupAction)
 from launch.conditions                 import IfCondition, UnlessCondition
-from launch.event_handlers             import OnProcessExit
 from launch.substitutions              import (Command, FindExecutable,
                                                LaunchConfiguration,
                                                ThisLaunchFileDir,
-                                               PathJoinSubstitution)
+                                               PathJoinSubstitution,
+                                               IfElseSubstitution)
 from launch_ros.actions                import Node
 from launch_ros.substitutions          import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue, ParameterFile
@@ -40,11 +39,13 @@ launch_arguments = [
      'default':     'true',
      'description': 'Enable headless mode for robot cotnrol'},
     {'name':        'initial_joint_controller',
-     'default':     'joint_trajectory_controller',
+     'default':     IfElseSubstitution(LaunchConfiguration('sim'),
+                                       'joint_trajectory_controller',
+                                       'scaled_joint_trajectory_controller'),
      'description': 'Robot controller to start'},
-    {'name':        'joint_state_pub_rate',
-     'default':     '50.0',
-     'description': 'Rate of publishing joint state'},
+    {'name':        'update_rate',
+     'default':     '500',
+     'description': 'Update rate for controller manager'},
     {'name':        'vis',
      'default':     LaunchConfiguration('sim'),
      'description': 'Launch rviz2 if true',
@@ -62,17 +63,16 @@ def declare_launch_arguments(args):
                                   choices=arg.get('choices')) \
             for arg in args]
 
-def create_substituted_controllers_file(context, file_name):
+def instantiate_controllers_file(context, template_file, tf_prefix):
+    SetLaunchConfiguration('tf_prefix', value=tf_prefix).execute(context)
     # We must extend lifetime of the ParameterFile object by keeping it
     # in a variable or the temporary file created by evaluating it
     # will be immediately erased by the destructor of ParameterFile.
-    parameter_file = ParameterFile(file_name, allow_substs=True)
+    parameter_file = ParameterFile(template_file, allow_substs=True)
     # Rename the created file to prevent from being erased.
-    substituted_controllers_file = '/tmp/' + LaunchConfiguration('tf_prefix')\
-                                            .perform(context) \
-                                 + 'controllers.yaml'
-    os.rename(parameter_file.evaluate(context), substituted_controllers_file)
-    return substituted_controllers_file
+    instantiated_file = '/tmp/' + tf_prefix + 'controllers.yaml'
+    os.rename(parameter_file.evaluate(context), instantiated_file)
+    return instantiated_file
 
 def launch_setup(context):
     bridge_file = PathJoinSubstitution([FindPackageShare('aist_bringup'),
@@ -90,23 +90,18 @@ def launch_setup(context):
     gripper_names = [gripper_name for gripper_name in config['grippers'].keys()
                      if config['grippers'][gripper_name]['type'] == 'RobotiqGripper']
 
-    # Create controller files instatiated from the template for each robot.
-    robot_controllers_files = []
-    for robot_name in robot_names:
-        SetLaunchConfiguration('tf_prefix',
-                               value=robot_name + '_').execute(context)
-        robot_controllers_files.append(
-            create_substituted_controllers_file(
-                context, LaunchConfiguration('controllers_file')))
-
-    # Create controller files instatiated from the template for each gripper.
-    gripper_controllers_files = []
-    for gripper_name in gripper_names:
-        SetLaunchConfiguration('tf_prefix',
-                               value=gripper_name + '_').execute(context)
-        gripper_controllers_files.append(
-            create_substituted_controllers_file(
-                context, LaunchConfiguration('gripper_controllers_file')))
+    # Instantiate controller files from templates for each robot/gripper.
+    robot_controllers_files = [
+        instantiate_controllers_file(context,
+                                     LaunchConfiguration('controllers_file'),
+                                     robot_name + '_')
+        for robot_name in robot_names]
+    gripper_controllers_files = [
+        instantiate_controllers_file(context,
+                                     LaunchConfiguration(
+                                         'gripper_controllers_file'),
+                                     gripper_name + '_')
+        for gripper_name in gripper_names]
 
     # Setup a command for loading the URDF describing robots and environment.
     robot_description_content \
@@ -151,8 +146,7 @@ def launch_setup(context):
             actions=[
                 Node(package='controller_manager',
                      executable='ros2_control_node',
-                     parameters=[{'update_rate': 50}] \
-                               +robot_controllers_files \
+                     parameters=robot_controllers_files \
                                +gripper_controllers_files,
                          # ParameterFile(LaunchConfiguration('controllers_file'),
                          #               allow_substs=True)],
