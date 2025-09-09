@@ -1,23 +1,14 @@
 import os, yaml
-from launch                            import LaunchDescription
-from launch.actions                    import (SetLaunchConfiguration,
-                                               DeclareLaunchArgument,
-                                               IncludeLaunchDescription,
-                                               OpaqueFunction,
-                                               GroupAction)
-from launch.conditions                 import IfCondition, UnlessCondition
-from launch.substitutions              import (Command, FindExecutable,
-                                               LaunchConfiguration,
-                                               ThisLaunchFileDir,
-                                               PathJoinSubstitution,
-                                               IfElseSubstitution)
-from launch_ros.actions                import Node
-from launch_ros.substitutions          import FindPackageShare
-from launch_ros.parameter_descriptions import ParameterValue, ParameterFile
-from aist_bringup.launch_common        import (declare_launch_arguments,
-                                               load_config, get_arm_props,
-                                               get_gripper_props,
-                                               instantiate_config_file)
+from launch                     import LaunchDescription
+from launch.actions             import (SetLaunchConfiguration,
+                                        OpaqueFunction)
+from launch.substitutions       import (LaunchConfiguration,
+                                        ThisLaunchFileDir,
+                                        PathJoinSubstitution)
+from launch_ros.actions         import Node
+from aist_bringup.launch_common import (declare_launch_arguments,
+                                        load_config,
+                                        instantiate_config_file)
 
 launch_arguments = [
     {
@@ -29,14 +20,35 @@ launch_arguments = [
 
 
 def launch_setup(context):
+    bridge_config_file = '/tmp/camera_bridge.yaml'
+
     config = load_config(context)
+    shutil.copy(PathJoinSubstitution(
+                    [ThisLaunchFileDir(), '..', 'config',
+                     'templates', 'clock_bridge.yaml']).perform(context),
+                bridge_config_file)
     for camera_name, camera_config in config['cameras'].items():
         camera_props = get_camera_props(camera_config['type'])
-        SetLaunchConfiguration('camera_name',
-                               value=camera_name).execute(context)
+        SetLaunchConfiguration('camera_name', camera_name).execute(context)
+        SetLaunchConfiguration('cloud_topic',
+                               camera_props['cloud_topic']).execute(context)
+        SetLaunchConfiguration('depth_topic',
+                               camera_props['depth_topic']).execute(context)
+        SetLaunchConfiguration('cinfo_topic',
+                               camera_props['cinfo_topic']).execute(context)
         SetLaunchConfiguration('color_topic',
-                               value=camera_props['name).execute(context)
+                               camera_props['color_topic']).execute(context)
+        instantiate_config_file(context,
+                                PathJoinSubstitution(
+                                    [ThisLaunchFileDir(), '..', 'config',
+                                     'templates', 'camera_bridge.yaml']),
+                                bridge_config_file, True)
 
+    return [
+        Node(package='ros_gz_bridge',
+             executable='parameter_bridge',
+             parameters=[{'config_file': bridge_config_file}],
+             output='screen')]
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \

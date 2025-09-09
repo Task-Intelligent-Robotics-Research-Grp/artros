@@ -78,27 +78,6 @@ def launch_setup(context):
                                     gripper_props['gz_controllers_config_file'],
                                     '/tmp/' + tf_prefix + 'controllers.yaml'))
 
-    shutil.copy(PathJoinSubstitution(
-                    [ThisLaunchFileDir(), '..', 'config',
-                     'templates', 'clock_bridge.yaml']).perform(context),
-                '/tmp/camera_bridge.yaml')
-    for camera_name, camera_config in config['cameras'].items():
-        camera_props = get_camera_props(camera_config['type'])
-        SetLaunchConfiguration('camera_name', camera_name).execute(context)
-        SetLaunchConfiguration('cloud_topic',
-                               camera_props['cloud_topic']).execute(context)
-        SetLaunchConfiguration('depth_topic',
-                               camera_props['depth_topic']).execute(context)
-        SetLaunchConfiguration('cinfo_topic',
-                               camera_props['cinfo_topic']).execute(context)
-        SetLaunchConfiguration('color_topic',
-                               camera_props['color_topic']).execute(context)
-        instantiate_config_file(context,
-                                PathJoinSubstitution(
-                                    [ThisLaunchFileDir(), '..', 'config',
-                                     'templates', 'camera_bridge.yaml']),
-                                '/tmp/camera_bridge.yaml', True)
-
     # Setup a command for loading the URDF describing arms and environment.
     robot_description_content \
         = Command([FindExecutable(name='xacro'),
