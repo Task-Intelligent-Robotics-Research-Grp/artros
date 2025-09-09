@@ -1,6 +1,23 @@
-robots:
+arms:
   b_bot:
-    default_gripper: b_bot_gripper
+    type:               URe
+    default_gripper:    b_bot_gripper
+    initial_controller: b_bot_scaled_joint_trajectory_controller
+    consistent_controllers:
+      - b_bot_joint_state_broadcaster
+      - b_bot_io_and_status_controller
+      - b_bot_speed_scaling_state_broadcaster
+      - b_bot_force_torque_sensor_broadcaster
+      - b_bot_tcp_pose_broadcaster
+      - b_bot_ur_configuration_controller
+    inactive_controllers:
+      - b_bot_joint_trajectory_controller
+      - b_bot_forward_velocity_controller
+      - b_bot_forward_position_controller
+      - b_bot_force_mode_controller
+      - b_bot_passthrough_trajectory_controller
+      - b_bot_freedrive_mode_controller
+      - b_bot_tool_contact_controller
 
 grippers:
   b_bot_gripper:
@@ -37,7 +54,9 @@ grippers:
     tip_link:                workbench_holder_link
 
 cameras:
-  a_motioncam:  PhoXiCamera
-  b_bot_camera: CodedLightRealSenseCamera
+  a_motioncam:
+    type: PhoXiCamera
+  b_bot_camera:
+    type: CodedLightRealsenseCamera
 
 moveit_eef_step: 0.002

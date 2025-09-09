@@ -1,11 +1,13 @@
 import yaml
-from launch                  import LaunchDescription
-from launch.actions          import DeclareLaunchArgument, OpaqueFunction
-from launch.substitutions    import (LaunchConfiguration, ThisLaunchFileDir,
-                                     PathJoinSubstitution, EqualsSubstitution,
-                                     IfElseSubstitution)
-from launch_ros.actions      import Node, LoadComposableNodes
-from launch_ros.descriptions import ComposableNode
+from launch                     import LaunchDescription
+from launch.actions             import DeclareLaunchArgument, OpaqueFunction
+from launch.substitutions       import (LaunchConfiguration, ThisLaunchFileDir,
+                                        PathJoinSubstitution,
+                                        EqualsSubstitution,
+                                        IfElseSubstitution)
+from launch_ros.actions         import Node, LoadComposableNodes
+from launch_ros.descriptions    import ComposableNode
+from aist_bringup.launch_common import declare_launch_arguments
 
 launch_arguments = [
     {'name':        'namespace',
@@ -28,13 +30,6 @@ launch_arguments = [
      'default':     'both',
      'description': 'pipe node output',
      'choices':     ['screen', 'log', 'both']}]
-
-def declare_launch_arguments(args):
-    return [DeclareLaunchArgument(arg['name'],
-                                  default_value=arg.get('default'),
-                                  description=arg.get('description'),
-                                  choices=arg.get('choices')) \
-            for arg in args]
 
 def get_node_names(config_file):
     with open(config_file, 'r') as f:

@@ -15,9 +15,9 @@
   <build_depend>rclcpp_components</build_depend>
   <exec_depend>rclcpp_components</exec_depend>
 
-  <exec_depend>launch_ros</exec_depend>
   <exec_depend>message_runtime</exec_depend>
   <exec_depend>dynamixel_workbench_controllers</exec_depend>
+  <exec_depend>aist_bringup</exec_depend>
 
   <depend>rclcpp_action</depend>
   <depend>rclpy</depend>

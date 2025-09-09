@@ -1,0 +1,4 @@
+- topic_name:     /clock
+  gz_type_name:   gz.msgs.Clock
+  ros_type_name:  rosgraph_msgs/msg/Clock
+  direction:      GZ_TO_ROS

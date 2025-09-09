@@ -1,14 +1,16 @@
-from launch                   import LaunchDescription
-from launch.actions           import (DeclareLaunchArgument,
-                                      IncludeLaunchDescription,
-                                      OpaqueFunction)
-from launch.substitutions     import (LaunchConfiguration,
-                                      PathJoinSubstitution,
-                                      IfElseSubstitution,
-                                      EqualsSubstitution)
-from launch_ros.actions       import Node, LoadComposableNodes
-from launch_ros.substitutions import FindPackageShare
-from launch_ros.descriptions  import ComposableNode
+from launch                     import LaunchDescription
+from launch.actions             import (DeclareLaunchArgument,
+                                        IncludeLaunchDescription,
+                                        OpaqueFunction)
+from launch.substitutions       import (LaunchConfiguration,
+                                        PathJoinSubstitution,
+                                        IfElseSubstitution,
+                                        EqualsSubstitution)
+from launch_ros.actions         import Node, LoadComposableNodes
+from launch_ros.substitutions   import FindPackageShare
+from launch_ros.descriptions    import ComposableNode
+from aist_bringup.launch_common import (declare_launch_arguments,
+                                        set_configurable_parameters)
 
 
 CAMERAS = {
@@ -58,15 +60,6 @@ parameter_arguments = [
      'default':     'aruco-26-70x70-5',
      'description': 'name of marker map'}]
 
-def declare_launch_arguments(args):
-    return [DeclareLaunchArgument(arg['name'],
-                                  default_value=arg.get('default'),
-                                  description=arg.get('description'),
-                                  choices=arg.get('choices')) \
-            for arg in args]
-
-def set_configurable_parameters(args):
-    return {arg['name']: LaunchConfiguration(arg['name']) for arg in args}
 
 def launch_setup(context, param_args):
     config_file   = IfElseSubstitution(
