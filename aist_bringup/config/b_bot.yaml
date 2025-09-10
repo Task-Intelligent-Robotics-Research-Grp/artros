@@ -1,6 +1,7 @@
 arms:
   b_bot:
     type:               URe
+    robot_ip:           "10.66.171.41"
     default_gripper:    b_bot_gripper
     initial_controller: b_bot_scaled_joint_trajectory_controller
     consistent_controllers:

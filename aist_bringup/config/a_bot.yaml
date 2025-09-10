@@ -1,6 +1,7 @@
 arms:
   a_bot:
     type:               URe
+    robot_ip:           "10.66.171.40"
     default_gripper:    a_bot_gripper
     initial_controller: a_bot_scaled_joint_trajectory_controller
     consistent_controllers:

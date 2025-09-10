@@ -1,24 +1,22 @@
-import os, yaml, shutil
 from launch                            import LaunchDescription
 from launch.actions                    import (SetLaunchConfiguration,
-                                               DeclareLaunchArgument,
                                                IncludeLaunchDescription,
                                                OpaqueFunction,
-                                               GroupAction)
+                                               GroupAction,
+                                               RegisterEventHandler)
 from launch.conditions                 import IfCondition, UnlessCondition
 from launch.substitutions              import (Command, FindExecutable,
                                                LaunchConfiguration,
-                                               ThisLaunchFileDir,
                                                PathJoinSubstitution,
                                                IfElseSubstitution)
+from launch.event_handlers             import OnProcessStart
 from launch_ros.actions                import Node
 from launch_ros.substitutions          import FindPackageShare
-from launch_ros.parameter_descriptions import ParameterValue, ParameterFile
+from launch_ros.parameter_descriptions import ParameterValue
 from aist_bringup.launch_common        import (declare_launch_arguments,
                                                load_config, get_arm_props,
                                                get_gripper_props,
-                                               get_camera_props,
-                                               instantiate_config_file)
+                                               instantiate_file)
 
 launch_arguments = [
     {
@@ -42,9 +40,10 @@ launch_arguments = [
 
 def launch_setup(context):
     config = load_config(context)
+    sim    = LaunchConfiguration('sim').perform(context) in ('true', 'True')
 
     # Instantiate controller configuration files for each arm.
-    arm_controllers_files = []
+    controllers_files = []
     update_rate = 0
     for arm_name, arm_config in config['arms'].items():
         arm_props = get_arm_props(arm_config['type'])
@@ -52,31 +51,28 @@ def launch_setup(context):
             update_rate = arm_props['update_rate']
             SetLaunchConfiguration('update_rate',
                                    str(update_rate)).execute(context)
-        tf_prefix = arm_name + '_'
-        SetLaunchConfiguration('tf_prefix', tf_prefix).execute(context)
-        arm_controllers_files.append(
-            instantiate_config_file(
-                context,
-                IfElseSubstitution(LaunchConfiguration('sim'),
-                                   arm_props['gz_controllers_config_file'],
-                                   arm_props['controllers_config_file']),
-                '/tmp/' + tf_prefix + 'controllers.yaml'))
+        template = arm_props.get('gz_controllers_template') if sim else \
+                   arm_props.get('controllers_template')
+        if template is not None:
+            tf_prefix = arm_name + '_'
+            SetLaunchConfiguration('tf_prefix', tf_prefix).execute(context)
+            controllers_files.append(
+                instantiate_file(context, template,
+                                 '/tmp/' + tf_prefix + 'controllers.yaml'))
 
     # Instantiate controller configuration files for each gripper.
-    grippers = {gripper_name: gripper_config for gripper_name, gripper_config
-                in config['grippers'].items()
-                if get_gripper_props(
-                        gripper_config['type']).get(
-                            'gz_controllers_config_file')}
-    gripper_controllers_files = []
-    for gripper_name, gripper_config in grippers.items():
+    gripper_names = []
+    for gripper_name, gripper_config in config['grippers'].items():
         gripper_props = get_gripper_props(gripper_config['type'])
-        tf_prefix = gripper_name + '_'
-        SetLaunchConfiguration('tf_prefix', tf_prefix).execute(context)
-        gripper_controllers_files.append(
-            instantiate_config_file(context,
-                                    gripper_props['gz_controllers_config_file'],
-                                    '/tmp/' + tf_prefix + 'controllers.yaml'))
+        template = gripper_props.get('gz_controllers_template') if sim else \
+                   gripper_props.get('controllers_template')
+        if template is not None:
+            tf_prefix = gripper_name + '_'
+            SetLaunchConfiguration('tf_prefix', tf_prefix).execute(context)
+            controllers_files.append(
+                instantiate_file(context, template,
+                                 '/tmp/' + tf_prefix + 'controllers.yaml'))
+            gripper_names.append(gripper_name)
 
     # Setup a command for loading the URDF describing arms and environment.
     robot_description_content \
@@ -89,57 +85,64 @@ def launch_setup(context):
                    ' scene:=', LaunchConfiguration('scene'),
                    ' sim:=',   LaunchConfiguration('sim')])
 
+    rsp_node = Node(package='robot_state_publisher',
+                    executable='robot_state_publisher',
+                    parameters=[{'use_sim_time': LaunchConfiguration('sim')},
+                                {'robot_description':
+                                 ParameterValue(robot_description_content,
+                                                value_type=str)}],
+                    output='screen')
     actions = [
-        Node(package='robot_state_publisher',
-             executable='robot_state_publisher',
-             parameters=[{'use_sim_time': LaunchConfiguration('sim')},
-                         {'robot_description':
-                          ParameterValue(robot_description_content,
-                                         value_type=str)}],
-             output='screen'),
-        GroupAction(
-            condition=IfCondition(LaunchConfiguration('sim')),
-            actions=[
-                Node(package='ros_gz_sim',
-                     executable='create',
-                     arguments=['-topic', 'robot_description'],
-                     output='screen'),
-                IncludeLaunchDescription(
-                    PathJoinSubstitution([FindPackageShare('ros_gz_sim'),
-                                          'launch', 'gz_sim.launch.py']),
-                    launch_arguments=[
-                        ('gz_args',
-                         [' -r -v 4 empty.sdf',
-                          ' --physics-engine',
-                          ' gz-physics-bullet-featherstone-plugin'])]),
-                Node(package='ros_gz_bridge',
-                     executable='parameter_bridge',
-                     parameters=[{'config_file': '/tmp/camera_bridge.yaml'}],
-                     output='screen')]),
-        GroupAction(
-            condition=UnlessCondition(LaunchConfiguration('sim')),
-            actions=[
-                Node(package='controller_manager',
-                     executable='ros2_control_node',
-                     parameters=arm_controllers_files \
-                               +gripper_controllers_files,
-                     output='screen')])]
+        rsp_node,
+        RegisterEventHandler(
+            OnProcessStart(
+                target_action=rsp_node,
+                on_start=[
+                    Node(package='ros_gz_sim',
+                         executable='create',
+                         arguments=['-topic', 'robot_description'],
+                         output='screen'),
+                    IncludeLaunchDescription(
+                        PathJoinSubstitution([FindPackageShare('ros_gz_sim'),
+                                              'launch', 'gz_sim.launch.py']),
+                        launch_arguments=[
+                            ('gz_args',
+                             [' -r -v 4 empty.sdf',
+                              ' --physics-engine',
+                              ' gz-physics-bullet-featherstone-plugin'])])]),
+            condition=IfCondition(LaunchConfiguration('sim'))),
+        RegisterEventHandler(
+            OnProcessStart(
+                target_action=rsp_node,
+                on_start=[
+                    Node(package='controller_manager',
+                         executable='ros2_control_node',
+                         parameters=controllers_files,
+                         output='screen')]),
+            condition=UnlessCondition(LaunchConfiguration('sim')))]
 
     actions += [
         Node(package='controller_manager',
              executable='spawner',
-             arguments=[arm_name + '_joint_state_broadcaster',
-                        arm_config['initial_controller'],
-                        '--switch-timeout', '30'])
+             arguments=['--switch-timeout', '30',
+                        arm_config['initial_controller']] \
+                      +arm_config['consistent_controllers'])
         for arm_name, arm_config in config['arms'].items()]
 
     actions += [
         Node(package='controller_manager',
              executable='spawner',
-             arguments=[gripper_name + '_joint_state_broadcaster',
-                        gripper_name + '_controller',
-                        '--switch-timeout', '30'])
-        for gripper_name in grippers.keys()]
+             arguments=['--switch-timeout', '30', '--inactive']
+                      +arm_config['inactive_controllers'])
+        for arm_name, arm_config in config['arms'].items()]
+
+    actions += [
+        Node(package='controller_manager',
+             executable='spawner',
+             arguments=['--switch-timeout', '30',
+                        gripper_name + '_joint_state_broadcaster',
+                        gripper_name + '_controller'])
+        for gripper_name in gripper_names]
 
     return actions
 

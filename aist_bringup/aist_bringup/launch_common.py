@@ -1,7 +1,6 @@
 import os, yaml
 from launch.actions                    import DeclareLaunchArgument
 from launch.substitutions              import (LaunchConfiguration,
-                                               ThisLaunchFileDir,
                                                PathJoinSubstitution)
 from launch_ros.substitutions          import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterFile
@@ -10,43 +9,45 @@ from launch_ros.parameter_descriptions import ParameterFile
 ARM_PROPS = {
     'UR':
     {
-        'update_rate':                125,
-        'controllers_config_file':    PathJoinSubstitution(
-                                          [ThisLaunchFileDir(),
-                                           '..', 'config', 'templates',
-                                           'ur_controllers.yaml']),
-        'gz_controllers_config_file': PathJoinSubstitution(
-                                          [ThisLaunchFileDir(),
-                                           '..', 'config', 'templates',
-                                           'ur_gz_controllers.yaml']),
-        'extra_drivers_launch_file':  PathJoinSubstitution(
-                                          [ThisLaunchFileDir(),
-                                           'ur_extra_drivers.launch.py'])
+        'update_rate':               125,
+        'controllers_template':      PathJoinSubstitution(
+                                         [FindPackageShare('aist_bringup'),
+                                          'config', 'templates',
+                                          'ur_controllers.yaml']),
+        'gz_controllers_template':   PathJoinSubstitution(
+                                         [FindPackageShare('aist_bringup'),
+                                          'config', 'templates',
+                                          'ur_gz_controllers.yaml']),
+        'extra_drivers_launch_file': PathJoinSubstitution(
+                                         [FindPackageShare('aist_bringup'),
+                                          'launch',
+                                          'ur_extra_drivers.launch.py'])
     },
     'URe':
     {
-        'update_rate':                500,
-        'controllers_config_file':    PathJoinSubstitution(
-                                          [ThisLaunchFileDir(),
-                                           '..', 'config', 'templates',
-                                           'ur_controllers.yaml']),
-        'gz_controllers_config_file': PathJoinSubstitution(
-                                          [ThisLaunchFileDir(),
-                                           '..', 'config', 'templates',
-                                           'ur_gz_controllers.yaml']),
-        'extra_drivers_launch_file':  PathJoinSubstitution(
-                                          [ThisLaunchFileDir(),
-                                           'ur_extra_drivers.launch.py'])
+        'update_rate':               500,
+        'controllers_template':      PathJoinSubstitution(
+                                         [FindPackageShare('aist_bringup'),
+                                          'config', 'templates',
+                                          'ur_controllers.yaml']),
+        'gz_controllers_template':   PathJoinSubstitution(
+                                         [FindPackageShare('aist_bringup'),
+                                          'config', 'templates',
+                                          'ur_gz_controllers.yaml']),
+        'extra_drivers_launch_file': PathJoinSubstitution(
+                                         [FindPackageShare('aist_bringup'),
+                                          'launch',
+                                          'ur_extra_drivers.launch.py'])
     },
 }
 
 GRIPPER_PROPS = {
     'RobotiqGripper':
     {
-        'gz_controllers_config_file': PathJoinSubstitution(
-                                         [ThisLaunchFileDir(),
-                                          '..', 'config', 'templates',
-                                          'gripper_controllers.yaml']),
+        'gz_controllers_template': PathJoinSubstitution(
+                                       [FindPackageShare('aist_bringup'),
+                                        'config', 'templates',
+                                        'gripper_controllers.yaml']),
     },
     'PrecisionGripper':
     {
@@ -97,9 +98,10 @@ CAMERA_PROPS = {
 
 
 def load_config(context):
-    config_file = PathJoinSubstitution([ThisLaunchFileDir(), '..', 'config',
+    config_file = PathJoinSubstitution([FindPackageShare('aist_bringup'),
+                                        'config',
                                         [LaunchConfiguration('config'),
-                                         '_config.yaml']])
+                                         '.yaml']])
     with open(config_file.perform(context), 'r') as f:
         config = yaml.safe_load(f)
     return config
@@ -123,8 +125,7 @@ def declare_launch_arguments(args):
 def set_configurable_parameters(args):
     return {arg['name']: LaunchConfiguration(arg['name']) for arg in args}
 
-def instantiate_config_file(context, template_file, instantiated_file,
-                            append=False):
+def instantiate_file(context, template_file, instantiated_file, append=False):
     # We must extend lifetime of the ParameterFile object by keeping it
     # in a variable or the temporary file created by evaluating it
     # will be immediately erased by the destructor of ParameterFile.

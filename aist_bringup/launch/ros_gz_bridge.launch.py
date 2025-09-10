@@ -1,14 +1,12 @@
-import os, yaml
+import shutil
 from launch                     import LaunchDescription
-from launch.actions             import (SetLaunchConfiguration,
-                                        OpaqueFunction)
-from launch.substitutions       import (LaunchConfiguration,
-                                        ThisLaunchFileDir,
-                                        PathJoinSubstitution)
+from launch.actions             import SetLaunchConfiguration, OpaqueFunction
+from launch.substitutions       import PathJoinSubstitution
 from launch_ros.actions         import Node
+from launch_ros.substitutions   import FindPackageShare
 from aist_bringup.launch_common import (declare_launch_arguments,
-                                        load_config,
-                                        instantiate_config_file)
+                                        load_config, get_camera_props,
+                                        instantiate_file)
 
 launch_arguments = [
     {
@@ -24,7 +22,7 @@ def launch_setup(context):
 
     config = load_config(context)
     shutil.copy(PathJoinSubstitution(
-                    [ThisLaunchFileDir(), '..', 'config',
+                    [FindPackageShare('aist_bringup'), 'config',
                      'templates', 'clock_bridge.yaml']).perform(context),
                 bridge_config_file)
     for camera_name, camera_config in config['cameras'].items():
@@ -38,17 +36,16 @@ def launch_setup(context):
                                camera_props['cinfo_topic']).execute(context)
         SetLaunchConfiguration('color_topic',
                                camera_props['color_topic']).execute(context)
-        instantiate_config_file(context,
-                                PathJoinSubstitution(
-                                    [ThisLaunchFileDir(), '..', 'config',
-                                     'templates', 'camera_bridge.yaml']),
-                                bridge_config_file, True)
+        instantiate_file(context,
+                         PathJoinSubstitution(
+                             [FindPackageShare('aist_bringup'),
+                              'config', 'templates', 'camera_bridge.yaml']),
+                         bridge_config_file, True)
 
-    return [
-        Node(package='ros_gz_bridge',
-             executable='parameter_bridge',
-             parameters=[{'config_file': bridge_config_file}],
-             output='screen')]
+    return [Node(package='ros_gz_bridge',
+                 executable='parameter_bridge',
+                 parameters=[{'config_file': bridge_config_file}],
+                 output='screen')]
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \

@@ -1,6 +1,7 @@
 from launch                     import LaunchDescription
 from launch.actions             import (IncludeLaunchDescription,
                                         OpaqueFunction)
+from launch.substitutions       import LaunchConfiguration
 from aist_bringup.launch_common import (declare_launch_arguments,
                                         load_config, get_arm_props)
 

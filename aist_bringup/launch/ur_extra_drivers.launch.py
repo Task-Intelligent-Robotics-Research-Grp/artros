@@ -1,5 +1,5 @@
 from launch                     import LaunchDescription
-from launch.actions             import DeclareLaunchArgument, OpaqueFunction
+from launch.actions             import OpaqueFunction
 from launch.conditions          import IfCondition
 from launch.substitutions       import LaunchConfiguration
 from launch_ros.actions         import Node
@@ -41,7 +41,7 @@ def launch_setup(context):
              parameters=[{'headless_mode': headless_mode,
                           'robot_ip':      robot_ip}]),
         Node(condition=IfCondition(arm_config.get('use_tool_communication',
-                                                  False)),
+                                                  'false')),
              package='ur_robot_driver',
              executable='tool_communication.py',
              name='ur_tool_comm',
