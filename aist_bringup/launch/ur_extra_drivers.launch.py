@@ -60,11 +60,12 @@ def launch_setup(context):
              name='controller_stopper',
              output='screen',
              emulate_tty=True,
-             parameters=[{'headless_mode': headless_mode},
-                         {'joint_controller_active':
-                          arm_config.get('joint_controller_active', True),
-                          'consistent_controllers':
-                          arm_config['consistent_controllers']}])]
+             parameters=['headless_mode': headless_mode,
+                         'joint_controller_active':
+                         arm_config.get('joint_controller_active', True),
+                         'consistent_controllers':
+                         arm_config['consistent_controllers'] + \
+                         arm_config['extra_consistent_controllers']])]
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \

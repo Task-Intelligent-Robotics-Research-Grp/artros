@@ -126,14 +126,18 @@ def launch_setup(context):
              executable='spawner',
              arguments=['--switch-timeout', '30',
                         arm_config['initial_controller']] \
-                      +arm_config['consistent_controllers'])
+                      +arm_config.get('consistent_controllers', []) \
+                      +[] if sim else
+                       arm_config.get('extra_consistent_controllers', []))
         for arm_name, arm_config in config['arms'].items()]
 
     actions += [
         Node(package='controller_manager',
              executable='spawner',
              arguments=['--switch-timeout', '30', '--inactive']
-                      +arm_config['inactive_controllers'])
+                      +arm_config.get('inactive_controllers', []) \
+                      +[] if sim else
+                       arm_config.get('extra_inactive_controllers', []))
         for arm_name, arm_config in config['arms'].items()]
 
     actions += [
