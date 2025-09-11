@@ -74,6 +74,21 @@ def launch_setup(context):
                                  '/tmp/' + tf_prefix + 'controllers.yaml'))
             gripper_names.append(gripper_name)
 
+    # Setup lists of active and inactive controllers.
+    active_controllers   = ['joint_state_broadcaster']
+    inactive_controllers = []
+    for arm_name, arm_config in config['arms'].items():
+        active_controllers.append(arm_config['initial_controller'])
+        active_controllers   += arm_config.get('consistent_controllers', [])
+        inactive_controllers += arm_config.get('inactive_controllers', [])
+        if not sim:
+            active_controllers \
+                += arm_config.get('extra_consistent_controllers', [])
+            inactive_controllers \
+                += arm_config.get('extra_inactive_controllers', [])
+    for gripper_name in gripper_names:
+        active_controllers.append(gripper_name + '_controller')
+
     # Setup a command for loading the URDF describing arms and environment.
     robot_description_content \
         = Command([FindExecutable(name='xacro'),
@@ -92,7 +107,7 @@ def launch_setup(context):
                                  ParameterValue(robot_description_content,
                                                 value_type=str)}],
                     output='screen')
-    actions = [
+    return [
         rsp_node,
         RegisterEventHandler(
             OnProcessStart(
@@ -119,23 +134,7 @@ def launch_setup(context):
                          executable='ros2_control_node',
                          parameters=controllers_files,
                          output='screen')]),
-            condition=UnlessCondition(LaunchConfiguration('sim')))]
-
-    active_controllers   = ['joint_state_broadcaster']
-    inactive_controllers = []
-    for arm_name, arm_config in config['arms'].items():
-        active_controllers.append(arm_config['initial_controller'])
-        active_controllers   += arm_config.get('consistent_controllers', [])
-        inactive_controllers += arm_config.get('inactive_controllers', [])
-        if not sim:
-            active_controllers \
-                += arm_config.get('extra_consistent_controllers', [])
-            inactive_controllers \
-                += arm_config.get('extra_inactive_controllers', [])
-    for gripper_name in gripper_names:
-        active_controllers.append(gripper_name + '_controller')
-
-    actions += [
+            condition=UnlessCondition(LaunchConfiguration('sim'))),
         Node(package='controller_manager',
              executable='spawner',
              arguments=['--switch-timeout', '30'] + active_controllers),
@@ -143,8 +142,6 @@ def launch_setup(context):
              executable='spawner',
              arguments=['--switch-timeout', '30',
                         '--inactive'] + inactive_controllers)]
-
-    return actions
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \
