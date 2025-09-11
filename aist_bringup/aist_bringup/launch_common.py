@@ -96,16 +96,6 @@ CAMERA_PROPS = {
     },
 }
 
-
-def load_config(context):
-    config_file = PathJoinSubstitution([FindPackageShare('aist_bringup'),
-                                        'config',
-                                        [LaunchConfiguration('config'),
-                                         '.yaml']])
-    with open(config_file.perform(context), 'r') as f:
-        config = yaml.safe_load(f)
-    return config
-
 def get_arm_props(arm_type):
     return ARM_PROPS[arm_type]
 
@@ -114,16 +104,6 @@ def get_gripper_props(gripper_type):
 
 def get_camera_props(camera_type):
     return CAMERA_PROPS[camera_type]
-
-def declare_launch_arguments(args):
-    return [DeclareLaunchArgument(arg['name'],
-                                  default_value=arg.get('default'),
-                                  description=arg.get('description'),
-                                  choices=arg.get('choices')) \
-            for arg in args]
-
-def set_configurable_parameters(args):
-    return {arg['name']: LaunchConfiguration(arg['name']) for arg in args}
 
 def instantiate_file(context, template_file, instantiated_file, append=False):
     # We must extend lifetime of the ParameterFile object by keeping it
@@ -140,3 +120,22 @@ def instantiate_file(context, template_file, instantiated_file, append=False):
         os.rename(parameter_file.evaluate(context), instantiated_file)
     parameter_file
     return instantiated_file
+
+def load_config(context):
+    config_file = PathJoinSubstitution([FindPackageShare('aist_bringup'),
+                                        'config',
+                                        [LaunchConfiguration('config'),
+                                         '.yaml']])
+    with open(config_file.perform(context), 'r') as f:
+        config = yaml.safe_load(f)
+    return config
+
+def declare_launch_arguments(args):
+    return [DeclareLaunchArgument(arg['name'],
+                                  default_value=arg.get('default'),
+                                  description=arg.get('description'),
+                                  choices=arg.get('choices')) \
+            for arg in args]
+
+def set_configurable_parameters(args):
+    return {arg['name']: LaunchConfiguration(arg['name']) for arg in args}

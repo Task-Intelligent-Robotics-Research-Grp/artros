@@ -4,8 +4,6 @@ arms:
     robot_ip:           "10.66.171.40"
     default_gripper:    a_bot_gripper
     initial_controller: a_bot_scaled_joint_trajectory_controller
-    consistent_controllers:
-      - a_bot_joint_state_broadcaster
     extra_consistent_controllers:
       - a_bot_force_torque_sensor_broadcaster
       - a_bot_io_and_status_controller

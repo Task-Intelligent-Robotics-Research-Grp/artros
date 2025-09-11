@@ -121,32 +121,28 @@ def launch_setup(context):
                          output='screen')]),
             condition=UnlessCondition(LaunchConfiguration('sim')))]
 
-    actions += [
-        Node(package='controller_manager',
-             executable='spawner',
-             arguments=['--switch-timeout', '30',
-                        arm_config['initial_controller']] \
-                      +arm_config.get('consistent_controllers', []) \
-                      +[] if sim else
-                       arm_config.get('extra_consistent_controllers', []))
-        for arm_name, arm_config in config['arms'].items()]
+    active_controllers   = ['joint_state_broadcaster']
+    inactive_controllers = []
+    for arm_name, arm_config in config['arms'].items():
+        active_controllers.append(arm_config['initial_controller'])
+        active_controllers   += arm_config.get('consistent_controllers', [])
+        inactive_controllers += arm_config.get('inactive_controllers', [])
+        if not sim:
+            active_controllers \
+                += arm_config.get('extra_consistent_controllers', [])
+            inactive_controllers \
+                += arm_config.get('extra_inactive_controllers', [])
+    for gripper_name in gripper_names:
+        active_controllers.append(gripper_name + '_controller')
 
     actions += [
         Node(package='controller_manager',
              executable='spawner',
-             arguments=['--switch-timeout', '30', '--inactive']
-                      +arm_config.get('inactive_controllers', []) \
-                      +[] if sim else
-                       arm_config.get('extra_inactive_controllers', []))
-        for arm_name, arm_config in config['arms'].items()]
-
-    actions += [
+             arguments=['--switch-timeout', '30'] + active_controllers),
         Node(package='controller_manager',
              executable='spawner',
              arguments=['--switch-timeout', '30',
-                        gripper_name + '_joint_state_broadcaster',
-                        gripper_name + '_controller'])
-        for gripper_name in gripper_names]
+                        '--inactive'] + inactive_controllers)]
 
     return actions
 
