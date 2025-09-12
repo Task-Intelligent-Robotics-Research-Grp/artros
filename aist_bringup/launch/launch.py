@@ -57,12 +57,14 @@ def launch_setup(context):
                                   'extra_drivers.launch.py']),
             launch_arguments=[('config', LaunchConfiguration('config'))],
             condition=UnlessCondition(LaunchConfiguration('sim'))),
-        Node(condition=IfCondition(LaunchConfiguration('vis')),
-             package='rviz2',
-             executable='rviz2',
-             name='rviz2',
-             arguments=['-d', LaunchConfiguration('rviz_config_file')],
-             output='screen')]
+        IncludeLaunchDescription(
+            PathJoinSubstitution(
+                [FindPackageShare([LaunchConfiguration('config'),
+                                   '_moveit_config']),
+                 'launch', 'move_group.launch.py']),
+            launch_arguments=[('sim', LaunchConfiguration('sim')),
+                              ('vis', LaunchConfiguration('vis'))])
+    ]
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \
