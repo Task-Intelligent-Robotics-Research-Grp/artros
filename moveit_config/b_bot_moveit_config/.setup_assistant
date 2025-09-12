@@ -1,11 +1,25 @@
 moveit_setup_assistant_config:
-  URDF:
+  urdf:
     package: aist_description
     relative_path: scenes/urdf/b_bot_base_scene.urdf.xacro
-    xacro_args: ""
-  SRDF:
+  srdf:
     relative_path: config/b_bot_base_scene.srdf
-  CONFIG:
+  package_settings:
     author_name: Toshio UESHIBA
     author_email: t.ueshiba@aist.go.jp
-    generated_timestamp: 1710811857
+    generated_timestamp: 1757658322
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity
+  modified_urdf:
+    xacros:
+      - control_xacro
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity

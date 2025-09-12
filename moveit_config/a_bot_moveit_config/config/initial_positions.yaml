@@ -1,0 +1,10 @@
+# Default initial positions for a_bot_base_scene's ros2_control fake system
+
+initial_positions:
+  a_bot_elbow_joint: 0
+  a_bot_gripper_finger_joint: 0
+  a_bot_shoulder_lift_joint: 0
+  a_bot_shoulder_pan_joint: 0
+  a_bot_wrist_1_joint: 0
+  a_bot_wrist_2_joint: 0
+  a_bot_wrist_3_joint: 0

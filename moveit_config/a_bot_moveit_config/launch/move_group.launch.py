@@ -51,17 +51,17 @@ def load_yaml(file_path):
         return None
 
 def launch_setup(context):
-    moveit_configs = MoveItConfigsBuilder(robot_name='aist_base_scene',
-                                          package_name='aist_moveit_config') \
+    moveit_configs = MoveItConfigsBuilder(robot_name='a_bot_base_scene',
+                                          package_name='a_bot_moveit_config') \
                     .robot_description_semantic(Path('config')
-                                                / 'aist_base_scene.srdf',
-                                                {'name': 'aist_base_scene'}) \
+                                                / 'a_bot_base_scene.srdf',
+                                                {'name': 'a_bot_base_scene'}) \
                     .to_moveit_configs()
     wait_robot_description = Node(package='ur_robot_driver',
                                   executable='wait_for_robot_description',
                                   output='screen')
     servo_yaml = load_yaml(PathJoinSubstitution(
-                               [FindPackageShare('aist_moveit_config'),
+                               [FindPackageShare('a_bot_moveit_config'),
                                 'config', 'ur_servo.yaml']).perform(context))
     return [
         wait_robot_description,
@@ -96,7 +96,7 @@ def launch_setup(context):
                          output='screen'),
                     IncludeLaunchDescription(
                         PathJoinSubstitution(
-                            [FindPackageShare('aist_moveit_config'), 'launch',
+                            [FindPackageShare('a_bot_moveit_config'), 'launch',
                              'moveit_rviz.launch.py']),
                         condition=IfCondition(LaunchConfiguration('vis'))),
                 ]
