@@ -8,7 +8,9 @@ moveit_simple_controller_manager:
     - a_bot_gripper_controller
 
   a_bot_scaled_joint_trajectory_controller:
+    action_ns: follow_joint_trajectory
     type: FollowJointTrajectory
+    default: True
     joints:
       - a_bot_shoulder_pan_joint
       - a_bot_shoulder_lift_joint
@@ -16,9 +18,9 @@ moveit_simple_controller_manager:
       - a_bot_wrist_1_joint
       - a_bot_wrist_2_joint
       - a_bot_wrist_3_joint
-    action_ns: follow_joint_trajectory
   a_bot_gripper_controller:
+    action_ns: gripper_cmd
     type: GripperCommand
+    default: True
     joints:
       - a_bot_gripper_finger_joint
-    action_ns: gripper_cmd
