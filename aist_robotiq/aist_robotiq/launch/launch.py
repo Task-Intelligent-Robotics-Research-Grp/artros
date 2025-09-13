@@ -3,7 +3,8 @@ from launch.actions                    import (DeclareLaunchArgument,
                                                OpaqueFunction)
 from launch.substitutions              import (LaunchConfiguration,
                                                PathJoinSubstitution,
-                                               IfElseSubstitution)
+                                               IfElseSubstitution,
+                                               EqualsSubstitution)
 from launch_ros.actions                import Node
 from launch_ros.substitutions          import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterFile
@@ -24,7 +25,7 @@ launch_arguments = [
     {
         'name':        'driver',
         'default':     'urcap',
-        'description': 'driver type'
+        'description': 'driver type',
         'choices':     ['urcap', 'tcp', 'rtu']
     },
     {
