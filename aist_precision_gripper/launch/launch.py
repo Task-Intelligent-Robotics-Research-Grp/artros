@@ -9,9 +9,6 @@ from launch_ros.descriptions    import ComposableNode
 from aist_bringup.launch_common import declare_launch_arguments
 
 launch_arguments = [
-    {'name':        'namespace',
-     'default':     '',
-     'description': 'namespace of controllers'},
     {'name':        'config_file',
      'default':     '',
      'description': 'path to YAML file for configuring gripper'},
@@ -54,14 +51,12 @@ def launch_setup(context):
     node_names = get_node_names(config_file.perform(context))
     composable_nodes = [
         ComposableNode(
-            namespace=LaunchConfiguration('namespace'),
             name=node_names[0],
             package='dynamixel_workbench_controllers',
             plugin='dynamixel_workbench_controllers::DynamixelController',
             parameters=[config_file, {'dynamixel_info': dxlinfo_file}],
             extra_arguments=[{'use_intra_process_comms': True}]),
         ComposableNode(
-            namespace=LaunchConfiguration('namespace'),
             name=node_names[1],
             package='aist_precision_gripper',
             plugin='aist_precision_gripper::PrecisionGripperController',

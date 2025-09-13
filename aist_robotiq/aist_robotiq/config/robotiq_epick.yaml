@@ -1,2 +1,3 @@
-# Gap width between fingers in meters [0.000, 0.085]
-max_pressure: 0.085
+$(var prefix)controller:
+  ros__parameters:
+    max_pressure: 0.085

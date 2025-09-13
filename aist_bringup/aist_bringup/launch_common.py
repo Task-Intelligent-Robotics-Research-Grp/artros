@@ -44,10 +44,14 @@ ARM_PROPS = {
 GRIPPER_PROPS = {
     'RobotiqGripper':
     {
-        'gz_controllers_template': PathJoinSubstitution(
-                                       [FindPackageShare('aist_bringup'),
-                                        'config', 'templates',
-                                        'gripper_controllers.yaml']),
+        'gz_controllers_template':   PathJoinSubstitution(
+                                         [FindPackageShare('aist_bringup'),
+                                          'config', 'templates',
+                                          'gripper_controllers.yaml']),
+        'extra_drivers_launch_file': PathJoinSubstitution(
+                                         [FindPackageShare('aist_bringup'),
+                                          'launch',
+                                          'robotiq_drivers.launch.py'])
     },
     'PrecisionGripper':
     {
