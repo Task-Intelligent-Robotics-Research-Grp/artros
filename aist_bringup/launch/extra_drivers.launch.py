@@ -26,8 +26,8 @@ def launch_setup(context):
                 IncludeLaunchDescription(
                     extra_drivers_launch_file,
                     launch_arguments=[
-                        ('config',   LaunchConfiguration('config')),
-                        ('arm_name', arm_name)]))
+                        ('config', LaunchConfiguration('config')),
+                        ('name',   arm_name)]))
     for gripper_name, gripper_config in config['grippers'].items():
         gripper_props = get_gripper_props(gripper_config['type'])
         extra_drivers_launch_file = gripper_props.get(
@@ -37,8 +37,8 @@ def launch_setup(context):
                 IncludeLaunchDescription(
                     extra_drivers_launch_file,
                     launch_arguments=[
-                        ('config',       LaunchConfiguration('config')),
-                        ('gripper_name', gripper_name)]))
+                        ('config', LaunchConfiguration('config')),
+                        ('name',   gripper_name)]))
     return actions
 
 def generate_launch_description():

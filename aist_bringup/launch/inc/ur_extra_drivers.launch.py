@@ -13,7 +13,7 @@ launch_arguments = [
         'description': 'Name of the hardware configuration'
     },
     {
-        'name':        'arm_name',
+        'name':        'name',
         'default':     'a_bot',
         'description': 'Name of the UR arm'
     },
@@ -22,7 +22,7 @@ launch_arguments = [
 
 def launch_setup(context):
     config        = load_config(context)
-    arm_config    = config['arms'][LaunchConfiguration('arm_name') \
+    arm_config    = config['arms'][LaunchConfiguration('name') \
                                    .perform(context)]
     robot_ip      = arm_config['robot_ip']
     headless_mode = arm_config.get('headless_mode', False)

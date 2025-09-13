@@ -50,11 +50,15 @@ GRIPPER_PROPS = {
                                           'gripper_controllers.yaml']),
         'extra_drivers_launch_file': PathJoinSubstitution(
                                          [FindPackageShare('aist_bringup'),
-                                          'launch',
+                                          'launch', 'inc',
                                           'robotiq_drivers.launch.py'])
     },
     'PrecisionGripper':
     {
+        'extra_drivers_launch_file': PathJoinSubstitution(
+                                         [FindPackageShare('aist_bringup'),
+                                          'launch', 'inc',
+                                          'precision_gripper_drivers.launch.py'])
     },
     'ScrewTool':
     {
