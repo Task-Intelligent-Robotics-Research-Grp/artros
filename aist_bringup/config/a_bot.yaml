@@ -23,11 +23,17 @@ arms:
 grippers:
   a_bot_gripper:
     type:                    RobotiqGripper
+    device:                  robotiq_140
+    driver:                  urcap
+    ip_or_dev:               "10.66.171.40"
+    slave_id:                "9"
     controller_ns:           a_bot_gripper_controller
     max_effort:              5.0
     velocity:                0.1
   precision_tool:
     type:                    PrecisionGripper
+    usb_port:                "/dev/ttyUSB1"
+    motor_id:                "1"
     controller_ns:           precision_tool_controller
     base_link:               precision_tool/base_link
     tip_link:                precision_tool/tip_link

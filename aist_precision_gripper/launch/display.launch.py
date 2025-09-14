@@ -1,42 +1,40 @@
-from launch                   import LaunchDescription
-from launch.actions           import (DeclareLaunchArgument,
-                                      IncludeLaunchDescription, OpaqueFunction)
-from launch.substitutions     import (LaunchConfiguration, ThisLaunchFileDir,
-                                      PathJoinSubstitution, EqualsSubstitution)
-from launch_ros.substitutions import FindPackageShare
+from launch                     import LaunchDescription
+from launch.actions             import (IncludeLaunchDescription,
+                                        OpaqueFunction)
+from launch.substitutions       import (LaunchConfiguration, ThisLaunchFileDir,
+                                        PathJoinSubstitution)
+from launch_ros.substitutions   import FindPackageShare
+from aist_bringup.launch_common import declare_launch_arguments
 
 launch_arguments = [
-    {'name':        'name',
-     'default':     'precision_tool',
-     'description': 'precision tool name'},
-    {'name':        'collision',
-     'default':     'false',
-     'description': 'display collision mesh if true'}]
-
-def declare_launch_arguments(args):
-    return [DeclareLaunchArgument(arg['name'],
-                                  default_value=arg.get('default'),
-                                  description=arg.get('description'),
-                                  choices=arg.get('choices')) \
-            for arg in args]
+    {
+        'name':        'name',
+        'default':     'precision_tool',
+        'description': 'precision tool name'
+    },
+    {
+        'name':        'collision',
+        'default':     'false',
+        'description': 'display collision mesh if true',
+        'choices':     ['true', 'false', 'True', 'False']
+    }
+]
 
 def launch_setup(context):
-    launch_dir = PathJoinSubstitution([FindPackageShare('aist_description'),
-                                       'launch'])
-    prop_file  = PathJoinSubstitution([FindPackageShare(
-                                           'aist_precision_gripper'),
-                                       'config',
-                                       'precision_tool_properties.yaml'])
-
-
     return [
         IncludeLaunchDescription(
-            PathJoinSubstitution([launch_dir, 'display_part.launch.py']),
-            launch_arguments={
-                'name':            LaunchConfiguration('name'),
-                'properties_file': prop_file,
-                'collision':       LaunchConfiguration('collision'),
-            }.items())]
+            PathJoinSubstitution([
+                PathJoinSubstitution([FindPackageShare('aist_description'),
+                                      'launch', 'display_part.launch.py'])]),
+            launch_arguments=[
+                ('name',            LaunchConfiguration('name')),
+                ('properties_file', PathJoinSubstitution([
+                                        FindPackageShare(
+                                            'aist_precision_gripper'),
+                                        'config',
+                                        'precision_tool_properties.yaml'])),
+                ('collision',       LaunchConfiguration('collision')),
+                ('joint_gui',       'true')])]
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \

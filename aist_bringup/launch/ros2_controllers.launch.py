@@ -90,22 +90,22 @@ def launch_setup(context):
         active_controllers.append(gripper_name + '_controller')
 
     # Setup a command for loading the URDF describing arms and environment.
-    robot_description_content \
-        = Command([FindExecutable(name='xacro'),
-                   ' ',
-                   PathJoinSubstitution([FindPackageShare('aist_description'),
-                                         'scenes', 'urdf',
-                                         [LaunchConfiguration('config'),
-                                          '_base_scene.urdf.xacro']]),
-                   ' scene:=', LaunchConfiguration('scene'),
-                   ' sim:=',   LaunchConfiguration('sim')])
+    robot_description = ParameterValue(
+                            Command([FindExecutable(name='xacro'),
+                                     ' ',
+                                     PathJoinSubstitution(
+                                         [FindPackageShare('aist_description'),
+                                          'scenes', 'urdf',
+                                          [LaunchConfiguration('config'),
+                                           '_base_scene.urdf.xacro']]),
+                                     ' scene:=', LaunchConfiguration('scene'),
+                                     ' sim:=',   LaunchConfiguration('sim')]),
+                            value_type=str)
 
     rsp_node = Node(package='robot_state_publisher',
                     executable='robot_state_publisher',
                     parameters=[{'use_sim_time': LaunchConfiguration('sim')},
-                                {'robot_description':
-                                 ParameterValue(robot_description_content,
-                                                value_type=str)}],
+                                {'robot_description': robot_description}],
                     output='screen')
     return [
         rsp_node,

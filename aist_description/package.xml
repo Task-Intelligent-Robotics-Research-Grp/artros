@@ -11,6 +11,7 @@
   <exec_depend>ament_index_python</exec_depend>
   <exec_depend>ur_simulation_gz</exec_depend>
   <exec_depend>ros_gz_image</exec_depend>
+  <exec_depend>aist_bringup</exec_depend>
 
   <buildtool_export_depend>ament_cmake_core</buildtool_export_depend>
 
