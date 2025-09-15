@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-import rospy
+import rclpy, sys, threading
 from actionlib                import SimpleActionClient
 from aist_fastening_tools.msg import (SuctionToolCommandAction,
                                       SuctionToolCommandGoal)

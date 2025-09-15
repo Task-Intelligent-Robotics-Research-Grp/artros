@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Software License Agreement (BSD License)
 #
@@ -35,7 +35,7 @@
 #
 # Author: Toshio Ueshiba (t.ueshiba@aist.go.jp)
 #
-import threading, rclpy
+import rclpy, sys, time, threading
 from rclpy.node            import Node
 from rclpy.executors       import (ExternalShutdownException,
                                    SingleThreadedExecutor,
@@ -45,7 +45,7 @@ from rclpy.callback_groups import (MutuallyExclusiveCallbackGroup,
 from rclpy.action          import ActionServer, GoalResponse, CancelResponse
 from aist_msgs.action      import SuctionToolCommand
 from ur_msgs.msg           import IOStates
-from ur_msgs.srv           import SetIO, SetIORequest
+from ur_msgs.srv           import SetIO
 from std_msgs.msg          import Bool
 from sensor_msgs.msg       import JointState
 
@@ -59,21 +59,23 @@ class SuctionToolController(Node):
         # Initialize ur_control table
         self._in_port    = self.declare_parameter('digital_in_port', -1).value
         self._suck_port  = self.declare_parameter('digital_out_port_suck',
-                                                  0).value
+                                                  -1).value
         self._blow_port  = self.declare_parameter('digital_out_port_blow',
-                                                  1).value
+                                                  -1).value
         self._joint_name = self.declare_parameter('joint_name', '').value
 
-        # Subscribe and set I/O states.
-        if self._in_port >= 0:
-            self._subscription_cbg = MutuallyExclusiveCallbackGroup()
-            self._io_states_sub = self.create_subscription(
-                                      IOStates, '~/io_states',
-                                      self._io_states_cb, 10,
-                                      callback_group=self._subscription_cbg)
-            self._suction_pub   = self.create_publisher(
-                                      Bool, '~/suctioned', 1)
-        self._suctioned = False
+        # Create a subscriber for I/O states.
+        self._suctioned_condition = threading.Condition()
+        self._suctioned           = None
+        self._io_states_cbg       = MutuallyExclusiveCallbackGroup()
+        self._io_states_sub       = self.create_subscription(
+                                        IOStates, '~/io_states',
+                                        self._io_states_cb, 10,
+                                        callback_group=self._io_states_cbg)
+
+        # Create a publisher for suction state.
+        self._suctioned_pub = self.create_publisher(Bool, '~/suctioned', 1)
+        self._suctioned     = False
 
         # Create a publisher for JointState.
         if self._joint_name != '':
@@ -82,118 +84,163 @@ class SuctionToolController(Node):
             self._min_pos         = self.decalre_parameter('min_position')
             self._max_pos         = self.declare_parameter('max_position')
             self._current_pos     = self._min_pos
-            self._timer           = rospy.Timer(rospy.Duration(0.1),
-                                                self._timer_cb)
 
         # Create a service client for setting digital I/O.
         #rospy.wait_for_service(driver_ns + '/set_io')
-        self._set_io = rospy.ServiceProxy(driver_ns + '/set_io', SetIO)
+        self._set_io_cbg = MutuallyExclusiveCallbackGroup()
+        self._set_io     = self.create_client(SetIO, '~/set_io',
+                                              callback_group=self._set_io_cbg)
+        # if not self._set_io.wait_for_service(timeout_sec=10.0):
+        #     raise TimeoutError('failed to connect server[SetIO]')
 
         # Create an action server for processing commands to suction tools.
-        self._server = SimpleActionServer('~command', SuctionToolCommandAction,
-                                          auto_start=False)
-        self._server.register_goal_callback(self._goal_cb)
-        self._server.register_preempt_callback(self._preempt_cb)
-        self._server.start()
-        rospy.loginfo('(%s) controller started', self._name)
+        self._goal_lock       = threading.Lock()
+        self._goal_handle     = None
+        self._suction_cmd_cbg = MutuallyExclusiveCallbackGroup()
+        self._suction_cmd_srv \
+            = ActionServer(self, SuctionToolCommand, '~/command',
+                           execute_callback=self._execute_cb,
+                           goal_callback=self._goal_cb,
+                           handle_accepted_callback=self._handle_accepted_cb,
+                           cancel_callback=self._cancel_cb,
+                           callback_group=self._suction_cmd_cbg)
 
-    def _goal_cb(self):
-        self._active_goal = self._server.accept_new_goal()
-        rospy.loginfo('(%s) new goal ACCEPTED', self._name)
-
-        # Check that preempt has not been requested by the client
-        if self._server.is_preempt_requested():
-            self._server.set_preempted()
-            rospy.logwarn('(%s) pending goal CANCELED before proccessed',
-                          self._name)
-            return
-
-        # Set states of suck and blow ports.
-        self._set_out_port(self._suck_port, self._active_goal.suck)
-        self._set_out_port(self._blow_port, not self._active_goal.suck)
-
-        # If joint name is specified,
-        if self._joint_name is not None:
-            self._current_pos = self._max_pos if self._active_goal.suck else \
-                                self._min_pos
-
-        # If no IN ports are watched, i.e. open-loop, return success.
-        if self._in_port is None:
-            self._server.set_succeeded(SuctionToolCommandResult(False))
-            rospy.loginfo('(%s) goal SUCCEEDED: no status checking required',
-                          self._name)
-
-        self._start_time = rospy.get_rostime()
-
-    def _preempt_cb(self):
-        self._set_out_port(self._blow_port, False)  # If blowing, stop it.
-        self._server.set_preempted(SuctionToolCommandResult(self._suctioned))
-        rospy.logwarn('(%s) active goal CANCELED by client', self._name)
+        self.get_logger().info('controller started')
 
     def _io_states_cb(self, io_states):
-        # Find a state of my IN port.
-        in_state = next(filter(lambda in_state: in_state.pin == self._in_port,
-                               io_states.digital_in_states), None)
-        if in_state is None:
-            rospy.logerr('(%s) not found digital IN state at port[%d]',
-                         self._name, self._in_port)
-            return
-        self._suctioned = in_state.state
+        # Publish joint_states.
+        if self._joint_name != '':
+            joint_state = JointState()
+            joint_state.header.stamp = self.get_clock().now().to_msg()
+            joint_state.name         = [self._joint_name]
+            joint_state.position     = [self._current_pos]
+            self._joint_state_pub.publish(joint_state)
 
-        # Publish suction state.
-        self._suction_pub.publish(Bool(self._suctioned))
+        # Find the state of my IN port and publish its digital IN state
+        # as a flag describing the suctioned state.
+        if self._in_port >= 0:
+            in_state = next(filter(lambda in_state:
+                                   in_state.pin == self._in_port,
+                                   io_states.digital_in_states), None)
+            if in_state is None:
+                self.get_logger().error(
+                    'no digital IN state found at port[%d]' % self._in_port)
+                return
+            # Publish suction state.
+            suctioned = Bool(in_state.state)
+            self._suctioned_pub.publish(suctioned)
+        else:
+            suctioned = False
 
-        # Return if no active goal running.
-        if not self._server.is_active():
-            return
+        # Notify the execute callback that the suction state is available.
+        with self._suctioned_condition:
+            self._suctioned = suctioned
+            self._suctioned_condition.notify_all()
 
-        # Publish feedback.
-        self._server.publish_feedback(
-            SuctionToolCommandFeedback(self._suctioned))
+    def _goal_cb(self, goal_request):
+        self.get_logger().info('goal received[on=%b]' % goal_request.suck)
+        return GoalResponse.ACCEPT
 
-        # If the IN port has not reached the target state, update start time.
-        if self._suctioned != self._active_goal.suck:
-            self._start_time = rospy.get_rostime()
+    def _handle_accepted_cb(self, goal_handle):
+        with self._goal_lock:
+            if self._goal_handle is not None and self._goal_handle.is_active:
+                self.get_logger.error('Previous goal ABORTED')
+                self._goal_handle.abort()
+            self._goal_handle = goal_handle  # Keep the new goal handle.
+        goal_handle.execute()
 
-        # Check if the target state has been kept for min_period.
-        #  - If min_period is zero, the goal succeeds immediately.
-        #  - If min_period is negative, the goal never succeeds
-        #    and should be terminated by a cancel request.
-        if self._active_goal.min_period >= rospy.Duration(0) and \
-           rospy.get_rostime() - self._start_time \
-           >= self._active_goal.min_period:
-            self._set_out_port(self._blow_port, False)  # If blowing, stop it.
-            self._server.set_succeeded(
-                SuctionToolCommandResult(self._suctioned))
-            rospy.loginfo('(%s) goal SUCCEEDED: suctioned', self._name)
+    def _cancel_cb(self):
+        self.get_logger().warn('cancel request reveived')
+        self._set_out_port(self._blow_port, False)  # If blowing, stop it.
+        return CancelResponse.ACCPET
 
-    def _timer_cb(self, event):
-        joint_state = JointState()
-        joint_state.header.stamp = rospy.get_rostime()
-        joint_state.name         = [self._joint_name]
-        joint_state.position     = [self._current_pos]
-        self._joint_state_pub.publish(joint_state)
+    def _execute_cb(self, goal_handle):
+        # Set states of suck and blow ports.
+        self._set_out_port(self._suck_port, goal_handle.request.suck)
+        self._set_out_port(self._blow_port, not goal_handle.request.suck)
+
+        # Initialize the suction state with the desired value.
+        suctioned  = goal_handle.request.suck
+
+        start_time = self.get_clock().now()
+        while goal_handle.is_active:
+            # Wait for the suction state being available.
+            with self._suctioned_condition:
+                while self._suctioned is None:
+                    if not self._suctioned_condition.wait(timeout=1.0):
+                        goal_handle.abort()
+                        self.get_logger().error(
+                            'goal ABORTED[no incoming IO states]')
+                        return SuctionToolCommand.Result(False)
+                # If no IN ports is watched, update the suction state
+                # with the latest value.
+                if self._in_port >=0:
+                    suctioned = self._suctioned
+                self._suctioned = None    # Wait for the next suction state.
+
+            # If joint name is specified, set its value according
+            # to the desired suction state.
+            if self._joint_name != '':
+                self._current_pos \
+                    = self._max_pos if goal_handle.request.suck else \
+                      self._min_pos
+
+            goal_handle.publish_feedback(
+                SuctionToolCommand.Feedback(suctioned))
+
+            # If the IN port has not reached the target state,
+            # reset start time.
+            if suctioned != self.goal_handle.request.suck:
+                start_time = self.get_clock().now()
+
+            if goal_handle.is_cancel_requested:
+                goal_handle.canceled()
+                self.get_logger().warn('goal CANCELED')
+            # Check whether the target state has remained for min_period.
+            #  - If min_period is zero, the goal succeeds immediately.
+            #  - If min_period is negative, the goal never succeeds
+            #    and should be terminated by a cancel request.
+            elif self.goal_handle.request.min_period >= rclpy.Duration(0) and \
+                 self.get_clock().now() - start_time \
+                 >= goal_handle.request.min_period:
+                self._set_out_port(self._blow_port, False)  # Stop blowing.
+                goal_handle.succeed()
+                self.logger().info('goal SUCCEEDED: suctioned')
+
+        return SuctionToolCommand.Result(suctioned)
 
     def _set_out_port(self, port, state):
-        if port is None:        # blow_port may be None
+        if port < 0:        # blow_port may be None
             return
 
-        for n in range(5):
-            if self._set_io(SetIORequest.FUN_SET_DIGITAL_OUT, port,
-                            SetIORequest.STATE_ON if state else \
-                            SetIORequest.STATE_OFF).success:
-                return
-            rospy.sleep(0.001)
-        rospy.logerr('(%s) failed to set OUT port[%d] to state[%s]',
-                     self._name, port, state)
+        req = SetIO.Request()
+        req.fun   = SetIORequest.FUN_SET_DIGITAL_OUT
+        req.pin   = port
+        req.state = SetIO.Request.STATE_ON if state else \
+                    SetIO.Request.STATE_OFF
+        future = self._set_io.call_async(req)
+        future.add_done_callback(self._set_io_cb)
 
+        while not future.dnoe():
+            time.sleep(0.01)
+        self.logger().info('set OUT port[%d] to state[%f]' % (port, state))
+        return future.result()
+
+    def _set_io_cb(self, future):
+        pass
 
 #########################################################################
 #  Entry point                                                          #
 #########################################################################
 if __name__ == '__main__':
-    rospy.init_node('suction_tool_controller')
+    rclpy.init(args=sys.argv)
 
-    driver_ns  = rospy.get_param('~driver_ns', 'ur_hardware_interface')
-    controller = SuctionToolController(driver_ns)
-    rospy.spin()
+    try:
+        controller = SuctionToolController('suction_tool_controller')
+        executor   = MultiThreadedExecutor(num_threads=4)
+        executor.add_node(controller)
+        executor.spin()
+    except TimeoutError as e:
+        print(e)
+    except (KeyboardInterrupt, ExternalShutdownException):
+        pass

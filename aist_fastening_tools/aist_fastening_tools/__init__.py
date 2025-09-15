@@ -41,7 +41,7 @@ from rclpy.duration        import Duration
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.action          import ActionClient
 from action_msgs.msg       import GoalStatus
-from aist_msgs.action      import ScrewToolCommand
+from aist_msgs.action      import ScrewToolCommand, SuctionToolCommand
 
 ######################################################################
 #  class ScrewTool                                                   #
@@ -183,3 +183,28 @@ class ScrewTool(object):
 
     def _feedback_cb(self, feedback):
         self._feedback = feedback
+
+######################################################################
+#  class SuctionTool                                                 #
+######################################################################
+class SuctionTool(object):
+    """
+    Suction tool client of aist_msgs.action.SuctionToolCommand type.
+    """
+    def __init__(self, node, action_ns):
+        """
+        Constructor
+        @param action_ns    namespace of action server to be connected
+        """
+        super().__init__()
+
+        self._clock            = node.get_clock()
+        self._logger           = node.get_logger()
+        self._feedback         = SuctionToolCommand.Feedback()
+        self._client_cbg       = MutuallyExclusiveCallbackGroup()
+        self._result_condition = threading.Condition()
+        self._result           = None
+        self._client           = ActionClient(node, SuctionToolCommand,
+                                              action_ns,
+                                              callback_group=self._client_cbg)
+        self._client.wait_for_server()
