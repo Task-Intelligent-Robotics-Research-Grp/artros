@@ -1,5 +1,5 @@
 from launch                     import LaunchDescription
-from launch.actions             import OpaqueFunction
+from launch.actions             import IncludeLaunchDescription, OpaqueFunction
 from launch.substitutions       import (LaunchConfiguration,
                                         PathJoinSubstitution)
 from launch_ros.substitutions   import FindPackageShare
@@ -13,7 +13,7 @@ launch_arguments = [
         'description': 'Name of the hardware configuration'
     },
     {
-        'name':        'gripper_name',
+        'name':        'name',
         'default':     'a_bot_gripper',
         'description': 'Name of the Robotiq gripper'
     },
@@ -22,15 +22,15 @@ launch_arguments = [
 
 def launch_setup(context):
     config         = load_config(context)
-    gripper_config = config['grippers'][LaunchConfiguration('gripper_name') \
+    gripper_config = config['grippers'][LaunchConfiguration('name') \
                                        .perform(context)]
     device         = gripper_config['device']
 
     return [
-        IncludeLaunchDescriptionFile(
+        IncludeLaunchDescription(
             PathJoinSubstitution([FindPackageShare('aist_robotiq'), 'launch',
                                   'launch.py']),
-            launch_arguments=[('prefix', [LaunchConfiguration('gripper_name'),
+            launch_arguments=[('prefix', [LaunchConfiguration('name'),
                                           '_']),
                               ('device',    gripper_config['device']),
                               ('driver',    gripper_config['driver']),

@@ -1,19 +1,16 @@
-from launch               import LaunchDescription
-from launch.actions       import DeclareLaunchArgument, OpaqueFunction
-from launch.substitutions import LaunchConfiguration
-from launch_ros.actions   import Node
+from launch                     import LaunchDescription
+from launch.actions             import OpaqueFunction
+from launch.substitutions       import LaunchConfiguration
+from launch_ros.actions         import Node
+from aist_bringup.launch_common import declare_launch_arguments
 
 launch_arguments = [
-    {'name':        'controller_ns',
-     'default':     'precision_gripper_controller',
-     'description': 'namespace of the gripper controller'}]
-
-def declare_launch_arguments(args):
-    return [DeclareLaunchArgument(arg['name'],
-                                  default_value=arg.get('default'),
-                                  description=arg.get('description'),
-                                  choices=arg.get('choices')) \
-            for arg in args]
+    {
+        'name':        'controller_ns',
+        'default':     'precision_tool_controller',
+        'description': 'namespace of the gripper controller'
+    }
+]
 
 def launch_setup(context):
     return [Node(name='test_client',

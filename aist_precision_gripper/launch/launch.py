@@ -13,7 +13,7 @@ from aist_bringup.launch_common        import (declare_launch_arguments,
 launch_arguments = [
     {
         'name':        'name',
-        'default':     'precision_gripper',
+        'default':     'precision_tool',
         'description': 'name of the gripper'
     },
     {
@@ -28,7 +28,7 @@ launch_arguments = [
     },
     {
         'name':        'container',
-        'default':     'precision_gripper_container',
+        'default':     'precision_tool_container',
         'description': 'name of component container'},
     {
         'name':        'log_level',

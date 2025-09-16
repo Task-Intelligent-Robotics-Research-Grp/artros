@@ -20,7 +20,7 @@ ARM_PROPS = {
                                           'ur_gz_controllers.yaml']),
         'extra_drivers_launch_file': PathJoinSubstitution(
                                          [FindPackageShare('aist_bringup'),
-                                          'launch',
+                                          'launch', 'inc',
                                           'ur_extra_drivers.launch.py'])
     },
     'URe':
@@ -36,7 +36,7 @@ ARM_PROPS = {
                                           'ur_gz_controllers.yaml']),
         'extra_drivers_launch_file': PathJoinSubstitution(
                                          [FindPackageShare('aist_bringup'),
-                                          'launch',
+                                          'launch', 'inc',
                                           'ur_extra_drivers.launch.py'])
     },
 }

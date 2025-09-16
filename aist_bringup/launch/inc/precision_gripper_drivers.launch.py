@@ -1,5 +1,5 @@
 from launch                     import LaunchDescription
-from launch.actions             import OpaqueFunction
+from launch.actions             import IncludeLaunchDescription, OpaqueFunction
 from launch.substitutions       import (LaunchConfiguration,
                                         PathJoinSubstitution)
 from launch_ros.substitutions   import FindPackageShare
@@ -26,7 +26,7 @@ def launch_setup(context):
                                        .perform(context)]
 
     return [
-        IncludeLaunchDescriptionFile(
+        IncludeLaunchDescription(
             PathJoinSubstitution([FindPackageShare('aist_precision_gripper'),
                                   'launch', 'launch.py']),
             launch_arguments=[('name',     LaunchConfiguration('name')),
