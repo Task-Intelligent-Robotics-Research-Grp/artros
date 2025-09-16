@@ -1,69 +1,55 @@
 #!/usr/bin/env python3
 
 import rclpy, sys, threading
-from actionlib                import SimpleActionClient
-from aist_fastening_tools.msg import (SuctionToolCommandAction,
-                                      SuctionToolCommandGoal)
-from aist_utility.compat      import *
+from rclpy.node           import Node
+from aist_fastening_tools import SuctionTool
 
 
-class SuctionToolTest(object):
-    def __init__(self, controller_ns):
-        self._client = SimpleActionClient(controller_ns + '/command',
-                                          SuctionToolCommandAction)
-        self._client.wait_for_server()
+class SuctionToolTest(Node):
+    def __init__(self, name):
+        super().__init__(name)
 
-    def run(self):
-        suck       = False
-        min_period = 0.5
+        controller_ns = self.declare_parameter(
+                            'controller_ns', 'screw_tool_m4_controller').value
+        self._suction_tool = SuctionTool(self, controller_ns)
+        self.get_logger().info('started')
 
-        while not rospy.is_shutdown():
-            key = raw_input('[suck=%d, min_period=%f]> ' % (suck, min_period))
+        cli_thread = threading.Thread(target=self.interactive)
+        cli_thread.daemon = True
+        cli_thread.start()
 
+    def interactive(self):
+        while rclpy.ok():
             print('====')
             print('  q: quit this program')
-            print('  s: toggle suction')
+            print('  g: grasp')
+            print('  r: release')
             print('  m: set min period')
             print('  w: wait for ten seconds')
             print('  c: cancel')
 
+            key = input('[suck_min_period=%f]> '
+                        % self._suction_tool.parameters['suck_min_period'])
+
             if key == 'q':
                 break
-            elif key == 's':
-                suck = not suck
-                self._send_command(suck, min_period)
+            elif key == 'g':
+                self._suction_tool.grasp()
+            elif key == 'r':
+                self._suction_tool.release()
             elif key == 'm':
-                min_period = float(raw_input('  min_period? '))
-            elif key == 'w':
-                self._wait()
+                self._suction_tool.parameters['suck_min_period'] \
+                    = float(input('  suck_min_period? '))
             elif key == 'c':
-                self._client.cancel_goal()
+                self._suction_tool.cancel()
             else:
                 print('Unknown command[%s]' % key)
-
-    def _send_command(self, suck, min_period):
-        self._client.send_goal(
-            SuctionToolCommandGoal(suck, rospy.Duration(min_period)))
-
-    def _wait(self, timeout=rospy.Duration(5)):
-        self._client.wait_for_result(timeout)
-        status = self._client.get_state()
-        if status == GoalStatus.SUCCEEDED:
-            print("  succeeded")
-        elif status == GoalStatus.ABORTED:
-            print("  aborted")
-        elif status == GoalStatus.PREEMPTED:
-            print("  preempted")
+        self.destroy_node()
+        rclpy.shutdown()
 
 
 if __name__ == '__main__':
-    try:
-        rospy.init_node('suction_tool_test')
+    rclpy.init(args=sys.argv)
 
-        controller_ns = rospy.get_param('~controller_ns',
-                                        'screw_tool_m4_controller')
-        test = SuctionToolTest(controller_ns)
-        test.run()
-
-    except rospy.ROSInterruptException:
-        print('program interrupted before completion')
+    test = SuctionToolTest('suction_tool_test')
+    rclpy.spin(test)

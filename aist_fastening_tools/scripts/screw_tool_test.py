@@ -13,7 +13,7 @@ class ScrewToolTest(Node):
         controller_ns = self.declare_parameter(
                             'controller_ns',
                             'screw_tool_m4_fastening_controller').value
-        self._screw_tool = ScrewTool(self, controller_ns + '/command')
+        self._screw_tool = ScrewTool(self, controller_ns)
         self.get_logger().info('started')
 
         cli_thread = threading.Thread(target=self.interactive)
@@ -50,11 +50,9 @@ class ScrewToolTest(Node):
         self.destroy_node()
         rclpy.shutdown()
 
-def main():
-    rclpy.init()
+
+if __name__ == '__main__':
+    rclpy.init(args=sys.argv)
 
     test = ScrewToolTest('screw_tool_test')
     rclpy.spin(test)
-
-if __name__ == '__main__':
-    main()

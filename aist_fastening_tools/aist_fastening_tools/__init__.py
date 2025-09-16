@@ -41,6 +41,7 @@ from rclpy.duration        import Duration
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.action          import ActionClient
 from action_msgs.msg       import GoalStatus
+from std_msgs.msg          import Bool
 from aist_msgs.action      import ScrewToolCommand, SuctionToolCommand
 
 ######################################################################
@@ -50,10 +51,10 @@ class ScrewTool(object):
     """
     Screw tool client of aist_msgs.action.ScrewToolCommand type.
     """
-    def __init__(self, node, action_ns, speed=1.0, retighten=True):
+    def __init__(self, node, controller_ns, speed=1.0, retighten=True):
         """
         Constructor
-        @param action_ns    namespace of action server to be connected
+        @param controller_ns    namespace of the controller to be connected
         """
         super().__init__()
 
@@ -64,7 +65,7 @@ class ScrewTool(object):
         self._result_condition = threading.Condition()
         self._result           = None
         self._client           = ActionClient(node, ScrewToolCommand,
-                                              action_ns,
+                                              controller_ns + '/command',
                                               callback_group=self._client_cbg)
         self._parameters       = {'speed':     speed,
                                   'retighten': retighten}
@@ -191,10 +192,11 @@ class SuctionTool(object):
     """
     Suction tool client of aist_msgs.action.SuctionToolCommand type.
     """
-    def __init__(self, node, action_ns):
+    def __init__(self, node, controller_ns,
+                 suck_min_period=0.5, blow_min_period=0.2):
         """
         Constructor
-        @param action_ns    namespace of action server to be connected
+        @param controller_ns    namespace of the contoller to be connected
         """
         super().__init__()
 
@@ -205,6 +207,86 @@ class SuctionTool(object):
         self._result_condition = threading.Condition()
         self._result           = None
         self._client           = ActionClient(node, SuctionToolCommand,
-                                              action_ns,
+                                              controller_ns + '/command',
                                               callback_group=self._client_cbg)
         self._client.wait_for_server()
+
+        self._suctioned     = None
+        self._suctioned_cbg = MutuallyExclusiveCallbackGroup()
+        self._suctioned_sub = node.create_subscription(
+                                  Bool, controller_ns + '/suctioned',
+                                  self._suctioned_cb, 10,
+                                  callback_group=self._suctioned_cbg)
+        self._parameters = {'suck_min_period': suck_min_period,
+                            'blow_min_period': blow_min_period}
+
+    @property
+    def parameters(self):
+        return self._parameters
+
+    @parameters.setter
+    def parameters(self, parameters):
+        for key, value in parameters.items():
+            self._parameters[key] = value
+
+    def pregrasp(self):
+        # Set goal.min_period to zero so that the goal succeeds immediately.
+        self._send_command(True, Duration(seconds=0), Duration(seconds=-1))
+
+    def grasp(self, timeout=Duration(seconds=-1)):
+        return self._send_command(
+                   True,
+                   Duration(seconds=self._parameters['suck_min_period']),
+                   timeout)
+
+    def postgrasp(self):
+        self.pregrasp()
+
+    def release(self, timeout=Duration()):
+        return self._send_command(
+                   False,
+                   Duration(seconds=self._parameters['blow_min_period']),
+                   timeout)
+
+    def wait(self, timeout=Duration()):
+        if timeout.nanoseconds < 0:  # If timeout value is negative...
+            return SuctionToolCommand.Result(suctioned=False)
+        timeout_time = self._clock.now() + timeout
+        while self._get_result_future is None or \
+              not self._get_result_future.done():
+            if timeout.nanoseconds > 0 and \
+               self._clock.now() > timeout_time:
+                self._logger.error('timeout[%f] has expired before goal finished'
+                                   % timeout.nanoseconds*1.0e-9)
+                return SuctionToolCommand.Result(suctioned=False)
+            time.sleep(0.05)
+
+            self._client.cancel_goal()
+            rospy.logwarn('(SuctionGripper) goal CANCELED because timeout[%.1f] has expired.',
+                          timeout.to_sec())
+            return False
+        rospy.loginfo('(SuctionGripper) %s',
+                      'suctioned' if self._suctioned else 'not suctioned')
+        return self._suctioned
+
+    def cancel(self):
+        if self._client.get_state() in (GoalStatus.PENDING, GoalStatus.ACTIVE):
+            self._client.cancel_goal()
+
+    def _send_command(self, suck, min_period, timeout):
+        self._client.send_goal_async(
+             SuctionToolCommand.Goal(suck=suck,
+                                     min_period=min_period.to_msg())) \
+            .add_done_callback(self._goal_response_cb)
+        return self.wait(timeout)
+
+    def _goal_response_cb(self, future):
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self._logger.error('goal rejected')
+            return
+        self._logger.info('goal accepted')
+        self._get_result_future = goal_handle.get_result_async()
+
+    def _suctioned_cb(self, msg):
+        self._suctioned = msg.data

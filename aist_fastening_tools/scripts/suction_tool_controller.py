@@ -56,6 +56,10 @@ class SuctionToolController(Node):
     def __init__(self, name):
         super().__init__(name)
 
+        driver_ns = self.declare_parameter('driver_ns',
+                                           'b_bot_io_and_status_controller') \
+                        .value
+
         # Initialize ur_control table
         self._in_port    = self.declare_parameter('digital_in_port', -1).value
         self._suck_port  = self.declare_parameter('digital_out_port_suck',
@@ -69,7 +73,7 @@ class SuctionToolController(Node):
         self._suctioned           = None
         self._io_states_cbg       = MutuallyExclusiveCallbackGroup()
         self._io_states_sub       = self.create_subscription(
-                                        IOStates, '~/io_states',
+                                        IOStates, driver_ns + '/io_states',
                                         self._io_states_cb, 10,
                                         callback_group=self._io_states_cbg)
 
@@ -81,14 +85,14 @@ class SuctionToolController(Node):
         if self._joint_name != '':
             self._joint_state_pub = self.create_publisher('/joint_states',
                                                           JointState, 1)
-            self._min_pos         = self.decalre_parameter('min_position')
-            self._max_pos         = self.declare_parameter('max_position')
-            self._current_pos     = self._min_pos
+            self._min_pos     = self.decalre_parameter('min_position').value
+            self._max_pos     = self.declare_parameter('max_position').value
+            self._current_pos = self._min_pos
 
         # Create a service client for setting digital I/O.
         #rospy.wait_for_service(driver_ns + '/set_io')
         self._set_io_cbg = MutuallyExclusiveCallbackGroup()
-        self._set_io     = self.create_client(SetIO, '~/set_io',
+        self._set_io     = self.create_client(SetIO, driver_ns + '/set_io',
                                               callback_group=self._set_io_cbg)
         # if not self._set_io.wait_for_service(timeout_sec=10.0):
         #     raise TimeoutError('failed to connect server[SetIO]')
@@ -127,8 +131,8 @@ class SuctionToolController(Node):
                     'no digital IN state found at port[%d]' % self._in_port)
                 return
             # Publish suction state.
-            suctioned = Bool(in_state.state)
-            self._suctioned_pub.publish(suctioned)
+            suctioned = in_state.state
+            self._suctioned_pub.publish(Bool(data=suctioned))
         else:
             suctioned = False
 
@@ -138,7 +142,7 @@ class SuctionToolController(Node):
             self._suctioned_condition.notify_all()
 
     def _goal_cb(self, goal_request):
-        self.get_logger().info('goal received[on=%b]' % goal_request.suck)
+        self.get_logger().info('goal received[on=%d]' % goal_request.suck)
         return GoalResponse.ACCEPT
 
     def _handle_accepted_cb(self, goal_handle):
@@ -171,7 +175,7 @@ class SuctionToolController(Node):
                         goal_handle.abort()
                         self.get_logger().error(
                             'goal ABORTED[no incoming IO states]')
-                        return SuctionToolCommand.Result(False)
+                        return SuctionToolCommand.Result(suctioned=False)
                 # If no IN ports is watched, update the suction state
                 # with the latest value.
                 if self._in_port >=0:
@@ -186,7 +190,7 @@ class SuctionToolController(Node):
                       self._min_pos
 
             goal_handle.publish_feedback(
-                SuctionToolCommand.Feedback(suctioned))
+                SuctionToolCommand.Feedback(suctioned=suctioned))
 
             # If the IN port has not reached the target state,
             # reset start time.
@@ -207,14 +211,14 @@ class SuctionToolController(Node):
                 goal_handle.succeed()
                 self.logger().info('goal SUCCEEDED: suctioned')
 
-        return SuctionToolCommand.Result(suctioned)
+        return SuctionToolCommand.Result(suctioned=suctioned)
 
     def _set_out_port(self, port, state):
         if port < 0:        # blow_port may be None
             return
 
         req = SetIO.Request()
-        req.fun   = SetIORequest.FUN_SET_DIGITAL_OUT
+        req.fun   = SetIO.Request.FUN_SET_DIGITAL_OUT
         req.pin   = port
         req.state = SetIO.Request.STATE_ON if state else \
                     SetIO.Request.STATE_OFF
