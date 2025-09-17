@@ -1,0 +1,23 @@
+$(var driver_name):
+  ros__parameters:
+    usb_port:               $(var usb_port)
+    dxl_baud_rate:          1000000
+    dxl_read_period:        0.010
+    dxl_write_period:       0.010
+    use_joint_states_topic: false
+    use_moveit:             false
+    mobile_robot_config:
+      separation_between_wheels: 0.000
+      radius_of_wheel:           0.000
+
+$(var name)_fastening_controller:
+  ros__parameters:
+    driver_ns:      $(var driver_name)
+    motor_id:       $(var motor_id)
+    control_period: 0.010
+    control_parameters:
+      loosen_period:      1.0
+      max_stall_speed:    0.01
+      min_stall_period:   0.5
+      max_noload_current: 0.03
+      min_noload_period:  0.5

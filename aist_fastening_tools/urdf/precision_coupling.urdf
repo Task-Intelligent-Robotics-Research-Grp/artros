@@ -5,7 +5,7 @@
 
   <link name="world"/>
 
-  <xacro:include filename="$(find aist_precision_gripper
+  <xacro:include filename="$(find aist_fastening_tools
 			   )/urdf/precision_coupling.urdf.xacro" />
   <xacro:precision_coupling prefix="$(arg prefix)" parent="world">
     <origin xyz="0 0 0" rpy="0 0 0"/>

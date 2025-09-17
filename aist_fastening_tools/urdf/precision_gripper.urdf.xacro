@@ -17,10 +17,10 @@
 		      scope="parent"/>
     </xacro:macro>
 
-    <xacro:include filename="$(find aist_precision_gripper
-			     )/urdf/precision_transmission.xacro"/>
-    <xacro:precision_transmission prefix="${prefix}"/>
-    <xacro:load_properties filename="$(find aist_precision_gripper
+    <xacro:include filename="$(find aist_fastening_tools
+			     )/urdf/precision_gripper_transmission.xacro"/>
+    <xacro:precision_gripper_transmission prefix="${prefix}"/>
+    <xacro:load_properties filename="$(find aist_fastening_tools
 				     )/config/precision_tool_properties.yaml"/>
 
     <xacro:property name="max_gap"	value="0.010"/>
@@ -226,8 +226,8 @@
       <minDepth>0.001</minDepth>
     </gazebo>
 
-    <!-- Mimic joints -->
-    <ros2_control name="GazeboSystem" type="system">
+    <!-- ros2_control settings for gazebo -->
+    <ros2_control name="${prefix[0:-1]}" type="system">
       <hardware>
 	<plugin>gz_ros2_control/GazeboSimSystem</plugin>
       </hardware>
@@ -245,13 +245,6 @@
 	<state_interface name="effort"/>
       </joint>
     </ros2_control>
-
-    <gazebo>
-      <plugin filename="gz_ros2_control-system"
-	      name="gz_ros2_control::GazeboSimROS2ControlPlugin">
-	<parameters>$(find gz_ros2_control_demos)/config/gripper_controller_position.yaml</parameters>
-      </plugin>
-    </gazebo>
 
   </xacro:macro>
 </robot>

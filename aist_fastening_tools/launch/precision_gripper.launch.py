@@ -45,13 +45,13 @@ launch_arguments = [
 
 def launch_setup(context):
     param_file = ParameterFile(PathJoinSubstitution(
-                                 [FindPackageShare('aist_precision_gripper'),
+                                 [FindPackageShare('aist_fastening_tools'),
                                   'config',
                                   'precision_gripper_controller.yaml']),
                                allow_substs=True)
     instantiate_file(context,
                      PathJoinSubstitution(
-                                 [FindPackageShare('aist_precision_gripper'),
+                                 [FindPackageShare('aist_fastening_tools'),
                                   'config',
                                   'precision_gripper_dynamixel_info.yaml']),
                      '/tmp/' + LaunchConfiguration('name').perform(context) \
@@ -75,8 +75,8 @@ def launch_setup(context):
                     extra_arguments=[{'use_intra_process_comms': True}]),
                 ComposableNode(
                     name=[LaunchConfiguration('name'), '_controller'],
-                    package='aist_precision_gripper',
-                    plugin='aist_precision_gripper::PrecisionGripperController',
+                    package='aist_fastening_tools',
+                    plugin='aist_fastening_tools::PrecisionGripperController',
                     parameters=[param_file],
                     extra_arguments=[{'use_intra_process_comms': True}])]
         )

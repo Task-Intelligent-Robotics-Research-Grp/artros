@@ -45,7 +45,7 @@
 #include <control_msgs/action/gripper_command.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
 
-namespace aist_precision_gripper
+namespace aist_fastening_tools
 {
 /************************************************************************
 *  class PrecisionGripperController					*
@@ -431,9 +431,9 @@ PrecisionGripperController::goal_cur(double max_effort) const
     return std::clamp(int(max_effort / _effort_per_tick), -_max_cur, _max_cur);
 }
 
-}	// namespace aist_precision_gripper
+}	// namespace aist_fastening_tools
 
 #include <rclcpp_components/register_node_macro.hpp>
 
 RCLCPP_COMPONENTS_REGISTER_NODE(
-    aist_precision_gripper::PrecisionGripperController)
+    aist_fastening_tools::PrecisionGripperController)
