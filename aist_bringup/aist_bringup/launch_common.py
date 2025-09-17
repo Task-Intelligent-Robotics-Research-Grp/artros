@@ -65,6 +65,10 @@ GRIPPER_PROPS = {
     },
     'SuctionGripper':
     {
+        'extra_drivers_launch_file': PathJoinSubstitution(
+                                         [FindPackageShare('aist_bringup'),
+                                          'launch', 'inc',
+                                          'suction_gripper_drivers.launch.py'])
     },
 }
 

@@ -200,15 +200,12 @@ class SuctionTool(object):
         """
         super().__init__()
 
-        self._clock            = node.get_clock()
-        self._logger           = node.get_logger()
-        self._feedback         = SuctionToolCommand.Feedback()
-        self._client_cbg       = MutuallyExclusiveCallbackGroup()
-        self._result_condition = threading.Condition()
-        self._result           = None
-        self._client           = ActionClient(node, SuctionToolCommand,
-                                              controller_ns + '/command',
-                                              callback_group=self._client_cbg)
+        self._clock      = node.get_clock()
+        self._logger     = node.get_logger()
+        self._client_cbg = MutuallyExclusiveCallbackGroup()
+        self._client     = ActionClient(node, SuctionToolCommand,
+                                        controller_ns + '/command',
+                                        callback_group=self._client_cbg)
         self._client.wait_for_server()
 
         self._suctioned     = None
@@ -254,19 +251,18 @@ class SuctionTool(object):
         timeout_time = self._clock.now() + timeout
         while self._get_result_future is None or \
               not self._get_result_future.done():
-            if timeout.nanoseconds > 0 and \
-               self._clock.now() > timeout_time:
-                self._logger.error('timeout[%f] has expired before goal finished'
+            if timeout.nanoseconds > 0 and self._clock.now() > timeout_time:
+                self._logger.error('timeout[%.1f] has expired before goal finished'
                                    % timeout.nanoseconds*1.0e-9)
                 return SuctionToolCommand.Result(suctioned=False)
             time.sleep(0.05)
 
             self._client.cancel_goal()
-            rospy.logwarn('(SuctionGripper) goal CANCELED because timeout[%.1f] has expired.',
-                          timeout.to_sec())
+            self._logger.warn('goal CANCELED because timeout[%.1f] has expired.',
+                          timeout.nanoseconds*1.0e-9)
             return False
-        rospy.loginfo('(SuctionGripper) %s',
-                      'suctioned' if self._suctioned else 'not suctioned')
+        self._logger.info('%s',
+                          'suctioned' if self._suctioned else 'not suctioned')
         return self._suctioned
 
     def cancel(self):

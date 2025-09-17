@@ -223,15 +223,12 @@ class SuctionToolController(Node):
         req.state = SetIO.Request.STATE_ON if state else \
                     SetIO.Request.STATE_OFF
         future = self._set_io.call_async(req)
-        future.add_done_callback(self._set_io_cb)
 
-        while not future.dnoe():
+        while not future.done():
             time.sleep(0.01)
         self.logger().info('set OUT port[%d] to state[%f]' % (port, state))
         return future.result()
 
-    def _set_io_cb(self, future):
-        pass
 
 #########################################################################
 #  Entry point                                                          #

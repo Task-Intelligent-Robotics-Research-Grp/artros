@@ -38,8 +38,9 @@ class SuctionToolTest(Node):
             elif key == 'r':
                 self._suction_tool.release()
             elif key == 'm':
-                self._suction_tool.parameters['suck_min_period'] \
-                    = float(input('  suck_min_period? '))
+                suck_min_period = float(input('  suck_min_period? '))
+                self._suction_tool.parameters = {'suck_min_period':
+                                                 suck_min_period}
             elif key == 'c':
                 self._suction_tool.cancel()
             else:
