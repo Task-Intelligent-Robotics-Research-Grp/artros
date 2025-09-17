@@ -53,19 +53,12 @@ GRIPPER_PROPS = {
                                           'launch', 'inc',
                                           'robotiq_drivers.launch.py'])
     },
-    'PrecisionGripper':
+    'DynamixelDevices':
     {
         'extra_drivers_launch_file': PathJoinSubstitution(
                                          [FindPackageShare('aist_bringup'),
                                           'launch', 'inc',
-                                          'precision_gripper_drivers.launch.py'])
-    },
-    'ScrewTool':
-    {
-        'extra_drivers_launch_file': PathJoinSubstitution(
-                                         [FindPackageShare('aist_bringup'),
-                                          'launch', 'inc',
-                                          'screw_tool_drivers.launch.py'])
+                                          'dynamixel_drivers.launch.py'])
     },
     'SuctionGripper':
     {

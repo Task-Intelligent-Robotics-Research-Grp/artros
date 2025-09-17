@@ -27,7 +27,7 @@ def launch_setup(context):
 
     return [
         IncludeLaunchDescription(
-            PathJoinSubstitution([FindPackageShare('aist_precision_gripper'),
+            PathJoinSubstitution([FindPackageShare('aist_fastening_tools'),
                                   'launch', 'launch.py']),
             launch_arguments=[('name',     LaunchConfiguration('name')),
                               ('usb_port', gripper_config['usb_port']),
