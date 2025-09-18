@@ -158,7 +158,7 @@ class ScrewToolController : public rclcpp::Node
 ScrewToolController::ScrewToolController(const rclcpp::NodeOptions& options)
     :rclcpp::Node("screw_tool_controller", options),
      _driver_ns(ddynamic_reconfigure2::declare_read_only_parameter(
-		    this, "driver_ns", "screw_tools_fastening_driver")),
+		    this, "driver_ns", "screw_tools_driver")),
      _motor_id(ddynamic_reconfigure2::declare_read_only_parameter(
 		   this, "motor_id", 1)),
      _stage(DONE),
@@ -241,7 +241,12 @@ ScrewToolController::ScrewToolController(const rclcpp::NodeOptions& options)
 	{1, 30});
 
     if (!_dxl_command->wait_for_service(1s))
+    {
+	RCLCPP_ERROR_STREAM(get_logger(),
+			    "service[" << _driver_ns + "/dynamixel_command"
+			    << "] not available");
 	throw std::runtime_error("service not available");
+    }
 
     RCLCPP_INFO_STREAM(get_logger(),
 		       "controller started with motor ID["

@@ -15,7 +15,7 @@ launch_arguments = [
 def launch_setup(context):
     return [Node(name='test_client',
                  package='aist_fastening_tools',
-                 executable='gripper_test.py',
+                 executable='precision_tool_test.py',
                  parameters=[
                      {'controller_ns': LaunchConfiguration('controller_ns')}],
                  prefix=['xterm -fn 7x14 -e'],

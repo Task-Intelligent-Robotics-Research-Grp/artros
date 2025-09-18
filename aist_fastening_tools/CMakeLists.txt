@@ -22,14 +22,14 @@ ament_auto_find_build_dependencies()
 ###########
 ament_auto_add_library(
   ${PROJECT_NAME} SHARED
-    src/precision_gripper_controller.cpp
+    src/precision_tool_controller.cpp
     src/screw_tool_controller.cpp
 )
 
 rclcpp_components_register_nodes(
   ${PROJECT_NAME}
-    PLUGIN     ${PROJECT_NAME}::PrecisionGripperController
-    EXECUTABLE precision_gripper_controller_node
+    PLUGIN     ${PROJECT_NAME}::PrecisionToolController
+    EXECUTABLE precision_tool_controller_node
 )
 
 rclcpp_components_register_nodes(
@@ -45,7 +45,7 @@ ament_python_install_package(${PROJECT_NAME})
 
 install(
   PROGRAMS
-    scripts/gripper_test.py
+    scripts/precision_tool_test.py
     scripts/screw_tool_test.py
     scripts/suction_tool_controller.py
     scripts/suction_tool_test.py

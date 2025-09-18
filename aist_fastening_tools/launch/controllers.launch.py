@@ -11,9 +11,19 @@ from aist_bringup.launch_common        import (declare_launch_arguments,
 
 launch_arguments = [
     {
-        'name':        'name',
-        'default':     'screw_tool_m4',
-        'description': 'name of the screw tool'
+        'name':        'tool_names',
+        'default':     ['screw_tool_m3', 'screw_tool_m4'],
+        'description': 'list of tool names'
+    },
+    {
+        'name':        'tool_types',
+        'default':     ['ScrewTool', 'ScrewTool'],
+        'description': 'list of tool names'
+    },
+    {
+        'name':        'motor_ids',
+        'default':     ['2', '3']
+        'description': 'list of IDs of the Dynamixel motor'
     },
     {
         'name':        'usb_port',
@@ -24,11 +34,6 @@ launch_arguments = [
         'name':        'baud_rate',
         'default':     '1000000',
         'description': 'baud rate of the serial communication'
-    },
-    {
-        'name':        'motor_id',
-        'default':     '3',
-        'description': 'ID of the Dynamixel motor'
     },
     {
         'name':        'container',
@@ -54,17 +59,53 @@ launch_arguments = [
     }
 ]
 
+TOOL_PROPS = {
+    'PrecisionTool':
+    {
+        'dxlinfo_template':    PathJoinSubstitution(
+                                   [FindPackageShare('aist_fastening_tools'),
+                                    'config',
+                                    'precision_tool_dynamixel_info.yaml']),
+        'controller_template': PathJoinSubstitution(
+                                   [FindPackageShare('aist_fastening_tools'),
+                                    'config',
+                                    'precision_tool_controller.yaml']),
+        'controller_suffix':   '_controller',
+        'plugin':              'aist_fastening_tools::PrecisionToolController',
+    },
+    'ScrewTool':
+    {
+        'dxlinfo_template':    PathJoinSubstitution(
+                                   [FindPackageShare('aist_fastening_tools'),
+                                    'config',
+                                    'screw_tool_dynamixel_info.yaml']),
+        'controller_template': PathJoinSubstitution(
+                                   [FindPackageShare('aist_fastening_tools'),
+                                    'config',
+                                    'screw_tool_fastening_controller.yaml']),
+        'controller_suffix':   '_fastening_controller',
+        'plugin':              'aist_fastening_tools::ScrewTooController',
+    },
+}
+
 def launch_setup(context):
-    driver_param_file \
+    tool_controllers = []
+    for tool_name, tool_type, motor_id \
+            in zip(LaunchConfiguration('tool_names').perofrm(context),
+                   LaunchConfiguration('tool_types').perofrm(context),
+                   LaunchConfiguration('motor_ids').perofrm(context)):
+        tools_props =TOOL_PROPS[tool_type]
+        SetLaunchConfiguration('name',    tool_name).execute(context)
+        SetLaunchConfiguration('motor_id', motor_id).execute(context)
+
+        controller_param_file \
+            = ParameterFile(tool_props['controller_template'],
+                            allow_substs=True)
+
+                   driver_param_file \
         = ParameterFile(PathJoinSubstitution(
                             [FindPackageShare('aist_fastening_tools'),
                              'config', 'dynamixel_driver.yaml']),
-                        allow_substs=True)
-    controller_param_file \
-        = ParameterFile(PathJoinSubstitution(
-                            [FindPackageShare('aist_fastening_tools'),
-                             'config',
-                             'screw_tool_fastening_controller.yaml']),
                         allow_substs=True)
     instantiate_file(context,
                      PathJoinSubstitution(

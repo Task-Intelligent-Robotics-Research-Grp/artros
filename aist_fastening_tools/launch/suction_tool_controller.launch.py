@@ -1,10 +1,7 @@
 from launch                            import LaunchDescription
-from launch.actions                    import (DeclareLaunchArgument,
-                                               OpaqueFunction)
+from launch.actions                    import OpaqueFunction
 from launch.substitutions              import (LaunchConfiguration,
-                                               PathJoinSubstitution,
-                                               IfElseSubstitution,
-                                               EqualsSubstitution)
+                                               PathJoinSubstitution)
 from launch_ros.actions                import Node
 from launch_ros.substitutions          import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterFile
@@ -13,7 +10,7 @@ from aist_bringup.launch_common        import declare_launch_arguments
 launch_arguments = [
     {
         'name':        'name',
-        'default':     'screw_tool_m4',
+        'default':     'suction_tool',
         'description': 'name of the suction tool'
     },
     {
@@ -23,18 +20,18 @@ launch_arguments = [
     },
     {
         'name':        'digital_in_port',
-        'default':     '1',
-        'description': 'ID of digital IN port'
+        'default':     '2',
+        'description': 'ID of the digital IN port for the tool state'
     },
     {
         'name':        'digital_out_port_suck',
-        'default':     '2',
-        'description': 'ID of digital OUT port for suck'
+        'default':     '4',
+        'description': 'ID of the digital OUT port for suck'
     },
     {
         'name':        'digital_out_port_blow',
-        'default':     '3',
-        'description': 'ID of digital OUT port for blow'
+        'default':     '5',
+        'description': 'ID of the digital OUT port for blow'
     },
     {
         'name':        'joint_name',

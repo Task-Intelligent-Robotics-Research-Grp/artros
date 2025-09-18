@@ -48,9 +48,9 @@
 namespace aist_fastening_tools
 {
 /************************************************************************
-*  class PrecisionGripperController					*
+*  class PrecisionToolController					*
 ************************************************************************/
-class PrecisionGripperController : public rclcpp::Node
+class PrecisionToolController : public rclcpp::Node
 {
   private:
     using dynamixel_states_t	= dynamixel_workbench_msgs::msg::
@@ -85,7 +85,7 @@ class PrecisionGripperController : public rclcpp::Node
     enum Stage	{ ACTIVE, LOOSEN, RETIGHTEN, DONE };
 
   public:
-    PrecisionGripperController(const rclcpp::NodeOptions& options)	;
+    PrecisionToolController(const rclcpp::NodeOptions& options)	;
 
   private:
     goal_response_t
@@ -139,7 +139,7 @@ class PrecisionGripperController : public rclcpp::Node
     rclcpp::Time				_last_move_time;
 };
 
-PrecisionGripperController::PrecisionGripperController(
+PrecisionToolController::PrecisionToolController(
     const rclcpp::NodeOptions& options)
     :rclcpp::Node("precision_gripper_controller", options),
      _driver_ns(ddynamic_reconfigure2::declare_read_only_parameter(
@@ -168,7 +168,7 @@ PrecisionGripperController::PrecisionGripperController(
      _dxl_states_sub(create_subscription<dynamixel_states_t>(
 			 _driver_ns + "/dynamixel_state", 1,
 			 std::bind(
-			     &PrecisionGripperController::dynamixel_states_cb,
+			     &PrecisionToolController::dynamixel_states_cb,
 			     this, std::placeholders::_1))),
      _dxl_command_cbg(create_callback_group(
 			  rclcpp::CallbackGroupType::MutuallyExclusive)),
@@ -179,11 +179,11 @@ PrecisionGripperController::PrecisionGripperController(
      _joint_state_pub(create_publisher<joint_state_t>("/joint_states", 1)),
      _command_srv(rclcpp_action::create_server<gripper_command_t>(
 		      this, "~/gripper_cmd",
-		      std::bind(&PrecisionGripperController::goal_cb, this,
+		      std::bind(&PrecisionToolController::goal_cb, this,
 				std::placeholders::_1, std::placeholders::_2),
-		      std::bind(&PrecisionGripperController::cancel_cb, this,
+		      std::bind(&PrecisionToolController::cancel_cb, this,
 				std::placeholders::_1),
-		      std::bind(&PrecisionGripperController::
+		      std::bind(&PrecisionToolController::
 				handle_accepted_cb, this,
 				std::placeholders::_1))),
      _current_goal_handle(nullptr),
@@ -200,8 +200,8 @@ PrecisionGripperController::PrecisionGripperController(
 		       << int(_motor_id) << ']');
 }
 
-PrecisionGripperController::goal_response_t
-PrecisionGripperController::goal_cb(const goal_uuid_t&, const goal_cp goal)
+PrecisionToolController::goal_response_t
+PrecisionToolController::goal_cb(const goal_uuid_t&, const goal_cp goal)
 {
     RCLCPP_INFO_STREAM(get_logger(),
 		       "goal ACCEPTED: position=" << goal->command.position
@@ -209,15 +209,15 @@ PrecisionGripperController::goal_cb(const goal_uuid_t&, const goal_cp goal)
     return goal_response_t::ACCEPT_AND_EXECUTE;
 }
 
-PrecisionGripperController::cancel_response_t
-PrecisionGripperController::cancel_cb(const goal_handle_p)
+PrecisionToolController::cancel_response_t
+PrecisionToolController::cancel_cb(const goal_handle_p)
 {
     RCLCPP_DEBUG_STREAM(get_logger(), "accepted request for cancelling goal");
     return cancel_response_t::ACCEPT;
 }
 
 void
-PrecisionGripperController::handle_accepted_cb(const goal_handle_p goal_handle)
+PrecisionToolController::handle_accepted_cb(const goal_handle_p goal_handle)
 {
     const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
 
@@ -255,8 +255,7 @@ PrecisionGripperController::handle_accepted_cb(const goal_handle_p goal_handle)
 }
 
 void
-PrecisionGripperController::dynamixel_states_cb(
-    const dynamixel_states_cp& states)
+PrecisionToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
 {
   // Find a dynamixel state with my motor ID.
     const auto	state = std::find_if(states->dynamixel_state.begin(),
@@ -342,8 +341,8 @@ PrecisionGripperController::dynamixel_states_cb(
 }
 
 bool
-PrecisionGripperController::send_move_command(double position,
-					      double max_effort) const
+PrecisionToolController::send_move_command(double position,
+					   double max_effort) const
 {
     const auto	pos = goal_pos(position);
     auto	cur = goal_cur(max_effort);
@@ -355,8 +354,8 @@ PrecisionGripperController::send_move_command(double position,
 }
 
 bool
-PrecisionGripperController::send_dxl_command(const std::string& addr_name,
-				      int32_t value) const
+PrecisionToolController::send_dxl_command(const std::string& addr_name,
+					  int32_t value) const
 {
     using namespace	std::chrono_literals;
 
@@ -382,25 +381,25 @@ PrecisionGripperController::send_dxl_command(const std::string& addr_name,
 }
 
 double
-PrecisionGripperController::actual_position(int pos) const
+PrecisionToolController::actual_position(int pos) const
 {
     return (pos - _min_pos) * _position_per_tick + _min_position;
 }
 
 double
-PrecisionGripperController::actual_effort(int cur) const
+PrecisionToolController::actual_effort(int cur) const
 {
     return cur * _effort_per_tick;
 }
 
 bool
-PrecisionGripperController::is_moving(int vel) const
+PrecisionToolController::is_moving(int vel) const
 {
     return vel != 0;
 }
 
 bool
-PrecisionGripperController::reached_goal(int pos, int vel) const
+PrecisionToolController::reached_goal(int pos, int vel) const
 {
     RCLCPP_DEBUG_STREAM(get_logger(), "*** pos=" << pos << ", goal_pos="
 			<< goal_pos(_current_goal_handle
@@ -412,13 +411,13 @@ PrecisionGripperController::reached_goal(int pos, int vel) const
 }
 
 bool
-PrecisionGripperController::stalled(int vel) const
+PrecisionToolController::stalled(int vel) const
 {
     return !is_moving(vel) && now() - _last_move_time > _stall_timeout;
 }
 
 int
-PrecisionGripperController::goal_pos(double position) const
+PrecisionToolController::goal_pos(double position) const
 {
     return std::clamp(int((position - _min_position) / _position_per_tick
 			  + _min_pos),
@@ -426,7 +425,7 @@ PrecisionGripperController::goal_pos(double position) const
 }
 
 int
-PrecisionGripperController::goal_cur(double max_effort) const
+PrecisionToolController::goal_cur(double max_effort) const
 {
     return std::clamp(int(max_effort / _effort_per_tick), -_max_cur, _max_cur);
 }
@@ -435,5 +434,4 @@ PrecisionGripperController::goal_cur(double max_effort) const
 
 #include <rclcpp_components/register_node_macro.hpp>
 
-RCLCPP_COMPONENTS_REGISTER_NODE(
-    aist_fastening_tools::PrecisionGripperController)
+RCLCPP_COMPONENTS_REGISTER_NODE(aist_fastening_tools::PrecisionToolController)

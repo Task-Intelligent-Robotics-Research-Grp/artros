@@ -30,8 +30,7 @@ def launch_setup(context):
         IncludeLaunchDescription(
             PathJoinSubstitution([FindPackageShare('aist_robotiq'), 'launch',
                                   'launch.py']),
-            launch_arguments=[('prefix', [LaunchConfiguration('name'),
-                                          '_']),
+            launch_arguments=[('prefix', [LaunchConfiguration('name'), '_']),
                               ('device',    gripper_config['device']),
                               ('driver',    gripper_config['driver']),
                               ('ip_or_dev', gripper_config['ip_or_dev']),
