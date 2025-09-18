@@ -19,18 +19,6 @@ launch_arguments = [
         'default':     'screw_tools',
         'description': 'Name of the Dynamixel device group'
     },
-    {
-        'name':        'log_level',
-        'default':     'info',
-        'description': 'debug log level',
-        'choices':     ['debug', 'info', 'warn', 'error', 'fatal']
-    },
-    {
-        'name':        'output',
-        'default':     'both',
-        'description': 'pipe node output',
-        'choices':     ['screen', 'log', 'both']
-    }
 ]
 
 def launch_setup(context):
@@ -52,9 +40,9 @@ def launch_setup(context):
                 FindPackageShare('aist_fastening_tools'), 'launch',
                 'dynamixel_controllers.launch.py']),
             launch_arguments=[
-                ('tool_names', ' '.join(tool_names)),
-                ('tool_types', ' '.join(tool_types)),
-                ('motor_ids',  ' '.join(motor_ids)),
+                ('tool_names', ','.join(tool_names)),
+                ('tool_types', ','.join(tool_types)),
+                ('motor_ids',  ','.join(motor_ids)),
                 ('usb_port',   tool_config['usb_port']),
                 ('baud_rate',  tool_config['baud_rate']),
                 ('container',  [LaunchConfiguration('name'), '_container']),

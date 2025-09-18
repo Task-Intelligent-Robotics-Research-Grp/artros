@@ -13,17 +13,17 @@ from aist_bringup.launch_common        import (declare_launch_arguments,
 launch_arguments = [
     {
         'name':        'tool_names',
-        'default':     'screw_tool_m3 screw_tool_m4',
+        'default':     'screw_tool_m3,screw_tool_m4',
         'description': 'list of tool names'
     },
     {
         'name':        'tool_types',
-        'default':     'ScrewTool ScrewTool',
+        'default':     'ScrewTool,ScrewTool',
         'description': 'list of tool names'
     },
     {
         'name':        'motor_ids',
-        'default':     '2 3',
+        'default':     '2,3',
         'description': 'list of IDs of the Dynamixel motor'
     },
     {
@@ -99,9 +99,9 @@ def launch_setup(context):
                         LaunchConfiguration('log_level')]),
     ]
     for tool_name, tool_type, motor_id \
-            in zip(LaunchConfiguration('tool_names').perform(context).split(),
-                   LaunchConfiguration('tool_types').perform(context).split(),
-                   LaunchConfiguration('motor_ids').perform(context).split()):
+          in zip(LaunchConfiguration('tool_names').perform(context).split(','),
+                 LaunchConfiguration('tool_types').perform(context).split(','),
+                 LaunchConfiguration('motor_ids').perform(context).split(',')):
         tool_props = TOOL_PROPS[tool_type]
         actions += [
             SetLaunchConfiguration('name', tool_name),
