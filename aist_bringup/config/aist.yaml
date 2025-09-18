@@ -73,7 +73,7 @@ grippers:
     type:                    DynamixelDevices
     usb_port:                "/dev/ttyUSB1"
     baud_rate:               "57600"
-    devices:
+    tools:
       precision_tool:
         type:                PrecisionTool
         motor_id:            "1"
@@ -84,7 +84,7 @@ grippers:
     type:                    DynamixelDevices
     usb_port:                "/dev/ttyUSB0"
     baud_rate:               "1000000"
-    devices:
+    tools:
       screw_tool_m3:
         type:                    ScrewTool
         motor_id:                "2"
