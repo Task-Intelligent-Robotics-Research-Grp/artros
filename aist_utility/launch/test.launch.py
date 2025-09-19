@@ -1,28 +1,32 @@
-from launch                   import LaunchDescription
-from launch.actions           import DeclareLaunchArgument, OpaqueFunction
-from launch.substitutions     import LaunchConfiguration
-from launch_ros.actions       import Node
+from launch                     import LaunchDescription
+from launch.actions             import OpaqueFunction
+from launch.substitutions       import LaunchConfiguration
+from launch_ros.actions         import Node
+from aist_bringup.launch_common import declare_launch_arguments
 
 EXECUTABLES = {
     'butterworth': 'butterworth_lpf_test_node',
-    'spline':      'spline_extrapolator_test_node'}
+    'spline':      'spline_extrapolator_test_node'
+}
 
 launch_arguments = [
-    {'name':        'test_name',
-     'default':     'butterworth',
-     'description': 'test program name'},
-    {'name':        'log_level',
-     'default':     'info',
-     'description': 'debug log level [DEBUG|INFO|WARN|ERROR|FATAL]'},
-    {'name':        'output',
-     'default':     'both',
-     'description': 'pipe node output [screen|log]'}]
-
-def declare_launch_arguments(args):
-    return [DeclareLaunchArgument(arg['name'],
-                                  default_value=arg['default'],
-                                  description=arg['description']) \
-            for arg in args]
+    {
+        'name':        'test_name',
+        'default':     'butterworth',
+        'description': 'test program name',
+        'choices':     ['butterworth', 'spline']
+    },
+    {
+        'name':        'log_level',
+        'default':     'info',
+        'description': 'debug log level [DEBUG|INFO|WARN|ERROR|FATAL]'
+    },
+    {
+        'name':        'output',
+        'default':     'both',
+        'description': 'pipe node output [screen|log]'
+    }
+]
 
 def launch_setup(context):
     test_name  = LaunchConfiguration('test_name').perform(context)
