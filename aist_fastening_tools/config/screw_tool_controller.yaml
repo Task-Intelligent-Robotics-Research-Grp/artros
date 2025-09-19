@@ -1,4 +1,4 @@
-$(var name)_fastening_controller:
+$(var name)_controller:
   ros__parameters:
     driver_ns:      $(var driver_ns)
     motor_id:       $(var motor_id)

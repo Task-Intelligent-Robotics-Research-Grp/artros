@@ -14,7 +14,7 @@ from launch_ros.actions                import Node
 from launch_ros.substitutions          import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
 from aist_bringup.launch_common        import (declare_launch_arguments,
-                                               load_config, get_arm_props,
+                                               load_config, get_camera_props,
                                                get_gripper_props,
                                                instantiate_file)
 

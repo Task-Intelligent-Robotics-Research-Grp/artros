@@ -49,7 +49,6 @@ install(
     scripts/screw_tool_test.py
     scripts/suction_tool_controller.py
     scripts/suction_tool_test.py
-    scripts/conveni_suction_gripper_controller.py
   DESTINATION
     lib/${PROJECT_NAME}
 )

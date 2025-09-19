@@ -24,8 +24,6 @@ def launch_setup(context):
     config         = load_config(context)
     gripper_config = config['grippers'][LaunchConfiguration('name') \
                                        .perform(context)]
-    device         = gripper_config['device']
-
     return [
         IncludeLaunchDescription(
             PathJoinSubstitution([FindPackageShare('aist_robotiq'), 'launch',
@@ -34,7 +32,7 @@ def launch_setup(context):
                               ('device',    gripper_config['device']),
                               ('driver',    gripper_config['driver']),
                               ('ip_or_dev', gripper_config['ip_or_dev']),
-                              ('slave_id',  gripper_config['slave_id'])])]
+                              ('slave_id',  str(gripper_config['slave_id']))])]
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \

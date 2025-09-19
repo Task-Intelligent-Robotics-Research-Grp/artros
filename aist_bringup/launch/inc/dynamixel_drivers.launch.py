@@ -27,12 +27,12 @@ def launch_setup(context):
                                       .perform(context)]
     tool_names = []
     tool_types = []
-    motor_ids    = []
+    motor_ids  = []
     for tool_name, tool_config in tools_config['tools'].items():
         tool_props = TOOL_PROPS[tool_config['type']]
         tool_names.append(tool_name)
         tool_types.append(tool_props['type'])
-        motor_ids.append(tool_props['motor_id'])
+        motor_ids.append(str(tool_props['motor_id']))
 
     return [
         IncludeLaunchDescription(
@@ -44,7 +44,7 @@ def launch_setup(context):
                 ('tool_types', ','.join(tool_types)),
                 ('motor_ids',  ','.join(motor_ids)),
                 ('usb_port',   tool_config['usb_port']),
-                ('baud_rate',  tool_config['baud_rate']),
+                ('baud_rate',  str(tool_config['baud_rate'])),
                 ('container',  [LaunchConfiguration('name'), '_container']),
                 ('driver_ns',  [LaunchConfiguration('name'), '_driver'])])]
 

@@ -33,11 +33,12 @@ def launch_setup(context):
             launch_arguments=[
                 ('name',            LaunchConfiguration('name')),
                 ('driver_ns',       gripper_config['driver_ns']),
-                ('digital_in_port', gripper_config.get('digital_in_port', -1)),
+                ('digital_in_port',
+                 str(gripper_config.get('digital_in_port', -1))),
                 ('digital_out_port_suck',
-                 gripper_config.get('digital_out_port_suck', -1)),
+                 str(gripper_config.get('digital_out_port_suck', -1))),
                 ('digital_out_port_blow',
-                 gripper_config.get('digital_out_port_blow', -1)),
+                 str(gripper_config.get('digital_out_port_blow', -1))),
                 ('joint_name',      gripper_config.get('joint_name', ''))
             ])]
 

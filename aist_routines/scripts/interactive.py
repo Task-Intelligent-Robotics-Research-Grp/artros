@@ -35,34 +35,40 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy
-from aist_routines       import AISTBaseRoutines
-from aist_utility.compat import *
+import rclpy, sys, threading
+from aist_routines import AISTBaseRoutines
+
 
 ######################################################################
 #  class InteractiveRoutines                                         #
 ######################################################################
 class InteractiveRoutines(AISTBaseRoutines):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, name):
+        super().__init__(name)
+        self.get_logger().info('started')
 
-    def run(self):
-        robot_name = list(rospy.get_param('~robots').keys())[0]
-        axis       = 'Y'
-        speed      = rospy.get_param('~speed', 0.1)
+        cli_thread = threading.Thread(target=self.interactive)
+        cli_thread.daemon = True
+        cli_thread.start()
 
-        # Reset pose
-        self.go_to_named_pose(robot_name, "home")
-        self.print_help_messages()
+    def interactive(self):
+        # robot_name = list(rospy.get_param('~robots').keys())[0]
+        # axis       = 'Y'
+        # speed      = rospy.get_param('~speed', 0.1)
 
-        while not rospy.is_shutdown():
-            prompt = '{:>5}:{}({})@{}>> ' \
-                   .format(axis,
-                           self.format_pose(self.get_current_pose(robot_name)),
-                           speed, robot_name)
+        # # Reset pose
+        # self.go_to_named_pose(robot_name, "home")
+        # self.print_help_messages()
+
+        while rclpy.ok():
+            # prompt = '{:>5}:{}({})@{}>> ' \
+            #        .format(axis,
+            #                self.format_pose(self.get_current_pose(robot_name)),
+            #                speed, robot_name)
+            prompt = '> '
             key = raw_input(prompt)
-            robot_name, axis, speed = self.interactive(key, robot_name,
-                                                       axis, speed)
+            # robot_name, axis, speed = self.interactive(key, robot_name,
+            #                                            axis, speed)
 
 
 
@@ -71,7 +77,7 @@ class InteractiveRoutines(AISTBaseRoutines):
 ######################################################################
 if __name__ == '__main__':
 
-    rospy.init_node('interactive', anonymous=True)
+    rclpy.init(args=sys.argv)
 
-    interactive = InteractiveRoutines()
-    interactive.run()
+    interactive = InteractiveRoutines('interactive')
+    rclpy.spin(interactive)

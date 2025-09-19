@@ -13,7 +13,7 @@ from aist_bringup.launch_common        import (declare_launch_arguments,
 launch_arguments = [
     {
         'name':        'tool_names',
-        'default':     'screw_tool_m3,screw_tool_m4',
+        'default':     'screw_tool_m3_fastening,screw_tool_m4_fastening',
         'description': 'list of tool names'
     },
     {
@@ -63,7 +63,6 @@ launch_arguments = [
 TOOL_PROPS = {
     'PrecisionTool':
     {
-        'controller_suffix':   '_controller',
         'plugin':              'aist_fastening_tools::PrecisionToolController',
         'dxlinfo_template':    PathJoinSubstitution(
                                    [FindPackageShare('aist_fastening_tools'),
@@ -76,7 +75,6 @@ TOOL_PROPS = {
     },
     'ScrewTool':
     {
-        'controller_suffix':   '_fastening_controller',
         'plugin':              'aist_fastening_tools::ScrewToolController',
         'dxlinfo_template':    PathJoinSubstitution(
                                    [FindPackageShare('aist_fastening_tools'),
@@ -85,7 +83,7 @@ TOOL_PROPS = {
         'controller_template': PathJoinSubstitution(
                                    [FindPackageShare('aist_fastening_tools'),
                                     'config',
-                                    'screw_tool_fastening_controller.yaml']),
+                                    'screw_tool_controller.yaml']),
     },
 }
 
@@ -98,6 +96,8 @@ def launch_setup(context):
              arguments=['--ros-args', '--log-level',
                         LaunchConfiguration('log_level')]),
     ]
+
+    append = False
     for tool_name, tool_type, motor_id \
           in zip(LaunchConfiguration('tool_names').perform(context).split(','),
                  LaunchConfiguration('tool_types').perform(context).split(','),
@@ -110,7 +110,7 @@ def launch_setup(context):
                 target_container=LaunchConfiguration('container'),
                 composable_node_descriptions=[
                     ComposableNode(
-                        name=tool_name + tool_props['controller_suffix'],
+                        name=tool_name + '_controller',
                         package='aist_fastening_tools',
                         plugin=tool_props['plugin'],
                         parameters=[ParameterFile(
@@ -123,7 +123,9 @@ def launch_setup(context):
         instantiate_file(context, tool_props['dxlinfo_template'],
                          '/tmp/' \
                          + LaunchConfiguration('driver_ns').perform(context) \
-                         + '_dynamixel_info.yaml', append=True)
+                         + '_dynamixel_info.yaml', append=append)
+        append = True
+
     actions.append(
         LoadComposableNodes(
             target_container=LaunchConfiguration('container'),

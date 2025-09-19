@@ -1,8 +1,0 @@
-robots:
-  a_khi:
-    default_gripper: a_khi_gripper
-
-grippers:
-  a_khi_gripper:
-    type:          SuctionGripper
-    controller_ns: /a_khi_gripper_controller
