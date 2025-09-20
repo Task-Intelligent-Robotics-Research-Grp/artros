@@ -103,6 +103,15 @@ CAMERA_PROPS = {
         'cinfo_topic': 'aligned_depth_to_color/camera_info',
         'color_topic': 'color/image_raw'
     },
+    'USBCamera':
+    {
+        'launch_file': PathJoinSubstitution(
+                           [FindPackageShare('aist_bringup'), 'launch', 'inc',
+                            'usb_cam.launch.py']),
+        'key_of_id':   'video_device',
+        'cinfo_topic': 'camera_info',
+        'color_topic': 'image_raw'
+    },
 }
 
 def get_arm_props(arm_type):

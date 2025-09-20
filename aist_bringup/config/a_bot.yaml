@@ -4,6 +4,8 @@ arms:
     robot_ip:           "10.66.171.40"
     default_gripper:    a_bot_gripper
     initial_controller: a_bot_scaled_joint_trajectory_controller
+    consistent_controllers:
+      - a_bot_motion_control_handle
     extra_consistent_controllers:
       - a_bot_force_torque_sensor_broadcaster
       - a_bot_io_and_status_controller
@@ -14,6 +16,9 @@ arms:
       - a_bot_joint_trajectory_controller
       - a_bot_forward_velocity_controller
       - a_bot_forward_position_controller
+      - a_bot_cartesian_compliance_controller
+      - a_bot_cartesian_force_controller
+      - a_bot_cartesian_motion_controller
     extra_inactive_controllers:
       - a_bot_force_mode_controller
       - a_bot_passthrough_trajectory_controller
@@ -27,7 +32,6 @@ grippers:
     driver:                  urcap
     ip_or_dev:               "10.66.171.40"
     slave_id:                "9"
-    controller_ns:           a_bot_gripper_controller
     max_effort:              5.0
     velocity:                0.1
   precision_tools:
@@ -38,13 +42,12 @@ grippers:
       precision_tool:
         type:                PrecisionTool
         motor_id:            "1"
-        controller_ns:       precision_tool_controller
         base_link:           precision_tool/base_link
         tip_link:            precision_tool/tip_link
 
 cameras:
-  a_motioncam:
-    type: PhoXiCamera
+  # a_motioncam:
+  #   type: PhoXiCamera
   a_bot_camera:
     type: CodedLightRealsenseCamera
 

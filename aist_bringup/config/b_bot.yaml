@@ -4,6 +4,8 @@ arms:
     robot_ip:           "10.66.171.41"
     default_gripper:    b_bot_gripper
     initial_controller: b_bot_scaled_joint_trajectory_controller
+    consistent_controllers:
+      - b_bot_motion_control_handle
     extra_consistent_controllers:
       - b_bot_force_torque_sensor_broadcaster
       - b_bot_io_and_status_controller
@@ -14,6 +16,9 @@ arms:
       - b_bot_joint_trajectory_controller
       - b_bot_forward_velocity_controller
       - b_bot_forward_position_controller
+      - b_bot_cartesian_compliance_controller
+      - b_bot_cartesian_force_controller
+      - b_bot_cartesian_motion_controller
     extra_inactive_controllers:
       - b_bot_force_mode_controller
       - b_bot_passthrough_trajectory_controller
@@ -27,7 +32,6 @@ grippers:
     driver:                  urcap
     ip_or_dev:               "10.66.171.41"
     slave_id:                "9"
-    controller_ns:           b_bot_gripper_controller
     max_effort:              5.0
     velocity:                0.1
   precision_tools:
@@ -38,51 +42,48 @@ grippers:
       precision_tool:
         type:                PrecisionTool
         motor_id:            "1"
-        controller_ns:       precision_tool_controller
         base_link:           precision_tool/base_link
         tip_link:            precision_tool/tip_link
   screw_tools:
     type:                    DynamixelDevices
     usb_port:                "/dev/ttyUSB0"
-    baud_rate:               "1000000"
+    baud_rate:               1000000
     tools:
-      screw_tool_m3:
-        type:                    ScrewTool
-        motor_id:                "2"
-        driver_ns:               b_bot_io_and_status_controller
-        digital_in_port:         "0"
-        digital_out_port_suck:   "0"
-        digital_out_port_blow:   "1"
-        controller_ns:           screw_tool_m3_controller
-        fastening_controller_ns: screw_tool_m3_fastening_controller
-        base_link:               screw_tool_m3/base_link
-        tip_link:                screw_tool_m3/tip_link
-      screw_tool_m4:
-        type:                    ScrewTool
-        motor_id:                "3"
-        driver_ns:               b_bot_io_and_status_controller
-        digital_in_port:         "1"
-        digital_out_port_suck:   "2"
-        digital_out_port_blow:   "3"
-        controller_ns:           screw_tool_m4_controller
-        fastening_controller_ns: screw_tool_m4_fastening_controller
-        base_link:               screw_tool_m4/base_link
-        tip_link:                screw_tool_m4/tip_link
+      screw_tool_m3_fastening:
+        type:                ScrewTool
+        motor_id:            2
+      screw_tool_m4_fastening:
+        type:                ScrewTool
+        motor_id:            3
+  screw_tool_m3:
+    type:                    SuctionGripper
+    driver_ns:               b_bot_io_and_status_controller
+    digital_in_port:         0
+    digital_out_port_suck:   0
+    digital_out_port_blow:   1
+    base_link:               screw_tool_m3/base_link
+    tip_link:                screw_tool_m3/tip_link
+  screw_tool_m4:
+    type:                    SuctionGripper
+    driver_ns:               b_bot_io_and_status_controller
+    digital_in_port:         1
+    digital_out_port_suck:   2
+    digital_out_port_blow:   3
+    base_link:               screw_tool_m4/base_link
+    tip_link:                screw_tool_m4/tip_link
   suction_tool:
     type:                    SuctionGripper
     driver_ns:               b_bot_io_and_status_controller
-    digital_in_port:         "2"
-    digital_out_port_suck:   "4"
-    digital_out_port_blow:   "5"
-    controller_ns:           suction_tool_controller
+    digital_in_port:         2
+    digital_out_port_suck:   4
+    digital_out_port_blow:   5
     base_link:               suction_tool/base_link
     tip_link:                suction_tool/tip_link
   base_fixture:
     type:                    SuctionGripper
     driver_ns:               b_bot_io_and_status_controller
-    digital_out_port_suck:   "6"
+    digital_out_port_suck:   6
     joint_name:              base_fixture_piston_joint
-    controller_ns:           base_fixture_controller
     base_link:               base_fixture_base_link
     tip_link:                workbench_holder_link
 
