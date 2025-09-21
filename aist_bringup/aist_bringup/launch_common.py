@@ -72,45 +72,61 @@ GRIPPER_PROPS = {
 CAMERA_PROPS = {
     'PhoXiCamera':
     {
-        'launch_file': PathJoinSubstitution(
-                           [FindPackageShare('aist_phoxi_camera'), 'launch',
-                            'launch.py']),
-        'key_of_id':   'id',
-        'cloud_topic': 'pointcloud',
-        'depth_topic': 'depth_map',
-        'cinfo_topic': 'camera_info',
-        'color_topic': 'texture'
+        'launch_file':        PathJoinSubstitution(
+                                  [FindPackageShare('aist_phoxi_camera'),
+                                   'launch', 'launch.py']),
+        'key_of_id':          'id',
+        'cloud_topic':        'pointcloud',
+        'depth_topic':        'depth_map',
+        'cinfo_topic':        'camera_info',
+        'color_topic':        'texture',
+        'gz_bridge_template': PathJoinSubstitution(
+                                  [FindPackageShare('aist_bringup'),
+                                   'config', 'templates',
+                                   'rgbd_camera_bridge.yaml']),
     },
     'RealsenseCamera':
     {
-        'launch_file': PathJoinSubstitution(
-                           [FindPackageShare('realsense2_camera'), 'launch',
-                            'launch.py']),
-        'key_of_id':   'serial_no',
-        'cloud_topic': 'depth/color/points',
-        'depth_topic': 'aligned_depth_to_color/image_raw',
-        'cinfo_topic': 'aligned_depth_to_color/camera_info',
-        'color_topic': 'color/image_raw'
+        'launch_file':        PathJoinSubstitution(
+                                  [FindPackageShare('realsense2_camera'),
+                                   'launch', 'launch.py']),
+        'key_of_id':          'serial_no',
+        'cloud_topic':        'depth/color/points',
+        'depth_topic':        'aligned_depth_to_color/image_raw',
+        'cinfo_topic':        'aligned_depth_to_color/camera_info',
+        'color_topic':        'color/image_raw',
+        'gz_bridge_template': PathJoinSubstitution(
+                                  [FindPackageShare('aist_bringup'),
+                                   'config', 'templates',
+                                   'rgbd_camera_bridge.yaml']),
     },
     'CodedLightRealsenseCamera':
     {
-        'launch_file': PathJoinSubstitution(
-                           [FindPackageShare('realsense2_camera'), 'launch',
-                            'launch.py']),
-        'key_of_id':   'serial_no',
-        'cloud_topic': 'depth/color/points',
-        'depth_topic': 'aligned_depth_to_color/image_raw',
-        'cinfo_topic': 'aligned_depth_to_color/camera_info',
-        'color_topic': 'color/image_raw'
+        'launch_file':        PathJoinSubstitution(
+                                  [FindPackageShare('realsense2_camera'),
+                                   'launch', 'launch.py']),
+        'key_of_id':          'serial_no',
+        'cloud_topic':        'depth/color/points',
+        'depth_topic':        'aligned_depth_to_color/image_raw',
+        'cinfo_topic':        'aligned_depth_to_color/camera_info',
+        'color_topic':        'color/image_raw',
+        'gz_bridge_template': PathJoinSubstitution(
+                                  [FindPackageShare('aist_bringup'),
+                                   'config', 'templates',
+                                   'rgbd_camera_bridge.yaml']),
     },
     'USBCamera':
     {
-        'launch_file': PathJoinSubstitution(
-                           [FindPackageShare('aist_bringup'), 'launch', 'inc',
-                            'usb_cam.launch.py']),
-        'key_of_id':   'video_device',
-        'cinfo_topic': 'camera_info',
-        'color_topic': 'image_raw'
+        'launch_file':        PathJoinSubstitution(
+                                  [FindPackageShare('aist_bringup'),
+                                   'launch', 'inc', 'usb_cam.launch.py']),
+        'key_of_id':          'video_device',
+        'cinfo_topic':        'camera_info',
+        'color_topic':        'image_raw',
+        'gz_bridge_template': PathJoinSubstitution(
+                                  [FindPackageShare('aist_bringup'),
+                                   'config', 'templates',
+                                   'area_camera_bridge.yaml']),
     },
 }
 

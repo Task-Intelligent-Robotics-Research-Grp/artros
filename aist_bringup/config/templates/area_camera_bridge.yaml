@@ -1,0 +1,10 @@
+- gz_topic_name:  /$(var camera_name)/image
+  gz_type_name:   gz.msgs.Image
+  ros_topic_name: /$(var camera_name)/$(var color_topic)
+  ros_type_name:  sensor_msgs/msg/Image
+  direction:      GZ_TO_ROS
+- gz_topic_name:  /$(var camera_name)/camera_info
+  gz_type_name:   gz.msgs.CameraInfo
+  ros_topic_name: /$(var camera_name)/$(var cinfo_topic)
+  ros_type_name:  sensor_msgs/msg/CameraInfo
+  direction:      GZ_TO_ROS

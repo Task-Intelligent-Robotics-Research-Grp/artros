@@ -29,7 +29,7 @@ parameter_arguments = [
 def launch_setup(context, param_args):
     return [Node(name='interactive',
                  package='aist_routines',
-                 executable='interactive.py',
+                 executable='interactive',
                  parameters=[
                      {'robot_name':
                       [LaunchConfiguration('config'), '_base_scene'],
@@ -37,7 +37,7 @@ def launch_setup(context, param_args):
                       [LaunchConfiguration('config'), '_moveit_config']},
                      set_configurable_parameters(param_args)
                  ],
-                 prefix=['xterm -fn 7x14 -e'],
+#                 prefix=['xterm -fn 7x14 -e'],
                  output='screen')]
 
 def generate_launch_description():

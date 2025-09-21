@@ -35,9 +35,10 @@
 #
 # Author: Toshio Ueshiba
 #
-import os, copy, rospy, rospkg, threading
+import os, copy, rclpy, rospkg, threading
 import numpy as np
 
+from rclpy.node             import Node
 from collections            import namedtuple
 from tf                     import transformations as tfs
 from tf2_ros                import (Buffer, TransformListener,
@@ -102,7 +103,7 @@ def _load_mesh(url, scale=(0.001, 0.001, 0.001)):
         pyassimp.release(scene)
         return mesh
     except Exception as e:
-        rospy.logerr('(CollisionObjectManager) failed to load mesh: %s', e)
+        self.get_logger().error('failed to load mesh: %s' % e)
         return None
 
 def _url_to_filepath(url):
@@ -143,7 +144,7 @@ def _pose_from_transform(transform):
 #########################################################################
 #  class CollisionObjectManager                                         #
 #########################################################################
-class CollisionObjectManager(object):
+class CollisionObjectManager(Node):
     """Python interface for managing collision objects
 
     - Maintain tree structure of collision objects
@@ -171,7 +172,7 @@ class CollisionObjectManager(object):
         def parent_link(self):
             return self.subframe_transforms[0].header.frame_id
 
-    def __init__(self):
+    def __init__(self, name):
         """Initialize collision object manager
 
         - Load object properties from parameter '~object_properties'
@@ -179,7 +180,7 @@ class CollisionObjectManager(object):
         - Setup marker publisher '~collision_marker' as well as services
           '~get_mesh_resource' and '~manage_collision_object'
         """
-        super().__init__()
+        super().__init__(name)
 
         PRIMITIVES = {'BOX':      SolidPrimitive.BOX,
                       'SPHERE':   SolidPrimitive.SPHERE,
@@ -234,7 +235,7 @@ class CollisionObjectManager(object):
                 obj_props.collision_mesh_scales.append(Vector3(*mesh['scale']))
 
             self._obj_props_dict[type] = obj_props
-            rospy.loginfo('(CollisionObjectManager) loaded properties of type[%s]', type)
+            self.get_logger().info('loaded properties of type[%s]' % type)
 
         self._psi                 = psi.PlanningSceneInterface(
                                         rospy.get_param('~ns', ''),
@@ -289,10 +290,10 @@ class CollisionObjectManager(object):
             if req.mesh_resource in obj_props.visual_mesh_urls:
                 with open(_url_to_filepath(req.mesh_resource), 'rb') as f:
                     res.data = f.read()
-                rospy.loginfo('(ObjectDatabaseServer) Send response to GetMeshResource request for the mesh_url[%s]', req.mesh_resource)
+                self.get_logger().info('Send response to GetMeshResource request for the mesh_url[%s]' % req.mesh_resource)
                 break
         else:
-            rospy.logerr('(ObjectDatabaseServer) Received GetMeshResource request with unknown mesh_url[%s]', req.mesh_resource)
+            self.get_logger().error('Received GetMeshResource request with unknown mesh_url[%s]' % req.mesh_resource)
         return res
 
     def _manage_collision_object_cb(self, req):
@@ -339,7 +340,7 @@ class CollisionObjectManager(object):
                 raise Exception('unknown operation[%d]' % req.op)
         except Exception as e:
             # raise(e)
-            rospy.logerr('(CollisionObjectManager) %s', e)
+            self.get_logger().error('%s' % e)
             res.success = False
 
         return res
@@ -451,8 +452,8 @@ class CollisionObjectManager(object):
         # Add object to AllowedCollisionMatrix(acm)
         self._set_acm_allowed(object_id, None, False)
 
-        rospy.loginfo("(CollisionObjectManager) created '%s' of type[%s]",
-                      co.id, object_type)
+        self.get_logger().info("created '%s' of type[%s]"
+                               %(co.id, object_type))
 
     def _remove_object(self, object_id, frame_id):
         if object_id != '':
@@ -527,8 +528,8 @@ class CollisionObjectManager(object):
 
         # Detach 'aco' from its attach link.
         self._psi.remove_attached_object(name=aco.object.id)
-        rospy.loginfo("(CollisionObjectManager) detached '%s' from '%s'",
-                      aco.object.id, aco.link_name)
+        self.get_logger().info("detached '%s' from '%s'"
+                               %(aco.object.id, aco.link_name))
 
         # Since all child attached objects are connected to the current
         # object 'co', we have to switch their attach links to 'link'.
@@ -584,15 +585,14 @@ class CollisionObjectManager(object):
                       list(set(aco.touch_links) -
                            set(self._get_touch_links(link)))
         self._psi.attach_object(aco, touch_links=touch_links)
-        rospy.loginfo("(CollisionObjectManager) protect '%s' attached to '%s' with touch links%s",
-                      aco.object.id, aco.link_name, aco.touch_links)
+        self.get_logger().info("protect '%s' attached to '%s' with touch links%s" % (aco.object.id, aco.link_name, aco.touch_links))
 
     def _reset_touch_links(self):
         for aco in self._psi.get_attached_objects().values():
             self._psi.attach_object(aco,
                                     touch_links=self._get_parent_touch_links(
                                                     aco.object.id))
-        rospy.loginfo('(CollisionObjectManager) reset touch links for all attached collision objects')
+        self.get_logger().info('reset touch links for all attached collision objects')
 
     def _get_object_info(self, object_id):
         info = CollisionObjectInfo()
@@ -690,8 +690,8 @@ class CollisionObjectManager(object):
         co.pose = _pose_from_matrix(T @ _pose_matrix(co.pose))
         touch_links = self._get_parent_touch_links(co.id)
         self._psi.attach_object(co, attach_link, touch_links)
-        rospy.loginfo("(CollisionObjectManager) attached '%s' to '%s' with touch_links%s",
-                      co.id, attach_link, touch_links)
+        self.get_logger().info("attached '%s' to '%s' with touch_links%s"
+                               %(co.id, attach_link, touch_links))
 
         # Since all child attached objects are connected to the current
         # object 'co', we have to switch their attach links to 'attach_link'.
@@ -787,15 +787,14 @@ class CollisionObjectManager(object):
     def _delete_markers_and_subframes(self, object_id):
         instance_props = self._instance_props_dict.get(object_id)
         if instance_props is None:
-            rospy.logerr('(CollisionObjectManager) unknown object[%s]',
-                         object_id)
+            self.get_logger().error('unknown object[%s]' % object_id)
             return
         for marker in instance_props.markers:
             marker.action = Marker.DELETE
             self._marker_pub.publish(marker)
         with self._lock:
             del self._instance_props_dict[object_id]
-        rospy.loginfo("(CollisionObjectManager) removed '%s'", object_id)
+        self.get_logger().info("removed '%s'" % object_id)
 
     def _set_acm_allowed(self, object_id, others, allow):
         acm = self._get_acm()
@@ -807,12 +806,13 @@ class CollisionObjectManager(object):
         self._apply_acm(acm)
 
         if others is None:
-            rospy.loginfo("(CollisionObjectManager) %s collision against '%s' in default",
-                          'allow' if allow else 'disallow', object_id)
+            self.get_logger().info("%s collision against '%s' in default"
+                                   % ('allow' if allow else 'disallow',
+                                      object_id))
         else:
-            rospy.loginfo("(CollisionObjectManager) %s collision between '%s' and %s",
-                          'allow' if allow else 'disallow',
-                          object_id, str(others))
+            self.get_logger().info("%s collision between '%s' and %s"
+                                   % ('allow' if allow else 'disallow',
+                                      object_id, str(others)))
 
     def _get_acm(self):
         return self._psi.get_planning_scene(

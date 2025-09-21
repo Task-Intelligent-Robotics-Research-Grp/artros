@@ -27,23 +27,23 @@ arms:
 
 grippers:
   a_bot_gripper:
-    type:                    RobotiqGripper
-    device:                  robotiq_140
-    driver:                  urcap
-    ip_or_dev:               "10.66.171.40"
-    slave_id:                "9"
-    max_effort:              5.0
-    velocity:                0.1
+    type:                  RobotiqGripper
+    device:                robotiq_140
+    driver:                urcap
+    ip_or_dev:             "10.66.171.40"
+    slave_id:              "9"
+    max_effort:            5.0
+    velocity:              0.1
   precision_tools:
-    type:                    DynamixelDevices
-    usb_port:                "/dev/ttyUSB1"
-    baud_rate:               "57600"
+    type:                  DynamixelDevices
+    usb_port:              "/dev/ttyUSB1"
+    baud_rate:             "57600"
     tools:
       precision_tool:
-        type:                PrecisionTool
-        motor_id:            "1"
-        base_link:           precision_tool/base_link
-        tip_link:            precision_tool/tip_link
+        type:              PrecisionTool
+        motor_id:          "1"
+        base_link:         precision_tool/base_link
+        tip_link:          precision_tool/tip_link
 
 cameras:
   # a_motioncam:

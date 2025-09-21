@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Software License Agreement (BSD License)
 #
@@ -36,7 +36,7 @@
 # Author: Toshio Ueshiba
 #
 import rclpy, sys, threading
-from aist_routines import AISTBaseRoutines
+from aist_routines.base import AISTBaseRoutines
 
 
 ######################################################################
@@ -75,9 +75,11 @@ class InteractiveRoutines(AISTBaseRoutines):
 ######################################################################
 #  global functions                                                  #
 ######################################################################
-if __name__ == '__main__':
-
+def main():
     rclpy.init(args=sys.argv)
 
     interactive = InteractiveRoutines('interactive')
     rclpy.spin(interactive)
+
+if __name__ == '__main__':
+    main()

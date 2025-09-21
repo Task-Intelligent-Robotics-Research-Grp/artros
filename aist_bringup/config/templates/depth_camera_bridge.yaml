@@ -1,0 +1,15 @@
+- gz_topic_name:  /$(var camera_name)/depth_image
+  gz_type_name:   gz.msgs.Image
+  ros_topic_name: /$(var camera_name)/$(var depth_topic)
+  ros_type_name:  sensor_msgs/msg/Image
+  direction:      GZ_TO_ROS
+- gz_topic_name:  /$(var camera_name)/camera_info
+  gz_type_name:   gz.msgs.CameraInfo
+  ros_topic_name: /$(var camera_name)/$(var cinfo_topic)
+  ros_type_name:  sensor_msgs/msg/CameraInfo
+  direction:      GZ_TO_ROS
+- gz_topic_name:  /$(var camera_name)/points
+  gz_type_name:   gz.msgs.PointCloudPacked
+  ros_topic_name: /$(var camera_name)/$(var cloud_topic)
+  ros_type_name:  sensor_msgs/msg/PointCloud2
+  direction:      GZ_TO_ROS
