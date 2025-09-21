@@ -11,22 +11,10 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# find dependencies
-find_package(ament_cmake REQUIRED)
-find_package(rclcpp_components REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(ament_cmake_python REQUIRED)
-find_package(rclpy REQUIRED)
-find_package(control_msgs REQUIRED)
-find_package(sensor_msgs REQUIRED)
-find_package(aist_robotiq_msgs REQUIRED)
-find_package(control_toolbox REQUIRED)
-find_package(common_interfaces REQUIRED)
-find_package(controller_interface REQUIRED)
-find_package(controller_manager REQUIRED)
-find_package(builtin_interfaces REQUIRED)
-find_package(hardware_interface REQUIRED)
-find_package(pluginlib REQUIRED)
+##################
+#  dependencies  #
+##################
+find_package(ament_cmake_auto REQUIRED)
 
 #find_package(gz_sim_vendor REQUIRED)
 find_package(ros_gz_sim REQUIRED)
@@ -50,48 +38,23 @@ include_directories(
 link_directories(${ros_gz_sim_LIBRARY_DIRS})
 include_directories(${ros_gz_sim_INCLUDE_DIRS})
 
-##################
-## ft300_driver ##
-##################
+###################################
+#  component: libaist_robotiq.so  #
+###################################
 #add_library(
-#  ft300_driver SHARED
+#  ${PROJECT_NAME} SHARED
 #    src/ft300_driver.cpp
 #)
 
-#target_compile_definitions(
-#  ft300_driver PRIVATE
-#    COMPOSITION_BUILDING_DLL
-#)
-
-#ament_target_dependencies(
-#  ft300_driver
-#    rclcpp_components
-#    controller_manager
-#    controller_interface
-#)
-
 #rclcpp_components_register_node(
-#  ft300_driver
+#  ${PROJECT_NAME}
 #    PLUGIN "${PROJECT_NAME}::ft300_driver"
 #    EXECUTABLE ft300_driver_node
 #)
 
-#############
-## Install ##
-#############
-#install(
-#  TARGETS ft300_driver
-#  EXPORT  export_${PROJECT_NAME}
-#  LIBRARY DESTINATION lib
-#  ARCHIVE ESTINATION lib
-#  RUNTIME DESTINATION bin
-#)
-
-install(
-  DIRECTORY   config launch meshes urdf
-  DESTINATION share/${PROJECT_NAME}/
-)
-
+############################################
+#  install python library and executables  #
+############################################
 ament_python_install_package(${PROJECT_NAME})
 
 install(
@@ -104,7 +67,8 @@ install(
     scripts/test_cmodel_client.py
     scripts/test_epick_client.py
     scripts/test_status_sub.py
-  DESTINATION lib/${PROJECT_NAME}
+  DESTINATION
+    lib/${PROJECT_NAME}
 )
 
 ############
@@ -134,4 +98,4 @@ ament_environment_hooks(
   "${CMAKE_CURRENT_SOURCE_DIR}/hooks/${PROJECT_NAME}.sh.in"
 )
 
-ament_package()
+ament_auto_package(INSTALL_TO_SHARE launch config meshes urdf)
