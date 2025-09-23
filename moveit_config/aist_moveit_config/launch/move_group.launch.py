@@ -39,7 +39,8 @@ launch_arguments = [
     {
         'name':        'publish_robot_description_semantic',
         'default':     'true',
-        'description': 'MoveGroup publishes robot description semantic'
+        'description': 'MoveGroup publishes robot description semantic',
+        'choices':     ['true', 'false', 'True', 'False']
     },
 ]
 
@@ -53,10 +54,11 @@ def load_yaml(file_path):
 def launch_setup(context):
     moveit_configs = MoveItConfigsBuilder(robot_name='aist_base_scene',
                                           package_name='aist_moveit_config') \
-                    .robot_description_semantic(Path('config')
-                                                / 'aist_base_scene.srdf',
-                                                {'name': 'aist_base_scene'}) \
                     .to_moveit_configs()
+                    # .robot_description_semantic(Path('config')
+                    #                             / 'aist_base_scene.srdf',
+                    #                             {'name': 'aist_base_scene'}) \
+                    # .to_moveit_configs()
     wait_robot_description = Node(package='ur_robot_driver',
                                   executable='wait_for_robot_description',
                                   output='screen')

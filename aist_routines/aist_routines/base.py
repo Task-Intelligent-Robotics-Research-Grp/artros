@@ -33,18 +33,14 @@
 #
 # Author: Toshio Ueshiba
 #
-import sys
-import rclpy
+import rclpy, sys, time
 import numpy as np
+import moveit_commander
 
 from math                             import degrees, sqrt, pi
-from pathlib                          import Path
 from rclpy.node                       import Node
 from rclpy.duration                   import Duration
 from rclpy.time                       import Time
-from moveit_configs_utils             import MoveItConfigsBuilder
-from moveit.planning                  import MoveItPy
-from moveit.core.robot_state          import RobotState
 from tf2_ros.buffer                   import Buffer
 from tf2_ros.transform_listener       import TransformListener
 from std_msgs.msg                     import Header
@@ -83,35 +79,35 @@ class AISTBaseRoutines(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        self._reference_frame = self.declare_parameter('referece_frame',
-                                                       'world').value
-        self._eef_step = self.declare_parameter('eef_step', 0.005).value
-
-        # Initialize moveit_py
-        moveit_py = MoveItPy('aist_base_scene')
-        print(moveit_configs.to_dict())
-        a_bot = moveit_py.get_planning_component('a_bot')
-        b_bot = moveit_py.get_planning_component('b_bot')
+        moveit_commander.roscpp_initialize(sys.argv)
 
         # Create TransformListener
         self._tf2_buffer = Buffer()
         self._listener = TransformListener(self._tf2_buffer, self)
 
+        time.sleep(1.0)        # Necessary for listner spinning up
 
         # MoveIt planning parameters
-        # self._eef_step = eef_step if eef_step is not None else \
-        #                  rospy.get_param('~moveit_eef_step', 0.0005)
+        # MoveIt planning parameters
+        self._eef_step = self.declare_parameter('moveit_eef_step',
+                                                0.0005).value
+        self._reference_frame = self.declare_parameter('reference_frame',
+                                                       'world').value
 
         # MoveIt RobotCommander and MoveGroup
-        # self._cmd = moveit_commander.RobotCommander(
-        #                 rospy.get_param('~robot_description',
-        #                                 'robot_description'))
-        # for group_name in self._cmd.get_group_names():
-        #     group = self._cmd.get_group(group_name)
-        #     group.set_pose_reference_frame(self.reference_frame)
+        self._cmd = moveit_commander.RobotCommander(
+                        self.declare_parameter('robot_description',
+                                               'robot_description').value)
+        for group_name in self._cmd.get_group_names():
+            self.get_logger().info('### group=%s' % group_name)
+            group = self._cmd.get_group(group_name)
+            #group = moveit_commander.MoveGroupCommander(group_name)
+            #print(group)
+            group.set_pose_reference_frame(self.reference_frame)
 
-        # self.get_logger().info('planning_frame: %s, reference_frame: %s, eef_step: %f',
-        #               self.planning_frame, self.reference_frame, self.eef_step)
+        rclpy.get_logger().info(
+            'planning_frame: %s, reference_frame: %s, eef_step: %f'
+            % (self.planning_frame, self.reference_frame, self.eef_step))
 
         # CollisionObjectManager wrapping MoveIt PlanningSceneInterface
         # self._com = CollisionObjectManagerClient()
@@ -123,20 +119,20 @@ class AISTBaseRoutines(Node):
         # self._grippers = {}
         # for gripper_name, props in rospy.get_param('~grippers', {}).items():
         #     self._grippers[gripper_name] = GripperClient.create(gripper_name,
-#                                                                props)
+        #                                                         props)
 
         # Robots
-        # self._default_gripper_names = {}
-        # self._active_grippers  = {}
-        # for robot_name, props in rospy.get_param('~robots', {}).items():
-        #     self._default_gripper_names[robot_name] = props['default_gripper']
-        #     self.set_gripper(robot_name, self.default_gripper_name(robot_name))
+        self._default_gripper_names = {}
+        self._active_grippers  = {}
+        for robot_name, props in rospy.get_param('~robots', {}).items():
+            self._default_gripper_names[robot_name] = props['default_gripper']
+            self.set_gripper(robot_name, self.default_gripper_name(robot_name))
 
         # Cameras
         # self._cameras = {}
         # for camera_name, props in rospy.get_param('~cameras', {}).items():
         #     self._cameras[camera_name] = CameraClient.create(camera_name,
-        #                                                      props)
+        # props)
 
         # Search graspabilities
         # if rospy.has_param('~graspability_parameters'):
