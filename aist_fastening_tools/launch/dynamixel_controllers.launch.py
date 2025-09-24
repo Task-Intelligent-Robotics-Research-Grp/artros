@@ -88,6 +88,22 @@ TOOL_PROPS = {
 }
 
 def launch_setup(context):
+    # Create dynamixel_info file from the template.
+    append = False
+    for tool_name, tool_type, motor_id \
+          in zip(LaunchConfiguration('tool_names').perform(context).split(','),
+                 LaunchConfiguration('tool_types').perform(context).split(','),
+                 LaunchConfiguration('motor_ids').perform(context).split(',')):
+        tool_props = TOOL_PROPS[tool_type]
+        SetLaunchConfiguration('name', tool_name).execute(context)
+        SetLaunchConfiguration('motor_id', motor_id).execute(context)
+        instantiate_file(context, tool_props['dxlinfo_template'],
+                         '/tmp/' \
+                         + LaunchConfiguration('driver_ns').perform(context) \
+                         + '_dynamixel_info.yaml', append=append)
+        append = True
+
+    # Create launch actions for the container and the driver nodes.
     actions = [
         Node(name=LaunchConfiguration('container'),
              package='rclcpp_components',
@@ -95,8 +111,23 @@ def launch_setup(context):
              output=LaunchConfiguration('output'),
              arguments=['--ros-args', '--log-level',
                         LaunchConfiguration('log_level')]),
+        LoadComposableNodes(
+            target_container=LaunchConfiguration('container'),
+            composable_node_descriptions=[
+                ComposableNode(
+                    name=LaunchConfiguration('driver_ns'),
+                    package='dynamixel_workbench_controllers',
+                    plugin='dynamixel_workbench_controllers::DynamixelController',
+                    parameters=[
+                        ParameterFile(
+                            PathJoinSubstitution([
+                                FindPackageShare('aist_fastening_tools'),
+                                'config', 'dynamixel_driver.yaml']),
+                            allow_substs=True)],
+                    extra_arguments=[{'use_intra_process_comms': True}])])
     ]
 
+    # Create launch actions for the tool controllers.
     append = False
     for tool_name, tool_type, motor_id \
           in zip(LaunchConfiguration('tool_names').perform(context).split(','),
@@ -118,29 +149,8 @@ def launch_setup(context):
                                         allow_substs=True)],
                         extra_arguments=[{'use_intra_process_comms': True}])])
         ]
-        SetLaunchConfiguration('name', tool_name).execute(context)
-        SetLaunchConfiguration('motor_id', motor_id).execute(context)
-        instantiate_file(context, tool_props['dxlinfo_template'],
-                         '/tmp/' \
-                         + LaunchConfiguration('driver_ns').perform(context) \
-                         + '_dynamixel_info.yaml', append=append)
         append = True
 
-    actions.append(
-        LoadComposableNodes(
-            target_container=LaunchConfiguration('container'),
-            composable_node_descriptions=[
-                ComposableNode(
-                    name=LaunchConfiguration('driver_ns'),
-                    package='dynamixel_workbench_controllers',
-                    plugin='dynamixel_workbench_controllers::DynamixelController',
-                    parameters=[
-                        ParameterFile(
-                            PathJoinSubstitution([
-                                FindPackageShare('aist_fastening_tools'),
-                                'config', 'dynamixel_driver.yaml']),
-                            allow_substs=True)],
-                    extra_arguments=[{'use_intra_process_comms': True}])]))
     return actions
 
 def generate_launch_description():

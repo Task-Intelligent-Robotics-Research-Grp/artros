@@ -8,7 +8,7 @@ launch_arguments = [
     {
         'name':        'controller_ns',
         'default':     'screw_tool_m4_fastening_controller',
-        'description': 'namespace of the gripper controller'
+        'description': 'namespace of the tool controller'
     }
 ]
 

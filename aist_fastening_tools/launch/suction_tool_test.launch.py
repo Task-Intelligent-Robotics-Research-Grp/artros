@@ -7,8 +7,8 @@ from aist_bringup.launch_common import declare_launch_arguments
 launch_arguments = [
     {
         'name':        'controller_ns',
-        'default':     'screw_tool_m4_controller',
-        'description': 'namespace of the gripper controller'
+        'default':     'suction_tool_controller',
+        'description': 'namespace of the tool controller'
     }
 ]
 

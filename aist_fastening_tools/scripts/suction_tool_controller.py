@@ -37,6 +37,7 @@
 #
 import rclpy, sys, time, threading
 from rclpy.node            import Node
+from rclpy.duration        import Duration
 from rclpy.executors       import (ExternalShutdownException,
                                    SingleThreadedExecutor,
                                    MultiThreadedExecutor)
@@ -83,9 +84,9 @@ class SuctionToolController(Node):
 
         # Create a publisher for JointState.
         if self._joint_name != '':
-            self._joint_state_pub = self.create_publisher('/joint_states',
-                                                          JointState, 1)
-            self._min_pos     = self.decalre_parameter('min_position').value
+            self._joint_state_pub = self.create_publisher(JointState,
+                                                          '/joint_states', 1)
+            self._min_pos     = self.declare_parameter('min_position').value
             self._max_pos     = self.declare_parameter('max_position').value
             self._current_pos = self._min_pos
 
@@ -148,7 +149,7 @@ class SuctionToolController(Node):
     def _handle_accepted_cb(self, goal_handle):
         with self._goal_lock:
             if self._goal_handle is not None and self._goal_handle.is_active:
-                self.get_logger.error('Previous goal ABORTED')
+                self.get_logger().error('Previous goal ABORTED')
                 self._goal_handle.abort()
             self._goal_handle = goal_handle  # Keep the new goal handle.
         goal_handle.execute()
@@ -194,7 +195,7 @@ class SuctionToolController(Node):
 
             # If the IN port has not reached the target state,
             # reset start time.
-            if suctioned != self.goal_handle.request.suck:
+            if suctioned != goal_handle.request.suck:
                 start_time = self.get_clock().now()
 
             if goal_handle.is_cancel_requested:
@@ -204,12 +205,13 @@ class SuctionToolController(Node):
             #  - If min_period is zero, the goal succeeds immediately.
             #  - If min_period is negative, the goal never succeeds
             #    and should be terminated by a cancel request.
-            elif self.goal_handle.request.min_period >= rclpy.Duration(0) and \
-                 self.get_clock().now() - start_time \
-                 >= goal_handle.request.min_period:
+            elif Duration.from_msg(goal_handle.request.min_period) \
+                         .nanoseconds >= 0 and \
+                 self.get_clock().now() >= start_time \
+                 + Duration.from_msg(goal_handle.request.min_period):
                 self._set_out_port(self._blow_port, False)  # Stop blowing.
                 goal_handle.succeed()
-                self.logger().info('goal SUCCEEDED: suctioned')
+                self.get_logger().info('goal SUCCEEDED: suctioned')
 
         return SuctionToolCommand.Result(suctioned=suctioned)
 
@@ -220,14 +222,14 @@ class SuctionToolController(Node):
         req = SetIO.Request()
         req.fun   = SetIO.Request.FUN_SET_DIGITAL_OUT
         req.pin   = port
-        req.state = SetIO.Request.STATE_ON if state else \
-                    SetIO.Request.STATE_OFF
+        req.state = float(SetIO.Request.STATE_ON if state else \
+                          SetIO.Request.STATE_OFF)
         future = self._set_io.call_async(req)
 
         while not future.done():
             time.sleep(0.01)
-        self.logger().info('set OUT port[%d] to state[%f]' % (port, state))
-        return future.result()
+        self.get_logger().info('set OUT port[%d] to state[%f]' % (port, state))
+        return future.result().success
 
 
 #########################################################################

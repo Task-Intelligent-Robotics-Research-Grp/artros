@@ -5,5 +5,5 @@ $(var name)_controller:
     digital_out_port_suck: $(var digital_out_port_suck)
     digital_out_port_blow: $(var digital_out_port_blow)
     joint_name:            $(var joint_name)
-    min_position:          "0.000"
-    max_position:          "0.015"
+    min_position:          0.000
+    max_position:          0.015

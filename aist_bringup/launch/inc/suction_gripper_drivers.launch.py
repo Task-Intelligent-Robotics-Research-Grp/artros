@@ -39,7 +39,7 @@ def launch_setup(context):
                  str(gripper_config.get('digital_out_port_suck', -1))),
                 ('digital_out_port_blow',
                  str(gripper_config.get('digital_out_port_blow', -1))),
-                ('joint_name',      gripper_config.get('joint_name', ''))
+                ('joint_name',      gripper_config.get('joint_name', '""'))
             ])]
 
 def generate_launch_description():

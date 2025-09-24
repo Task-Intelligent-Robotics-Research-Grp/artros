@@ -13,17 +13,17 @@ arms:
       - a_bot_tcp_pose_broadcaster
       - a_bot_ur_configuration_controller
     inactive_controllers:
-      - a_bot_joint_trajectory_controller
-      - a_bot_forward_velocity_controller
-      - a_bot_forward_position_controller
+      # - a_bot_joint_trajectory_controller
+      # - a_bot_forward_velocity_controller
+      # - a_bot_forward_position_controller
       - a_bot_cartesian_compliance_controller
-      - a_bot_cartesian_force_controller
-      - a_bot_cartesian_motion_controller
-    extra_inactive_controllers:
-      - a_bot_force_mode_controller
-      - a_bot_passthrough_trajectory_controller
-      - a_bot_freedrive_mode_controller
-      - a_bot_tool_contact_controller
+      # - a_bot_cartesian_force_controller
+      # - a_bot_cartesian_motion_controller
+    # extra_inactive_controllers:
+    #   - a_bot_force_mode_controller
+    #   - a_bot_passthrough_trajectory_controller
+    #   - a_bot_freedrive_mode_controller
+    #   - a_bot_tool_contact_controller
   b_bot:
     type:               URe
     robot_ip:           "10.66.171.41"
@@ -38,17 +38,17 @@ arms:
       - b_bot_tcp_pose_broadcaster
       - b_bot_ur_configuration_controller
     inactive_controllers:
-      - b_bot_joint_trajectory_controller
-      - b_bot_forward_velocity_controller
-      - b_bot_forward_position_controller
+      # - b_bot_joint_trajectory_controller
+      # - b_bot_forward_velocity_controller
+      # - b_bot_forward_position_controller
       - b_bot_cartesian_compliance_controller
-      - b_bot_cartesian_force_controller
-      - b_bot_cartesian_motion_controller
-    extra_inactive_controllers:
-      - b_bot_force_mode_controller
-      - b_bot_passthrough_trajectory_controller
-      - b_bot_freedrive_mode_controller
-      - b_bot_tool_contact_controller
+      # - b_bot_cartesian_force_controller
+      # - b_bot_cartesian_motion_controller
+    # extra_inactive_controllers:
+    #   - b_bot_force_mode_controller
+    #   - b_bot_passthrough_trajectory_controller
+    #   - b_bot_freedrive_mode_controller
+    #   - b_bot_tool_contact_controller
 
 grippers:
   a_bot_gripper:
