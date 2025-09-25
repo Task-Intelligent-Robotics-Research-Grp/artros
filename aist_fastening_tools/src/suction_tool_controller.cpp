@@ -39,11 +39,12 @@
  */
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
-#include <ur_msgs/msg/io_states.hpp>
-#include <ur_msgs/srv/set_io.hpp>
 #include <std_msgs/msg/bool.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
+#include <ur_msgs/msg/io_states.hpp>
+#include <ur_msgs/srv/set_io.hpp>
 #include <aist_msgs/action/suction_tool_command.hpp>
+#include <ddynamic_reconfigure2/ddynamic_reconfigure2.hpp>
 
 namespace aist_fastening_tools
 {
@@ -57,12 +58,13 @@ class SuctionToolController : public rclcpp::Node
     using io_states_cp		= io_states_t::UniquePtr;
     using set_io_t		= ur_msgs::srv::SetIO;
     using joint_state_t		= sensor_msgs::msg::JointState;
+    using bool_t		= std_msgs::msg::Bool;
     using suction_tool_command_t= aist_msgs::action::SuctionToolCommand;
     using goal_cp		= std::shared_ptr<
 					const suction_tool_command_t::Goal>;
     using goal_uuid_t		= rclcpp_action::GoalUUID;
     using goal_handle_t		= rclcpp_action::
-					ServerGoalHandle<suction_tool_command_t>;
+				      ServerGoalHandle<suction_tool_command_t>;
     using goal_handle_p		= std::shared_ptr<goal_handle_t>;
     using goal_response_t	= rclcpp_action::GoalResponse;
     using cancel_response_t	= rclcpp_action::CancelResponse;
@@ -87,36 +89,35 @@ class SuctionToolController : public rclcpp::Node
     cancel_response_t
 		cancel_cb(const goal_handle_p)				;
     void	handle_accepted_cb(const goal_handle_p goal_handle)	;
-    void	dynamixel_states_cb(const dynamixel_states_cp& states)	;
-
-    bool	send_move_command(double position,
-				  double max_effort)		const	;
-    bool	send_dxl_command(const std::string& addr_name,
-				 int32_t value)			const	;
-
-    double	actual_position(int pos)			const	;
-    double	actual_effort(int cur)				const	;
-    bool	is_moving(int vel)				const	;
-    bool	reached_goal(int pos, int vel)			const	;
-    bool	stalled(int vel)				const	;
-    int		goal_pos(double position)			const	;
-    int		goal_cur(double max_effort)			const	;
+    void	io_states_cb(const io_states_cp& states)		;
+    bool	set_out_port(int port, bool state)		const	;
 
   private:
   // Read-only parameters
     const std::string					_driver_ns;
+    const int						_in_port;
+    const int						_suck_port;
+    const int						_blow_port;
+    const std::string					_joint_name;
     const double					_min_pos;
     const double					_max_pos;
-    const double					_present_pos;
 
-  // Joint state publisher stuffs
+  // IO states ubscriber and publishers
+    double						_cur_pos;
+    bool						_suctioned;
+    const subscription_p<io_states_t>			_io_states_sub;
     const publisher_p<joint_state_t>			_joint_state_pub;
+    const publisher_p<bool_t>				_suctioned_pub;
+
+  // SetIO service client stuffs
+    const callback_group_p				_set_io_cbg;
+    const client_p<set_io_t>				_set_io_clnt;
 
   // Gripper command action stuffs
     const action_server_p<suction_tool_command_t>	_command_srv;
     goal_handle_p					_current_goal_handle;
     std::mutex						_current_goal_mtx;
-    rclcpp::Time					_last_move_time;
+    rclcpp::Time					_start_time;
 };
 
 SuctionToolController::SuctionToolController(
@@ -124,14 +125,33 @@ SuctionToolController::SuctionToolController(
     :rclcpp::Node("suction_gripper_controller", options),
      _driver_ns(ddynamic_reconfigure2::declare_read_only_parameter(
 		    this, "driver_ns", "suction_grippers_fastening_driver")),
+     _in_port(ddynamic_reconfigure2::declare_read_only_parameter(
+		  this, "digital_in_port", -1)),
+     _suck_port(ddynamic_reconfigure2::declare_read_only_parameter(
+		    this, "digital_out_port_suck", -1)),
+     _blow_port(ddynamic_reconfigure2::declare_read_only_parameter(
+		    this, "digital_out_port_blow", -1)),
+     _joint_name(ddynamic_reconfigure2::declare_read_only_parameter(
+		    this, "joint_name", "")),
      _min_pos(ddynamic_reconfigure2::declare_read_only_parameter(
 		  this, "min_position_count", 2300)),
      _max_pos(ddynamic_reconfigure2::declare_read_only_parameter(
 		  this, "max_position_count", 2050)),
-     _present_pos(_min_pos),
-     _joint_state_pub(create_publisher<joint_state_t>("/joint_states", 1)),
-     _command_srv(rclcpp_action::create_server<gripper_command_t>(
-		      this, "~/gripper_cmd",
+     _cur_pos(_min_pos),
+     _suctioned(false),
+     _io_states_sub(create_subscription<io_states_t>(
+			_driver_ns + "/io_states", 1,
+			std::bind(&SuctionToolController::io_states_cb,
+				  this, std::placeholders::_1))),
+     _joint_state_pub(_joint_name == "" ? nullptr :
+		      create_publisher<joint_state_t>("/joint_states", 1)),
+     _suctioned_pub(create_publisher<bool_t>("~/suctioned", 1)),
+     _set_io_cbg(create_callback_group(
+		     rclcpp::CallbackGroupType::MutuallyExclusive)),
+     _set_io_clnt(create_client<set_io_t>(_driver_ns + "/set_io",
+					  rclcpp::ServicesQoS(), _set_io_cbg)),
+     _command_srv(rclcpp_action::create_server<suction_tool_command_t>(
+		      this, "~/command",
 		      std::bind(&SuctionToolController::goal_cb, this,
 				std::placeholders::_1, std::placeholders::_2),
 		      std::bind(&SuctionToolController::cancel_cb, this,
@@ -141,7 +161,7 @@ SuctionToolController::SuctionToolController(
 				std::placeholders::_1))),
      _current_goal_handle(nullptr),
      _current_goal_mtx(),
-     _last_move_time(now())
+     _start_time(now())
 {
     RCLCPP_INFO_STREAM(get_logger(), "controller started");
 }
@@ -150,8 +170,9 @@ SuctionToolController::goal_response_t
 SuctionToolController::goal_cb(const goal_uuid_t&, const goal_cp goal)
 {
     RCLCPP_INFO_STREAM(get_logger(),
-		       "goal ACCEPTED: position=" << goal->command.position
-		       << ", max_effort=" << goal->command.max_effort);
+		       "goal ACCEPTED: suck=" << std::boolalpha << goal->suck
+		       << ", min_period="
+		       << rclcpp::Duration(goal->min_period).seconds());
     return goal_response_t::ACCEPT_AND_EXECUTE;
 }
 
@@ -170,106 +191,101 @@ SuctionToolController::handle_accepted_cb(const goal_handle_p goal_handle)
   // If any active goal exists, abort it.
     if (_current_goal_handle != nullptr && _current_goal_handle->is_active())
     {
-	auto	result = std::make_shared<gripper_command_t::Result>();
-	result->position     = actual_position(_present_pos);
-	result->effort	     = 0.0;
-	result->stalled	     = false;
-	result->reached_goal = false;
-	_current_goal_handle->abort(result);
+	auto	result = std::make_unique<suction_tool_command_t::Result>();
+	result->suctioned = _suctioned;
+	_current_goal_handle->abort(std::move(result));
 	_current_goal_handle = nullptr;
 
 	RCLCPP_WARN_STREAM(get_logger(), "previous goal ABORTED");
     }
 
-    _last_move_time = now();
-
-    if (!send_move_command(goal_handle->get_goal()->command.position,
-			   goal_handle->get_goal()->command.max_effort))
+  // Send suck/blow commands.
+    if (!set_out_port(_suck_port,  goal_handle->get_goal()->suck) ||
+	!set_out_port(_blow_port, !goal_handle->get_goal()->suck))
     {
-	const auto result = std::make_shared<gripper_command_t::Result>();
-	result->position     = actual_position(_present_pos);
-	result->effort	     = 0.0;
-	result->stalled	     = false;
-	result->reached_goal = false;
-	goal_handle->abort(result);
+	auto	result = std::make_unique<suction_tool_command_t::Result>();
+	result->suctioned = _suctioned;
+	goal_handle->abort(std::move(result));
 
 	RCLCPP_ERROR_STREAM(get_logger(), "goal ABORTED");
 	return;
     }
 
     _current_goal_handle = goal_handle;
+    _start_time		 = now();
 }
 
 void
-SuctionToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
+SuctionToolController::io_states_cb(const io_states_cp& states)
 {
-  // Find a dynamixel state with my motor ID.
-    const auto	state = std::find_if(states->dynamixel_state.begin(),
-				     states->dynamixel_state.end(),
-				     [motor_id=_motor_id](const auto& state)
-				     { return state.id == motor_id; });
-    if (state == states->dynamixel_state.end())
+    const auto	current_time = now();
+
+  // Publish joint_states.
+    if (_joint_state_pub != nullptr)
     {
-	RCLCPP_ERROR_STREAM(get_logger(),
-			    "no motors with ID[" << int(_motor_id)
-			    << "] found in incoming dynamixel state list!");
-	return;
+	auto	joint_state = std::make_unique<joint_state_t>();
+	joint_state->header.stamp = current_time;
+	joint_state->name.push_back(_joint_name);
+	joint_state->position.push_back(_cur_pos);
+	joint_state->velocity.push_back(0.0);
+	joint_state->effort.push_back(0.0);
+	_joint_state_pub->publish(std::move(joint_state));
     }
 
-  // Keep present position of Dynamixel.
-    _present_pos = state->present_position;
+  // Find the state of IN port and publish its its digital IN state
+  // as a flag describing the suctioned state.
+    if (_in_port >= 0)
+    {
+	const auto state = std::find_if(states->digital_in_states.cbegin(),
+					states->digital_in_states.cend(),
+					[in_port=_in_port]
+					(const auto& din_state)
+					{ return din_state.pin == in_port; });
+	if (state == states->digital_in_states.cend())
+	{
+	    RCLCPP_ERROR_STREAM(get_logger(),
+				"no digital IN state found at port["
+				<< _in_port << ']');
+	    return;
+	}
+	_suctioned = state->state;
 
-  // Publish joinst state.
-    const auto	current_time = now();
-    auto	joint_state = std::make_unique<joint_state_t>();
-    joint_state->header.stamp = current_time;
-    joint_state->name.push_back(state->name + "_finger_joint");
-    joint_state->position.push_back(actual_position(state->present_position));
-    joint_state->velocity.push_back(0.0);
-    joint_state->effort.push_back(actual_effort(state->present_current));
-    _joint_state_pub->publish(std::move(joint_state));
+	auto	suctioned = std::make_unique<bool_t>();
+	suctioned->data = _suctioned;
+	_suctioned_pub->publish(std::move(suctioned));
+    }
+    else
+	_suctioned = false;
 
   // Check if the current goal is active.
     if (!_current_goal_handle || !_current_goal_handle->is_active())
 	return;
+
+  // Update _cur_pos according to the given goal.
+    _cur_pos = (_current_goal_handle->get_goal()->suck ? _max_pos : _min_pos);
 
     const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
 
   // Check if the current goal is requested to be cancelled.
     if (_current_goal_handle->is_canceling())
     {
-	const auto result = std::make_shared<gripper_command_t::Result>();
-	result->stalled = false;
-	_current_goal_handle->canceled(result);
+	auto	result = std::make_unique<suction_tool_command_t::Result>();
+	result->suctioned = _suctioned;
+	_current_goal_handle->canceled(std::move(result));
 	_current_goal_handle = nullptr;
 
 	RCLCPP_WARN_STREAM(get_logger(), "goal CANCELED");
 	return;
     }
 
-    if (is_moving(state->present_velocity))
-	_last_move_time = current_time;
-    else if (reached_goal(state->present_position, state->present_velocity))
+    if (_suctioned != _current_goal_handle->get_goal()->suck)
+	_start_time = current_time;
+    else if (current_time >
+	     _start_time + _current_goal_handle->get_goal()->min_period)
     {
-	const auto	result = std::make_shared<gripper_command_t::Result>();
-	result->position     = actual_position(state->present_position);
-	result->effort	     = actual_effort(state->present_current);
-	result->stalled	     = stalled(state->present_velocity);
-	result->reached_goal = true;
-	_current_goal_handle->succeed(result);
-	_current_goal_handle = nullptr;
-
-	RCLCPP_INFO_STREAM(get_logger(), "goal SUCCEEDED[reached goal]");
-	return;
-    }
-    else if (stalled(state->present_velocity))
-    {
-	const auto	result = std::make_shared<gripper_command_t::Result>();
-	result->position     = actual_position(state->present_position);
-	result->effort	     = actual_effort(state->present_current);
-	result->stalled	     = true;
-	result->reached_goal = false;
-	_current_goal_handle->succeed(result);
+	auto	result = std::make_unique<suction_tool_command_t::Result>();
+	result->suctioned = _suctioned;
+	_current_goal_handle->succeed(std::move(result));
 	_current_goal_handle = nullptr;
 
 	RCLCPP_INFO_STREAM(get_logger(), "goal SUCCEEDED[stalled]");
@@ -277,105 +293,40 @@ SuctionToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
     }
 
   // Publish speed and filtered current as a feedback.
-    const auto	feedback = std::make_shared<gripper_command_t::Feedback>();
-    feedback->position	   = actual_position(state->present_position);
-    feedback->effort	   = actual_effort(state->present_current);
-    feedback->stalled	   = stalled(state->present_velocity);
-    feedback->reached_goal = reached_goal(state->present_position,
-					  state->present_velocity);
-    _current_goal_handle->publish_feedback(feedback);
+    auto feedback = std::make_unique<suction_tool_command_t::Feedback>();
+    feedback->suctioned = _suctioned;
+    _current_goal_handle->publish_feedback(std::move(feedback));
 }
 
 bool
-SuctionToolController::send_move_command(double position,
-					   double max_effort) const
-{
-    const auto	pos = goal_pos(position);
-    auto	cur = goal_cur(max_effort);
-    if (std::abs(cur) < _min_cur)
-	cur = (pos > _present_pos ? _min_cur : -_min_cur);
-
-    return send_dxl_command("Goal_Current",  cur) &&
-	   send_dxl_command("Goal_Position", pos);
-}
-
-bool
-SuctionToolController::send_dxl_command(const std::string& addr_name,
-					  int32_t value) const
+SuctionToolController::set_out_port(int port, bool state) const
 {
     using namespace	std::chrono_literals;
 
-    RCLCPP_DEBUG_STREAM(get_logger(), "send_dxl_command(): addr_name="
-			<< addr_name << ", value=" << value);
+    if (port < 0)	// _blow_port may not be present
+	return true;
 
-    const auto	req = std::make_shared<dynamixel_command_t::Request>();
-    req->id	   = _motor_id;
-    req->addr_name = addr_name;
-    req->value     = value;
-    auto	future = _dxl_command->async_send_request(req);
+    RCLCPP_DEBUG_STREAM(get_logger(), "set_out_port(): port="
+			<< port << ", state=" << std::boolalpha << state);
+
+    auto	req = std::make_unique<set_io_t::Request>();
+    req->fun   = set_io_t::Request::FUN_SET_DIGITAL_OUT;
+    req->pin   = port;
+    req->state = float(state ? set_io_t::Request::STATE_ON
+			     : set_io_t::Request::STATE_OFF);
+    auto	future = _set_io_clnt->async_send_request(std::move(req));
 
     if (future.wait_for(1s) != std::future_status::ready ||
-	!future.get()->comm_result)
+	!future.get()->success)
     {
 	RCLCPP_ERROR_STREAM(get_logger(),
-			    "no service response or communication error");
+			    "no service response or error in setting DO port");
 	return false;
     }
 
-    RCLCPP_DEBUG_STREAM(get_logger(), "send_dxl_command(): received response");
+    RCLCPP_DEBUG_STREAM(get_logger(), "set_out_port(): received response");
     return true;
 }
-
-double
-SuctionToolController::actual_position(int pos) const
-{
-    return (pos - _min_pos) * _position_per_tick + _min_position;
-}
-
-double
-SuctionToolController::actual_effort(int cur) const
-{
-    return cur * _effort_per_tick;
-}
-
-bool
-SuctionToolController::is_moving(int vel) const
-{
-    return vel != 0;
-}
-
-bool
-SuctionToolController::reached_goal(int pos, int vel) const
-{
-    RCLCPP_DEBUG_STREAM(get_logger(), "*** pos=" << pos << ", goal_pos="
-			<< goal_pos(_current_goal_handle
-				    ->get_goal()->command.position)
-			<< ", vel=" << vel);
-    return !is_moving(vel) &&
-	   std::abs(pos - goal_pos(_current_goal_handle
-				   ->get_goal()->command.position)) <= 1;
-}
-
-bool
-SuctionToolController::stalled(int vel) const
-{
-    return !is_moving(vel) && now() - _last_move_time > _stall_timeout;
-}
-
-int
-SuctionToolController::goal_pos(double position) const
-{
-    return std::clamp(int((position - _min_position) / _position_per_tick
-			  + _min_pos),
-		      _max_pos, _min_pos);
-}
-
-int
-SuctionToolController::goal_cur(double max_effort) const
-{
-    return std::clamp(int(max_effort / _effort_per_tick), -_max_cur, _max_cur);
-}
-
 }	// namespace aist_fastening_tools
 
 #include <rclcpp_components/register_node_macro.hpp>

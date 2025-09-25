@@ -24,6 +24,7 @@ ament_auto_add_library(
   ${PROJECT_NAME} SHARED
     src/precision_tool_controller.cpp
     src/screw_tool_controller.cpp
+    src/suction_tool_controller.cpp
 )
 
 rclcpp_components_register_nodes(
@@ -36,6 +37,12 @@ rclcpp_components_register_nodes(
   ${PROJECT_NAME}
     PLUGIN     ${PROJECT_NAME}::ScrewToolController
     EXECUTABLE screw_tool_controller_node
+)
+
+rclcpp_components_register_nodes(
+  ${PROJECT_NAME}
+    PLUGIN     ${PROJECT_NAME}::SuctionToolController
+    EXECUTABLE suction_tool_controller_node
 )
 
 ########################

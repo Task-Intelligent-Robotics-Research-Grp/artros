@@ -286,9 +286,9 @@ ScrewToolController::handle_accepted_cb(const goal_handle_p goal_handle)
   // If any active goal exists, abort it.
     if (_current_goal_handle != nullptr && _current_goal_handle->is_active())
     {
-	auto	result = std::make_shared<screw_tool_command_t::Result>();
+	auto	result = std::make_unique<screw_tool_command_t::Result>();
 	result->stalled = false;
-	_current_goal_handle->abort(result);
+	_current_goal_handle->abort(std::move(result));
 	_current_goal_handle = nullptr;
 
 	RCLCPP_WARN_STREAM(get_logger(), "previous goal ABORTED");
@@ -298,9 +298,9 @@ ScrewToolController::handle_accepted_cb(const goal_handle_p goal_handle)
 	!send_dxl_command("Moving_Speed",
 			  target_speed(goal_handle->get_goal()->speed)))
     {
-	const auto result = std::make_shared<screw_tool_command_t::Result>();
+	auto	result = std::make_unique<screw_tool_command_t::Result>();
 	result->stalled = false;
-	goal_handle->abort(result);
+	goal_handle->abort(std::move(result));
 
 	RCLCPP_ERROR_STREAM(get_logger(), "goal ABORTED");
 	return;
@@ -347,9 +347,9 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
   // Check if the current goal is requested to be cancelled.
     if (_current_goal_handle->is_canceling())
     {
-	const auto result = std::make_shared<screw_tool_command_t::Result>();
+	auto	result = std::make_unique<screw_tool_command_t::Result>();
 	result->stalled = false;
-	_current_goal_handle->canceled(result);
+	_current_goal_handle->canceled(std::move(result));
 	_current_goal_handle = nullptr;
 
 	RCLCPP_WARN_STREAM(get_logger(), "goal CANCELED");
@@ -357,10 +357,10 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
     }
 
   // Publish speed and filtered current as a feedback.
-    const auto	feedback = std::make_shared<screw_tool_command_t::Feedback>();
+    auto	feedback = std::make_unique<screw_tool_command_t::Feedback>();
     feedback->speed   = status.speed;
     feedback->current = status.current;
-    _current_goal_handle->publish_feedback(feedback);
+    _current_goal_handle->publish_feedback(std::move(feedback));
 
     if (const auto goal = _current_goal_handle->get_goal(); goal->speed > 0.0)
     {
@@ -423,9 +423,9 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
 	send_dxl_command("Moving_Speed", target_speed(0.0));
 	send_dxl_command("Torque_Enable", 0);
 
-	const auto result = std::make_shared<screw_tool_command_t::Result>();
+	auto	result = std::make_unique<screw_tool_command_t::Result>();
 	result->stalled = true;
-	_current_goal_handle->succeed(result);
+	_current_goal_handle->succeed(std::move(result));
 	_current_goal_handle = nullptr;
 
 	RCLCPP_INFO_STREAM(get_logger(), "goal SUCCEEDED");
@@ -453,11 +453,11 @@ ScrewToolController::send_dxl_command(const std::string& addr_name,
     RCLCPP_DEBUG_STREAM(get_logger(), "send_dxl_command(): addr_name="
 			<< addr_name << ", value=" << value);
 
-    const auto	req = std::make_shared<dynamixel_command_t::Request>();
+    auto	req = std::make_unique<dynamixel_command_t::Request>();
     req->id	   = _motor_id;
     req->addr_name = addr_name;
     req->value     = value;
-    auto	future = _dxl_command->async_send_request(req);
+    auto	future = _dxl_command->async_send_request(std::move(req));
 
     if (future.wait_for(1s) != std::future_status::ready ||
 	!future.get()->comm_result)

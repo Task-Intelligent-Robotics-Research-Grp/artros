@@ -23,6 +23,7 @@
   <depend>ddynamic_reconfigure2</depend>
   <depend>control_msgs</depend>
   <depend>sensor_msgs</depend>
+  <depend>ur_msgs</depend>
   <depend>aist_utility</depend>
   <depend>aist_msgs</depend>
 

@@ -224,12 +224,12 @@ PrecisionToolController::handle_accepted_cb(const goal_handle_p goal_handle)
   // If any active goal exists, abort it.
     if (_current_goal_handle != nullptr && _current_goal_handle->is_active())
     {
-	auto	result = std::make_shared<gripper_command_t::Result>();
+	auto	result = std::make_unique<gripper_command_t::Result>();
 	result->position     = actual_position(_present_pos);
 	result->effort	     = 0.0;
 	result->stalled	     = false;
 	result->reached_goal = false;
-	_current_goal_handle->abort(result);
+	_current_goal_handle->abort(std::move(result));
 	_current_goal_handle = nullptr;
 
 	RCLCPP_WARN_STREAM(get_logger(), "previous goal ABORTED");
@@ -240,12 +240,12 @@ PrecisionToolController::handle_accepted_cb(const goal_handle_p goal_handle)
     if (!send_move_command(goal_handle->get_goal()->command.position,
 			   goal_handle->get_goal()->command.max_effort))
     {
-	const auto result = std::make_shared<gripper_command_t::Result>();
+	auto	result = std::make_unique<gripper_command_t::Result>();
 	result->position     = actual_position(_present_pos);
 	result->effort	     = 0.0;
 	result->stalled	     = false;
 	result->reached_goal = false;
-	goal_handle->abort(result);
+	goal_handle->abort(std::move(result));
 
 	RCLCPP_ERROR_STREAM(get_logger(), "goal ABORTED");
 	return;
@@ -292,9 +292,9 @@ PrecisionToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
   // Check if the current goal is requested to be cancelled.
     if (_current_goal_handle->is_canceling())
     {
-	const auto result = std::make_shared<gripper_command_t::Result>();
+	auto	result = std::make_unique<gripper_command_t::Result>();
 	result->stalled = false;
-	_current_goal_handle->canceled(result);
+	_current_goal_handle->canceled(std::move(result));
 	_current_goal_handle = nullptr;
 
 	RCLCPP_WARN_STREAM(get_logger(), "goal CANCELED");
@@ -305,12 +305,12 @@ PrecisionToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
 	_last_move_time = current_time;
     else if (reached_goal(state->present_position, state->present_velocity))
     {
-	const auto	result = std::make_shared<gripper_command_t::Result>();
+	auto	result = std::make_unique<gripper_command_t::Result>();
 	result->position     = actual_position(state->present_position);
 	result->effort	     = actual_effort(state->present_current);
 	result->stalled	     = stalled(state->present_velocity);
 	result->reached_goal = true;
-	_current_goal_handle->succeed(result);
+	_current_goal_handle->succeed(std::move(result));
 	_current_goal_handle = nullptr;
 
 	RCLCPP_INFO_STREAM(get_logger(), "goal SUCCEEDED[reached goal]");
@@ -318,12 +318,12 @@ PrecisionToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
     }
     else if (stalled(state->present_velocity))
     {
-	const auto	result = std::make_shared<gripper_command_t::Result>();
+	auto	result = std::make_unique<gripper_command_t::Result>();
 	result->position     = actual_position(state->present_position);
 	result->effort	     = actual_effort(state->present_current);
 	result->stalled	     = true;
 	result->reached_goal = false;
-	_current_goal_handle->succeed(result);
+	_current_goal_handle->succeed(std::move(result));
 	_current_goal_handle = nullptr;
 
 	RCLCPP_INFO_STREAM(get_logger(), "goal SUCCEEDED[stalled]");
@@ -331,13 +331,13 @@ PrecisionToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
     }
 
   // Publish speed and filtered current as a feedback.
-    const auto	feedback = std::make_shared<gripper_command_t::Feedback>();
+    auto	feedback = std::make_unique<gripper_command_t::Feedback>();
     feedback->position	   = actual_position(state->present_position);
     feedback->effort	   = actual_effort(state->present_current);
     feedback->stalled	   = stalled(state->present_velocity);
     feedback->reached_goal = reached_goal(state->present_position,
 					  state->present_velocity);
-    _current_goal_handle->publish_feedback(feedback);
+    _current_goal_handle->publish_feedback(std::move(feedback));
 }
 
 bool
@@ -362,11 +362,11 @@ PrecisionToolController::send_dxl_command(const std::string& addr_name,
     RCLCPP_DEBUG_STREAM(get_logger(), "send_dxl_command(): addr_name="
 			<< addr_name << ", value=" << value);
 
-    const auto	req = std::make_shared<dynamixel_command_t::Request>();
+    auto	req = std::make_unique<dynamixel_command_t::Request>();
     req->id	   = _motor_id;
     req->addr_name = addr_name;
     req->value     = value;
-    auto	future = _dxl_command->async_send_request(req);
+    auto	future = _dxl_command->async_send_request(std::move(req));
 
     if (future.wait_for(1s) != std::future_status::ready ||
 	!future.get()->comm_result)
