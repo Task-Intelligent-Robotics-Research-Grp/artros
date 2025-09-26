@@ -66,10 +66,13 @@ class CModelController : public rclcpp::Node
 {
   private:
     using cmodel_status_t   = aist_robotiq_msgs::msg::CModelStatus;
-    using cmodel_status_cp  = cmodel_status_t::UniquePtr;
+    using cmodel_status_cp  = cmodel_status_t::ConstSharedPtr;
     using cmodel_command_t  = aist_robotiq_msgs::msg::CModelCommand;
     using joint_state_t	    = sensor_msgs::msg::JointState;
     using gripper_command_t = control_msgs::action::GripperCommand;
+    using set_velocity_t    = aist_robotiq_msgs::srv::SetVelocity;
+    using set_velocity_req  = set_velocity_t::Request::SharedPtr;
+    using set_velocity_res  = set_velocity_t::Response::SharedPtr;
     using goal_cp	    = std::shared_ptr<const gripper_command_t::Goal>;
     using goal_uuid_t	    = rclcpp_action::GoalUUID;
     using goal_handle_t	    = rclcpp_action::
@@ -89,9 +92,11 @@ class CModelController : public rclcpp::Node
     using action_server_p   = typename rclcpp_action::Server<ACT>::SharedPtr;
 
   public:
-    CModelController(const rclcpp::NodeOptions& options)	;
+		CModelController(const rclcpp::NodeOptions& options)	;
 
   private:
+    void	set_velocity_cb(const set_velocity_req req,
+				const set_velocity_res res)		;
     goal_response_t
 		goal_cb(const goal_uuid_t&, const goal_cp goal)		;
     cancel_response_t
@@ -99,12 +104,14 @@ class CModelController : public rclcpp::Node
     void	handle_accepted_cb(const goal_handle_p goal_handle)	;
     void	cmodel_status_cb(const cmodel_status_cp& status)	;
 
+    void	calibrate()						;
     int		send_move_command(double position, double velocity,
-				  double max_effort)		 const	;
+				  double max_effort)		const	;
     void	send_raw_move_command(int pos, int vel, int eff) const	;
 
     double	actual_position(const cmodel_status_cp& status)	const	;
     double	actual_effort(const cmodel_status_cp& status)	const	;
+    bool	error(const cmodel_status_cp& status)		const	;
     bool	stalled(const cmodel_status_cp& status)		const	;
     bool	reached_goal(const cmodel_status_cp& status)	const	;
     bool	is_active(const cmodel_status_cp& status)	const	;
@@ -140,6 +147,7 @@ class CModelController : public rclcpp::Node
     int						_goal_r_pr;
 
   // Subscriber for Status from the driver
+    cmodel_status_cp				_cmodel_status;
     const callback_group_p			_cmodel_status_cbg;
     const subscription_p<cmodel_status_t>	_cmodel_status_sub;
 
@@ -183,6 +191,7 @@ CModelController::CModelController(const rclcpp::NodeOptions& options)
      _cmodel_command_pub(create_publisher<cmodel_command_t>("~/command", 1)),
      _goal_r_pr(0),
 
+     _cmodel_status(nullptr),
      _cmodel_status_cbg(create_callback_group(
 			    rclcpp::CallbackGroupType::MutuallyExclusive)),
      _cmodel_status_sub(create_subscription<cmodel_status_t>(
@@ -204,7 +213,20 @@ CModelController::CModelController(const rclcpp::NodeOptions& options)
      _current_goal_handle(nullptr),
      _current_goal_mtx()
 {
+    using namespace	std::chrono_literals;
+
+    rclcpp::sleep_for(2s);	// wait for server comes up
+    calibrate();
+
     RCLCPP_INFO_STREAM(get_logger(), "controller started");
+}
+
+void
+CModelController::set_velocity_cb(const set_velocity_req req,
+				  const set_velocity_res res)
+{
+    _velocity = req->velocity;
+    res->success = true;
 }
 
 CModelController::goal_response_t
@@ -232,62 +254,73 @@ CModelController::handle_accepted_cb(const goal_handle_p goal_handle)
     if (_current_goal_handle != nullptr && _current_goal_handle->is_active())
     {
 	auto	result = std::make_unique<gripper_command_t::Result>();
-	result->position     = actual_position(_present_pos);
-	result->effort	     = 0.0;
-	result->stalled	     = false;
-	result->reached_goal = false;
+	result->position     = actual_position(_cmodel_status);
+	result->effort	     = actual_effort(_cmodel_status);
+	result->stalled	     = stalled(_cmodel_status);
+	result->reached_goal = reached_goal(_cmodel_status);
 	_current_goal_handle->abort(std::move(result));
 	_current_goal_handle = nullptr;
 
 	RCLCPP_WARN_STREAM(get_logger(), "previous goal ABORTED");
     }
-
-    _last_move_time = now();
-
-    if (!send_move_command(goal_handle->get_goal()->command.position,
-			   goal_handle->get_goal()->command.max_effort))
-    {
-	auto	result = std::make_unique<gripper_command_t::Result>();
-	result->position     = actual_position(_present_pos);
-	result->effort	     = 0.0;
-	result->stalled	     = false;
-	result->reached_goal = false;
-	goal_handle->abort(std::move(result));
-
-	RCLCPP_ERROR_STREAM(get_logger(), "goal ABORTED");
-	return;
-    }
-
     _current_goal_handle = goal_handle;
+
+  // Send a move command to the gripper.
+    _goal_r_pr = send_move_command(
+		     goal_handle->get_goal()->command.position, _velocity,
+		     goal_handle->get_goal()->command.max_effort);
 }
 
 void
 CModelController::cmodel_status_cb(const cmodel_status_cp& status)
 {
-  // Find a dynamixel state with my motor ID.
-    const auto	state = std::find_if(states->dynamixel_state.begin(),
-				     states->dynamixel_state.end(),
-				     [motor_id=_motor_id](const auto& state)
-				     { return state.id == motor_id; });
-    if (state == states->dynamixel_state.end())
+  // Keep the latest status for aborting previous goal.
+    _cmodel_status = status;
+
+  // Handle calibration process if not moving.
+    if (is_active(status) && !is_moving(status))
     {
-	RCLCPP_ERROR_STREAM(get_logger(),
-			    "no motors with ID[" << int(_motor_id)
-			    << "] found in incoming dynamixel state list!");
-	return;
+	if (_calibration_step == 1)
+	{
+	    RCLCPP_INFO_STREAM(get_logger(),
+			       "calibration step 1: start calibration");
+	    _calibration_step = 2;
+	    send_raw_move_command(0, 64, 1);	// full-open
+	}
+	else if (_calibration_step == 2)
+	{
+	    using namespace	std::chrono_literals;
+
+	    _max_gap_counts = status->g_po;	// record at full-open
+	    RCLCPP_INFO_STREAM(get_logger(), "calibration step 2: gap["
+			       << _max_gap_counts << "]@full-open");
+	    _calibration_step = 3;
+	    send_raw_move_command(255, 64, 1);	// full-close
+	    rclcpp::sleep_for(2s);
+	}
+	else if (_calibration_step == 3)
+	{
+	    _min_gap_counts = status->g_po;	// record at full-close
+	    RCLCPP_INFO_STREAM(get_logger(), "calibration step 3: gap["
+			       << _min_gap_counts << "]@full-close");
+	    _calibration_step = 1;
+	    send_raw_move_command(0, 64, 1);	// full-open
+	    RCLCPP_INFO_STREAM(get_logger(), "calibrated to ["
+			       << _min_gap_counts << ", "
+			       << _max_gap_counts << ']');
+	}
     }
 
-  // Keep present position of Dynamixel.
-    _present_pos = state->present_position;
+    if (_calibration_step != 0)
+	return;
 
-  // Publish joinst state.
-    const auto	current_time = now();
+  // Publish joint states of the gripper.
     auto	joint_state = std::make_unique<joint_state_t>();
-    joint_state->header.stamp = current_time;
-    joint_state->name.push_back(state->name + "_finger_joint");
-    joint_state->position.push_back(actual_position(state->present_position));
+    joint_state->header.stamp = now();
+    joint_state->name.push_back(_joint_name);
+    joint_state->position.push_back(actual_position(status));
     joint_state->velocity.push_back(0.0);
-    joint_state->effort.push_back(actual_effort(state->present_current));
+    joint_state->effort.push_back(actual_effort(status));
     _joint_state_pub->publish(std::move(joint_state));
 
   // Check if the current goal is active.
@@ -296,40 +329,39 @@ CModelController::cmodel_status_cb(const cmodel_status_cp& status)
 
     const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
 
-  // Check if the current goal is requested to be cancelled.
-    if (_current_goal_handle->is_canceling())
+    auto	result = std::make_unique<gripper_command_t::Result>();
+    result->position     = actual_position(status);
+    result->effort	 = actual_effort(status);
+    result->stalled	 = stalled(status);
+    result->reached_goal = reached_goal(status);
+
+    if (error(status))	// Check if any error occured in the driver.
     {
-	auto	result = std::make_unique<gripper_command_t::Result>();
-	result->stalled = false;
+	_current_goal_handle->abort(std::move(result));
+	_current_goal_handle = nullptr;
+
+	RCLCPP_ERROR_STREAM(get_logger(), "goal ABORTED[error code:"
+			    << error(status) << ']');
+	return;
+    }
+    else if (_current_goal_handle->is_canceling())
+    {
 	_current_goal_handle->canceled(std::move(result));
 	_current_goal_handle = nullptr;
 
 	RCLCPP_WARN_STREAM(get_logger(), "goal CANCELED");
 	return;
     }
-
-    if (is_moving(state->present_velocity))
-	_last_move_time = current_time;
-    else if (reached_goal(state->present_position, state->present_velocity))
+    else if (result->reached_goal)
     {
-	auto	result = std::make_unique<gripper_command_t::Result>();
-	result->position     = actual_position(state->present_position);
-	result->effort	     = actual_effort(state->present_current);
-	result->stalled	     = stalled(state->present_velocity);
-	result->reached_goal = true;
 	_current_goal_handle->succeed(std::move(result));
 	_current_goal_handle = nullptr;
 
 	RCLCPP_INFO_STREAM(get_logger(), "goal SUCCEEDED[reached goal]");
 	return;
     }
-    else if (stalled(state->present_velocity))
+    else if (result->stalled)
     {
-	auto	result = std::make_unique<gripper_command_t::Result>();
-	result->position     = actual_position(state->present_position);
-	result->effort	     = actual_effort(state->present_current);
-	result->stalled	     = true;
-	result->reached_goal = false;
 	_current_goal_handle->succeed(std::move(result));
 	_current_goal_handle = nullptr;
 
@@ -339,12 +371,17 @@ CModelController::cmodel_status_cb(const cmodel_status_cp& status)
 
   // Publish speed and filtered current as a feedback.
     auto	feedback = std::make_unique<gripper_command_t::Feedback>();
-    feedback->position	   = actual_position(state->present_position);
-    feedback->effort	   = actual_effort(state->present_current);
-    feedback->stalled	   = stalled(state->present_velocity);
-    feedback->reached_goal = reached_goal(state->present_position,
-					  state->present_velocity);
+    feedback->position	   = result->position;
+    feedback->effort	   = result->effort;
+    feedback->stalled	   = result->stalled;
+    feedback->reached_goal = result->reached_goal;
     _current_goal_handle->publish_feedback(std::move(feedback));
+}
+
+void
+CModelController::calibrate()
+{
+    _calibration_step = 1;
 }
 
 int
@@ -403,6 +440,12 @@ bool
 CModelController::reached_goal(const cmodel_status_cp& status) const
 {
     return status->g_obj == 3 && abs(status->g_po - _goal_r_pr) <= 1;
+}
+
+bool
+CModelController::error(const cmodel_status_cp& status) const
+{
+    return status->g_flt;
 }
 
 bool
