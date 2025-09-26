@@ -41,10 +41,10 @@
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <control_msgs/action/gripper_command.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
-#include <aist_robotiq_msgs/msg/cmodel_status.hpp>
-#include <aist_robotiq_msgs/msg/cmodel_command.hpp>
+#include <aist_robotiq_msgs/msg/c_model_status.hpp>
+#include <aist_robotiq_msgs/msg/c_model_command.hpp>
 #include <aist_robotiq_msgs/srv/set_velocity.hpp>
-#include <ddynamic_reconfigure2/ddynamic_reconfigure.hpp>
+#include <ddynamic_reconfigure2/ddynamic_reconfigure2.hpp>
 
 namespace aist_robotiq
 {
@@ -67,7 +67,7 @@ class CModelController : public rclcpp::Node
   private:
     using cmodel_status_t   = aist_robotiq_msgs::msg::CModelStatus;
     using cmodel_status_cp  = cmodel_status_t::UniquePtr;
-    using cmodel_command_t  = aist_robotiq_msgs::srv::CModelCommand;
+    using cmodel_command_t  = aist_robotiq_msgs::msg::CModelCommand;
     using joint_state_t	    = sensor_msgs::msg::JointState;
     using gripper_command_t = control_msgs::action::GripperCommand;
     using goal_cp	    = std::shared_ptr<const gripper_command_t::Goal>;
@@ -97,20 +97,21 @@ class CModelController : public rclcpp::Node
     cancel_response_t
 		cancel_cb(const goal_handle_p)				;
     void	handle_accepted_cb(const goal_handle_p goal_handle)	;
-    void	dynamixel_states_cb(const dynamixel_states_cp& states)	;
+    void	cmodel_status_cb(const cmodel_status_cp& status)	;
 
-    bool	send_move_command(double position,
-				  double max_effort)		const	;
-    bool	send_dxl_command(const std::string& addr_name,
-				 int32_t value)			const	;
+    int		send_move_command(double position, double velocity,
+				  double max_effort)		 const	;
+    void	send_raw_move_command(int pos, int vel, int eff) const	;
 
-    double	actual_position(int pos)			const	;
-    double	actual_effort(int cur)				const	;
-    bool	is_moving(int vel)				const	;
-    bool	reached_goal(int pos, int vel)			const	;
-    bool	stalled(int vel)				const	;
-    int		goal_pos(double position)			const	;
-    int		goal_cur(double max_effort)			const	;
+    double	actual_position(const cmodel_status_cp& status)	const	;
+    double	actual_effort(const cmodel_status_cp& status)	const	;
+    bool	stalled(const cmodel_status_cp& status)		const	;
+    bool	reached_goal(const cmodel_status_cp& status)	const	;
+    bool	is_active(const cmodel_status_cp& status)	const	;
+    bool	is_moving(const cmodel_status_cp& status)	const	;
+    double	position_per_tick()				const	;
+    double	velocity_per_tick()				const	;
+    double	effort_per_tick()				const	;
 
   private:
   // Read-only parameters
@@ -121,6 +122,11 @@ class CModelController : public rclcpp::Node
     const double				_min_effort;
     const double				_max_effort;
     const std::string				_joint_name;
+
+  // Position parameters to be calibrated
+    int						_min_gap_counts;
+    int						_max_gap_counts;
+    int						_calibration_step;
 
   // Publisher for JointState
     const publisher_p<joint_state_t>		_joint_state_pub;
@@ -137,15 +143,10 @@ class CModelController : public rclcpp::Node
     const callback_group_p			_cmodel_status_cbg;
     const subscription_p<cmodel_status_t>	_cmodel_status_sub;
 
-    const double				_position_per_tick;
-    const double				_effort_per_tick;
-    const rclcpp::Duration			_stall_timeout;
-
   // Gripper command action stuffs
-    const action_server_p<gripper_command_t>	_command_srv;
+    const action_server_p<gripper_command_t>	_gripper_command_srv;
     goal_handle_p				_current_goal_handle;
     std::mutex					_current_goal_mtx;
-    rclcpp::Time				_last_move_time;
 };
 
 CModelController::CModelController(const rclcpp::NodeOptions& options)
@@ -164,7 +165,13 @@ CModelController::CModelController(const rclcpp::NodeOptions& options)
 		     this, "max_effort", 100.0)),
      _joint_name(ddynamic_reconfigure2::declare_read_only_parameter(
 		     this, "joint_name", "finger_joint")),
+
+     _min_gap_counts(255),
+     _max_gap_counts(0),
+     _calibration_step(0),
+
      _joint_state_pub(create_publisher<joint_state_t>("/joint_states", 1)),
+
      _velocity(0.5*(_min_velocity + _max_velocity)),
      _set_velocity_srv(create_service<set_velocity_t>(
 			   "~/set_velocity",
@@ -172,8 +179,10 @@ CModelController::CModelController(const rclcpp::NodeOptions& options)
 				     this,
 				     std::placeholders::_1,
 				     std::placeholders::_2))),
+
      _cmodel_command_pub(create_publisher<cmodel_command_t>("~/command", 1)),
      _goal_r_pr(0),
+
      _cmodel_status_cbg(create_callback_group(
 			    rclcpp::CallbackGroupType::MutuallyExclusive)),
      _cmodel_status_sub(create_subscription<cmodel_status_t>(
@@ -181,39 +190,20 @@ CModelController::CModelController(const rclcpp::NodeOptions& options)
 			    std::bind(&CModelController::cmodel_status_cb,
 				      this, std::placeholders::_1),
 			    create_subscription_options(_cmodel_status_cbg))),
-     _position_per_tick((_max_position - _min_position)/(_max_pos - _min_pos)),
-     _effort_per_tick(_max_effort/_max_cur),
-     _stall_timeout(std::chrono::duration<double>(
-			ddynamic_reconfigure2::declare_read_only_parameter(
-			    this, "stall_timeout", 1.0))),
-     _dxl_states_sub(create_subscription<dynamixel_states_t>(
-			 _driver_ns + "/dynamixel_state", 1,
-			 std::bind(
-			     &CModelController::dynamixel_states_cb,
-			     this, std::placeholders::_1))),
-     _dxl_command_cbg(),
-     _dxl_command(create_client<dynamixel_command_t>(
-		      _driver_ns + "/dynamixel_command",
-		      rclcpp::ServicesQoS(), _dxl_command_cbg)),
-     _present_pos(_min_pos),
-     _command_srv(rclcpp_action::create_server<gripper_command_t>(
-		      this, "~/gripper_cmd",
-		      std::bind(&CModelController::goal_cb, this,
-				std::placeholders::_1, std::placeholders::_2),
-		      std::bind(&CModelController::cancel_cb, this,
-				std::placeholders::_1),
-		      std::bind(&CModelController::
-				handle_accepted_cb, this,
-				std::placeholders::_1))),
+
+     _gripper_command_srv(rclcpp_action::create_server<gripper_command_t>(
+			      this, "~/gripper_cmd",
+			      std::bind(&CModelController::goal_cb, this,
+					std::placeholders::_1,
+					std::placeholders::_2),
+			      std::bind(&CModelController::cancel_cb, this,
+					std::placeholders::_1),
+			      std::bind(&CModelController::
+					handle_accepted_cb, this,
+					std::placeholders::_1))),
      _current_goal_handle(nullptr),
-     _current_goal_mtx(),
-     _last_move_time(now())
+     _current_goal_mtx()
 {
-    using namespace	std::chrono_literals;
-
-    if (!_dxl_command->wait_for_service(1s))
-	throw std::runtime_error("service not available");
-
     RCLCPP_INFO_STREAM(get_logger(), "controller started");
 }
 
@@ -272,7 +262,7 @@ CModelController::handle_accepted_cb(const goal_handle_p goal_handle)
 }
 
 void
-CModelController::dynamixel_states_cb(const dynamixel_states_cp& states)
+CModelController::cmodel_status_cb(const cmodel_status_cp& status)
 {
   // Find a dynamixel state with my motor ID.
     const auto	state = std::find_if(states->dynamixel_state.begin(),
@@ -357,96 +347,93 @@ CModelController::dynamixel_states_cb(const dynamixel_states_cp& states)
     _current_goal_handle->publish_feedback(std::move(feedback));
 }
 
-bool
+int
 CModelController::send_move_command(double position,
-					   double max_effort) const
+				    double velocity, double effort) const
 {
-    const auto	pos = goal_pos(position);
-    auto	cur = goal_cur(max_effort);
-    if (std::abs(cur) < _min_cur)
-	cur = (pos > _present_pos ? _min_cur : -_min_cur);
-
-    return send_dxl_command("Goal_Current",  cur) &&
-	   send_dxl_command("Goal_Position", pos);
+    const auto	pos = std::clamp(int((position - _min_position) /
+				     position_per_tick()) + _min_gap_counts,
+				 _max_gap_counts, _min_gap_counts);
+    const auto	vel = std::clamp(int((velocity - _min_velocity) /
+				     velocity_per_tick()),
+				 0, 255);
+    const auto	eff = std::clamp(int((effort - _min_effort)/effort_per_tick()),
+				 0, 255);
+    send_raw_move_command(pos, vel, eff);
+    return pos;
 }
 
-bool
-CModelController::send_dxl_command(const std::string& addr_name,
-					  int32_t value) const
+void
+CModelController::send_raw_move_command(int pos, int vel, int eff) const
 {
-    using namespace	std::chrono_literals;
-
-    RCLCPP_DEBUG_STREAM(get_logger(), "send_dxl_command(): addr_name="
-			<< addr_name << ", value=" << value);
-
-    auto	req = std::make_unique<dynamixel_command_t::Request>();
-    req->id	   = _motor_id;
-    req->addr_name = addr_name;
-    req->value     = value;
-    auto	future = _dxl_command->async_send_request(std::move(req));
-
-    if (future.wait_for(1s) != std::future_status::ready ||
-	!future.get()->comm_result)
-    {
-	RCLCPP_ERROR_STREAM(get_logger(),
-			    "no service response or communication error");
-	return false;
-    }
-
-    RCLCPP_DEBUG_STREAM(get_logger(), "send_dxl_command(): received response");
-    return true;
+    auto	cmodel_command = std::make_unique<cmodel_command_t>();
+    cmodel_command->r_act = 1;
+    cmodel_command->r_gto = 1;
+    cmodel_command->r_pr  = pos;
+    cmodel_command->r_sp  = vel;
+    cmodel_command->r_fr  = eff;
+    _cmodel_command_pub->publish(std::move(cmodel_command));
 }
 
 double
-CModelController::actual_position(int pos) const
+CModelController::actual_position(const cmodel_status_cp& status) const
 {
-    return (pos - _min_pos) * _position_per_tick + _min_position;
+    return (status->g_po - _min_gap_counts) * position_per_tick()
+	 + _min_position;
 }
 
 double
-CModelController::actual_effort(int cur) const
+CModelController::actual_effort(const cmodel_status_cp& status) const
 {
-    return cur * _effort_per_tick;
+    return status->g_cou * effort_per_tick() + _min_effort;
 }
 
 bool
-CModelController::is_moving(int vel) const
+CModelController::stalled(const cmodel_status_cp& status) const
 {
-    return vel != 0;
+  // After the goal accepted in _goal_cb(), status->g_pr does not
+  // correctly reflects the requested position if cmodel_status_cb() is
+  // called before send_move_command(). Thus we have to use _goal_r_pr
+  // instead of status->g_pr.
+    return (status->g_obj == 1 && status->g_po > _goal_r_pr + 1) ||
+	   (status->g_obj == 2 && status->g_po + 1 < _goal_r_pr);
 }
 
 bool
-CModelController::reached_goal(int pos, int vel) const
+CModelController::reached_goal(const cmodel_status_cp& status) const
 {
-    RCLCPP_DEBUG_STREAM(get_logger(), "*** pos=" << pos << ", goal_pos="
-			<< goal_pos(_current_goal_handle
-				    ->get_goal()->command.position)
-			<< ", vel=" << vel);
-    return !is_moving(vel) &&
-	   std::abs(pos - goal_pos(_current_goal_handle
-				   ->get_goal()->command.position)) <= 1;
+    return status->g_obj == 3 && abs(status->g_po - _goal_r_pr) <= 1;
 }
 
 bool
-CModelController::stalled(int vel) const
+CModelController::is_active(const cmodel_status_cp& status) const
 {
-    return !is_moving(vel) && now() - _last_move_time > _stall_timeout;
+    return status->g_sta == 3 && status->g_act == 1;
 }
 
-int
-CModelController::goal_pos(double position) const
+bool
+CModelController::is_moving(const cmodel_status_cp& status) const
 {
-    return std::clamp(int((position - _min_position) / _position_per_tick
-			  + _min_pos),
-		      _max_pos, _min_pos);
+    return status->g_gto == 1 && status->g_obj == 0;
 }
 
-int
-CModelController::goal_cur(double max_effort) const
+double
+CModelController::position_per_tick() const
 {
-    return std::clamp(int(max_effort / _effort_per_tick), -_max_cur, _max_cur);
+    return (_max_position - _min_position)/(_max_gap_counts - _min_gap_counts);
 }
 
+double
+CModelController::velocity_per_tick() const
+{
+    return (_max_velocity - _min_velocity)/255;
+}
+
+double
+CModelController::effort_per_tick() const
+{
+    return (_max_effort - _min_effort)/255;
+}
 }	// namespace aist_robotiq
 
 #include <rclcpp_components/register_node_macro.hpp>

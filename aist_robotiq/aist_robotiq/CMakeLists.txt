@@ -15,38 +15,28 @@ endif()
 #  dependencies  #
 ##################
 find_package(ament_cmake_auto REQUIRED)
-
-#find_package(gz_sim_vendor REQUIRED)
-find_package(ros_gz_sim REQUIRED)
-#find_package(gazebo6-dev REQUIRED)
-#find_package(gz_plugin_vendor REQUIRED)
-#find_package(ros-gz-plugin REQUIRED)
-
-get_cmake_property(_variableNames CACHE_VARIABLES)
-list (SORT _variableNames)
-foreach (_variableName ${_variableNames})
-    message(STATUS "${_variableName}=${${_variableName}}")
-endforeach()
-
-include_directories(
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-  $<INSTALL_INTERFACE:include>
-)
-
-
-link_directories(${ros_gz_sim_LIBRARY_DIRS})
-include_directories(${ros_gz_sim_INCLUDE_DIRS})
+ament_auto_find_build_dependencies()
 
 ###################################
 #  component: libaist_robotiq.so  #
 ###################################
-#add_library(
+ament_auto_add_library(
+  ${PROJECT_NAME} SHARED
+    src/cmodel_controller.cpp
+)
+
+rclcpp_components_register_nodes(
+  ${PROJECT_NAME}
+    PLUGIN "${PROJECT_NAME}::cmodel_controller"
+    EXECUTABLE cmodel_controller_node
+)
+
+#ament_auto_add_library(
 #  ${PROJECT_NAME} SHARED
 #    src/ft300_driver.cpp
 #)
 
-#rclcpp_components_register_node(
+#rclcpp_components_register_nodes(
 #  ${PROJECT_NAME}
 #    PLUGIN "${PROJECT_NAME}::ft300_driver"
 #    EXECUTABLE ft300_driver_node
@@ -71,9 +61,9 @@ install(
     lib/${PROJECT_NAME}
 )
 
-############
-##  test  ##
-############
+##########
+#  test  #
+##########
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
 
