@@ -134,9 +134,9 @@ SuctionToolController::SuctionToolController(
      _joint_name(ddynamic_reconfigure2::declare_read_only_parameter(
 		    this, "joint_name", "")),
      _min_pos(ddynamic_reconfigure2::declare_read_only_parameter(
-		  this, "min_position_count", 2300)),
+		  this, "min_position", 0.000)),
      _max_pos(ddynamic_reconfigure2::declare_read_only_parameter(
-		  this, "max_position_count", 2050)),
+		  this, "max_position", 0.015)),
      _cur_pos(_min_pos),
      _suctioned(false),
      _io_states_sub(create_subscription<io_states_t>(
@@ -163,7 +163,11 @@ SuctionToolController::SuctionToolController(
      _current_goal_mtx(),
      _start_time(now())
 {
-    RCLCPP_INFO_STREAM(get_logger(), "controller started");
+    RCLCPP_INFO_STREAM(get_logger(), "controller started: driver_ns="
+		       << _driver_ns << ", in_port=" << _in_port
+		       << ", blow_port=" << _blow_port
+		       << ", suck_port=" << _suck_port
+		       << ", joint_name=" << _joint_name);
 }
 
 SuctionToolController::goal_response_t
@@ -179,7 +183,7 @@ SuctionToolController::goal_cb(const goal_uuid_t&, const goal_cp goal)
 SuctionToolController::cancel_response_t
 SuctionToolController::cancel_cb(const goal_handle_p)
 {
-    RCLCPP_DEBUG_STREAM(get_logger(), "accepted request for cancelling goal");
+    RCLCPP_WARN_STREAM(get_logger(), "accepted request for cancelling goal");
     return cancel_response_t::ACCEPT;
 }
 
@@ -266,9 +270,11 @@ SuctionToolController::io_states_cb(const io_states_cp& states)
 
     const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
 
-  // Check if the current goal is requested to be cancelled.
+  // Check if the current goal is requested to be canceled.
     if (_current_goal_handle->is_canceling())
     {
+	set_out_port(_blow_port, false);	// If blowing, stop it.
+
 	auto	result = std::make_unique<suction_tool_command_t::Result>();
 	result->suctioned = _suctioned;
 	_current_goal_handle->canceled(std::move(result));
@@ -278,17 +284,25 @@ SuctionToolController::io_states_cb(const io_states_cp& states)
 	return;
     }
 
+  // Update start time if the actual state is differenct form the desired one.
     if (_suctioned != _current_goal_handle->get_goal()->suck)
 	_start_time = current_time;
-    else if (current_time >
-	     _start_time + _current_goal_handle->get_goal()->min_period)
+
+  // If the situation where the actual state coincides with the desired one
+  // continues for the specified period, make the current goal succeeded.
+    if (current_time >=
+	_start_time + _current_goal_handle->get_goal()->min_period)
     {
+	set_out_port(_blow_port, false);	// If blowing, stop it.
+
 	auto	result = std::make_unique<suction_tool_command_t::Result>();
 	result->suctioned = _suctioned;
 	_current_goal_handle->succeed(std::move(result));
 	_current_goal_handle = nullptr;
 
-	RCLCPP_INFO_STREAM(get_logger(), "goal SUCCEEDED[stalled]");
+	RCLCPP_INFO_STREAM(get_logger(), "goal SUCCEEDED["
+			   << (_suctioned ? "suctioned" : "not suctioned")
+			   << ']');
 	return;
     }
 

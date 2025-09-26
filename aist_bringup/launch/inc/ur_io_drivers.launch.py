@@ -34,7 +34,7 @@ def launch_setup(context):
         tool_names.append(tool_name)
         din_ports.append(str(tool_props.get('digital_in_port', -1)))
         dout_ports_suck.append(str(tool_props.get('digital_out_port_suck',-1)))
-        dout_ports_blow.append(str(tool_props.get('digital_out_port_suck',-1)))
+        dout_ports_blow.append(str(tool_props.get('digital_out_port_blow',-1)))
         joint_names.append(tool_props.get('joint_name', ''))
 
     return [

@@ -78,9 +78,9 @@ def launch_setup(context):
                 plugin=plugin,
                 parameters=[
                     {'driver_ns':             LaunchConfiguration('driver_ns'),
-                     'digital_in_port':       digital_in_port,
-                     'digital_out_port_suck': digital_out_port_suck,
-                     'digital_out_port_blow': digital_out_port_blow,
+                     'digital_in_port':       int(din_port),
+                     'digital_out_port_suck': int(dout_port_suck),
+                     'digital_out_port_blow': int(dout_port_blow),
                      'joint_name':            joint_name}
                 ],
                 extra_arguments=[{'use_intra_process_comms': True}]))

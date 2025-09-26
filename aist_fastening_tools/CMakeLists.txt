@@ -54,7 +54,6 @@ install(
   PROGRAMS
     scripts/precision_tool_test.py
     scripts/screw_tool_test.py
-    scripts/suction_tool_controller.py
     scripts/suction_tool_test.py
   DESTINATION
     lib/${PROJECT_NAME}
