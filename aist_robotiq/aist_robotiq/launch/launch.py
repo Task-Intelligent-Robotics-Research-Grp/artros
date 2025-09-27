@@ -63,22 +63,32 @@ def launch_setup(context):
                      EqualsSubstitution(
                          LaunchConfiguration('device'), 'robotiq_epick'),
                          'epick_controller.py', 'cmodel_controller.py')
-    return [Node(name=[prefix, 'driver'],
-                 package='aist_robotiq',
-                 executable=['cmodel_', LaunchConfiguration('driver'),
-                             '_driver.py'],
-                 remappings=[('/status',  [prefix, 'controller/status']),
-                             ('/command', [prefix, 'controller/command'])],
-                 output='screen',
-                 arguments=[LaunchConfiguration('ip_or_dev'),
-                            LaunchConfiguration('slave_id')]),
-            Node(name=[prefix, 'controller'],
-                 package='aist_robotiq',
-                 executable=controller,
-                 parameters=[param_file],
-                 output='screen',
-                 arguments=['--ros-args', '--log-level',
-                            LaunchConfiguration('log_level')])]
+    return [
+        Node(name=[prefix, 'driver'],
+             package='aist_robotiq',
+             executable=['cmodel_', LaunchConfiguration('driver'),
+                         '_driver.py'],
+             remappings=[('/status',  [prefix, 'controller/status']),
+                         ('/command', [prefix, 'controller/command'])],
+             output='screen',
+             arguments=[LaunchConfiguration('ip_or_dev'),
+                        LaunchConfiguration('slave_id')]),
+        Node(name=[prefix, 'container'],
+             package='rclcpp_components',
+             executable='component_container_mt',
+             output=LaunchConfiguration('output'),
+             arguments=['--ros-args', '--log-level',
+                        LaunchConfiguration('log_level')]),
+        LoadComposableNodes(
+            target_container=[prefix, 'container'],
+            composable_node_descriptions=[
+                ComposableNode(
+                    name=[prefix, 'controller'],
+                    package='aist_robotiq',
+                    plugin='aist_robotiq::CModelController',
+                    parameters=[param_file],
+                    extra_arguments=[{'use_intra_process_comms': True}])])
+    ]
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \
