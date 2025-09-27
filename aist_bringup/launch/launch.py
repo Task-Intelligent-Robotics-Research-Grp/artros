@@ -57,13 +57,13 @@ def launch_setup(context):
                                   'extra_drivers.launch.py']),
             launch_arguments=[('config', LaunchConfiguration('config'))],
             condition=UnlessCondition(LaunchConfiguration('sim'))),
-        IncludeLaunchDescription(
-            PathJoinSubstitution(
-                [FindPackageShare([LaunchConfiguration('config'),
-                                   '_moveit_config']),
-                 'launch', 'move_group.launch.py']),
-            launch_arguments=[('sim', LaunchConfiguration('sim')),
-                              ('vis', LaunchConfiguration('vis'))])
+        # IncludeLaunchDescription(
+        #     PathJoinSubstitution(
+        #         [FindPackageShare([LaunchConfiguration('config'),
+        #                            '_moveit_config']),
+        #          'launch', 'move_group.launch.py']),
+        #     launch_arguments=[('sim', LaunchConfiguration('sim')),
+        #                       ('vis', LaunchConfiguration('vis'))])
     ]
 
 def generate_launch_description():

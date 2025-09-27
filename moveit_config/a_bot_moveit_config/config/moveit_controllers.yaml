@@ -4,10 +4,10 @@ moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControll
 
 moveit_simple_controller_manager:
   controller_names:
-    - a_bot_scaled_joint_trajectory_controller
+    - a_bot/scaled_joint_trajectory_controller
     - a_bot_gripper_controller
 
-  a_bot_scaled_joint_trajectory_controller:
+  a_bot/scaled_joint_trajectory_controller:
     action_ns: follow_joint_trajectory
     type: FollowJointTrajectory
     default: True

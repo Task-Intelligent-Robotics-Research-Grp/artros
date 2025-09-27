@@ -10,7 +10,7 @@ from launch.substitutions              import (Command, FindExecutable,
                                                PathJoinSubstitution,
                                                IfElseSubstitution)
 from launch.event_handlers             import OnProcessStart
-from launch_ros.actions                import Node
+from launch_ros.actions                import Node, PushROSNamespace
 from launch_ros.substitutions          import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
 from aist_bringup.launch_common        import (declare_launch_arguments,
@@ -56,6 +56,7 @@ def launch_setup(context):
         if template is not None:
             tf_prefix = arm_name + '_'
             SetLaunchConfiguration('tf_prefix', tf_prefix).execute(context)
+            SetLaunchConfiguration('namespace', arm_name).execute(context)
             controllers_files.append(
                 instantiate_file(context, template,
                                  '/tmp/' + tf_prefix + 'controllers.yaml'))
@@ -107,7 +108,14 @@ def launch_setup(context):
                     parameters=[{'use_sim_time': LaunchConfiguration('sim')},
                                 {'robot_description': robot_description}],
                     output='screen')
-    return [
+    actions = [
+        Node(package='joint_state_publisher',
+             executable='joint_state_publisher',
+             parameters=[{'rate': LaunchConfiguration('update_rate'),
+                          'source_list':
+                          [robot_name + '/joint_states' \
+                           for robot_name in config['arms']]}],
+             output='screen'),
         rsp_node,
         RegisterEventHandler(
             OnProcessStart(
@@ -117,14 +125,15 @@ def launch_setup(context):
                          executable='create',
                          arguments=['-topic', 'robot_description'],
                          output='screen'),
-                    IncludeLaunchDescription(
-                        PathJoinSubstitution([FindPackageShare('ros_gz_sim'),
-                                              'launch', 'gz_sim.launch.py']),
-                        launch_arguments=[
-                            ('gz_args',
-                             [' -r -v 4 empty.sdf',
-                              ' --physics-engine',
-                              ' gz-physics-bullet-featherstone-plugin'])])]),
+                    # IncludeLaunchDescription(
+                    #     PathJoinSubstitution([FindPackageShare('ros_gz_sim'),
+                    #                           'launch', 'gz_sim.launch.py']),
+                    #     launch_arguments=[
+                    #         ('gz_args',
+                    #          [' -r -v 4 empty.sdf',
+                    #           ' --physics-engine',
+                    #           ' gz-physics-bullet-featherstone-plugin'])])
+                ]),
             condition=IfCondition(LaunchConfiguration('sim'))),
         RegisterEventHandler(
             OnProcessStart(
@@ -134,14 +143,44 @@ def launch_setup(context):
                          executable='ros2_control_node',
                          parameters=controllers_files,
                          output='screen')]),
-            condition=UnlessCondition(LaunchConfiguration('sim'))),
-        Node(package='controller_manager',
-             executable='spawner',
-             arguments=['--switch-timeout', '30'] + active_controllers),
-        Node(package='controller_manager',
-             executable='spawner',
-             arguments=['--switch-timeout', '30',
-                        '--inactive'] + inactive_controllers)]
+            condition=UnlessCondition(LaunchConfiguration('sim')))
+        ]
+
+    for arm_name, arm_config in config['arms'].items():
+        active_controllers   = [arm_config['initial_controller']] \
+                             + arm_config.get('consistent_controllers', [])
+        inactive_controllers = arm_config.get('inactive_controllers', [])
+        if not sim:
+            active_controllers \
+                += arm_config.get('extra_consistent_controllers', [])
+            inactive_controllers \
+                += arm_config.get('extra_inactive_controllers', [])
+        actions.append(
+            GroupAction(
+                actions=[
+                    PushROSNamespace(arm_name),
+                    IncludeLaunchDescription(
+                        PathJoinSubstitution([FindPackageShare('ros_gz_sim'),
+                                              'launch', 'gz_sim.launch.py']),
+                        launch_arguments=[
+                            ('gz_args',
+                             [' -r -v 4 empty.sdf',
+                              ' --physics-engine',
+                              ' gz-physics-bullet-featherstone-plugin'])]),
+                    Node(package='controller_manager',
+                         executable='spawner',
+                         arguments=[
+                             '-c', 'controller_manager',
+                             '--switch-timeout', '30'] + active_controllers),
+                    Node(package='controller_manager',
+                         executable='spawner',
+                         arguments=[
+                             '-c', 'controller_manager',
+                             '--switch-timeout', '30',
+                             '--inactive'] + inactive_controllers)
+                ]))
+
+    return actions
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \
