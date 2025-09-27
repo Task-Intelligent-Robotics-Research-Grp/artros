@@ -288,7 +288,7 @@
       <!-- 	<parameters>/tmp/b_bot_gripper_controllers.yaml</parameters> -->
       <!-- </plugin> -->
 
-      <!-- Simulate cameras -->
+      <!-- simulate cameras -->
       <!-- <plugin filename="gz-sim-sensors-system" -->
       <!-- 	      name="gz::sim::systems::Sensors"> -->
       <!-- 	<render_engine>ogre2</render_engine> -->
