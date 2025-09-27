@@ -95,15 +95,6 @@
 
     <!-- ros2_control settings for gazebo -->
     <xacro:if value="${sim}">
-      <plugin filename="gz_ros2_control-system"
-	      name="gz_ros2_control::GazeboSimROS2ControlPlugin">
-	<parameters>/tmp/${name}_controllers.yaml</parameters>
-	<ros>
-	  <namespace>${name}</namespace>
-	  <remapping>robot_description:=/robot_description</remapping>
-	</ros>
-      </plugin>
-
       <xacro:include filename="$(find ur_simulation_gz
 			       )/urdf/ur_gz.ros2_control.xacro"/>
       <xacro:ur_ros2_control
@@ -112,6 +103,17 @@
 	  transmission_hw_interface="${transmission_hw_interface}"
 	  initial_positions="${initial_positions}">
       </xacro:ur_ros2_control>
+
+      <gazebo>
+	<plugin filename="gz_ros2_control-system"
+		name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+	  <parameters>/tmp/${name}_controllers.yaml</parameters>
+	  <ros>
+	    <namespace>${name}</namespace>
+	    <remapping>robot_description:=/robot_description</remapping>
+	  </ros>
+	</plugin>
+      </gazebo>
     </xacro:if>
 
   </xacro:macro>

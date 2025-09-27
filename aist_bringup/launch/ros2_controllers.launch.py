@@ -56,7 +56,6 @@ def launch_setup(context):
         if template is not None:
             tf_prefix = arm_name + '_'
             SetLaunchConfiguration('tf_prefix', tf_prefix).execute(context)
-            SetLaunchConfiguration('namespace', arm_name).execute(context)
             controllers_files.append(
                 instantiate_file(context, template,
                                  '/tmp/' + tf_prefix + 'controllers.yaml'))
@@ -125,14 +124,14 @@ def launch_setup(context):
                          executable='create',
                          arguments=['-topic', 'robot_description'],
                          output='screen'),
-                    # IncludeLaunchDescription(
-                    #     PathJoinSubstitution([FindPackageShare('ros_gz_sim'),
-                    #                           'launch', 'gz_sim.launch.py']),
-                    #     launch_arguments=[
-                    #         ('gz_args',
-                    #          [' -r -v 4 empty.sdf',
-                    #           ' --physics-engine',
-                    #           ' gz-physics-bullet-featherstone-plugin'])])
+                    IncludeLaunchDescription(
+                        PathJoinSubstitution([FindPackageShare('ros_gz_sim'),
+                                              'launch', 'gz_sim.launch.py']),
+                        launch_arguments=[
+                            ('gz_args',
+                             [' -r -v 4 empty.sdf',
+                              ' --physics-engine',
+                              ' gz-physics-bullet-featherstone-plugin'])])
                 ]),
             condition=IfCondition(LaunchConfiguration('sim'))),
         RegisterEventHandler(
@@ -159,14 +158,6 @@ def launch_setup(context):
             GroupAction(
                 actions=[
                     PushROSNamespace(arm_name),
-                    IncludeLaunchDescription(
-                        PathJoinSubstitution([FindPackageShare('ros_gz_sim'),
-                                              'launch', 'gz_sim.launch.py']),
-                        launch_arguments=[
-                            ('gz_args',
-                             [' -r -v 4 empty.sdf',
-                              ' --physics-engine',
-                              ' gz-physics-bullet-featherstone-plugin'])]),
                     Node(package='controller_manager',
                          executable='spawner',
                          arguments=[
