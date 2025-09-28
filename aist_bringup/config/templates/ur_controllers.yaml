@@ -1,72 +1,72 @@
-controller_manager:
-  ros__parameters:
-    update_rate: $(var update_rate)
+/**:
+  controller_manager:
+    ros__parameters:
+      update_rate: $(var update_rate)  # Hz
 
-    joint_state_broadcaster:
-      type: joint_state_broadcaster/JointStateBroadcaster
+      joint_state_broadcaster:
+        type: joint_state_broadcaster/JointStateBroadcaster
 
-    $(var namespace)/io_and_status_controller:
-      type: ur_controllers/GPIOController
+      io_and_status_controller:
+        type: ur_controllers/GPIOController
 
-    $(var namespace)/speed_scaling_state_broadcaster:
-      type: ur_controllers/SpeedScalingStateBroadcaster
+      speed_scaling_state_broadcaster:
+        type: ur_controllers/SpeedScalingStateBroadcaster
 
-    $(var namespace)/force_torque_sensor_broadcaster:
-      type: force_torque_sensor_broadcaster/ForceTorqueSensorBroadcaster
+      force_torque_sensor_broadcaster:
+        type: force_torque_sensor_broadcaster/ForceTorqueSensorBroadcaster
 
-    $(var namespace)/joint_trajectory_controller:
-      type: joint_trajectory_controller/JointTrajectoryController
+      joint_trajectory_controller:
+        type: joint_trajectory_controller/JointTrajectoryController
 
-    $(var namespace)/scaled_joint_trajectory_controller:
-      type: ur_controllers/ScaledJointTrajectoryController
+      scaled_joint_trajectory_controller:
+        type: ur_controllers/ScaledJointTrajectoryController
 
-    $(var namespace)/forward_velocity_controller:
-      type: velocity_controllers/JointGroupVelocityController
+      forward_velocity_controller:
+        type: velocity_controllers/JointGroupVelocityController
 
-    $(var namespace)/forward_position_controller:
-      type: position_controllers/JointGroupPositionController
+      forward_position_controller:
+        type: position_controllers/JointGroupPositionController
 
-    $(var namespace)/force_mode_controller:
-      type: ur_controllers/ForceModeController
+      force_mode_controller:
+        type: ur_controllers/ForceModeController
 
-    $(var namespace)/freedrive_mode_controller:
-      type: ur_controllers/FreedriveModeController
+      freedrive_mode_controller:
+        type: ur_controllers/FreedriveModeController
 
-    $(var namespace)/passthrough_trajectory_controller:
-      type: ur_controllers/PassthroughTrajectoryController
+      passthrough_trajectory_controller:
+        type: ur_controllers/PassthroughTrajectoryController
 
-    $(var namespace)/tcp_pose_broadcaster:
-      type: pose_broadcaster/PoseBroadcaster
+      tcp_pose_broadcaster:
+        type: pose_broadcaster/PoseBroadcaster
 
-    $(var namespace)/ur_configuration_controller:
-      type: ur_controllers/URConfigurationController
+      ur_configuration_controller:
+        type: ur_controllers/URConfigurationController
 
-    $(var namespace)/tool_contact_controller:
-      type: ur_controllers/ToolContactController
+      tool_contact_controller:
+        type: ur_controllers/ToolContactController
 
-    $(var namespace)/cartesian_compliance_controller:
-      type: cartesian_compliance_controller/CartesianComplianceController
+      cartesian_compliance_controller:
+        type: cartesian_compliance_controller/CartesianComplianceController
 
-    $(var namespace)/cartesian_force_controller:
-      type: cartesian_force_controller/CartesianForceController
+      cartesian_force_controller:
+        type: cartesian_force_controller/CartesianForceController
 
-    $(var namespace)/cartesian_motion_controller:
-      type: cartesian_motion_controller/CartesianMotionController
+      cartesian_motion_controller:
+        type: cartesian_motion_controller/CartesianMotionController
 
-    $(var namespace)/motion_control_handle:
-      type: cartesian_controller_handles/MotionControlHandle
+      motion_control_handle:
+        type: cartesian_controller_handles/MotionControlHandle
 
-    # The way this is currently implemented upstream doesn't really work
-    # for us. When using position control, the robot will have a tracking
-    # error. However, limits will be enforced from the currently reported
-    # position, effectively limiting the possible step size using the joints'
-    # velocity limits. Until this is resolved, we will keep command limits
-    # non-enforced.
-    # Note: On Jazzy this is the default behavior, anyway. For Rolling
-    # / Kilted this defaults to true.
-    enforce_command_limits: false
+      # The way this is currently implemented upstream doesn't really work
+      # for us. When using position control, the robot will have a tracking
+      # error. However, limits will be enforced from the currently reported
+      # position, effectively limiting the possible step size using the joints'
+      # velocity limits. Until this is resolved, we will keep command limits
+      # non-enforced.
+      # Note: On Jazzy this is the default behavior, anyway. For Rolling
+      # / Kilted this defaults to true.
+      enforce_command_limits: false
 
-$(var namespace):
   speed_scaling_state_broadcaster:
     ros__parameters:
       state_publish_rate: 100.0
@@ -146,7 +146,7 @@ $(var namespace):
         $(var tf_prefix)wrist_1_joint: { trajectory: 0.2, goal: 0.1 }
         $(var tf_prefix)wrist_2_joint: { trajectory: 0.2, goal: 0.1 }
         $(var tf_prefix)wrist_3_joint: { trajectory: 0.2, goal: 0.1 }
-      speed_scaling_interface_name: speed_scaling/speed_scaling_factor
+      speed_scaling_interface_name: $(var speed_scaling_interface_name)
 
   passthrough_trajectory_controller:
     ros__parameters:

@@ -14,10 +14,6 @@ ARM_PROPS = {
                                          [FindPackageShare('aist_bringup'),
                                           'config', 'templates',
                                           'ur_controllers.yaml']),
-        'gz_controllers_template':   PathJoinSubstitution(
-                                         [FindPackageShare('aist_bringup'),
-                                          'config', 'templates',
-                                          'ur_gz_controllers.yaml']),
         'extra_drivers_launch_file': PathJoinSubstitution(
                                          [FindPackageShare('aist_bringup'),
                                           'launch', 'inc',
@@ -30,10 +26,6 @@ ARM_PROPS = {
                                          [FindPackageShare('aist_bringup'),
                                           'config', 'templates',
                                           'ur_controllers.yaml']),
-        'gz_controllers_template':   PathJoinSubstitution(
-                                         [FindPackageShare('aist_bringup'),
-                                          'config', 'templates',
-                                          'ur_gz_controllers.yaml']),
         'extra_drivers_launch_file': PathJoinSubstitution(
                                          [FindPackageShare('aist_bringup'),
                                           'launch', 'inc',

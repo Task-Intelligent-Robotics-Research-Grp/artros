@@ -282,9 +282,7 @@
       <!-- Simulate arms and grippers -->
       <!-- <plugin filename="gz_ros2_control-system" -->
       <!-- 	      name="gz_ros2_control::GazeboSimROS2ControlPlugin"> -->
-      <!-- 	<parameters>/tmp/a_bot_controllers.yaml</parameters> -->
       <!-- 	<parameters>/tmp/a_bot_gripper_controllers.yaml</parameters> -->
-      <!-- 	<parameters>/tmp/b_bot_controllers.yaml</parameters> -->
       <!-- 	<parameters>/tmp/b_bot_gripper_controllers.yaml</parameters> -->
       <!-- </plugin> -->
 

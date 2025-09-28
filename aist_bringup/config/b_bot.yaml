@@ -6,25 +6,25 @@ arms:
     initial_controller: scaled_joint_trajectory_controller
     consistent_controllers:
       - joint_state_broadcaster
-      - motion_control_handle
-    extra_consistent_controllers:
-      - force_torque_sensor_broadcaster
-      - io_and_status_controller
-      - speed_scaling_state_broadcaster
-      - tcp_pose_broadcaster
-      - ur_configuration_controller
-    inactive_controllers:
-      - joint_trajectory_controller
-      - forward_velocity_controller
-      - forward_position_controller
-      - cartesian_compliance_controller
-      - cartesian_force_controller
-      - cartesian_motion_controller
-    extra_inactive_controllers:
-      - force_mode_controller
-      - passthrough_trajectory_controller
-      - freedrive_mode_controller
-      - tool_contact_controller
+    #   - motion_control_handle
+    # extra_consistent_controllers:
+    #   - force_torque_sensor_broadcaster
+    #   - io_and_status_controller
+    #   - speed_scaling_state_broadcaster
+    #   - tcp_pose_broadcaster
+    #   - ur_configuration_controller
+    # inactive_controllers:
+    #   - joint_trajectory_controller
+    #   - forward_velocity_controller
+    #   - forward_position_controller
+    #   - cartesian_compliance_controller
+    #   - cartesian_force_controller
+    #   - cartesian_motion_controller
+    # extra_inactive_controllers:
+    #   - force_mode_controller
+    #   - passthrough_trajectory_controller
+    #   - freedrive_mode_controller
+    #   - tool_contact_controller
 
 grippers:
   b_bot_gripper:

@@ -51,17 +51,19 @@ def launch_setup(context):
             update_rate = arm_props['update_rate']
             SetLaunchConfiguration('update_rate',
                                    str(update_rate)).execute(context)
-        template = arm_props.get('gz_controllers_template') if sim else \
-                   arm_props.get('controllers_template')
-        if template is not None:
-            tf_prefix = arm_name + '_'
-            SetLaunchConfiguration('tf_prefix', tf_prefix).execute(context)
-            controllers_files.append(
-                instantiate_file(context, template,
-                                 '/tmp/' + tf_prefix + 'controllers.yaml'))
+        template = arm_props.get('controllers_template')
+        tf_prefix = arm_name + '_'
+        SetLaunchConfiguration('tf_prefix', tf_prefix).execute(context)
+        SetLaunchConfiguration('speed_scaling_interface_name',
+                               '""' if sim else
+                               'speed_scaling/speed_scaling_factor')\
+                               .execute(context)
+        controllers_files.append(
+            instantiate_file(context, template,
+                             '/tmp/' + tf_prefix + 'controllers.yaml'))
 
     # Instantiate controller configuration files for each gripper.
-    gripper_names = []
+    gripper_controllers = ['joint_state_broadcaster']
     for gripper_name, gripper_config in config['grippers'].items():
         gripper_props = get_gripper_props(gripper_config['type'])
         template = gripper_props.get('gz_controllers_template') if sim else \
@@ -72,22 +74,7 @@ def launch_setup(context):
             controllers_files.append(
                 instantiate_file(context, template,
                                  '/tmp/' + tf_prefix + 'controllers.yaml'))
-            gripper_names.append(gripper_name)
-
-    # Setup lists of active and inactive controllers.
-    active_controllers   = ['joint_state_broadcaster']
-    inactive_controllers = []
-    for arm_name, arm_config in config['arms'].items():
-        active_controllers.append(arm_config['initial_controller'])
-        active_controllers   += arm_config.get('consistent_controllers', [])
-        inactive_controllers += arm_config.get('inactive_controllers', [])
-        if not sim:
-            active_controllers \
-                += arm_config.get('extra_consistent_controllers', [])
-            inactive_controllers \
-                += arm_config.get('extra_inactive_controllers', [])
-    for gripper_name in gripper_names:
-        active_controllers.append(gripper_name + '_controller')
+            gripper_controllers.append(gripper_name + '_controller')
 
     # Setup a command for loading the URDF describing arms and environment.
     robot_description = ParameterValue(
@@ -143,7 +130,7 @@ def launch_setup(context):
                          parameters=controllers_files,
                          output='screen')]),
             condition=UnlessCondition(LaunchConfiguration('sim')))
-        ]
+    ]
 
     for arm_name, arm_config in config['arms'].items():
         active_controllers   = [arm_config['initial_controller']] \
@@ -163,13 +150,18 @@ def launch_setup(context):
                          arguments=[
                              '-c', 'controller_manager',
                              '--switch-timeout', '30'] + active_controllers),
-                    Node(package='controller_manager',
-                         executable='spawner',
-                         arguments=[
-                             '-c', 'controller_manager',
-                             '--switch-timeout', '30',
-                             '--inactive'] + inactive_controllers)
+                    # Node(package='controller_manager',
+                    #      executable='spawner',
+                    #      arguments=[
+                    #          '-c', 'controller_manager',
+                    #          '--switch-timeout', '30',
+                    #          '--inactive'] + inactive_controllers)
                 ]))
+
+    actions.append(
+        Node(package='controller_manager',
+             executable='spawner',
+             arguments=gripper_controllers))
 
     return actions
 
