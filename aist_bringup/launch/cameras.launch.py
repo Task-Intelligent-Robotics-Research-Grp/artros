@@ -52,7 +52,7 @@ def launch_setup(context):
             IncludeLaunchDescription(
                 camera_props['launch_file'],
                 launch_arguments=[
-                    ('name',               camera_name),
+                    ('camera_name',        camera_name),
                     ('config_file',        camera_params_file),
                     ('external_container', 'true'),
                     ('container',          LaunchConfiguration('container'))
