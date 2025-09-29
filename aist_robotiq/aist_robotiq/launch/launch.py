@@ -5,7 +5,8 @@ from launch.substitutions              import (LaunchConfiguration,
                                                PathJoinSubstitution,
                                                IfElseSubstitution,
                                                EqualsSubstitution)
-from launch_ros.actions                import Node
+from launch_ros.actions                import Node, LoadComposableNodes
+from launch_ros.descriptions           import ComposableNode
 from launch_ros.substitutions          import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterFile
 
@@ -43,6 +44,12 @@ launch_arguments = [
         'default':     'info',
         'description': 'debug log level',
         'choices':     ['debug', 'info', 'warn', 'error', 'fatal']
+    },
+    {
+        'name':        'output',
+        'default':     'both',
+        'description': 'pipe node output',
+        'choices':     ['screen', 'log', 'both']
     }
 ]
 
@@ -70,7 +77,7 @@ def launch_setup(context):
                          '_driver.py'],
              remappings=[('/status',  [prefix, 'controller/status']),
                          ('/command', [prefix, 'controller/command'])],
-             output='screen',
+             output=LaunchConfiguration('output'),
              arguments=[LaunchConfiguration('ip_or_dev'),
                         LaunchConfiguration('slave_id')]),
         Node(name=[prefix, 'container'],
