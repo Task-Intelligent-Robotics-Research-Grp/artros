@@ -1,6 +1,6 @@
 a_bot_camera:
   ros__parameters:
-    serial_no:       636203005853
+    serial_no:       "636203005853"
     usb_port_id:     ""
     device_type:     ""
     json_file_path:  ""
@@ -46,7 +46,7 @@ a_bot_camera:
 
 b_bot_camera:
   ros__parameters:
-    serial_no:       636203005303
+    serial_no:       "636203005303"
     usb_port_id:     ""
     device_type:     ""
     json_file_path:  ""

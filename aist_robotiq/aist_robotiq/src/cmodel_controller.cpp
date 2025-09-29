@@ -274,6 +274,8 @@ CModelController::handle_accepted_cb(const goal_handle_p goal_handle)
 void
 CModelController::cmodel_status_cb(const cmodel_status_cp& status)
 {
+    using namespace	std::chrono_literals;
+
   // Keep the latest status for aborting previous goal.
     _cmodel_status = status;
 
@@ -286,24 +288,23 @@ CModelController::cmodel_status_cb(const cmodel_status_cp& status)
 			       "calibration step 1: start calibration");
 	    _calibration_step = 2;
 	    send_raw_move_command(0, 64, 1);	// full-open
+	    rclcpp::sleep_for(3s);
 	}
 	else if (_calibration_step == 2)
 	{
-	    using namespace	std::chrono_literals;
-
 	    _max_gap_counts = status->g_po;	// record at full-open
 	    RCLCPP_INFO_STREAM(get_logger(), "calibration step 2: gap["
 			       << _max_gap_counts << "]@full-open");
 	    _calibration_step = 3;
 	    send_raw_move_command(255, 64, 1);	// full-close
-	    rclcpp::sleep_for(2s);
+	    rclcpp::sleep_for(3s);
 	}
 	else if (_calibration_step == 3)
 	{
 	    _min_gap_counts = status->g_po;	// record at full-close
 	    RCLCPP_INFO_STREAM(get_logger(), "calibration step 3: gap["
 			       << _min_gap_counts << "]@full-close");
-	    _calibration_step = 1;
+	    _calibration_step = 0;
 	    send_raw_move_command(0, 64, 1);	// full-open
 	    RCLCPP_INFO_STREAM(get_logger(), "calibrated to ["
 			       << _min_gap_counts << ", "

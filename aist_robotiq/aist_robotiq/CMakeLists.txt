@@ -27,7 +27,7 @@ ament_auto_add_library(
 
 rclcpp_components_register_nodes(
   ${PROJECT_NAME}
-    PLUGIN "${PROJECT_NAME}::cmodel_controller"
+    PLUGIN     ${PROJECT_NAME}::CModelController
     EXECUTABLE cmodel_controller_node
 )
 
@@ -49,7 +49,6 @@ ament_python_install_package(${PROJECT_NAME})
 
 install(
   PROGRAMS
-    scripts/cmodel_controller.py
     scripts/cmodel_rtu_driver.py
     scripts/cmodel_tcp_driver.py
     scripts/cmodel_urcap_driver.py

@@ -128,7 +128,6 @@ def launch_setup(context):
     ]
 
     # Create launch actions for the tool controllers.
-    append = False
     for tool_name, tool_type, motor_id \
           in zip(LaunchConfiguration('tool_names').perform(context).split(','),
                  LaunchConfiguration('tool_types').perform(context).split(','),
@@ -149,7 +148,6 @@ def launch_setup(context):
                                         allow_substs=True)],
                         extra_arguments=[{'use_intra_process_comms': True}])])
         ]
-        append = True
 
     return actions
 
