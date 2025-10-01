@@ -8,7 +8,7 @@ arms:
       - joint_state_broadcaster
       - motion_control_handle
     extra_consistent_controllers:
-      - force_torque_sensor_broadcaster
+      # - force_torque_sensor_broadcaster
       - io_and_status_controller
       - speed_scaling_state_broadcaster
       - tcp_pose_broadcaster

@@ -2,12 +2,14 @@ from launch                            import LaunchDescription
 from launch.actions                    import (SetLaunchConfiguration,
                                                IncludeLaunchDescription,
                                                OpaqueFunction,
-                                               GroupAction)
+                                               GroupAction,
+                                               RegisterEventHandler)
 from launch.conditions                 import IfCondition, UnlessCondition
 from launch.substitutions              import (Command, FindExecutable,
                                                LaunchConfiguration,
                                                PathJoinSubstitution,
                                                IfElseSubstitution)
+from launch.event_handlers             import OnProcessStart
 from launch_ros.actions                import Node, PushROSNamespace
 from launch_ros.substitutions          import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
@@ -40,6 +42,24 @@ def launch_setup(context):
     config = load_config(context)
     sim    = LaunchConfiguration('sim').perform(context) in ('true', 'True')
 
+    # controllers_files = []
+    # for arm_name, arm_config in config['arms'].items():
+    #     arm_props = get_arm_props(arm_config['type'])
+    #     SetLaunchConfiguration('update_rate',
+    #                            str(arm_props['update_rate'])).execute(context)
+    #     SetLaunchConfiguration('tf_prefix', arm_name + '_').execute(context)
+    #     # SetLaunchConfiguration('speed_scaling_interface_name',
+    #     #                        IfElseSubstitution(
+    #     #                            LaunchConfiguration('sim'),
+    #     #                            '""',
+    #     #                            '/' + arm_name + '/speed_scaling/speed_scaling_factor')
+    #     #                        ).execute(context)
+    #     SetLaunchConfiguration('speed_scaling_interface_name',
+    #                            '""').execute(context)
+    #     controllers_files.append(
+    #         instantiate_file(context, arm_props['controllers_template'],
+    #                          '/tmp/' + arm_name + '_controllers.yaml'))
+
     # Create an action for launching robot_state_publisher from loaded URDF.
     robot_description = ParameterValue(
                             Command([FindExecutable(name='xacro'),
@@ -52,7 +72,11 @@ def launch_setup(context):
                                      ' scene:=', LaunchConfiguration('scene'),
                                      ' sim:=',   LaunchConfiguration('sim')]),
                             value_type=str)
-
+    rsp_node = Node(package='robot_state_publisher',
+                    executable='robot_state_publisher',
+                    parameters=[{'use_sim_time': LaunchConfiguration('sim')},
+                                {'robot_description': robot_description}],
+                    output='screen')
     # Setup actions for launching nodes,
     actions = [
         Node(package='joint_state_publisher',
@@ -62,11 +86,7 @@ def launch_setup(context):
                           [robot_name + '/joint_states' \
                            for robot_name in config['arms']]}],
              output='screen'),
-        Node(package='robot_state_publisher',
-             executable='robot_state_publisher',
-             parameters=[{'use_sim_time':      LaunchConfiguration('sim')},
-                         {'robot_description': robot_description}],
-             output='screen'),
+        rsp_node,
         GroupAction(
             actions=[
                 Node(package='ros_gz_sim',
@@ -83,6 +103,16 @@ def launch_setup(context):
                     ])
             ],
             condition=IfCondition(LaunchConfiguration('sim'))),
+        # RegisterEventHandler(
+        #     OnProcessStart(
+        #         target_action=rsp_node,
+        #         on_start=[
+        #             Node(package='controller_manager',
+        #                  executable='ros2_control_node',
+        #                  parameters=controllers_files,
+        #                  output='screen')
+        #         ]),
+        #     condition=UnlessCondition(LaunchConfiguration('sim'))),
     ]
 
     # Instantiate controller configuration files for each arm.
@@ -92,25 +122,21 @@ def launch_setup(context):
                                str(arm_props['update_rate'])).execute(context)
         SetLaunchConfiguration('tf_prefix', arm_name + '_').execute(context)
         SetLaunchConfiguration('speed_scaling_interface_name',
-                               IfElseSubstitution(
-                                   LaunchConfiguration('sim'),
-                                   '""',
-                                   'speed_scaling/speed_scaling_factor')
-                               ).execute(context)
+                               '""').execute(context)
         controllers_file \
             = instantiate_file(context, arm_props['controllers_template'],
                                '/tmp/' + arm_name + '_controllers.yaml')
 
-        active_controllers   = [arm_config['initial_controller']] \
-                             + arm_config.get('consistent_controllers', [])
+        active_controllers   = arm_config.get('consistent_controllers', [])
         inactive_controllers = arm_config.get('inactive_controllers', [])
         if not sim:
             active_controllers \
                 += arm_config.get('extra_consistent_controllers', [])
             inactive_controllers \
                 += arm_config.get('extra_inactive_controllers', [])
-        print(active_controllers)
+        active_controllers.append(arm_config['initial_controller'])
 
+        print(active_controllers)
         actions.append(
             GroupAction(
                 actions=[
@@ -123,24 +149,27 @@ def launch_setup(context):
                     #     IfElseSubstitution(
                     #         LaunchConfiguration('sim'),
                     #         '""', 'speed_scaling/speed_scaling_factor')),
-                    Node(condition=UnlessCondition(LaunchConfiguration('sim')),
-                         package='controller_manager',
+                    Node(package='controller_manager',
                          executable='ros2_control_node',
                          parameters=[controllers_file],
+                         remappings=[('robot_description',
+                                      '/robot_description')],
                          output='screen'),
-                    Node(package='controller_manager',
+                    Node(name=arm_name + '_spawner',
+                         package='controller_manager',
                          executable='spawner',
                          arguments=[
-                             '-c', 'controller_manager',
-                             '--switch-timeout', '30'
-                         ] + active_controllers),
-                    Node(package='controller_manager',
-                         executable='spawner',
-                         arguments=[
-                             '-c', 'controller_manager',
+                             '-c', '/controller_manager',
                              '--switch-timeout', '30',
-                             '--inactive'
-                         ] + inactive_controllers)
+                         ] + active_controllers),
+                    # Node(name=arm_name + '_stopped_spawner',
+                    #      package='controller_manager',
+                    #      executable='spawner',
+                    #      arguments=[
+                    #          '-c', 'controller_manager',
+                    #          '--switch-timeout', '30',
+                    #          '--inactive'
+                    #      ] + inactive_controllers)
                 ]
             ))
 

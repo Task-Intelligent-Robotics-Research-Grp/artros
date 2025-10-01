@@ -52,11 +52,11 @@ def launch_setup(context):
                                   'ros_gz_bridge.launch.py']),
             launch_arguments=[('config', LaunchConfiguration('config'))],
             condition=IfCondition(LaunchConfiguration('sim'))),
-        IncludeLaunchDescription(
-            PathJoinSubstitution([FindPackageShare('aist_bringup'), 'launch',
-                                  'extra_drivers.launch.py']),
-            launch_arguments=[('config', LaunchConfiguration('config'))],
-            condition=UnlessCondition(LaunchConfiguration('sim'))),
+        # IncludeLaunchDescription(
+        #     PathJoinSubstitution([FindPackageShare('aist_bringup'), 'launch',
+        #                           'extra_drivers.launch.py']),
+        #     launch_arguments=[('config', LaunchConfiguration('config'))],
+        #     condition=UnlessCondition(LaunchConfiguration('sim'))),
         IncludeLaunchDescription(
             PathJoinSubstitution(
                 [FindPackageShare([LaunchConfiguration('config'),
