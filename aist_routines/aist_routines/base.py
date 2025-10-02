@@ -79,6 +79,8 @@ class AISTBaseRoutines(Node):
     def __init__(self, name):
         super().__init__(name)
 
+        print('### namespace=%s' % self.get_namespace())
+        print('### name=%s' % self.get_name())
         moveit_commander.roscpp_initialize(sys.argv)
 
         # Create TransformListener

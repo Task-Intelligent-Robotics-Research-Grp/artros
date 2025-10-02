@@ -42,23 +42,24 @@ def launch_setup(context):
     config = load_config(context)
     sim    = LaunchConfiguration('sim').perform(context) in ('true', 'True')
 
-    # controllers_files = []
-    # for arm_name, arm_config in config['arms'].items():
-    #     arm_props = get_arm_props(arm_config['type'])
-    #     SetLaunchConfiguration('update_rate',
-    #                            str(arm_props['update_rate'])).execute(context)
-    #     SetLaunchConfiguration('tf_prefix', arm_name + '_').execute(context)
-    #     # SetLaunchConfiguration('speed_scaling_interface_name',
-    #     #                        IfElseSubstitution(
-    #     #                            LaunchConfiguration('sim'),
-    #     #                            '""',
-    #     #                            '/' + arm_name + '/speed_scaling/speed_scaling_factor')
-    #     #                        ).execute(context)
-    #     SetLaunchConfiguration('speed_scaling_interface_name',
-    #                            '""').execute(context)
-    #     controllers_files.append(
-    #         instantiate_file(context, arm_props['controllers_template'],
-    #                          '/tmp/' + arm_name + '_controllers.yaml'))
+    # Instatiate controller configuration files from template.
+    controllers_files = []
+    for arm_name, arm_config in config['arms'].items():
+        arm_props = get_arm_props(arm_config['type'])
+        SetLaunchConfiguration('update_rate',
+                               str(arm_props['update_rate'])).execute(context)
+        SetLaunchConfiguration('tf_prefix', arm_name + '_').execute(context)
+        # SetLaunchConfiguration('speed_scaling_interface_name',
+        #                        IfElseSubstitution(
+        #                            LaunchConfiguration('sim'),
+        #                            '""',
+        #                            '/' + arm_name + '/speed_scaling/speed_scaling_factor')
+        #                        ).execute(context)
+        SetLaunchConfiguration('speed_scaling_interface_name',
+                               '""').execute(context)
+        controllers_files.append(
+            instantiate_file(context, arm_props['controllers_template'],
+                             '/tmp/' + arm_name + '_controllers.yaml'))
 
     # Create an action for launching robot_state_publisher from loaded URDF.
     robot_description = ParameterValue(
@@ -77,6 +78,7 @@ def launch_setup(context):
                     parameters=[{'use_sim_time': LaunchConfiguration('sim')},
                                 {'robot_description': robot_description}],
                     output='screen')
+
     # Setup actions for launching nodes,
     actions = [
         Node(package='joint_state_publisher',
@@ -87,32 +89,35 @@ def launch_setup(context):
                            for robot_name in config['arms']]}],
              output='screen'),
         rsp_node,
-        GroupAction(
-            actions=[
-                Node(package='ros_gz_sim',
-                     executable='create',
-                     arguments=['-topic', 'robot_description'],
-                     output='screen'),
-                IncludeLaunchDescription(
-                    PathJoinSubstitution(
-                        [FindPackageShare('ros_gz_sim'),
-                         'launch', 'gz_sim.launch.py']),
-                    launch_arguments=[
-                        ('gz_args', [' -r -v 4 empty.sdf', ' --physics-engine',
-                                     ' gz-physics-bullet-featherstone-plugin'])
-                    ])
-            ],
+        RegisterEventHandler(
+            OnProcessStart(
+                target_action=rsp_node,
+                on_start=[
+                    Node(package='ros_gz_sim',
+                         executable='create',
+                         arguments=['-topic', 'robot_description'],
+                         output='screen'),
+                    IncludeLaunchDescription(
+                        PathJoinSubstitution(
+                            [FindPackageShare('ros_gz_sim'),
+                             'launch', 'gz_sim.launch.py']),
+                        launch_arguments=[
+                            ('gz_args',
+                             [' -r -v 4 empty.sdf', ' --physics-engine',
+                              ' gz-physics-bullet-featherstone-plugin'])
+                        ])
+                ]),
             condition=IfCondition(LaunchConfiguration('sim'))),
-        # RegisterEventHandler(
-        #     OnProcessStart(
-        #         target_action=rsp_node,
-        #         on_start=[
-        #             Node(package='controller_manager',
-        #                  executable='ros2_control_node',
-        #                  parameters=controllers_files,
-        #                  output='screen')
-        #         ]),
-        #     condition=UnlessCondition(LaunchConfiguration('sim'))),
+        RegisterEventHandler(
+            OnProcessStart(
+                target_action=rsp_node,
+                on_start=[
+                    Node(package='controller_manager',
+                         executable='ros2_control_node',
+                         parameters=controllers_files,
+                         output='screen')
+                ]),
+            condition=UnlessCondition(LaunchConfiguration('sim'))),
     ]
 
     # Instantiate controller configuration files for each arm.
