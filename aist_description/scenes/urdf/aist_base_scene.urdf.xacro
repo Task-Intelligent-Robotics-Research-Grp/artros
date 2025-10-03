@@ -282,19 +282,24 @@
       <plugin filename="gz_ros2_control-system"
 	      name="gz_ros2_control::GazeboSimROS2ControlPlugin">
 	<parameters>/tmp/a_bot_controllers.yaml</parameters>
-	<ros>
-	  <namespace>a_bot</namespace>
-	  <remapping>robot_description:=/robot_description</remapping>
-	</ros>
-      </plugin>
-      <plugin filename="gz_ros2_control-system"
-	      name="gz_ros2_control::GazeboSimROS2ControlPlugin">
 	<parameters>/tmp/b_bot_controllers.yaml</parameters>
-	<ros>
-	  <namespace>b_bot</namespace>
-	  <remapping>robot_description:=/robot_description</remapping>
-	</ros>
       </plugin>
+      <!-- <plugin filename="gz_ros2_control-system" -->
+      <!-- 	      name="gz_ros2_control::GazeboSimROS2ControlPlugin"> -->
+      <!-- 	<parameters>/tmp/a_bot_controllers.yaml</parameters> -->
+      <!-- 	<ros> -->
+      <!-- 	  <namespace>a_bot</namespace> -->
+      <!-- 	  <remapping>robot_description:=/robot_description</remapping> -->
+      <!-- 	</ros> -->
+      <!-- </plugin> -->
+      <!-- <plugin filename="gz_ros2_control-system" -->
+      <!-- 	      name="gz_ros2_control::GazeboSimROS2ControlPlugin"> -->
+      <!-- 	<parameters>/tmp/b_bot_controllers.yaml</parameters> -->
+      <!-- 	<ros> -->
+      <!-- 	  <namespace>b_bot</namespace> -->
+      <!-- 	  <remapping>robot_description:=/robot_description</remapping> -->
+      <!-- 	</ros> -->
+      <!-- </plugin> -->
       <!-- Simulate arms and grippers -->
       <!-- <plugin filename="gz_ros2_control-system" -->
       <!-- 	      name="gz_ros2_control::GazeboSimROS2ControlPlugin"> -->
