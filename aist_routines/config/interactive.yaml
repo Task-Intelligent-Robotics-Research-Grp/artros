@@ -1,4 +1,4 @@
 interactive:
   ros__parameters:
     reference_frame: workspace_center
-    eef_step:        0.002
+    moveit_eef_step: 0.002

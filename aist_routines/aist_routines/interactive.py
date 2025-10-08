@@ -52,23 +52,24 @@ class InteractiveRoutines(AISTBaseRoutines):
         cli_thread.start()
 
     def interactive(self):
-        # robot_name = list(rospy.get_param('~robots').keys())[0]
-        # axis       = 'Y'
-        # speed      = rospy.get_param('~speed', 0.1)
+        arm_name = self.group_names[0]
+        axis       = 'Y'
+        speed      = 1.0
 
-        # # Reset pose
-        # self.go_to_named_pose(robot_name, "home")
-        # self.print_help_messages()
+        # Reset pose
+        self.go_to_named_pose(arm_name, "home")
+        self.print_help_messages()
 
         while rclpy.ok():
-            # prompt = '{:>5}:{}({})@{}>> ' \
-            #        .format(axis,
-            #                self.format_pose(self.get_current_pose(robot_name)),
-            #                speed, robot_name)
-            prompt = '> '
-            key = raw_input(prompt)
-            # robot_name, axis, speed = self.interactive(key, robot_name,
-            #                                            axis, speed)
+            current_pose = self.get_current_pose(arm_name)
+            print(current_pose)
+            prompt = '{:>5}:{}({})@{}>> ' \
+                   .format(axis,
+                           self.format_pose(current_pose),
+                           speed, arm_name)
+            key = input(prompt)
+            arm_name, axis, speed = self.interactive(key, arm_name,
+                                                     axis, speed)
 
 
 

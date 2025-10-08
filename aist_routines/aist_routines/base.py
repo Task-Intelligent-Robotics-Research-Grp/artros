@@ -89,8 +89,8 @@ class AISTBaseRoutines(Node):
         super().__init__(name)
 
         # Create TransformListener
-        self._tf2_buffer = Buffer()
-        self._listener = TransformListener(self._tf2_buffer, self)
+        self._tf2_buffer   = Buffer()
+        self._tf2_listener = TransformListener(self._tf2_buffer, self)
 
         time.sleep(1.0)        # Necessary for listner spinning up
 
@@ -106,7 +106,6 @@ class AISTBaseRoutines(Node):
                         self.declare_parameter('robot_description',
                                                'robot_description').value)
         for group_name in self._cmd.get_group_names():
-            self.get_logger().info('### group=%s' % group_name)
             group = self._cmd.get_group(group_name)
             group.set_pose_reference_frame(self.reference_frame)
 
@@ -126,18 +125,10 @@ class AISTBaseRoutines(Node):
             config = yaml.safe_load(f)
 
         # Grippers
-        self._grippers = {}
-        for gripper_name, props in get_grippers(config).items():
-            print('### gripper_name=%s' % gripper_name)
-            print('    gripper_config=%s' % props)
-            self._grippers[gripper_name] \
-                = GripperClient.create(gripper_name, props['type'],
-                                       props.get('init_args', {}))
-        self._default_gripper_names = {}
-        self._active_grippers  = {}
-        for arm_name, arm_props in config['arms'].items():
-            self._default_gripper_names[arm_name] \
-                = arm_props.get('default_gripper', '')
+        self._grippers = {name: GripperClient.create(self, name, props['type'],
+                                                     props.get('init_args',{}))
+                          for name, props in get_grippers(config).items()}
+        for arm_name in config['arms']:
             self.set_gripper(arm_name, self.default_gripper_name(arm_name))
 
         # Cameras
@@ -179,8 +170,8 @@ class AISTBaseRoutines(Node):
     #     return False  # Do not forward exceptions
 
     @property
-    def listener(self):
-        return self._listener
+    def tf2_buffer(self):
+        return self._tf2_buffer
 
     @property
     def planning_frame(self):
@@ -193,6 +184,10 @@ class AISTBaseRoutines(Node):
     @property
     def eef_step(self):
         return self._eef_step
+
+    @property
+    def group_names(self):
+        return self._cmd.get_group_names()
 
     @property
     def com(self):
@@ -240,7 +235,7 @@ class AISTBaseRoutines(Node):
 
         def _get_offset():
             offset = []
-            for s in raw_input('  offset? ').split():
+            for s in input('  offset? ').split():
                 if _is_num(s):
                     offset.append(float(s))
                 else:
@@ -762,9 +757,9 @@ class AISTBaseRoutines(Node):
 
     # Utility functions
     def transform_pose_to_target_frame(self, pose, offset=(), target_frame=''):
-        poses = self.transform_poses_to_target_frame(PoseArray(pose.header,
-                                                               [pose.pose]),
-                                                     offset, target_frame)
+        poses = self.transform_poses_to_target_frame(
+                    PoseArray(header=pose.header, poses=[pose.pose]),
+                    offset, target_frame)
         return PoseStamped(poses.header, poses.poses[0])
 
     def transform_poses_to_target_frame(self, poses,
@@ -773,13 +768,13 @@ class AISTBaseRoutines(Node):
             target_frame = self.reference_frame
 
         try:
-            self._listener.waitForTransform(target_frame,
-                                            poses.header.frame_id,
-                                            poses.header.stamp,
-                                            Duration(seconds=10))
-            mat44 = self._listener.asMatrix(target_frame, poses.header)
+            tfm = self._tf2_buffer.lookup_transform(target_frame,
+                                                    poses.header.frame_id,
+                                                    poses.header.stamp,
+                                                    Duration(seconds=10))
+            mat44 = self._tf2_buffer.asMatrix(target_frame, poses.header)
         except Exception as e:
-            self.get_logger().err('AISTBaseRoutines.transform_poses_to_target_frame(): {}'.format(e))
+            self.get_logger().error('AISTBaseRoutines.transform_poses_to_target_frame(): %s' % e)
             raise e
 
         transformed_poses = PoseArray(Header(frame_id=target_frame,
@@ -788,11 +783,11 @@ class AISTBaseRoutines(Node):
         for pose in poses.poses:
             T = tfs.concatenate_matrices(
                     mat44,
-                    self._listener.fromTranslationRotation(
+                    self._tf2_buffer.fromTranslationRotation(
                         (pose.position.x, pose.position.y, pose.position.z),
                         (pose.orientation.x, pose.orientation.y,
                          pose.orientation.z, pose.orientation.w)),
-                    self._listener.fromTranslationRotation(
+                    self._tf2_buffer.fromTranslationRotation(
                         self._position_from_offset(offset[0:3]),
                         self._orientation_from_offset(offset[3:])))
             transformed_poses.poses.append(
@@ -802,10 +797,10 @@ class AISTBaseRoutines(Node):
 
     def lookup_pose(self, target_frame, source_frame):
         try:
-            t, q = self._tf2_buffer.lookupTransform(target_frame,
+            t, q = self._tf2_buffer.lookup_transform(target_frame,
                                                     source_frame, Time())
         except Exception as e:
-            self.get_logger().err('AISTBaseRoutines.lookup_pose(): %s', str(e))
+            self.get_logger().error('AISTBaseRoutines.lookup_pose(): %s' % e)
             return None
         return PoseStamped(Header(frame_id=target_frame),
                            Pose(Point(*t), Quaternion(*q)))
@@ -865,12 +860,12 @@ class AISTBaseRoutines(Node):
             target_frame = self._reference_frame
 
         try:
-            self._tf2_buffer.waitForTransform(target_frame, header.frame_id,
+            self._tf2_buffer.lookup_transform(target_frame, header.frame_id,
                                               header.stamp,
                                               Duration(seconds=10))
             mat44 = self._tf2_buffer.asMatrix(target_frame, header)
         except Exception as e:
-            self.get_logger().err('AISTBaseRoutines._transform_points_to_target_frame(): {}'.format(e))
+            self.get_logger().error('AISTBaseRoutines._transform_points_to_target_frame(): %s' % e)
             raise e
 
         return [ Point(*tuple(np.dot(mat44,
