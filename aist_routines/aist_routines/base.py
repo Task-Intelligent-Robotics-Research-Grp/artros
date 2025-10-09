@@ -36,6 +36,7 @@
 import rclpy, sys, time, yaml
 import numpy as np
 import moveit_commander
+import tf_transformations as tfs
 
 from math                             import degrees, sqrt, pi
 from rclpy.node                       import Node
@@ -128,8 +129,11 @@ class AISTBaseRoutines(Node):
         self._grippers = {name: GripperClient.create(self, name, props['type'],
                                                      props.get('init_args',{}))
                           for name, props in get_grippers(config).items()}
-        for arm_name in config['arms']:
-            self.set_gripper(arm_name, self.default_gripper_name(arm_name))
+        self._default_gripper_names = {}
+        self._active_grippers       = {}
+        for name, props in config.get('arms', {}).items():
+            self._default_gripper_names[name] = props['default_gripper']
+            self.set_gripper(name, self.default_gripper_name(name))
 
         # Cameras
         # self._cameras = {}
@@ -771,28 +775,39 @@ class AISTBaseRoutines(Node):
             tfm = self._tf2_buffer.lookup_transform(target_frame,
                                                     poses.header.frame_id,
                                                     poses.header.stamp,
-                                                    Duration(seconds=10))
-            mat44 = self._tf2_buffer.asMatrix(target_frame, poses.header)
+                                                    Duration(seconds=10)) \
+                                  .transform
         except Exception as e:
             self.get_logger().error('AISTBaseRoutines.transform_poses_to_target_frame(): %s' % e)
             raise e
 
-        transformed_poses = PoseArray(Header(frame_id=target_frame,
-                                             stamp=poses.header.stamp),
-                                      [])
+        transformed_poses = PoseArray(header=Header(frame_id=target_frame,
+                                                    stamp=poses.header.stamp),
+                                      poses=[])
         for pose in poses.poses:
             T = tfs.concatenate_matrices(
-                    mat44,
-                    self._tf2_buffer.fromTranslationRotation(
-                        (pose.position.x, pose.position.y, pose.position.z),
-                        (pose.orientation.x, pose.orientation.y,
-                         pose.orientation.z, pose.orientation.w)),
-                    self._tf2_buffer.fromTranslationRotation(
-                        self._position_from_offset(offset[0:3]),
-                        self._orientation_from_offset(offset[3:])))
+                    tfs.translation_matrix((tfm.translation.x,
+                                            tfm.translation.y,
+                                            tfm.translation.z)),
+                    tfs.quaternion_matrix((tfm.rotation.x, tfm.rotation.y,
+                                           tfm.rotation.z, tfm.rotation.w)),
+                    tfs.translation_matrix((pose.position.x,
+                                            pose.position.y,
+                                            pose.position.z)),
+                    tfs.quaternion_matrix((pose.orientation.x,
+                                           pose.orientation.y,
+                                           pose.orientation.z,
+                                           pose.orientation.w)),
+                    tfs.translation_matrix(self._position_from_offset(
+                                                offset[0:3])),
+                    tfs.quaternion_matrix(self._orientation_from_offset(
+                                               offset[3:])))
+            self.get_logger().info('### %s' % T)
+            self.get_logger().info('### %s' % tfs.translation_from_matrix(T))
+            print(tfs.quaternion_from_matrix(T))
             transformed_poses.poses.append(
-                Pose(Point(*tuple(tfs.translation_from_matrix(T))),
-                     Quaternion(*tuple(tfs.quaternion_from_matrix(T)))))
+                Pose(position=Point(tuple(tfs.translation_from_matrix(T))),
+                     orientation=Quaternion(tuple(tfs.quaternion_from_matrix(T)))))
         return transformed_poses
 
     def lookup_pose(self, target_frame, source_frame):
