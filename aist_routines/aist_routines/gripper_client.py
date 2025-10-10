@@ -36,14 +36,19 @@ Clients of gripper action controller of control_msg/GripperCommandAction type.
 @author t.ueshiba@aist.go.jp
 """
 import rclpy, time
-from rclpy.node            import Node
-from rclpy.duration        import Duration
-from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
-from rclpy.action          import ActionClient
-from action_msgs.msg       import GoalStatus
-from control_msgs.action   import GripperCommand
-from control_msgs.msg      import GripperCommand as GripperCommandMsg
-from std_msgs.msg          import Bool
+from rclpy.node               import Node
+from rclpy.duration           import Duration
+from rclpy.callback_groups    import MutuallyExclusiveCallbackGroup
+from rclpy.action             import ActionClient
+from action_msgs.msg          import GoalStatus
+from control_msgs.action      import GripperCommand
+from control_msgs.msg         import GripperCommand as GripperCommandMsg
+from std_msgs.msg             import Bool
+from aist_msgs.action         import SuctionToolCommand
+from aist_msgs.action         import ScrewToolCommand
+from aist_robotiq_msgs.srv    import SetVelocity
+from aist_robotiq_msgs.action import EPickCommand
+from aist_robotiq_msgs.msg    import EPickCommand as EPickCommandMsg
 
 ######################################################################
 #  class GripperClient                                               #
@@ -277,8 +282,6 @@ class RobotiqGripper(GenericGripper):
         @param max_effort maximum effort applied when gripping objects
         @param velocity   desired speed when opening or closing the gripper
         """
-        from aist_robotiq_msgs.srv import SetVelocity
-
         ns = name + '_controller'
         self._min_gap      = node.declare_parameter(ns + '/min_gap',
                                                     0.000).value
@@ -353,9 +356,6 @@ class EPickGripper(GripperClient):
         @param prefix     string prefix for identifying a specific gripper
                           from multiple devices
         """
-        from aist_robotiq_msgs.action import EPickCommand
-        from aist_robotiq_msgs.msg    import EPickCommand as EPickCommandMsg
-
         super().__init__(name)
 
         ns = prefix + '_controller'
@@ -493,8 +493,6 @@ class SuctionTool(GripperClient):
         """
         super().__init__(name, base_link, tip_link)
 
-        from aist_msgs.action import SuctionToolCommand
-
         self._clock             = node.get_clock()
         self._logger            = node.get_logger()
         self._goal_handle       = None
@@ -614,8 +612,6 @@ class ScrewTool(GripperClient):
         @param controller_ns    namespace of the controller to be connected
         """
         super().__init__(name, base_link, tip_link)
-
-        from aist_msgs.action import ScrewToolCommand
 
         self._clock             = node.get_clock()
         self._logger            = node.get_logger()

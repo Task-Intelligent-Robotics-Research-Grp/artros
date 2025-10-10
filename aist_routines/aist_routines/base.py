@@ -127,7 +127,8 @@ class AISTBaseRoutines(Node):
 
         # Grippers
         self._grippers = {name: GripperClient.create(self, name, props['type'],
-                                                     props.get('init_args',{}))
+                                                     props.get('client_args',
+                                                               {}))
                           for name, props in get_grippers(config).items()}
         self._default_gripper_names = {}
         self._active_grippers       = {}
@@ -248,10 +249,10 @@ class AISTBaseRoutines(Node):
 
         if key == 'quit':
             self.go_to_named_pose(robot_name, 'home')  # Reset pose
-            rclpy.signal_shutdown('manual shutdown')
+            rclpy.shutdown()
         elif key == 'robot':
             print('  current: %s' % robot_name)
-            new_robot_name = raw_input('  robot name? ')
+            new_robot_name = input('  robot name? ')
             if new_robot_name != '':
                 robot_name = new_robot_name
         elif key == '?' or key == 'help':
@@ -323,24 +324,24 @@ class AISTBaseRoutines(Node):
         elif key == 'back':
             self.go_to_named_pose(robot_name, 'back')
         elif key == 'named':
-            pose_name = raw_input('  pose name? ')
+            pose_name = input('  pose name? ')
             try:
                 self.go_to_named_pose(robot_name, pose_name, speed=speed)
             except rclpy.ROSException as e:
-                self.get_logger().err('Unknown pose: %s' % e)
+                self.get_logger().error('Unknown pose: %s' % e)
         elif key == 'frame':
-            frame    = raw_input('  frame? ')
+            frame    = input('  frame? ')
             offset   = _get_offset()
-            eef_link = raw_input('  eef_link? ')
+            eef_link = input('  eef_link? ')
             try:
                 self.go_to_frame(robot_name, frame, offset, speed=speed,
                                  end_effector_link=eef_link)
             except Exception as e:
-                self.get_logger().err('Unknown frame: %s', frame)
+                self.get_logger().error('Unknown frame: %s' % frame)
         elif key == 'clip':
             self.clip_wrist_joint_value(robot_name)
         elif key == 'speed':
-           speed = float(raw_input('  speed value? '))
+           speed = float(input('  speed value? '))
         elif key == 'stop':
             self.stop(robot_name)
         elif key == 'jvalues':
@@ -353,12 +354,12 @@ class AISTBaseRoutines(Node):
         # Gripper stuffs
         elif key == 'gripper':
             print('  current: %s' % self.gripper(robot_name).name)
-            gripper_name = raw_input('  gripper name? ')
+            gripper_name = input('  gripper name? ')
             if gripper_name != '':
                 try:
                     self.set_gripper(robot_name, gripper_name)
                 except KeyError as e:
-                    self.get_logger().err('Unknown gripper: %s' % e)
+                    self.get_logger().error('Unknown gripper: %s' % e)
         elif key == 'pregrasp':
             self.pregrasp(robot_name)
         elif key == 'grasp':
@@ -368,7 +369,7 @@ class AISTBaseRoutines(Node):
         elif key == 'release':
             self.release(robot_name)
         elif key == 'gpos':
-            position = float(raw_input('  position? '))
+            position = float(input('  position? '))
             self.set_gripper_position(robot_name, position)
         elif key == 'tighten':
             self.tighten(robot_name, Duration(seconds=-1))
@@ -403,7 +404,8 @@ class AISTBaseRoutines(Node):
         try:
             group.set_named_target(named_pose)
         except moveit_commander.exception.MoveItCommanderException as e:
-            self.get_logger().err('AistBaseRoutines.go_to_named_pose(): %s', e)
+            self.get_logger().error('AistBaseRoutines.go_to_named_pose(): %s'
+                                    % e)
             return False
         return self._go(group, speed, accel)
 
@@ -444,7 +446,7 @@ class AISTBaseRoutines(Node):
         group.set_max_acceleration_scaling_factor(np.clip(accel, 0.0, 1.0))
         success = group.go(wait=True)
         if not success:
-            self.get_logger().err('Failed to go to target.')
+            self.get_logger().error('Failed to go to target.')
         group.clear_pose_targets()
         return success
 
@@ -461,15 +463,19 @@ class AISTBaseRoutines(Node):
     def go_to_frame(self, robot_name, target_frame, offset=(),
                     speed=1.0, accel=1.0, end_effector_link=''):
         return self.go_to_pose_goal(robot_name,
-                                    PoseStamped(Header(frame_id=target_frame),
-                                                Pose(Point(0, 0, 0),
-                                                     Quaternion(0, 0, 0, 1))),
+                                    PoseStamped(
+                                        header=Header(frame_id=target_frame),
+                                        pose=Pose(
+                                            position=Point(x=0, y=0, z=0),
+                                            orientation=Quaternion(
+                                                x=0, y=0, z=0, w=1))),
                                     offset, speed, accel, end_effector_link)
 
     def go_to_pose_goal(self, robot_name, target_pose, offset=(),
                         speed=1.0, accel=1.0, end_effector_link=''):
-        return self.go_along_poses(robot_name, PoseArray(target_pose.header,
-                                                         [target_pose.pose]),
+        return self.go_along_poses(robot_name,
+                                   PoseArray(header=target_pose.header,
+                                             poses=[target_pose.pose]),
                                    offset, speed, accel, end_effector_link)
 
     def go_along_poses(self, robot_name, poses, offset=(),
@@ -489,7 +495,7 @@ class AISTBaseRoutines(Node):
     def execute_path(self, robot_name, path):
         success = self._cmd.get_group(robot_name).execute(path, wait=True)
         if not success:
-            self.get_logger().err('Failed to execute path.')
+            self.get_logger().error('Failed to execute path.')
         self.stop(robot_name)
         return success
 
@@ -507,16 +513,17 @@ class AISTBaseRoutines(Node):
 
         try:
             path, fraction = group.compute_cartesian_path(
-                                 transformed_poses.poses, self._eef_step)
+                                 transformed_poses.poses, self._eef_step, 0.0)
         except Exception as e:
             fraction = 0.0
-            self.get_logger().err(e)
+            self.get_logger().error(e)
 
         if fraction < 0.995:
-            self.get_logger().err('Computed only %3.1f%% of cartesian path.',
-                         100*fraction)
+            self.get_logger().error('Computed only %3.1f%% of cartesian path.'
+                                    % (100.0*fraction))
             return None
-        self.get_logger().info('Computed %3.1f%% of cartesian path.', 100*fraction)
+        self.get_logger().info('Computed %3.1f%% of cartesian path.'
+                               % (100.0*fraction))
         return path
 
     def create_timed_path(self, robot_name, poses, times_from_start):
@@ -533,7 +540,8 @@ class AISTBaseRoutines(Node):
             req.pose_stamped = PoseStamped(transformed_poses.header, pose)
             res = self._compute_ik(req)
             if res.error_code.val != MoveItErrorCodes.SUCCESS:
-                self.get_logger().err('Failed to solve IK[%d]', res.error_code.val)
+                self.get_logger().error('Failed to solve IK[%d]'
+                                        % res.error_code.val)
                 return None
             joint_state = res.solution.joint_state
             point = JointTrajectoryPoint(positions=joint_state.position,
@@ -764,7 +772,7 @@ class AISTBaseRoutines(Node):
         poses = self.transform_poses_to_target_frame(
                     PoseArray(header=pose.header, poses=[pose.pose]),
                     offset, target_frame)
-        return PoseStamped(poses.header, poses.poses[0])
+        return PoseStamped(header=poses.header, pose=poses.poses[0])
 
     def transform_poses_to_target_frame(self, poses,
                                         offset=(), target_frame=''):
@@ -802,48 +810,56 @@ class AISTBaseRoutines(Node):
                                                 offset[0:3])),
                     tfs.quaternion_matrix(self._orientation_from_offset(
                                                offset[3:])))
-            self.get_logger().info('### %s' % T)
-            self.get_logger().info('### %s' % tfs.translation_from_matrix(T))
-            print(tfs.quaternion_from_matrix(T))
+            t = tfs.translation_from_matrix(T)
+            q = tfs.quaternion_from_matrix(T)
             transformed_poses.poses.append(
-                Pose(position=Point(tuple(tfs.translation_from_matrix(T))),
-                     orientation=Quaternion(tuple(tfs.quaternion_from_matrix(T)))))
+                Pose(position=Point(x=t[0], y=t[1], z=t[2]),
+                     orientation=Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])))
         return transformed_poses
 
     def lookup_pose(self, target_frame, source_frame):
         try:
-            t, q = self._tf2_buffer.lookup_transform(target_frame,
-                                                    source_frame, Time())
+            tfm = self._tf2_buffer.lookup_transform(target_frame,
+                                                    source_frame, Time()) \
+                                  .transform
         except Exception as e:
             self.get_logger().error('AISTBaseRoutines.lookup_pose(): %s' % e)
             return None
-        return PoseStamped(Header(frame_id=target_frame),
-                           Pose(Point(*t), Quaternion(*q)))
+        return PoseStamped(header=Header(frame_id=target_frame),
+                           pose=Pose(position=Point(x=tfm.translation.x,
+                                                    y=tfm.translation.y,
+                                                    z=tfm.translation.z),
+                                     orientation=Quaternion(x=tfm.rotation.x,
+                                                            y=tfm.rotation.y,
+                                                            z=tfm.rotation.z,
+                                                            w=tfm.rotation.w)))
 
     def correct_orientation(self, pose):
-        poses = self.correct_orientations(PoseArray(pose.header, [pose.pose]))
-        return PoseStamped(poses.header, poses.poses[0])
+        poses = self.correct_orientations(PoseArray(header=pose.header,
+                                                    poses=[pose.pose]))
+        return PoseStamped(header=poses.header, pose=poses.poses[0])
 
     def correct_orientations(self, poses):
         up = self._tf2_buffer.transformVector3(
                  poses.header.frame_id,
                  Vector3Stamped(Header(stamp=poses.header.stamp,
                                        frame_id=self.reference_frame),
-                                Vector3(0, 0, 1)))
-        corrected_poses = PoseArray(poses.header, [])
-        for pose in poses.poses:
-            corrected_poses.poses.append(Pose(pose.position,
-                                              self._correct_orientation(
-                                                  pose.orientation, up.vector)))
-        return corrected_poses
+                                Vector3(x=0, y=0, z=1)))
+        return PoseArray(header=poses.header,
+                         poses=[Pose(position=pose.position,
+                                     orientation=self._correct_orientation(
+                                         pose.orientation, up.vector))
+                                for pose in poses.poses])
 
     def pose_from_xyzrpy(self, xyzrpy=(), frame_id=''):
         if frame_id == '':
             frame_id = self.reference_frame
-        return PoseStamped(
-                   Header(frame_id=frame_id),
-                   Pose(Point(*self._position_from_offset(xyzrpy[0:3])),
-                        Quaternion(*self._orientation_from_offset(xyzrpy[3:]))))
+        t = self._position_from_offset(xyzrpy[0:3])
+        q = self._orientation_from_offset(xyzrpy[3:])
+        return PoseStamped(header=Header(frame_id=frame_id),
+                           pose=Pose(position=Point(x=t[0], y=t[1], z=t[2]),
+                                     orientation=Quaternion(x=q[0], y=q[1],
+                                                            z=q[2], w=q[3])))
 
     def xyzrpy_from_pose(self, pose):
         transformed_pose = self.transform_pose_to_target_frame(pose).pose

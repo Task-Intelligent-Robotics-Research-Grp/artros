@@ -28,7 +28,7 @@ def launch_setup(context):
     tool_names = []
     tool_types = []
     motor_ids  = []
-    for tool_name, tool_props in tools_config['tools'].items():
+    for tool_name, tool_props in tools_config.get('grippers', {}).items():
         tool_names.append(tool_name)
         tool_types.append(tool_props['type'])
         motor_ids.append(str(tool_props['motor_id']))

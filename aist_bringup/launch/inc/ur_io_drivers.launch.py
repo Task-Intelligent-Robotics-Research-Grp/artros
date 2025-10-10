@@ -30,7 +30,7 @@ def launch_setup(context):
     dout_ports_suck = []
     dout_ports_blow = []
     joint_names     = []
-    for tool_name, tool_props in tools_config['tools'].items():
+    for tool_name, tool_props in tools_config.get('grippers', {}).items():
         tool_names.append(tool_name)
         din_ports.append(str(tool_props.get('digital_in_port', -1)))
         dout_ports_suck.append(str(tool_props.get('digital_out_port_suck',-1)))

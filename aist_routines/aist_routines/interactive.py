@@ -62,14 +62,14 @@ class InteractiveRoutines(AISTBaseRoutines):
 
         while rclpy.ok():
             current_pose = self.get_current_pose(arm_name)
-            print(current_pose)
+            #print('### %s' % current_pose)
             prompt = '{:>5}:{}({})@{}>> ' \
                    .format(axis,
                            self.format_pose(current_pose),
                            speed, arm_name)
             key = input(prompt)
-            arm_name, axis, speed = self.interactive(key, arm_name,
-                                                     axis, speed)
+            arm_name, axis, speed = super().interactive(key, arm_name,
+                                                        axis, speed)
 
 
 

@@ -18,7 +18,7 @@ launch_arguments = [
 def launch_setup(context):
     config  = load_config(context)
     actions = []
-    for arm_name, arm_config in config['arms'].items():
+    for arm_name, arm_config in config.get('arms', {}).items():
         arm_props = get_arm_props(arm_config['type'])
         extra_drivers_launch_file = arm_props.get('extra_drivers_launch_file')
         if extra_drivers_launch_file is not None:
@@ -28,7 +28,7 @@ def launch_setup(context):
                     launch_arguments=[
                         ('config', LaunchConfiguration('config')),
                         ('name',   arm_name)]))
-    for gripper_name, gripper_config in config['grippers'].items():
+    for gripper_name, gripper_config in config.get('grippers', {}).items():
         gripper_props = get_gripper_props(gripper_config['type'])
         extra_drivers_launch_file = gripper_props.get(
                                         'extra_drivers_launch_file')

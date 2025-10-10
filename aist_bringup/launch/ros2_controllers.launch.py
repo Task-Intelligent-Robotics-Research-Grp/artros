@@ -45,7 +45,7 @@ def launch_setup(context):
     # Instantiate controller configuration files for each arm.
     controllers_files = []
     update_rate = 0
-    for arm_name, arm_config in config['arms'].items():
+    for arm_name, arm_config in config.get('arms', {}).items():
         arm_props = get_arm_props(arm_config['type'])
         if arm_props['update_rate'] > update_rate:
             update_rate = arm_props['update_rate']
@@ -62,7 +62,7 @@ def launch_setup(context):
 
     # Instantiate controller configuration files for each gripper.
     gripper_names = []
-    for gripper_name, gripper_config in config['grippers'].items():
+    for gripper_name, gripper_config in config.get('grippers', {}).items():
         gripper_props = get_gripper_props(gripper_config['type'])
         template = gripper_props.get('gz_controllers_template') if sim else \
                    gripper_props.get('controllers_template')
@@ -77,7 +77,7 @@ def launch_setup(context):
     # Setup lists of active and inactive controllers.
     active_controllers   = ['joint_state_broadcaster']
     inactive_controllers = []
-    for arm_name, arm_config in config['arms'].items():
+    for arm_name, arm_config in config.get('arms', {}).items():
         active_controllers.append(arm_config['initial_controller'])
         active_controllers   += arm_config.get('consistent_controllers', [])
         inactive_controllers += arm_config.get('inactive_controllers', [])
@@ -107,7 +107,7 @@ def launch_setup(context):
                     parameters=[{'use_sim_time': LaunchConfiguration('sim')},
                                 {'robot_description': robot_description}],
                     output='screen')
-    return [
+    actions = [
         rsp_node,
         RegisterEventHandler(
             OnProcessStart(
@@ -135,13 +135,21 @@ def launch_setup(context):
                          parameters=controllers_files,
                          output='screen')]),
             condition=UnlessCondition(LaunchConfiguration('sim'))),
-        Node(package='controller_manager',
-             executable='spawner',
-             arguments=['--switch-timeout', '30'] + active_controllers),
-        Node(package='controller_manager',
-             executable='spawner',
-             arguments=['--switch-timeout', '30',
-                        '--inactive'] + inactive_controllers)]
+    ]
+
+    if len(active_controllers) > 0:
+        actions.append(
+            Node(package='controller_manager',
+                 executable='spawner',
+                 arguments=['--switch-timeout', '30'] + active_controllers))
+    if len(inactive_controllers) > 0:
+        actions.append(
+            Node(package='controller_manager',
+                 executable='spawner',
+                 arguments=['--switch-timeout', '30',
+                            '--inactive'] + inactive_controllers))
+
+    return actions
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \

@@ -13,17 +13,17 @@ arms:
       - a_bot_tcp_pose_broadcaster
       - a_bot_ur_configuration_controller
     inactive_controllers:
-      # - a_bot_joint_trajectory_controller
-      # - a_bot_forward_velocity_controller
-      # - a_bot_forward_position_controller
+      - a_bot_joint_trajectory_controller
+      - a_bot_forward_velocity_controller
+      - a_bot_forward_position_controller
       - a_bot_cartesian_compliance_controller
-      # - a_bot_cartesian_force_controller
-      # - a_bot_cartesian_motion_controller
-    # extra_inactive_controllers:
-    #   - a_bot_force_mode_controller
-    #   - a_bot_passthrough_trajectory_controller
-    #   - a_bot_freedrive_mode_controller
-    #   - a_bot_tool_contact_controller
+      - a_bot_cartesian_force_controller
+      - a_bot_cartesian_motion_controller
+    extra_inactive_controllers:
+      - a_bot_force_mode_controller
+      - a_bot_passthrough_trajectory_controller
+      - a_bot_freedrive_mode_controller
+      - a_bot_tool_contact_controller
   b_bot:
     type:               URe
     robot_ip:           "10.66.171.41"
@@ -38,17 +38,17 @@ arms:
       - b_bot_tcp_pose_broadcaster
       - b_bot_ur_configuration_controller
     inactive_controllers:
-      # - b_bot_joint_trajectory_controller
-      # - b_bot_forward_velocity_controller
-      # - b_bot_forward_position_controller
+      - b_bot_joint_trajectory_controller
+      - b_bot_forward_velocity_controller
+      - b_bot_forward_position_controller
       - b_bot_cartesian_compliance_controller
-      # - b_bot_cartesian_force_controller
-      # - b_bot_cartesian_motion_controller
-    # extra_inactive_controllers:
-    #   - b_bot_force_mode_controller
-    #   - b_bot_passthrough_trajectory_controller
-    #   - b_bot_freedrive_mode_controller
-    #   - b_bot_tool_contact_controller
+      - b_bot_cartesian_force_controller
+      - b_bot_cartesian_motion_controller
+    extra_inactive_controllers:
+      - b_bot_force_mode_controller
+      - b_bot_passthrough_trajectory_controller
+      - b_bot_freedrive_mode_controller
+      - b_bot_tool_contact_controller
 
 grippers:
   a_bot_gripper:
@@ -57,7 +57,7 @@ grippers:
     driver:                    urcap
     ip_or_dev:                 "10.66.171.40"
     slave_id:                  9
-    init_args:
+    client_args:
       max_effort:              5.0
       velocity:                0.1
   b_bot_gripper:
@@ -66,7 +66,7 @@ grippers:
     driver:                    urcap
     ip_or_dev:                 "10.66.171.41"
     slave_id:                  9
-    init_args:
+    client_args:
       max_effort:              5.0
       velocity:                0.1
   precision_tools:
@@ -77,7 +77,7 @@ grippers:
       precision_tool:
         type:                  PrecisionTool
         motor_id:              1
-        init_args:
+        client_args:
           base_link:           precision_tool/base_link
           tip_link:            precision_tool/tip_link
   screw_tools:
@@ -100,7 +100,7 @@ grippers:
         digital_in_port:       0
         digital_out_port_suck: 0
         digital_out_port_blow: 1
-        init_args:
+        client_args:
           base_link:           screw_tool_m3/base_link
           tip_link:            screw_tool_m3/tip_link
       screw_tool_m4:
@@ -108,7 +108,7 @@ grippers:
         digital_in_port:       1
         digital_out_port_suck: 2
         digital_out_port_blow: 3
-        init_args:
+        client_args:
           base_link:           screw_tool_m4/base_link
           tip_link:            screw_tool_m4/tip_link
       suction_tool:
@@ -116,14 +116,14 @@ grippers:
         digital_in_port:       2
         digital_out_port_suck: 4
         digital_out_port_blow: 5
-        init_args:
+        client_args:
           base_link:           suction_tool/base_link
           tip_link:            suction_tool/tip_link
       base_fixture:
         type:                  SuctionTool
         digital_out_port_suck: 6
         joint_name:            base_fixture_piston_joint
-        init_args:
+        client_args:
           base_link:           base_fixture_base_link
           tip_link:            workbench_holder_link
 
