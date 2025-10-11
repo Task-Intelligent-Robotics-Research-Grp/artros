@@ -27,6 +27,12 @@ launch_arguments = [
                            [LaunchConfiguration('name'), '.yaml']]),
         'description': 'Name of the hardware configuration'
     },
+    {
+        'name':        'sim',
+        'default':     'false',
+        'description': 'Use simulation time if true',
+        'choices':     ['true', 'false', 'True', 'False']
+    },
 ]
 
 def launch_setup(context):
@@ -48,6 +54,7 @@ def launch_setup(context):
                       PathJoinSubstitution([
                           FindPackageShare('aist_bringup'), 'config',
                           [LaunchConfiguration('config'), '.yaml']]),
+                      'use_sim_time': LaunchConfiguration('sim'),
                      }
                  ],
                  prefix=['xterm -fn 7x14 -e'],

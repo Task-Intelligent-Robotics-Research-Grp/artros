@@ -54,10 +54,9 @@ from moveit_msgs.msg                  import (RobotTrajectory,
 from moveit_msgs.srv                  import GetPositionIK
 from trajectory_msgs.msg              import (JointTrajectoryPoint,
                                               JointTrajectory)
-from aist_routines.gripper_client     import GripperClient, VoidGripper
-# from aist_routines.CameraClient       import CameraClient
-# from aist_routines.MarkerPublisher    import MarkerPublisher
-from aist_bringup.launch_common      import declare_launch_arguments
+from aist_routines.gripper_client     import GripperClient
+from aist_routines.camera_client      import CameraClient
+#from aist_routines.MarkerPublisher    import MarkerPublisher
 
 ######################################################################
 #  global functions                                                  #
@@ -118,7 +117,7 @@ class AISTBaseRoutines(Node):
         # self._com = CollisionObjectManagerClient()
 
         # MoveIt GetPositionIK service client
-        # self._compute_ik = rospy.ServiceProxy('/compute_ik', GetPositionIK)
+        self._compute_ik = self.create_client(GetPositionIK, '/compute_ik')
 
         # Hardware configuration
         with open(self.declare_parameter('config_file', name + '.yaml').value,
@@ -137,10 +136,10 @@ class AISTBaseRoutines(Node):
             self.set_gripper(name, self.default_gripper_name(name))
 
         # Cameras
-        # self._cameras = {}
-        # for camera_name, props in rospy.get_param('~cameras', {}).items():
-        #     self._cameras[camera_name] = CameraClient.create(camera_name,
-        # props)
+        self._cameras = {name: CameraClient.create(self, name, props['type'],
+                                                   props.get('client_args',
+                                                             {}))
+                         for name, props in config.get('cameras', {}).items()}
 
         # Search graspabilities
         # if rospy.has_param('~graspability_parameters'):
