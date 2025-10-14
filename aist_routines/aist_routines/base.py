@@ -38,25 +38,27 @@ import numpy as np
 import moveit_commander
 import tf_transformations as tfs
 
-from math                             import degrees, sqrt, pi
-from rclpy.node                       import Node
-from rclpy.duration                   import Duration
-from rclpy.time                       import Time
-from tf2_ros.buffer                   import Buffer
-from tf2_ros.transform_listener       import TransformListener
-from std_msgs.msg                     import Header
-from geometry_msgs.msg                import (PoseStamped, Pose, Point,
-                                              Quaternion, PoseArray,
-                                              Vector3, Vector3Stamped)
-from moveit_msgs.msg                  import (RobotTrajectory,
-                                              PositionIKRequest,
-                                              MoveItErrorCodes)
-from moveit_msgs.srv                  import GetPositionIK
-from trajectory_msgs.msg              import (JointTrajectoryPoint,
-                                              JointTrajectory)
-from aist_routines.gripper_client     import GripperClient
-from aist_routines.camera_client      import CameraClient
+from math                                 import degrees, sqrt, pi
+from rclpy.node                           import Node
+from rclpy.duration                       import Duration
+from rclpy.time                           import Time
+from tf2_ros.buffer                       import Buffer
+from tf2_ros.transform_listener           import TransformListener
+from std_msgs.msg                         import Header
+from geometry_msgs.msg                    import (PoseStamped, Pose, Point,
+                                                  Quaternion, PoseArray,
+                                                  Vector3, Vector3Stamped)
+from moveit_msgs.msg                      import (RobotTrajectory,
+                                                  PositionIKRequest,
+                                                  MoveItErrorCodes)
+from moveit_msgs.srv                      import GetPositionIK
+from trajectory_msgs.msg                  import (JointTrajectoryPoint,
+                                                  JointTrajectory)
+from aist_routines.gripper_client         import GripperClient
+from aist_routines.camera_client          import CameraClient
 #from aist_routines.MarkerPublisher    import MarkerPublisher
+from aist_utility.fileio                  import url_to_filepath
+from aist_collision_object_manager.client import CollisionObjectManagerClient
 
 ######################################################################
 #  global functions                                                  #
@@ -113,9 +115,6 @@ class AISTBaseRoutines(Node):
             'planning_frame: %s, reference_frame: %s, eef_step: %f'
             % (self.planning_frame, self.reference_frame, self.eef_step))
 
-        # CollisionObjectManager wrapping MoveIt PlanningSceneInterface
-        # self._com = CollisionObjectManagerClient()
-
         # MoveIt GetPositionIK service client
         self._compute_ik = self.create_client(GetPositionIK, '/compute_ik')
 
@@ -141,12 +140,20 @@ class AISTBaseRoutines(Node):
                                                              {}))
                          for name, props in config.get('cameras', {}).items()}
 
-        # Search graspabilities
-        # if rospy.has_param('~graspability_parameters'):
-        #     from aist_graspability import GraspabilityClient
-        #     self._graspability_params \
-        #         = rospy.get_param('~graspability_parameters')
-        #     self._graspabilityClient = GraspabilityClient()
+        # Load setting parameters
+        settings = {}
+        for url in self.declare_parameter('setting_urls', ['']).value:
+            with open(url_to_filepath(url), 'r') as f:
+                settings |= yaml.safe_load(f)
+
+        # CollisionObjectManager wrapping MoveIt PlanningSceneInterface
+        if 'initial_object_config' in settings:
+            self._com = CollisionObjectManagerClient(self)
+        else:
+            self._com = None
+
+        self._graspability_params = settings.get('graspability_parameters')
+        self._picking_params      = settings.get('picking_parameters')
 
         # Pick and place action
         # if rospy.has_param('~picking_parameters'):

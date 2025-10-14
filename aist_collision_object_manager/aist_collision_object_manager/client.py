@@ -33,28 +33,32 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy
+import rclpy
 
-from aist_msgs.srv import ManageCollisionObject, ManageCollisionObjectRequest
+from rclpy.node            import Node
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
+from aist_msgs.srv         import ManageCollisionObject
 
 #########################################################################
 #  class CollisionObjectManagerClient                                   #
 #########################################################################
 class CollisionObjectManagerClient(object):
-    def __init__(self, server='collision_object_manager'):
+    def __init__(self, node, server='collision_object_manager'):
         super().__init__()
 
-        try:
-            service = server + '/manage_collision_object'
-            rospy.wait_for_service(service, timeout=5.0)
-            self._send = rospy.ServiceProxy(service, ManageCollisionObject)
-        except rospy.ROSException as e:
-            rospy.logerr(e)
+        self._client = node.create_client(ManageCollisionObject,
+                                          server + '/manage_collision_object')
+        if not self._client.wait_for_service(timeout_sec=5.0):
+            txt = 'failed to establish connection to the service[%s]' \
+                % (server + '/manage_collision_object')
+            node.get_logger().error(txt)
+            raise RuntimeError(txt)
+        node.get_logger().info('established connection to collision_object_manager')
 
     def create_object(self, object_type, pose,
                       subframe='base_link', object_id=''):
-        req = ManageCollisionObjectRequest()
-        req.op          = ManageCollisionObjectRequest.CREATE_OBJECT
+        req = ManageCollisionObject.Request()
+        req.op          = ManageCollisionObject.Request.CREATE_OBJECT
         req.object_type = object_type
         req.object_id   = object_id if object_id != '' else object_type
         req.subframe    = subframe
@@ -63,15 +67,15 @@ class CollisionObjectManagerClient(object):
         return self._send(req).success
 
     def remove_object(self, object_id='', frame_id=''):
-        req = ManageCollisionObjectRequest()
-        req.op        = ManageCollisionObjectRequest.REMOVE_OBJECT
+        req = ManageCollisionObject.Request()
+        req.op        = ManageCollisionObject.Request.REMOVE_OBJECT
         req.object_id = object_id
         req.frame_id  = frame_id
         return self._send(req).success
 
     def attach_object(self, object_id, parent_link, leaf_id=''):
-        req = ManageCollisionObjectRequest()
-        req.op        = ManageCollisionObjectRequest.ATTACH_OBJECT
+        req = ManageCollisionObject.Request()
+        req.op        = ManageCollisionObject.Request.ATTACH_OBJECT
         req.object_id = object_id
         req.frame_id  = parent_link
         req.leaf_id   = leaf_id
@@ -79,8 +83,8 @@ class CollisionObjectManagerClient(object):
         return res.info if res.success else None
 
     def detach_object(self, object_id, parent_link, leaf_id=''):
-        req = ManageCollisionObjectRequest()
-        req.op        = ManageCollisionObjectRequest.DETACH_OBJECT
+        req = ManageCollisionObject.Request()
+        req.op        = ManageCollisionObject.Request.DETACH_OBJECT
         req.object_id = object_id
         req.frame_id  = parent_link
         req.leaf_id   = leaf_id
@@ -88,8 +92,8 @@ class CollisionObjectManagerClient(object):
         return res.info if res.success else None
 
     def move_object(self, object_id, pose, subframe='base_link'):
-        req = ManageCollisionObjectRequest()
-        req.op        = ManageCollisionObjectRequest.MOVE_OBJECT
+        req = ManageCollisionObject.Request()
+        req.op        = ManageCollisionObject.Request.MOVE_OBJECT
         req.object_id = object_id
         req.subframe  = subframe
         req.frame_id  = pose.header.frame_id
@@ -98,49 +102,55 @@ class CollisionObjectManagerClient(object):
         return res.info if res.success else None
 
     def append_touch_links(self, object_id, touch_link):
-        req = ManageCollisionObjectRequest()
-        req.op        = ManageCollisionObjectRequest.APPEND_TOUCH_LINKS
+        req = ManageCollisionObject.Request()
+        req.op        = ManageCollisionObject.Request.APPEND_TOUCH_LINKS
         req.object_id = object_id
         req.frame_id  = touch_link
         return self._send(req).success
 
     def remove_touch_links(self, object_id, untouch_link):
-        req = ManageCollisionObjectRequest()
-        req.op        = ManageCollisionObjectRequest.REMOVE_TOUCH_LINKS
+        req = ManageCollisionObject.Request()
+        req.op        = ManageCollisionObject.Request.REMOVE_TOUCH_LINKS
         req.object_id = object_id
         req.frame_id  = untouch_link
         return self._send(req).success
 
     def reset_touch_links(self):
-        req = ManageCollisionObjectRequest()
-        req.op = ManageCollisionObjectRequest.RESET_TOUCH_LINKS
+        req = ManageCollisionObject.Request()
+        req.op = ManageCollisionObject.Request.RESET_TOUCH_LINKS
         return self._send(req).success
 
     def get_object_info(self, object_id):
-        req           = ManageCollisionObjectRequest()
-        req.op        = ManageCollisionObjectRequest.GET_OBJECT_INFO
+        req           = ManageCollisionObject.Request()
+        req.op        = ManageCollisionObject.Request.GET_OBJECT_INFO
         req.object_id = object_id
         res = self._send(req)
         return res.info if res.success else None
 
     def get_child_object_info(self, frame_id):
-        req          = ManageCollisionObjectRequest()
-        req.op       = ManageCollisionObjectRequest \
+        req          = ManageCollisionObject.Request()
+        req.op       = ManageCollisionObject.Request \
                       .GET_ATTACHED_CHILD_OBJECT_INFO
         req.frame_id = frame_id
         res = self._send(req)
         return res.info if res.success else None
 
     def allow_collision(self, object_id, frame_id):
-        req           = ManageCollisionObjectRequest()
-        req.op        = ManageCollisionObjectRequest.ALLOW_COLLISION
+        req           = ManageCollisionObject.Request()
+        req.op        = ManageCollisionObject.Request.ALLOW_COLLISION
         req.object_id = object_id
         req.frame_id  = frame_id
         return self._send(req).success
 
     def disallow_collision(self, object_id, frame_id):
-        req           = ManageCollisionObjectRequest()
-        req.op        = ManageCollisionObjectRequest.DISALLOW_COLLISION
+        req           = ManageCollisionObject.Request()
+        req.op        = ManageCollisionObject.Request.DISALLOW_COLLISION
         req.object_id = object_id
         req.frame_id  = frame_id
         return self._send(req).success
+
+    def _send(self, req):
+        future = self._client.call_async(req)
+        while not future.done():
+            time.sleep(0.1)
+        return future.result

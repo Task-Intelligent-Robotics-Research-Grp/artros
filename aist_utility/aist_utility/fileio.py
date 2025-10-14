@@ -1,7 +1,6 @@
-#
 # Software License Agreement (BSD License)
 #
-# Copyright (c) 2021, OMRON SINIC X
+# Copyright (c) 2021, National Institute of Advanced Industrial Science and Technology (AIST)
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -14,9 +13,10 @@
 #    copyright notice, this list of conditions and the following
 #    disclaimer in the documentation and/or other materials provided
 #    with the distribution.
-#  * Neither the name of OMRON SINIC X nor the names of its
-#    contributors may be used to endorse or promote products derived
-#    from this software without specific prior written permission.
+#  * Neither the name of National Institute of Advanced Industrial
+#    Science and Technology (AIST) nor the names of its contributors
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 # "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -31,50 +31,22 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-# Author: Cristian C. Beltran-Hernandez
-
-import sys, threading, siganl
-
-def signal_handler(sig, frame):
-    print('You pressed Ctrl+C!')
-    sys.exit(0)
-
-signal.signal(signal.SIGINT, signal_handler)
+# Author: Toshio Ueshiba
+#
+import os
+from ament_index_python.packages import get_package_share_directory
 
 
-class ThreadTrace(threading.Thread):
-    """ A convenience class to spawn a thread and track its status.
-    """
-    def __init__(self, *args, **keywords):
-        threading.Thread.__init__(self, *args, **keywords)
-        self.killed = False
+def url_to_filepath(url):
+    tokens = url.split('/')
+    if len(tokens) < 3 or tokens[1] != '':
+        raise RuntimeError('illegal URL: %s' % url)
 
-    def start(self):
-        self.__run_backup = self.run
-        self.run = self.__run
-        threading.Thread.start(self)
+    if tokens[0] == 'package:':
+        root = get_package_share_directory(tokens[2])
+    elif tokens[0] == 'file:':
+        root = '/'
+    else:
+        raise RuntimeError('unknown URL scheme: %s' % tokens[0])
 
-    def __run(self):
-        sys.settrace(self.globaltrace)
-        self.__run_backup()
-        self.run = self.__run_backup
-
-    def globaltrace(self, frame, event, arg):
-        if event == 'call':
-            return self.localtrace
-        else:
-            return None
-
-    def localtrace(self, frame, event, arg):
-        if self.killed:
-            if event == 'line':
-                raise SystemExit()
-        return self.localtrace
-
-    def kill(self):
-        self.killed = True
-
-
-def func():
-    while True:
-        print('thread running')
+    return os.path.join(root, *tokens[3:])
