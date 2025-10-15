@@ -42,6 +42,7 @@ import pyassimp
 
 from collections                   import namedtuple
 from rclpy.node                    import Node
+from rclpy.executors               import MultiThreadedExecutor
 from rclpy.duration                import Duration
 from rclpy.time                    import Time
 from tf2_ros.buffer                import Buffer
@@ -63,7 +64,7 @@ from moveit_msgs.msg               import (CollisionObject,
                                            PlanningSceneComponents,
                                            PlanningScene)
 from moveit_commander              import planning_scene_interface as psi
-from aist_utility.fileio           import url_to_filepath
+from aist_utility.fileio           import filepath_from_url
 
 #########################################################################
 #  local functions                                                      #
@@ -219,10 +220,10 @@ class CollisionObjectManager(Node):
             self.get_logger().info('loaded properties of type[%s]' % type)
 
         self._psi                 = psi.PlanningSceneInterface(
+                                        self,
                                         self.declare_parameter('namespace',
                                                                '').value,
-                                        self,
-                                        self.declare_parameter('synchronus',
+                                        self.declare_parameter('synchronous',
                                                                True).value)
 
         self._instance_props_dict = {}
@@ -258,7 +259,7 @@ class CollisionObjectManager(Node):
         try:
             databases = {}
             for url in urls:
-                with open(url_to_filepath(url), 'r') as f:
+                with open(filepath_from_url(url), 'r') as f:
                     databases |= yaml.safe_load(f)
             return databases
         except Exception as e:
@@ -267,7 +268,7 @@ class CollisionObjectManager(Node):
 
     def _load_mesh(self, url, scale=(0.001, 0.001, 0.001)):
         try:
-            with pyassimp.load(url_to_filepath(url)) as scene:
+            with pyassimp.load(filepath_from_url(url)) as scene:
                 if not scene.meshes or len(scene.meshes) == 0:
                     raise RuntimeError("no meshes in the file")
                 if len(scene.meshes[0].faces) == 0:
@@ -327,7 +328,7 @@ class CollisionObjectManager(Node):
         res.mesh_resource = req.mesh_resource
         for obj_props in self._obj_props_dict.values():
             if req.mesh_resource in obj_props.visual_mesh_urls:
-                with open(url_to_filepath(req.mesh_resource), 'rb') as f:
+                with open(filepath_from_url(req.mesh_resource), 'rb') as f:
                     res.data = f.read()
                 self.get_logger().info('Send response to GetMeshResource request for the mesh_url[%s]' % req.mesh_resource)
                 break
@@ -340,45 +341,50 @@ class CollisionObjectManager(Node):
 
         Execute various operations on collision objects requested by clients
         """
+        self.get_logger().info('### received service request[op=%d]' % req.op)
+
+        res.success = True
+
         try:
-            if req.op == ManageCollisionObjectRequest.CREATE_OBJECT:
+            if req.op == ManageCollisionObject.Request.CREATE_OBJECT:
                 self._create_object(req.object_type, req.object_id,
                                     req.frame_id, req.pose, req.subframe)
-            elif req.op == ManageCollisionObjectRequest.REMOVE_OBJECT:
+            elif req.op == ManageCollisionObject.Request.REMOVE_OBJECT:
                 self._remove_object(req.object_id, req.frame_id)
-            elif req.op == ManageCollisionObjectRequest.ATTACH_OBJECT:
+            elif req.op == ManageCollisionObject.Request.ATTACH_OBJECT:
                 res.info = self._get_object_info(req.object_id)
                 self._attach_object(req.object_id, req.frame_id, req.leaf_id)
-            elif req.op == ManageCollisionObjectRequest.DETACH_OBJECT:
+            elif req.op == ManageCollisionObject.Request.DETACH_OBJECT:
                 res.info = self._get_object_info(req.object_id)
                 self._detach_object(req.object_id, req.frame_id, req.leaf_id)
-            elif req.op == ManageCollisionObjectRequest.MOVE_OBJECT:
+            elif req.op == ManageCollisionObject.Request.MOVE_OBJECT:
                 res.info = self._get_object_info(req.object_id)
                 self._move_object(req.object_id,
                                   req.frame_id, req.pose, req.subframe)
-            elif req.op == ManageCollisionObjectRequest.APPEND_TOUCH_LINKS:
+            elif req.op == ManageCollisionObject.Request.APPEND_TOUCH_LINKS:
                 self._append_or_remove_touch_links(req.object_id,
                                                    req.frame_id, True)
-            elif req.op == ManageCollisionObjectRequest.REMOVE_TOUCH_LINKS:
+            elif req.op == ManageCollisionObject.Request.REMOVE_TOUCH_LINKS:
                 self._append_or_remove_touch_links(req.object_id,
                                                    req.frame_id, False)
-            elif req.op == ManageCollisionObjectRequest.RESET_TOUCH_LINKS:
+            elif req.op == ManageCollisionObject.Request.RESET_TOUCH_LINKS:
                 self._reset_touch_links()
-            elif req.op == ManageCollisionObjectRequest.GET_OBJECT_INFO:
+            elif req.op == ManageCollisionObject.Request.GET_OBJECT_INFO:
                 res.info = self._get_object_info(req.object_id)
-            elif req.op == ManageCollisionObjectRequest \
+            elif req.op == ManageCollisionObject.Request \
                           .GET_ATTACHED_CHILD_OBJECT_INFO:
                 res.info = self._get_attached_child_object_info(req.frame_id)
-            elif req.op == ManageCollisionObjectRequest.ALLOW_COLLISION:
+            elif req.op == ManageCollisionObject.Request.ALLOW_COLLISION:
                 self._set_collision_allowed(req.object_id, req.frame_id, True)
-            elif req.op == ManageCollisionObjectRequest.DISALLOW_COLLISION:
+            elif req.op == ManageCollisionObject.Request.DISALLOW_COLLISION:
                 self._set_collision_allowed(req.object_id, req.frame_id, False)
             else:
-                raise Exception('unknown operation[%d]' % req.op)
+                raise RuntimeError('unknown operation[%d]' % req.op)
         except Exception as e:
             # raise(e)
             self.get_logger().error('%s' % e)
             res.success = False
+        self.get_logger().info('--- return service response')
 
         return res
 
@@ -506,7 +512,7 @@ class CollisionObjectManager(Node):
         """
         co = self._get_any_object(object_id)
         if co is None:
-            raise Exception("unknown collision object '%s'" % object_id)
+            raise RuntimeError("unknown collision object '%s'" % object_id)
 
         # Make this object root of the tree attached to link.
         old_root_id, old_parent_link = self._rotate_tree(co, leaf_id)
@@ -538,8 +544,8 @@ class CollisionObjectManager(Node):
     def _detach_object(self, object_id, parent_link, leaf_id):
         aco = self._get_attached_object(object_id)
         if aco is None:
-            raise Exception("unknown attached collision object '%s'"
-                            % object_id)
+            raise RuntimeError("unknown attached collision object '%s'"
+                               % object_id)
 
         # Make this object root of the tree attached to link.
         old_root_id, old_parent_link = self._rotate_tree(aco.object, leaf_id)
@@ -570,7 +576,7 @@ class CollisionObjectManager(Node):
     def _move_object(self, object_id, frame_id, pose, subframe):
         co = self._get_any_object(object_id)
         if co is None:
-            raise Exception("unknown collision object '%s'" % object_id)
+            raise RuntimeError("unknown collision object '%s'" % object_id)
 
         # Transform the given pose from 'frame_id' to parent link of 'co'.
         parent_link = self._get_parent_link(co.id)
@@ -846,8 +852,11 @@ def main():
 
         node = CollisionObjectManager('collision_object_manager')
         rclpy.spin(node)
+        # executor = MultiThreadedExecutor()
+        # executor.add_node(node)
+        # executor.spin()
     except Exception as e:
-        print(e)
+        print('*** Terminate the node due to exception: %s' % e)
 
 if __name__ == '__main__':
     main()

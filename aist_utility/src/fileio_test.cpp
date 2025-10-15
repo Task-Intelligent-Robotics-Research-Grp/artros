@@ -10,7 +10,7 @@ main(int argc, char* argv[])
     std::cerr << "URL>> ";
     for (std::string url; std::cin >> url; )
     {
-	const auto	path = aist_utility::url_to_filepath(url);
+	const auto	path = aist_utility::filepath_from_url(url);
 	std::cout << "path = " << path << std::endl;
 	std::cerr << "URL>> ";
     }

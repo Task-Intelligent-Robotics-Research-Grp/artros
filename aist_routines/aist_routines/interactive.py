@@ -36,8 +36,8 @@
 # Author: Toshio Ueshiba
 #
 import rclpy, sys, threading
+from rclpy.executors    import MultiThreadedExecutor
 from aist_routines.base import AISTBaseRoutines
-
 
 ######################################################################
 #  class InteractiveRoutines                                         #
@@ -79,8 +79,11 @@ class InteractiveRoutines(AISTBaseRoutines):
 def main():
     rclpy.init(args=sys.argv)
 
-    interactive = InteractiveRoutines('interactive')
-    rclpy.spin(interactive)
+    node = InteractiveRoutines('interactive')
+    executor = MultiThreadedExecutor()
+    executor.add_node(node)
+    executor.spin()
+    #rclpy.spin(interactive)
 
 if __name__ == '__main__':
     main()

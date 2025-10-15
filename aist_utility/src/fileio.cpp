@@ -34,9 +34,8 @@
 // Author: Toshio Ueshiba
 //
 /*!
- *  \file	ply.cpp
+ *  \file	fileio.cpp
  *  \author	Toshio Ueshiba
- *  \brief	Save depth and color images to Ordered PLY file
  */
 #include <filesystem>
 #include <vector>
@@ -46,7 +45,7 @@
 namespace aist_utility
 {
 std::string
-url_to_filepath(const std::string& url)
+filepath_from_url(const std::string& url)
 {
   // Split the input URL into tokens by the dellimiter '/'.
     std::vector<std::string>	tokens;

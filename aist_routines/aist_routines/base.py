@@ -57,7 +57,7 @@ from trajectory_msgs.msg                  import (JointTrajectoryPoint,
 from aist_routines.gripper_client         import GripperClient
 from aist_routines.camera_client          import CameraClient
 #from aist_routines.MarkerPublisher    import MarkerPublisher
-from aist_utility.fileio                  import url_to_filepath
+from aist_utility.fileio                  import filepath_from_url
 from aist_collision_object_manager.client import CollisionObjectManagerClient
 
 ######################################################################
@@ -143,12 +143,14 @@ class AISTBaseRoutines(Node):
         # Load setting parameters
         settings = {}
         for url in self.declare_parameter('setting_urls', ['']).value:
-            with open(url_to_filepath(url), 'r') as f:
+            with open(filepath_from_url(url), 'r') as f:
                 settings |= yaml.safe_load(f)
 
         # CollisionObjectManager wrapping MoveIt PlanningSceneInterface
         if 'initial_object_config' in settings:
             self._com = CollisionObjectManagerClient(self)
+            self._initialize_collision_objects(
+                settings['initial_object_config'])
         else:
             self._com = None
 
@@ -883,6 +885,21 @@ class AISTBaseRoutines(Node):
             *self.xyzrpy_from_pose(target_pose))
 
     # Private functions
+    def _initialize_collision_objects(self, initial_object_config):
+        self.com.remove_object()
+        self.get_logger().info(initial_object_config)
+        for object_type, config in initial_object_config.items():
+            self.com.create_object(object_type,
+                                   self.pose_from_xyzrpy(
+                                       config.get('offset', ()),
+                                       config['parent_link']),
+                                   config.get('subframe', 'base_link'))
+            time.sleep(0.5)
+            # if object_type == 'panel_bearing' or object_type == 'panel_motor':
+            #     self.com.attach_object(object_type, config['parent_link'])
+            # if object_type == 'base':
+            #     self.com.attach_object(object_type, config['parent_link'])
+
     def _position_from_offset(self, offset):
         return np.array((0, 0, 0) if len(offset) < 3 else offset[0:3])
 

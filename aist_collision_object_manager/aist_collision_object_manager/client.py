@@ -33,7 +33,7 @@
 #
 # Author: Toshio Ueshiba
 #
-import rclpy
+import rclpy, time
 
 from rclpy.node            import Node
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
@@ -43,17 +43,21 @@ from aist_msgs.srv         import ManageCollisionObject
 #  class CollisionObjectManagerClient                                   #
 #########################################################################
 class CollisionObjectManagerClient(object):
-    def __init__(self, node, server='collision_object_manager'):
+    def __init__(self, node,
+                 server='collision_object_manager', timeout_sec=5.0):
         super().__init__()
 
-        self._client = node.create_client(ManageCollisionObject,
-                                          server + '/manage_collision_object')
-        if not self._client.wait_for_service(timeout_sec=5.0):
-            txt = 'failed to establish connection to the service[%s]' \
-                % (server + '/manage_collision_object')
-            node.get_logger().error(txt)
-            raise RuntimeError(txt)
-        node.get_logger().info('established connection to collision_object_manager')
+        service_ns = server + '/manage_collision_object'
+        self._logger = node.get_logger()
+        self._cbg    = MutuallyExclusiveCallbackGroup()
+        self._client = node.create_client(ManageCollisionObject, service_ns,
+                                          callback_group=self._cbg)
+        if not self._client.wait_for_service(timeout_sec=timeout_sec):
+            raise RuntimeError(
+                'failed to establish connection to the service[%s]' \
+                % service_ns)
+        node.get_logger().info('established connection to the service[%s]'
+                               % service_ns)
 
     def create_object(self, object_type, pose,
                       subframe='base_link', object_id=''):
@@ -152,5 +156,6 @@ class CollisionObjectManagerClient(object):
     def _send(self, req):
         future = self._client.call_async(req)
         while not future.done():
+            self._logger.info('### waiting...')
             time.sleep(0.1)
         return future.result

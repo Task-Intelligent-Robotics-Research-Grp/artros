@@ -37,7 +37,7 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 
-def url_to_filepath(url):
+def filepath_from_url(url):
     tokens = url.split('/')
     if len(tokens) < 3 or tokens[1] != '':
         raise RuntimeError('illegal URL: %s' % url)

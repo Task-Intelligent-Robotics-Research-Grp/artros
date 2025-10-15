@@ -68,12 +68,13 @@ class GripperClient(object):
     def create(node, name, type_name, props):
         ClientClass = globals().get(type_name)
         if ClientClass is None:
-            txt = 'unknown type[%s] of the gripper[%s]' % (type_name, name)
-            self.logger.error(txt)
-            raise RuntimeError(txt)
+            raise RuntimeError(
+                'unknown type[%s] of the gripper[%s]' % (type_name, name))
         try:
             return ClientClass(node, name, **props)
         except RuntimeError as e:
+            node.get_logger().warn(
+                'create a dummy controller for gripper[%s] because %s' % (name, e))
             return ClientClass.simulated(node, name, **props)
 
     @property
@@ -157,10 +158,9 @@ class GenericGripper(GripperClient):
         self._client   = ActionClient(node, GripperCommand,
                                       name + '_controller/gripper_cmd')
         if not self._client.wait_for_server(timeout_sec=1.0):
-            txt = 'failed to establish connection to the action server[%s]' \
-                % (name + '_controller/gripper_cmd')
-            self.logger.error(txt)
-            raise RuntimeError(txt)
+            raise RuntimeError(
+                'failed to establish connection to the action server[%s]' \
+                % (name + '_controller/gripper_cmd'))
 
         self._properties = {'grasp_position':   min_position,
                             'release_position': max_position,
@@ -291,8 +291,10 @@ class RobotiqGripper(GenericGripper):
                                                     0.00).value
         self._set_velocity = node.create_client(SetVelocity,
                                                 ns + '/set_velocity')
-        if self._set_velocity.wait_for_service(timeout_sec=1.0):
-            node.get_logger().warn('failed to establish connection to the service[%s]' % (ns + '/set_velocity'))
+        if self._set_velocity.wait_for_service(timeout_sec=5.0):
+            node.get_logger().error(
+                'failed to establish connection to the service[%s]'
+                % (ns + '/set_velocity'))
 
         assert self._min_gap < self._max_gap
         assert self._min_position != self._max_position
@@ -357,10 +359,9 @@ class EPickGripper(GripperClient):
         self._client   = ActionClient(node, EPickCommand,
                                       ns + '/gripper_cmd')
         if not self._client.wait_for_server(timeout_sec=1.0):
-            txt = 'failed to establish connection to the controller[%s]' \
-                % (ns + '/gripper_cmd')
-            self.logger.error(txt)
-            raise RuntimeError(txt)
+            raise RuntimeError(
+                'failed to establish connection to the controller[%s]' \
+                % (ns + '/gripper_cmd'))
 
         self._properties = {'advanced_mode':      advanced_mode,
                             'grasp_pressure':     grasp_pressure,
@@ -491,10 +492,9 @@ class SuctionTool(GripperClient):
         self._suction_cmd = ActionClient(node, SuctionToolCommand,
                                          ns + '/command')
         if not self._suction_cmd.wait_for_server(timeout_sec=1.0):
-            txt = 'failed to establish connection to the action server[%s]' \
-                % (ns + '/command')
-            self.logger.error(txt)
-            raise RuntimeError(txt)
+            raise RuntimeError(
+                'failed to establish connection to the action server[%s]' \
+                % (ns + '/command'))
 
         self._suctioned     = None
         self._suctioned_cbg = MutuallyExclusiveCallbackGroup()
@@ -613,10 +613,9 @@ class ScrewTool(GripperClient):
         self._properties    = {'speed': speed, 'retighten': retighten}
 
         if not self._screw_cmd.wait_for_server(timeout_sec=1.0):
-            txt = 'failed to establish connection to the action server[%s]' \
-                % (ns + '/command')
-            self.logger.error(txt)
-            raise RuntimeError(txt)
+            raise RuntimeError(
+                'failed to establish connection to the action server[%s]' \
+                % (ns + '/command'))
 
     @staticmethod
     def simulated(node, name, base_link=None, tip_link=None,

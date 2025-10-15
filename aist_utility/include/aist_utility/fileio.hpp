@@ -42,5 +42,5 @@
 
 namespace aist_utility
 {
-std::string	url_to_filepath(const std::string& url)			;
+std::string	filepath_from_url(const std::string& url)		;
 }	// namespace aist_utility
