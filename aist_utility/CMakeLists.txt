@@ -35,6 +35,7 @@ ament_auto_add_library(
   ${PROJECT_NAME} SHARED
     src/tiff.cpp
     src/ply.cpp
+    src/fileio.cpp
     src/oply/OrderedPly.cpp
     src/rply/rply.c
 )
@@ -108,6 +109,14 @@ rclcpp_components_register_node(
   spline_extrapolator_test
     PLUGIN "${PROJECT_NAME}::SplineExtrapolatorTest"
     EXECUTABLE spline_extrapolator_test_node
+)
+
+##############################
+#  fileio_test               #
+##############################
+ament_auto_add_executable(
+  fileio_test
+    src/fileio_test.cpp
 )
 
 #############

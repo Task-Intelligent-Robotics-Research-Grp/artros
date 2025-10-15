@@ -7,7 +7,6 @@
   <maintainer email="t.ueshiba@aist.go.jp">Toshio Ueshiba</maintainer>
   <license>BSD</license>
 
-  <exec_depend>ament_index_python</exec_depend>
   <exec_depend>rclpy</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
   <exec_depend>std_msgs</exec_depend>
@@ -16,6 +15,7 @@
   <exec_depend>visualization_msgs</exec_depend>
   <exec_depend>moveit_msgs</exec_depend>
   <exec_depend>aist_msgs</exec_depend>
+  <exec_depend>aist_utility</exec_depend>
 
   <export>
     <build_type>ament_python</build_type>
