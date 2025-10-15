@@ -71,8 +71,6 @@ class InteractiveRoutines(AISTBaseRoutines):
             arm_name, axis, speed = super().interactive(key, arm_name,
                                                         axis, speed)
 
-
-
 ######################################################################
 #  global functions                                                  #
 ######################################################################

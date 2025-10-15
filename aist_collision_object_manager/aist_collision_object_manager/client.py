@@ -155,7 +155,12 @@ class CollisionObjectManagerClient(object):
 
     def _send(self, req):
         future = self._client.call_async(req)
+        # future.add_done_callback(self._done_cb)
+        # time.sleep(10.0)
         while not future.done():
             self._logger.info('### waiting...')
             time.sleep(0.1)
         return future.result
+
+    def _done_cb(self, future):
+        self._logger.info('### Done!')
