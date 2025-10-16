@@ -52,6 +52,10 @@ class InteractiveRoutines(AISTBaseRoutines):
         cli_thread.start()
 
     def interactive(self):
+        if self.com and 'initial_object_config' in self.settings:
+            self._initialize_collision_objects(
+                self.settings['initial_object_config'])
+
         arm_name = self.group_names[0]
         axis       = 'Y'
         speed      = 1.0
@@ -62,7 +66,6 @@ class InteractiveRoutines(AISTBaseRoutines):
 
         while rclpy.ok():
             current_pose = self.get_current_pose(arm_name)
-            #print('### %s' % current_pose)
             prompt = '{:>5}:{}({})@{}>> ' \
                    .format(axis,
                            self.format_pose(current_pose),
@@ -81,7 +84,6 @@ def main():
     executor = MultiThreadedExecutor()
     executor.add_node(node)
     executor.spin()
-    #rclpy.spin(interactive)
 
 if __name__ == '__main__':
     main()

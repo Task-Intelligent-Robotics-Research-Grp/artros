@@ -57,7 +57,7 @@ def launch_setup(context):
                       'use_sim_time': LaunchConfiguration('sim'),
                      }
                  ],
-                 # prefix=['xterm -fn 7x14 -e'],
+                 prefix=['xterm -fn 7x14 -e'],
                  output='screen')]
 
 def generate_launch_description():

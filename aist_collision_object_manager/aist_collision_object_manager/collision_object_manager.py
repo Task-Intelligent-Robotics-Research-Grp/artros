@@ -184,8 +184,9 @@ class CollisionObjectManager(Node):
                             [], [], [], [],
                             [], [], [],
                             ['base_link'],
-                            [Pose(position=Point(x=0, y=0, z=0),
-                                  orientation=Quaternion(x=0, y=0, z=0, w=1))])
+                            [Pose(position=Point(x=0.0, y=0.0, z=0.0),
+                                  orientation=Quaternion(x=0.0, y=0.0,
+                                                         z=0.0, w=1.0))])
             for primitive in props.get('primitives', []):
                 obj_props.primitives.append(
                     SolidPrimitive(type=PRIMITIVES[primitive['type']],
@@ -314,7 +315,8 @@ class CollisionObjectManager(Node):
         with self._lock:
             for instance_props in self._instance_props_dict.values():
                 for subframe_transform in instance_props.subframe_transforms:
-                    subframe_transform.header.stamp = self.get_clock().now()
+                    subframe_transform.header.stamp \
+                        = self.get_clock().now().to_msg()
                     self._broadcaster.sendTransform(subframe_transform)
                 for marker in instance_props.markers:
                     self._marker_pub.publish(marker)
@@ -471,7 +473,7 @@ class CollisionObjectManager(Node):
             marker.pose            = mesh_pose
             marker.scale           = mesh_scale
             marker.color           = mesh_color
-            marker.lifetime        = Duration(seconds=0)
+            marker.lifetime        = Duration(seconds=0).to_msg()
             marker.frame_locked    = False
             marker.mesh_resource   = mesh_url
             instance_props.markers.append(marker)
@@ -851,10 +853,10 @@ def main():
         rclpy.init(args=sys.argv)
 
         node = CollisionObjectManager('collision_object_manager')
-        rclpy.spin(node)
-        # executor = MultiThreadedExecutor()
-        # executor.add_node(node)
-        # executor.spin()
+        #rclpy.spin(node)
+        executor = MultiThreadedExecutor()
+        executor.add_node(node)
+        executor.spin()
     except Exception as e:
         print('*** Terminate the node due to exception: %s' % e)
 

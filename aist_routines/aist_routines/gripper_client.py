@@ -126,6 +126,10 @@ class GripperClient(object):
     def release(self, timeout=Duration()):
         return True
 
+    def set_velocity(self, position):
+        self._logger.warn('set_velocity: not implemented')
+        return True
+
     def move(self, position):
         return True
 
@@ -281,17 +285,20 @@ class RobotiqGripper(GenericGripper):
         @param velocity   desired speed when opening or closing the gripper
         """
         ns = name + '_controller'
-        self._min_gap      = node.declare_parameter(ns + '/min_gap',
-                                                    0.000).value
-        self._max_gap      = node.declare_parameter(ns + '/max_gap',
-                                                    0.085).value
-        self._min_position = node.declare_parameter(ns + '/min_position',
-                                                    0.81).value
-        self._max_position = node.declare_parameter(ns + '/max_position',
-                                                    0.00).value
-        self._set_velocity = node.create_client(SetVelocity,
-                                                ns + '/set_velocity')
-        if self._set_velocity.wait_for_service(timeout_sec=5.0):
+        self._min_gap          = node.declare_parameter(ns + '/min_gap',
+                                                        0.000).value
+        self._max_gap          = node.declare_parameter(ns + '/max_gap',
+                                                        0.085).value
+        self._min_position     = node.declare_parameter(ns + '/min_position',
+                                                        0.81).value
+        self._max_position     = node.declare_parameter(ns + '/max_position',
+                                                        0.00).value
+        self._set_velocity_cbg = MutuallyExclusiveCallbackGroup()
+        self._set_velocity_srv = node.create_client(SetVelocity,
+                                                    ns + '/set_velocity',
+                                                    callback_group\
+                                                    =self._set_velocity_cbg)
+        if not self._set_velocity_srv.wait_for_service(timeout_sec=5.0):
             node.get_logger().error(
                 'failed to establish connection to the service[%s]'
                 % (ns + '/set_velocity'))
@@ -301,6 +308,10 @@ class RobotiqGripper(GenericGripper):
 
         super().__init__(node, name, None, None,
                          self._min_gap, self._max_gap, max_effort)
+
+    def set_velocity(self, velocity):
+        self._set_velocity_srv.call(SetVelocity.Request(velocity=velocity)) \
+                              .success
 
     def move(self, gap, max_effort=0.0, timeout=Duration()):
         return super().move(self._position(gap), max_effort, timeout)

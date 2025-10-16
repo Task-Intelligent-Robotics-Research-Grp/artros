@@ -141,21 +141,16 @@ class AISTBaseRoutines(Node):
                          for name, props in config.get('cameras', {}).items()}
 
         # Load setting parameters
-        settings = {}
+        self._settings = {}
         for url in self.declare_parameter('setting_urls', ['']).value:
             with open(filepath_from_url(url), 'r') as f:
-                settings |= yaml.safe_load(f)
+                self._settings |= yaml.safe_load(f)
 
         # CollisionObjectManager wrapping MoveIt PlanningSceneInterface
-        if 'initial_object_config' in settings:
+        if 'initial_object_config' in self.settings:
             self._com = CollisionObjectManagerClient(self)
-            self._initialize_collision_objects(
-                settings['initial_object_config'])
         else:
             self._com = None
-
-        self._graspability_params = settings.get('graspability_parameters')
-        self._picking_params      = settings.get('picking_parameters')
 
         # Pick and place action
         # if rospy.has_param('~picking_parameters'):
@@ -206,6 +201,10 @@ class AISTBaseRoutines(Node):
     def com(self):
         return self._com
 
+    @property
+    def settings(self):
+        return self._settings
+
     # Interactive stuffs
     def print_help_messages(self):
         print('=== General commands ===')
@@ -233,6 +232,7 @@ class AISTBaseRoutines(Node):
         print('  postgrasp:   postgrasp with the current gripper')
         print('  release:     release with the current gripper')
         print('  gpos:        set gripper position')
+        print('  gvel:        set gripper velocity')
         print('  tighten:     tighten screw')
         print('  loosen:      loosen screw')
         print('  gcancel:     cancel tighten/loosen action')
@@ -379,12 +379,21 @@ class AISTBaseRoutines(Node):
         elif key == 'gpos':
             position = float(input('  position? '))
             self.set_gripper_position(robot_name, position)
+        elif key == 'gvel':
+            position = float(input('  velocity? '))
+            self.set_gripper_velocity(robot_name, position)
         elif key == 'tighten':
             self.tighten(robot_name, Duration(seconds=-1))
         elif key == 'loosen':
             self.loosen(robot_name, Duration(seconds=-1))
         elif key == 'gcancel':
             self.gripper_cancel(robot_name)
+
+        # Gripper stuffs
+        elif key == 'r':
+            object_id   = input('  object_id? ')
+            attach_link = input('  attach_link? ') if object_id == '' else ''
+            self.com.remove_object(object_id, attach_link)
 
         else:
             print('  unknown command! [%s]' % key)
@@ -594,6 +603,9 @@ class AISTBaseRoutines(Node):
 
     def set_gripper_position(self, robot_name, position):
         return self.gripper(robot_name).move(position)
+
+    def set_gripper_velocity(self, robot_name, velocity):
+        return self.gripper(robot_name).set_velocity(velocity)
 
     def tighten(self, robot_name, timeout=Duration()):
         self.gripper(robot_name).tighten(timeout)
@@ -887,7 +899,7 @@ class AISTBaseRoutines(Node):
     # Private functions
     def _initialize_collision_objects(self, initial_object_config):
         self.com.remove_object()
-        self.get_logger().info(initial_object_config)
+        # self.get_logger().info(initial_object_config)
         for object_type, config in initial_object_config.items():
             self.com.create_object(object_type,
                                    self.pose_from_xyzrpy(
@@ -901,10 +913,10 @@ class AISTBaseRoutines(Node):
             #     self.com.attach_object(object_type, config['parent_link'])
 
     def _position_from_offset(self, offset):
-        return np.array((0, 0, 0) if len(offset) < 3 else offset[0:3])
+        return np.array((0.0, 0.0, 0.0) if len(offset) < 3 else offset[0:3])
 
     def _orientation_from_offset(self, offset):
-        return np.array((0, 0, 0, 1)) if len(offset) < 3 else \
+        return np.array((0.0, 0.0, 0.0, 1.0)) if len(offset) < 3 else \
                tfs.quaternion_from_euler(*np.radians(offset[0:3])) if len(offset) == 3 else \
                np.array(offset[0:4])
 
@@ -934,7 +946,7 @@ class AISTBaseRoutines(Node):
         dq    = np.empty(4)
         dq[3] = sqrt(0.5 + 0.5*np.dot(r, n))
         if abs(dq[3]) < 1e-7:                     # n == -r ?
-            dq[0:3] = (sqrt(0.5), sqrt(0.5), 0)   # swap x and y, then flip z
+            dq[0:3] = (sqrt(0.5), sqrt(0.5), 0.0) # swap x and y, then flip z
         else:
             dq[0:3] = (0.5/dq[3])*a
         return Quaternion(*tfs.quaternion_multiply(q, dq))
