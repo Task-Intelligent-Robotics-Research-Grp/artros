@@ -48,7 +48,6 @@ class CollisionObjectManagerClient(object):
         super().__init__()
 
         service_ns = server + '/manage_collision_object'
-        self._logger = node.get_logger()
         self._cbg    = MutuallyExclusiveCallbackGroup()
         self._client = node.create_client(ManageCollisionObject, service_ns,
                                           callback_group=self._cbg)
