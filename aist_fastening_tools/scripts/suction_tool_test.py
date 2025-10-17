@@ -9,9 +9,8 @@ class SuctionToolTest(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        controller_ns = self.declare_parameter(
-                            'controller_ns', 'screw_tool_m4_controller').value
-        self._suction_tool = SuctionTool(self, controller_ns)
+        tool_name = self.declare_parameter('tool_name', 'suction_tool').value
+        self._suction_tool = SuctionTool(self, tool_name)
         self.get_logger().info('started')
 
         cli_thread = threading.Thread(target=self.interactive)

@@ -51,10 +51,10 @@ class ScrewTool(object):
     """
     Screw tool client of aist_msgs.action.ScrewToolCommand type.
     """
-    def __init__(self, node, controller_ns, speed=1.0, retighten=True):
+    def __init__(self, node, name, speed=1.0, retighten=True):
         """
         Constructor
-        @param controller_ns    namespace of the controller to be connected
+        @param name   name of the screw tool
         """
         super().__init__()
 
@@ -65,7 +65,7 @@ class ScrewTool(object):
         self._get_result_future = None
         self._client_cbg        = MutuallyExclusiveCallbackGroup()
         self._client            = ActionClient(node, ScrewToolCommand,
-                                               controller_ns + '/command',
+                                               name + '_controller/command',
                                                callback_group=self._client_cbg)
         self._parameters        = {'speed':     speed,
                                    'retighten': retighten}
@@ -183,11 +183,10 @@ class SuctionTool(object):
     """
     Suction tool client of aist_msgs.action.SuctionToolCommand type.
     """
-    def __init__(self, node, controller_ns,
-                 suck_min_period=0.5, blow_min_period=0.2):
+    def __init__(self, node, name, suck_min_period=0.5, blow_min_period=0.2):
         """
         Constructor
-        @param controller_ns    namespace of the contoller to be connected
+        @param name    name of the suction tool
         """
         super().__init__()
 
@@ -197,14 +196,14 @@ class SuctionTool(object):
         self._get_result_future = None
         self._client_cbg        = MutuallyExclusiveCallbackGroup()
         self._client            = ActionClient(node, SuctionToolCommand,
-                                               controller_ns + '/command',
+                                               name + '_controller/command',
                                                callback_group=self._client_cbg)
         self._client.wait_for_server()
 
         self._suctioned     = None
         self._suctioned_cbg = MutuallyExclusiveCallbackGroup()
         self._suctioned_sub = node.create_subscription(
-                                  Bool, controller_ns + '/suctioned',
+                                  Bool, name + '_controller/suctioned',
                                   self._suctioned_cb, 10,
                                   callback_group=self._suctioned_cbg)
         self._parameters = {'suck_min_period': suck_min_period,
