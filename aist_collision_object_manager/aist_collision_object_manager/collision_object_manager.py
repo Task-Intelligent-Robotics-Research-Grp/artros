@@ -43,6 +43,7 @@ import pyassimp
 from collections                   import namedtuple
 from rclpy.node                    import Node
 from rclpy.executors               import MultiThreadedExecutor
+from rclpy.callback_groups         import MutuallyExclusiveCallbackGroup
 from rclpy.duration                import Duration
 from rclpy.time                    import Time
 from tf2_ros.buffer                import Buffer
@@ -63,6 +64,7 @@ from moveit_msgs.msg               import (CollisionObject,
                                            AttachedCollisionObject,
                                            PlanningSceneComponents,
                                            PlanningScene)
+from moveit_msgs.srv               import GetPlanningScene
 from moveit_commander              import planning_scene_interface as psi
 from aist_utility.fileio           import filepath_from_url
 
@@ -166,6 +168,9 @@ class CollisionObjectManager(Node):
         """
         super().__init__(name)
 
+        def ns_join(ns, name):
+            return '/'.join([ns, name]) if ns else name
+
         PRIMITIVES   = {'BOX':      SolidPrimitive.BOX,
                         'SPHERE':   SolidPrimitive.SPHERE,
                         'CYLINDER': SolidPrimitive.CYLINDER,
@@ -220,12 +225,21 @@ class CollisionObjectManager(Node):
             self._obj_props_dict[type] = obj_props
             self.get_logger().info('loaded properties of type[%s]' % type)
 
-        self._psi                 = psi.PlanningSceneInterface(
-                                        self,
-                                        self.declare_parameter('namespace',
-                                                               '').value,
-                                        self.declare_parameter('synchronous',
-                                                               True).value)
+        ns = self.declare_parameter('namespace', '').value
+
+        # Create an instance of PlanningSceneInterface.
+        self._psi = psi.PlanningSceneInterface(self, ns,
+                                               self.declare_parameter(
+                                                   'synchronous', True).value)
+
+        # Create a client of GetPlanningScene service.
+        self._cbg                = MutuallyExclusiveCallbackGroup()
+        self._get_planning_scene = self.create_client(
+                                       GetPlanningScene,
+                                       ns_join(ns, 'get_planning_scene'),
+                                       callback_group=self._cbg)
+        if not self._get_planning_scene.wait_for_service(timeout_sec=2.0):
+            raise RuntimeError('failed to establish connection to the service[get_planning_scene]')
 
         self._instance_props_dict = {}
         self._touch_links         = self._load_databases(
@@ -249,60 +263,46 @@ class CollisionObjectManager(Node):
                                   '~/manage_collision_object',
                                   self._manage_collision_object_cb)
 
-    def __del__(self):
-        if self._psi:
-            self._psi.clear()
-
     #
     # File loaders
     #
     def _load_databases(self, urls):
-        try:
-            databases = {}
-            for url in urls:
-                with open(filepath_from_url(url), 'r') as f:
-                    databases |= yaml.safe_load(f)
-            return databases
-        except Exception as e:
-            self.get_logger().error('failed to load databases: %s' % e)
-            raise e
+        databases = {}
+        for url in urls:
+            with open(filepath_from_url(url), 'r') as f:
+                databases |= yaml.safe_load(f)
+        return databases
 
     def _load_mesh(self, url, scale=(0.001, 0.001, 0.001)):
-        try:
-            with pyassimp.load(filepath_from_url(url)) as scene:
-                if not scene.meshes or len(scene.meshes) == 0:
-                    raise RuntimeError("no meshes in the file")
-                if len(scene.meshes[0].faces) == 0:
-                    raise RuntimeError("no faces in the mesh")
+        with pyassimp.load(filepath_from_url(url)) as scene:
+            if not scene.meshes or len(scene.meshes) == 0:
+                raise RuntimeError("no meshes in the file")
+            if len(scene.meshes[0].faces) == 0:
+                raise RuntimeError("no faces in the mesh")
 
-                mesh = Mesh()
-                first_face = scene.meshes[0].faces[0]
-                if hasattr(first_face, '__len__'):
-                    for face in scene.meshes[0].faces:
-                        if len(face) == 3:
-                            triangle = MeshTriangle()
-                            triangle.vertex_indices = [face[0],
-                                                       face[1],
-                                                       face[2]]
-                            mesh.triangles.append(triangle)
-                elif hasattr(first_face, 'indices'):
-                    for face in scene.meshes[0].faces:
-                        if len(face.indices) == 3:
-                            triangle = MeshTriangle()
-                            triangle.vertex_indices = [face.indices[0],
-                                                       face.indices[1],
-                                                       face.indices[2]]
-                            mesh.triangles.append(triangle)
-                else:
-                    raise RuntimeError("unable to build triangles from mesh due to mesh object structure")
-            for vertex in scene.meshes[0].vertices:
-                mesh.vertices.append(Point(x=vertex[0]*scale[0],
-                                           y=vertex[1]*scale[1],
-                                           z=vertex[2]*scale[2]))
-            return mesh
-        except Exception as e:
-            self.get_logger().error('failed to load mesh: %s' % e)
-            raise e
+            mesh = Mesh()
+            first_face = scene.meshes[0].faces[0]
+            if hasattr(first_face, '__len__'):
+                for face in scene.meshes[0].faces:
+                    if len(face) == 3:
+                        triangle = MeshTriangle()
+                        triangle.vertex_indices = [face[0], face[1], face[2]]
+                        mesh.triangles.append(triangle)
+            elif hasattr(first_face, 'indices'):
+                for face in scene.meshes[0].faces:
+                    if len(face.indices) == 3:
+                        triangle = MeshTriangle()
+                        triangle.vertex_indices = [face.indices[0],
+                                                   face.indices[1],
+                                                   face.indices[2]]
+                        mesh.triangles.append(triangle)
+            else:
+                raise RuntimeError("unable to build triangles from mesh due to mesh object structure")
+        for vertex in scene.meshes[0].vertices:
+            mesh.vertices.append(Point(x=vertex[0]*scale[0],
+                                       y=vertex[1]*scale[1],
+                                       z=vertex[2]*scale[2]))
+        return mesh
 
     #
     # Callbacks
@@ -343,7 +343,7 @@ class CollisionObjectManager(Node):
 
         Execute various operations on collision objects requested by clients
         """
-        self.get_logger().info('### received service request[op=%d]' % req.op)
+        self.get_logger().info('received service request[op=%d]' % req.op)
 
         res.success = True
 
@@ -383,10 +383,8 @@ class CollisionObjectManager(Node):
             else:
                 raise RuntimeError('unknown operation[%d]' % req.op)
         except Exception as e:
-            # raise(e)
             self.get_logger().error('%s' % e)
             res.success = False
-        self.get_logger().info('--- return service response')
 
         return res
 
@@ -410,7 +408,7 @@ class CollisionObjectManager(Node):
         """
         obj_props = self._obj_props_dict.get(object_type)
         if obj_props is None:
-            raise Exception('unknown object type[%s]' % req.object_type)
+            raise RuntimeError('unknown object type[%s]' % req.object_type)
 
         # Setup a new collision object.
         co = CollisionObject()
@@ -833,9 +831,10 @@ class CollisionObjectManager(Node):
                                       object_id, str(others)))
 
     def _get_acm(self):
-        return self._psi.get_planning_scene(
-                        PlanningSceneComponents.ALLOWED_COLLISION_MATRIX) \
-                   .allowed_collision_matrix
+        return self._get_planning_scene.call(
+                   GetPlanningScene.Request(
+                       component=PlanningSceneComponents.ALLOWED_COLLISION_MATRIX)) \
+                   .scene.allowed_collision_matrix
 
     def _apply_acm(self, acm):
         scene = PlanningScene()
@@ -853,7 +852,7 @@ def main():
         rclpy.init(args=sys.argv)
 
         node = CollisionObjectManager('collision_object_manager')
-        #rclpy.spin(node)
+        # rclpy.spin(node)
         executor = MultiThreadedExecutor()
         executor.add_node(node)
         executor.spin()
