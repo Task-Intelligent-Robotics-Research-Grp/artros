@@ -17,7 +17,7 @@ def launch_setup(context):
     return [
         IncludeLaunchDescription(
             PathJoinSubstitution([ThisLaunchFileDir(),
-                                  'suction_tools.launch.py']),
+                                  'ur_io_devices.launch.py']),
             launch_arguments=[
                 ('tool_names', LaunchConfiguration('tool_name')),
                 ('tool_types', 'SuctionTool'),

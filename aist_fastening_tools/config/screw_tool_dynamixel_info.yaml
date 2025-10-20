@@ -1,3 +1,0 @@
-$(var name):
-  ID:           $(var motor_id)
-  Control_Mode: 1    # 1: velocity control mode, 3: position control mode

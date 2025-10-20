@@ -58,14 +58,14 @@ GRIPPER_PROPS = {
         'extra_drivers_launch_file': PathJoinSubstitution(
                                          [FindPackageShare('aist_bringup'),
                                           'launch', 'inc',
-                                          'dynamixel_drivers.launch.py'])
+                                          'dynamixel_devices.launch.py'])
     },
     'URioDevices':
     {
         'extra_drivers_launch_file': PathJoinSubstitution(
                                          [FindPackageShare('aist_bringup'),
                                           'launch', 'inc',
-                                          'ur_io_drivers.launch.py'])
+                                          'ur_io_devices.launch.py'])
     },
 }
 

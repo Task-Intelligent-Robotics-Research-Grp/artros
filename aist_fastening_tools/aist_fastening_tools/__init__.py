@@ -69,7 +69,12 @@ class ScrewTool(object):
                                                callback_group=self._client_cbg)
         self._parameters        = {'speed':     speed,
                                    'retighten': retighten}
-        self._client.wait_for_server()
+        if not self._client.wait_for_server(timeout_sec=1.0):
+            raise RuntimeError(
+                'failed to establish connection to the action server[%s]' \
+                % (name + '_contoller/command'))
+
+        self._logger.info('started client for screw tool[%s]' % name)
 
     @property
     def parameters(self):
@@ -198,7 +203,10 @@ class SuctionTool(object):
         self._client            = ActionClient(node, SuctionToolCommand,
                                                name + '_controller/command',
                                                callback_group=self._client_cbg)
-        self._client.wait_for_server()
+        if not self._client.wait_for_server(timeout_sec=1.0):
+            raise RuntimeError(
+                'failed to establish connection to the actionserver[%s]' \
+                % (name + '_contoller/command'))
 
         self._suctioned     = None
         self._suctioned_cbg = MutuallyExclusiveCallbackGroup()
@@ -208,6 +216,8 @@ class SuctionTool(object):
                                   callback_group=self._suctioned_cbg)
         self._parameters = {'suck_min_period': suck_min_period,
                             'blow_min_period': blow_min_period}
+
+        self._logger.info('started client of suction tool[%s]' % name)
 
     @property
     def parameters(self):

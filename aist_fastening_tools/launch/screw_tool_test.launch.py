@@ -17,7 +17,7 @@ def launch_setup(context):
     return [
         IncludeLaunchDescription(
             PathJoinSubstitution([ThisLaunchFileDir(),
-                                  'dynamixel_tools.launch.py']),
+                                  'dynamixel_devices.launch.py']),
             launch_arguments=[
                 ('tool_names', LaunchConfiguration('tool_name')),
                 ('tool_types', 'ScrewTool'),

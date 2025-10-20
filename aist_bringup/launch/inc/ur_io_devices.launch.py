@@ -4,6 +4,7 @@ from launch.substitutions       import (LaunchConfiguration,
                                         PathJoinSubstitution)
 from launch_ros.substitutions   import FindPackageShare
 from aist_bringup.launch_common import declare_launch_arguments, load_config
+from aist_utility.fileio        import filepath_from_url
 
 
 launch_arguments = [
@@ -14,33 +15,26 @@ launch_arguments = [
     },
     {
         'name':        'name',
-        'default':     'suction_tool',
-        'description': 'Name of the precision gripper'
+        'default':     'suction_tools',
+        'description': 'Name of the Dynamixel device group'
     },
 ]
 
-
 def launch_setup(context):
-    config         = load_config(context)
-    gripper_config = config['grippers'][LaunchConfiguration('name') \
-                                       .perform(context)]
+    config       = load_config(context)
+    tools_config = config['grippers'][LaunchConfiguration('name') \
+                                      .perform(context)]
+    tool_names = [tool_name for tool_name in tools_config.get('grippers', {})]
 
     return [
         IncludeLaunchDescription(
             PathJoinSubstitution([FindPackageShare('aist_fastening_tools'),
-                                  'launch',
-                                  'suction_tool_controller.launch.py']),
+                                  'launch', 'ur_io_devices.launch.py']),
             launch_arguments=[
-                ('name',            LaunchConfiguration('name')),
-                ('driver_ns',       gripper_config['driver_ns']),
-                ('digital_in_port',
-                 str(gripper_config.get('digital_in_port', -1))),
-                ('digital_out_port_suck',
-                 str(gripper_config.get('digital_out_port_suck', -1))),
-                ('digital_out_port_blow',
-                 str(gripper_config.get('digital_out_port_blow', -1))),
-                ('joint_name',      gripper_config.get('joint_name', '""'))
-            ])]
+                ('param_file', filepath_from_url(tools_config['param_file'])),
+                ('tool_names', ','.join(tool_names)),
+                ('container',  [LaunchConfiguration('name'), '_container']),
+                ('driver_ns',  tools_config['driver_ns'])])]
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \

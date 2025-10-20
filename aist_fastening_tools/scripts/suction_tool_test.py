@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rclpy, sys, threading
+from rclpy.executors      import MultiThreadedExecutor
 from rclpy.node           import Node
 from aist_fastening_tools import SuctionTool
 
@@ -49,7 +50,12 @@ class SuctionToolTest(Node):
 
 
 if __name__ == '__main__':
-    rclpy.init(args=sys.argv)
+    try:
+        rclpy.init(args=sys.argv)
 
-    test = SuctionToolTest('suction_tool_test')
-    rclpy.spin(test)
+        test = SuctionToolTest('suction_tool_test')
+        executor = MultiThreadedExecutor()
+        executor.add_node(test)
+        executor.spin()
+    except Exception as e:
+        print('*** Terminate the node due to exception: %s' % e)

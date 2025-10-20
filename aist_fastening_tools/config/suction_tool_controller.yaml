@@ -1,9 +1,0 @@
-$(var name)_controller:
-  ros__parameters:
-    driver_ns:             $(var driver_ns)
-    digital_in_port:       $(var digital_in_port)
-    digital_out_port_suck: $(var digital_out_port_suck)
-    digital_out_port_blow: $(var digital_out_port_blow)
-    joint_name:            $(var joint_name)
-    min_position:          0.000
-    max_position:          0.015
