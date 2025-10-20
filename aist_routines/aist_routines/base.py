@@ -148,7 +148,11 @@ class AISTBaseRoutines(Node):
 
         # CollisionObjectManager wrapping MoveIt PlanningSceneInterface
         if 'initial_object_config' in self.settings:
-            self._com = CollisionObjectManagerClient(self)
+            try:
+                self._com = CollisionObjectManagerClient(self)
+            except Exception as e:
+                self.get_logger().error(str(e))
+                self._com = None
         else:
             self._com = None
 

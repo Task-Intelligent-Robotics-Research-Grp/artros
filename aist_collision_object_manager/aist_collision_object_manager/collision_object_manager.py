@@ -386,6 +386,8 @@ class CollisionObjectManager(Node):
             self.get_logger().error('%s' % e)
             res.success = False
 
+        self.get_logger().info('return service response[op=%d]' % req.op)
+
         return res
 
     #
