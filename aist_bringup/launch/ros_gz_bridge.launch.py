@@ -26,7 +26,7 @@ def launch_setup(context):
                      'templates', 'clock_bridge.yaml']).perform(context),
                 bridge_config_file)
     append = False
-    for camera_name, camera_config in config['cameras'].items():
+    for camera_name, camera_config in config.get('cameras', {}).items():
         camera_props = get_camera_props(camera_config['type'])
         SetLaunchConfiguration('camera_name', camera_name).execute(context)
         if 'cloud_topic' in camera_props:

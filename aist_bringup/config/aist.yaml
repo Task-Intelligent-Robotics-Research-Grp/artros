@@ -116,12 +116,12 @@ grippers:
           base_link: base_fixture_base_link
           tip_link:  workbench_holder_link
 
-# cameras:
-#   a_motioncam:
-#     type: PhoXiCamera
-#   a_bot_camera:
-#     type: CodedLightRealsenseCamera
-#   b_bot_camera:
-#     type: CodedLightRealsenseCamera
-#   # live_camera:
-#   #   type: USBCamera
+cameras:
+  a_motioncam:
+    type: PhoXiCamera
+  a_bot_camera:
+    type: CodedLightRealsenseCamera
+  b_bot_camera:
+    type: CodedLightRealsenseCamera
+  # live_camera:
+  #   type: USBCamera

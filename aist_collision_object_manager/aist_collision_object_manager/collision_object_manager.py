@@ -253,8 +253,10 @@ class CollisionObjectManager(Node):
         self._tf2_listener        = TransformListener(self._tf2_buffer, self)
         self._broadcaster         = TransformBroadcaster(self)
         self._lock                = threading.Lock()
+        self._timer_cbg           = MutuallyExclusiveCallbackGroup()
         self._timer               = self.create_timer(
-                                        0.1, self._subframes_and_markers_cb)
+                                        0.1, self._subframes_and_markers_cb,
+                                        self._timer_cbg)
         self._get_mesh_resource \
             = self.create_service(GetMeshResource, '~/get_mesh_resource',
                                   self._get_mesh_resource_cb)
