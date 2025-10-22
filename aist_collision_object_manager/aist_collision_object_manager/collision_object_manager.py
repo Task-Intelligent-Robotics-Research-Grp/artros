@@ -233,37 +233,40 @@ class CollisionObjectManager(Node):
                                                    'synchronous', True).value)
 
         # Create a client of GetPlanningScene service.
-        self._cbg                = MutuallyExclusiveCallbackGroup()
-        self._get_planning_scene = self.create_client(
-                                       GetPlanningScene,
-                                       ns_join(ns, 'get_planning_scene'),
-                                       callback_group=self._cbg)
-        if not self._get_planning_scene.wait_for_service(timeout_sec=2.0):
+        self._get_planning_scene_cbg = MutuallyExclusiveCallbackGroup()
+        self._get_planning_scene \
+            = self.create_client(GetPlanningScene,
+                                 ns_join(ns, 'get_planning_scene'),
+                                 callback_group=self._get_planning_scene_cbg)
+        if not self._get_planning_scene.wait_for_service(timeout_sec=5.0):
             raise RuntimeError('failed to establish connection to the service[get_planning_scene]')
 
-        self._instance_props_dict = {}
-        self._touch_links         = self._load_databases(
-                                        self.declare_parameter(
-                                            'touch_links_urls', ['']).value)
-        self._marker_id_min       = 0
-        self._marker_id_lists     = {}
-        self._marker_pub          = self.create_publisher(
-                                        Marker, '~/collision_marker', 10)
-        self._tf2_buffer          = Buffer()
-        self._tf2_listener        = TransformListener(self._tf2_buffer, self)
-        self._broadcaster         = TransformBroadcaster(self)
-        self._lock                = threading.Lock()
-        self._timer_cbg           = MutuallyExclusiveCallbackGroup()
-        self._timer               = self.create_timer(
-                                        0.1, self._subframes_and_markers_cb,
-                                        self._timer_cbg)
+        self._instance_props_dict   = {}
+        self._touch_links           = self._load_databases(
+                                          self.declare_parameter(
+                                              'touch_links_urls', ['']).value)
+        self._marker_id_min         = 0
+        self._marker_id_lists       = {}
+        self._marker_pub            = self.create_publisher(
+                                          Marker, '~/collision_marker', 10)
+        self._tf2_buffer            = Buffer()
+        self._tf2_listener          = TransformListener(self._tf2_buffer, self)
+        self._broadcaster           = TransformBroadcaster(self)
+        self._lock                  = threading.Lock()
+        self._timer_cbg             = MutuallyExclusiveCallbackGroup()
+        self._timer                 = self.create_timer(
+                                          0.1, self._subframes_and_markers_cb,
+                                          self._timer_cbg)
+        self._get_mesh_resource_cbg = MutuallyExclusiveCallbackGroup()
         self._get_mesh_resource \
             = self.create_service(GetMeshResource, '~/get_mesh_resource',
                                   self._get_mesh_resource_cb)
+        self._manage_collision_object_cbg = MutuallyExclusiveCallbackGroup()
         self._manage_collision_object \
-            = self.create_service(ManageCollisionObject,
-                                  '~/manage_collision_object',
-                                  self._manage_collision_object_cb)
+            = self.create_service(
+                  ManageCollisionObject, '~/manage_collision_object',
+                  self._manage_collision_object_cb,
+                  callback_group=self._manage_collision_object_cbg)
 
     #
     # File loaders
