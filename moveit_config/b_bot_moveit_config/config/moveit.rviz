@@ -7,7 +7,7 @@ Panels:
         - /Global Options1
         - /Status1
       Splitter Ratio: 0.5
-    Tree Height: 182
+    Tree Height: 184
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -25,7 +25,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: DepthCloud
 Visualization Manager:
   Class: ""
   Displays:
@@ -1294,8 +1294,6 @@ Visualization Manager:
           Value: true
         b_bot_flange:
           Value: true
-        b_bot_forearm_link:
-          Value: true
         b_bot_ft_frame:
           Value: true
         b_bot_gripper_base_link:
@@ -1324,8 +1322,6 @@ Visualization Manager:
           Value: true
         b_bot_gripper_tip_link:
           Value: true
-        b_bot_shoulder_link:
-          Value: true
         b_bot_table_base_link:
           Value: true
         b_bot_table_leg1:
@@ -1342,10 +1338,6 @@ Visualization Manager:
           Value: true
         b_bot_tool0:
           Value: true
-        b_bot_tool0_controller:
-          Value: true
-        b_bot_upper_arm_link:
-          Value: true
         b_bot_usb_repeater_base_link:
           Value: true
         b_bot_usb_repeater_body:
@@ -1357,8 +1349,6 @@ Visualization Manager:
         b_bot_usb_repeater_plate:
           Value: true
         b_bot_usb_repeater_right_leg:
-          Value: true
-        b_bot_wrist_1_link:
           Value: true
         b_bot_wrist_2_link:
           Value: true
@@ -1518,52 +1508,9 @@ Visualization Manager:
                   b_bot_table_top_center:
                     b_bot_base_link:
                       b_bot_base:
-                        b_bot_tool0_controller:
-                          {}
+                        {}
                       b_bot_base_link_inertia:
-                        b_bot_shoulder_link:
-                          b_bot_upper_arm_link:
-                            b_bot_forearm_link:
-                              b_bot_wrist_1_link:
-                                b_bot_wrist_2_link:
-                                  b_bot_usb_repeater_base_link:
-                                    b_bot_usb_repeater_front_leg:
-                                      {}
-                                    b_bot_usb_repeater_left_leg:
-                                      {}
-                                    b_bot_usb_repeater_plate:
-                                      b_bot_usb_repeater_body:
-                                        {}
-                                    b_bot_usb_repeater_right_leg:
-                                      {}
-                                  b_bot_wrist_3_link:
-                                    b_bot_flange:
-                                      b_bot_tool0:
-                                        b_bot_gripper_coupling_base_link:
-                                          b_bot_gripper_coupling_flange_link:
-                                            b_bot_gripper_base_link:
-                                              b_bot_camera_connector_link:
-                                                b_bot_camera_link:
-                                                  b_bot_camera_depth_frame:
-                                                    b_bot_camera_color_frame:
-                                                      b_bot_camera_color_optical_frame:
-                                                        {}
-                                                    b_bot_camera_depth_optical_frame:
-                                                      {}
-                                                    b_bot_camera_left_ir_frame:
-                                                      b_bot_camera_left_ir_optical_frame:
-                                                        {}
-                                                    b_bot_camera_right_ir_frame:
-                                                      b_bot_camera_right_ir_optical_frame:
-                                                        {}
-                                              b_bot_camera_mount:
-                                                {}
-                                              b_bot_gripper_robotiq_arg2f_base_link:
-                                                {}
-                                              b_bot_gripper_tip_link:
-                                                {}
-                                    b_bot_ft_frame:
-                                      {}
+                        {}
             cage_front_left_pillar:
               cage_back_left_pillar:
                 {}
@@ -1816,10 +1763,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.7453979849815369
+      Pitch: 1.0503977537155151
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.1303984820842743
+      Yaw: 0.12539850175380707
     Saved: ~
 Window Geometry:
   Displays:
@@ -1833,7 +1780,7 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000400000000000001ee00000352fc020000000cfb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005d00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003f000000f6000000cc00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000000a0049006d006100670065010000013b0000007b0000001700fffffffb000000280020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004400fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e006701000001bc000001d50000019600ffffff000000010000010f000002b0fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000002b0000000a900fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000004b00000003efc0100000002fb0000000800540069006d00650100000000000004b00000026f00fffffffb0000000800540069006d00650100000000000004500000000000000000000002bc0000035200000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000001ee00000356fc020000000cfb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d000000f5000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb000000280020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004100fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000138000001d30000017d00fffffffb0000000a0049006d0061006700650100000311000000820000001600ffffff000000010000010f000002b0fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000002b0000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000004b00000003efc0100000002fb0000000800540069006d00650100000000000004b00000026f00fffffffb0000000800540069006d00650100000000000004500000000000000000000002bc0000035600000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:

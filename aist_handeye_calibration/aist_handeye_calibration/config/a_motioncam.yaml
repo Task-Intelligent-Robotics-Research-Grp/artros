@@ -1,20 +1,35 @@
-camera_name: a_motioncam
-robot_name: b_bot
-eye_on_hand: false
-robot_base_frame: workspace_center
-robot_effector_frame: b_bot_gripper_base_link
-robot_effector_tip_frame: b_bot_gripper_tip_link
-camera_parent_frame: workspace_center
-marker_map: aruco-26-70x70-5
-enclosed_marker: false
-detection_mode: 1
-planarity_tolerance: 0.001
-initpose: [0.10,  0.10, 0.35, 0, 90, 0]
-keyposes:
-  - [0.16,  0.15, 0.15, 40, 25, 0]
-  - [0.16,  0.03, 0.15, 30, 25, 0]
-  - [0.16, -0.06, 0.15, 20, 25, 0]
+detector_3d:
+  ros__parameters:
+    marker_map_file:     package://aist_aruco_ros/config/aruco-26-70x70-5.yaml
+    marker_size:         0.050            # Effective only if marker_map == ""
+    marker_frame:        marker_frame
+    image_is_rectified:  false
+    use_similarity:      false
+    planarity_tolerance: 0.001
+#    min_marker_size:     -1.0
+    enclosed_marker:     false
+    detection_mode:      1        # 0: DM_NORMAL, 1: DM_FAST, 2: DM_VIDEO_FAST
+    dictionary:          ARUCO
 
-  - [-0.05, -0.07, 0.23, 20, 25, 0]
-  - [-0.05,  0.03, 0.23, 30, 25, 0]
-  - [-0.05,  0.15, 0.23, 40, 25, 0]
+/**:
+  ros_parameters:
+    camera_name:          a_motioncam
+    robot_base_frame:     workspace_center
+    robot_effector_frame: b_bot_gripper_base_link
+    eye_on_hand:          false
+
+handeye_calibrator:
+  ros__parameters:
+    use_dual_quaternion:  true
+
+run_calibration:
+  ros_parameters:
+    robot_name:           b_bot
+    camera_parent_frame:  workspace_center
+    initpose:             [ 0.10,  0.10, 0.35,  0.0, 90.0, 0.0]
+    keyposes:             [ 0.16,  0.15, 0.15, 40.0, 25.0, 0.0 \
+                            0.16,  0.03, 0.15, 30.0, 25.0, 0.0 \
+                            0.16, -0.06, 0.15, 20.0, 25.0, 0.0 \
+                           -0.05, -0.07, 0.23, 20.0, 25.0, 0.0 \
+                           -0.05,  0.03, 0.23, 30.0, 25.0, 0,0 \
+                           -0.05,  0.15, 0.23, 40.0, 25.0, 0.0]
