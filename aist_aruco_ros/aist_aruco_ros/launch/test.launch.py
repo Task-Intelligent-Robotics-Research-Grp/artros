@@ -101,7 +101,7 @@ def launch_setup(context):
                  '-d',
                  PathJoinSubstitution(
                      [FindPackageShare('aist_aruco_ros'), 'launch',
-                      [LaunchConfiguration('camera_name'), '.rviz']]),
+                      [LaunchConfiguration('detector_type'), '.rviz']]),
              ]),
         Node(name='rqt_reconfigure', package='rqt_reconfigure',
              executable='rqt_reconfigure', output='screen')
