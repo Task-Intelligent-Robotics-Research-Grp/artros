@@ -22,6 +22,7 @@
 
 #include <aist_utility/opencv.hpp>
 #include <aist_utility/sensor_msgs.hpp>
+#include <aist_utility/fileio.hpp>
 #include <aist_aruco_msgs/msg/point_correspondence_array_array.hpp>
 #include <aruco/aruco.h>
 
@@ -248,32 +249,28 @@ MultiDetector::MultiDetector(const rclcpp::NodeOptions& options)
     _correspondences_set.correspondences_set.resize(_camera_names.size());
 
   // Load marker map.
-    const auto marker_map_name = ddynamic_reconfigure2::
+    const auto marker_map_file = ddynamic_reconfigure2::
 				     declare_read_only_parameter(
-					 this, "marker_map", "");
-    if (marker_map_name == "")
+					 this, "marker_map_file", "");
+    if (marker_map_file == "")
     {
 	RCLCPP_ERROR_STREAM(get_logger(), "Marker map not specified!");
 	throw;
     }
 
-    const auto mMapFile = ddynamic_reconfigure2::declare_read_only_parameter(
-			      this, "marker_map_dir",
-			      ament_index_cpp::get_package_share_directory(
-				  "aist_aruco_ros")
-			      + "/config")
-			+ '/' + marker_map_name + ".yaml";
     try
     {
-	_marker_map.readFromFile(mMapFile);
+	_marker_map.readFromFile(aist_utility::filepath_from_url(
+				     marker_map_file));
 
 	RCLCPP_INFO_STREAM(get_logger(),
-			   "Loaded marker map[" << mMapFile << ']');
+			   "Loaded marker map[" << marker_map_file << ']');
     }
     catch (const std::exception& err)
     {
 	RCLCPP_ERROR_STREAM(get_logger(),
-			    "Failed to read marker map[" << mMapFile << ']');
+			    "Failed to read marker map[" << marker_map_file
+			    << ']');
 	throw;
     }
 

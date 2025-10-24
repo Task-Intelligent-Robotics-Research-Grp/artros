@@ -55,6 +55,7 @@
 #include <aist_handeye_calibration_msgs/action/take_sample.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <aist_utility/geometry_msgs.hpp>
+#include <aist_utility/fileio.hpp>
 #include <ddynamic_reconfigure2/ddynamic_reconfigure2.hpp>
 #include "HandeyeCalibration.h"
 

@@ -1,7 +1,7 @@
 collision_object_manager:
   ros__parameters:
     namespace:   ""
-    synchronous: true
+    synchronous: false
     object_properties_urls:
       - package://aist_fastening_tools/config/fastening_tools_properties.yaml
       - package://aist_description/parts/config/parts_properties.yaml

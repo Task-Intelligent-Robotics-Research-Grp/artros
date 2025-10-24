@@ -25,6 +25,7 @@
 #include <aruco/aruco.h>
 #include <aist_utility/opencv.hpp>
 #include <aist_utility/sensor_msgs.hpp>
+#include <aist_utility/fileio.hpp>
 
 namespace aist_aruco_ros
 {
@@ -206,30 +207,23 @@ Detector3D::Detector3D(const rclcpp::NodeOptions& options)
     using namespace	std::placeholders;
 
   // Load marker map.
-    if (const auto marker_map_name = ddynamic_reconfigure2::
+    if (const auto marker_map_file = ddynamic_reconfigure2::
 					 declare_read_only_parameter(
-					     this, "marker_map", "");
-	marker_map_name != "")
+					     this, "marker_map_file", "");
+	marker_map_file != "")
     {
-	const auto mMapFile = ddynamic_reconfigure2::
-			      declare_read_only_parameter(
-				  this, "marker_map_dir",
-				  ament_index_cpp::get_package_share_directory(
-				      "aist_aruco_ros")
-				  + "/config")
-			    + '/' + marker_map_name + ".yaml";
-
 	try
 	{
-	    _marker_map.readFromFile(mMapFile);
+	    _marker_map.readFromFile(aist_utility::filepath_from_url(
+					 marker_map_file));
 
-	    RCLCPP_INFO_STREAM(get_logger(),
-			       "Loaded marker map[" << mMapFile << ']');
+	    RCLCPP_INFO_STREAM(get_logger(), "Loaded marker map["
+			       << marker_map_file << ']');
 	}
 	catch (const std::exception& err)
 	{
 	    RCLCPP_ERROR_STREAM(get_logger(), "Failed to load marker map["
-				<< mMapFile << ']');
+				<< marker_map_file << ']');
 	    throw;
 	}
 
