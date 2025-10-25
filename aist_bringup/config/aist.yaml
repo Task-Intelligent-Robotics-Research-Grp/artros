@@ -110,8 +110,6 @@ grippers:
           tip_link:  suction_tool/tip_link
       base_fixture:
         type:        SuctionTool
-        digital_out_port_suck: 6
-        joint_name:  base_fixture_piston_joint
         client_args:
           base_link: base_fixture_base_link
           tip_link:  workbench_holder_link

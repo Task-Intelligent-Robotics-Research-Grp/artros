@@ -27,71 +27,49 @@ arms:
 
 grippers:
   b_bot_gripper:
-    type:                      RobotiqGripper
-    device:                    robotiq_85
-    driver:                    urcap
-    ip_or_dev:                 "10.66.171.41"
-    slave_id:                  9
+    type:            RobotiqGripper
+    device:          robotiq_85
+    driver:          urcap
+    ip_or_dev:       "10.66.171.41"
+    slave_id:        9
     client_args:
-      max_effort:              5.0
-      velocity:                0.1
-  precision_tools:
-    type:                      DynamixelDevices
-    usb_port:                  "/dev/ttyUSB1"
-    baud_rate:                 57600
-    tools:
-      precision_tool:
-        type:                  PrecisionTool
-        motor_id:              1
-        client_args:
-          base_link:           precision_tool/base_link
-          tip_link:            precision_tool/tip_link
+      max_effort:    5.0
+      velocity:      0.1
   screw_tools:
-    type:                      DynamixelDevices
-    usb_port:                  "/dev/ttyUSB0"
-    baud_rate:                 1000000
-    tools:
+    type:            DynamixelDevices
+    param_file:      package://aist_fastening_tools/config/default.yaml
+    grippers:
       screw_tool_m3_fastening:
-        type:                  ScrewTool
-        motor_id:              2
+        type:        ScrewTool
+        motor_id:    2
       screw_tool_m4_fastening:
-        type:                  ScrewTool
-        motor_id:              3
+        type:        ScrewTool
+        motor_id:    3
   suction_tools:
-    type:                      URioDevices
-    driver_ns:                 b_bot_io_and_status_controller
-    tools:
+    type:            URioDevices
+    driver_ns:       b_bot_io_and_status_controller
+    param_file:      package://aist_fastening_tools/config/default.yaml
+    grippers:
       screw_tool_m3:
-        type:                  SuctionGripper
-        digital_in_port:       0
-        digital_out_port_suck: 0
-        digital_out_port_blow: 1
+        type:        SuctionTool
         client_args:
-          base_link:           screw_tool_m3/base_link
-          tip_link:            screw_tool_m3/tip_link
+          base_link: screw_tool_m3/base_link
+          tip_link:  screw_tool_m3/tip_link
       screw_tool_m4:
-        type:                  SuctionGripper
-        digital_in_port:       1
-        digital_out_port_suck: 2
-        digital_out_port_blow: 3
+        type:        SuctionTool
         client_args:
-          base_link:           screw_tool_m4/base_link
-          tip_link:            screw_tool_m4/tip_link
+          base_link: screw_tool_m4/base_link
+          tip_link:  screw_tool_m4/tip_link
       suction_tool:
-        type:                  SuctionGripper
-        digital_in_port:       2
-        digital_out_port_suck: 4
-        digital_out_port_blow: 5
+        type:        SuctionTool
         client_args:
-          base_link:           suction_tool/base_link
-          tip_link:            suction_tool/tip_link
+          base_link: suction_tool/base_link
+          tip_link:  suction_tool/tip_link
       base_fixture:
-        type:                  SuctionGripper
-        digital_out_port_suck: 6
-        joint_name:            base_fixture_piston_joint
+        type:        SuctionTool
         client_args:
-          base_link:           base_fixture_base_link
-          tip_link:            workbench_holder_link
+          base_link: base_fixture_base_link
+          tip_link:  workbench_holder_link
 
 cameras:
   a_motioncam:
