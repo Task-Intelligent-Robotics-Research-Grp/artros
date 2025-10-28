@@ -24,6 +24,7 @@ handeye_calibrator:
 
 run_calibration:
   ros_parameters:
+    camera_name:          a_motioncam
     robot_name:           b_bot
     camera_parent_frame:  workspace_center
     initpose:             [ 0.10,  0.10, 0.35,  0.0, 90.0, 0.0]

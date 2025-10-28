@@ -2,14 +2,12 @@ from launch                     import LaunchDescription
 from launch.actions             import (SetLaunchConfiguration,
                                         IncludeLaunchDescription,
                                         OpaqueFunction)
-from launch.conditions          import IfCondition
 from launch.substitutions       import (LaunchConfiguration,
                                         PathJoinSubstitution)
 from launch_ros.actions         import Node, LoadComposableNodes
 from launch_ros.substitutions   import FindPackageShare
 from launch_ros.descriptions    import ComposableNode
-from aist_bringup.launch_common import (declare_launch_arguments,
-                                        load_config, get_camera_props)
+from aist_bringup.launch_common import declare_launch_arguments, load_config
 
 launch_arguments = [
     {

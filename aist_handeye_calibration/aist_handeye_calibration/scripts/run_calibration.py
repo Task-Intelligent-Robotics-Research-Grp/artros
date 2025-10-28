@@ -35,52 +35,65 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy, actionlib, rospkg, copy, yaml
+import rclpy, copy, yaml
+import numpy as np
+import tf_transformations as tfs
+
+from rclpy.action                 import ActionClient
+from rclpy.duration               import Duration
 from std_srvs.srv                 import Empty, Trigger
 from geometry_msgs.msg            import PoseStamped, Pose, Point, Quaternion
-from actionlib_msgs.msg           import GoalStatus
-from tf                           import transformations as tfs
-from aist_routines                import AISTBaseRoutines
+from action_msgs.msg              import GoalStatus
+from aist_routines.base           import AISTBaseRoutines
 from aist_handeye_calibration.srv import GetSampleList, ComputeCalibration
 from aist_handeye_calibration.msg import TakeSampleAction, TakeSampleGoal
-from aist_utility.compat          import *
+from aist_utility                 import filepath_from_url
 
 ######################################################################
 #  class HandEyeCalibrationRoutines                                  #
 ######################################################################
 class HandEyeCalibrationRoutines(AISTBaseRoutines):
-    def __init__(self):
-        super(HandEyeCalibrationRoutines, self).__init__(
-            rospy.get_param('~robot_base_frame', 'workspace_center'))
+    def __init__(self, name):
+        super().__init__(name)
 
-        self._camera_name          = rospy.get_param('~camera_name',
-                                                     'a_phoxi_m_camera')
-        self._robot_name           = rospy.get_param('~robot_name', 'b_bot')
-        self._eye_on_hand          = rospy.get_param('~eye_on_hand', False)
-        self._robot_effector_frame = rospy.get_param('~robot_effector_frame',
-                                                     'b_bot_flange')
+        self._camera_name = self.declare_parameter('camera_name',
+                                                   'a_motioncam').value
+        self._robot_name  = self.decalre_parameter('robot_name', 'b_bot').value
+        self._eye_on_hand = self.declare_parameter('eye_on_hand', False).value
+        self._robot_effector_frame \
+            = self.declare_parameter('robot_effector_frame',
+                                     'b_bot_flange').value
         self._robot_effector_tip_frame \
-                = rospy.get_param('~robot_effector_tip_frame', '')
-        self._initpose             = rospy.get_param('~initpose', [])
-        self._keyposes             = rospy.get_param('~keyposes', [])
-        self._speed                = rospy.get_param('~speed', 1)
-        self._sleep_time           = rospy.get_param('~sleep_time', 2.0)
+            = self.declare_parameter('robot_effector_tip_frame', '').value
+        self._initpose   = self.declare_parameter('initpose', [])\
+                               .get_parameter_value().double_array_value
+        self._keyposes   = np.array(self.decalre_parameter('keyposes', [])\
+                                    .get_parameter_value().double_array_value)\
+                             .reshape(-1, 6).to_list()
+        self._speed      = self.decalre_parameter('speed', 1.0).value
+        self._sleep_time = self.declare_parameter('sleep_time', 2.0).value
 
-        if rospy.get_param('calibration', True):
-            ns = '/handeye_calibrator'
-            self._get_sample_list     = rospy.ServiceProxy(
+        if self.decalre_parameter('calibration', True).value:
+            ns = 'handeye_calibrator'
+            self._cbg                 = MutuallyExclusiveCallbackGroup
+            self._get_sample_list     = self.create_client(
+                                            GetSampleList,
                                             ns + '/get_sample_list',
-                                            GetSampleList)
-            self._compute_calibration = rospy.ServiceProxy(
+                                            callback_group=self._cbg)
+            self._compute_calibration = self.create_client(
+                                            ComputeCalibration,
                                             ns + '/compute_calibration',
-                                            ComputeCalibration)
-            self._save_calibration    = rospy.ServiceProxy(
-                                            ns + '/save_calibration', Trigger)
-            self._reset               = rospy.ServiceProxy(ns + '/reset',
-                                                           Empty)
-            self._take_sample         = actionlib.SimpleActionClient(
+                                            callback_group=self._cbg)
+            self._save_calibration    = self.create_client(
+                                            Trigger, ns + '/save_calibration',
+                                            callback_group=self._cbg)
+            self._reset               = self.create_client(
+                                            Empty, ns + '/reset',
+                                            callback_group=self._cbg)
+            self._take_sample         = ActionClient(
+                                            self, TakeSampleAction,
                                             ns + '/take_sample',
-                                            TakeSampleAction)
+                                            callback_group=self._cbg)
         else:
             self._get_sample_list     = None
             self._compute_calibration = None
@@ -96,11 +109,11 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
 
         axis = 'Y'
 
-        while not rospy.is_shutdown():
+        while rclpy.ok():
             prompt = '{:>5}:{}>> '.format(axis, self.format_pose(
                                                     self.get_current_pose(
                                                         self._robot_name)))
-            key = raw_input(prompt)
+            key = input(prompt)
             _, axis, _ = self.interactive(key, self._robot_name, axis,
                                           self._speed)
 
@@ -120,8 +133,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         elif key == 'check':
             self.go_to_marker()
         else:
-            return super(HandEyeCalibrationRoutines, self) \
-                  .interactive(key, robot_name, axis, speed)
+            return super().interactive(key, robot_name, axis, speed)
         return robot_name, axis, speed
 
     def go_to_initpose(self):
@@ -129,7 +141,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
 
     def calibrate(self):
         if self._reset:
-            self._reset()
+            self._reset.call()
 
         # Reset pose
         self.go_to_named_pose(self._robot_name, 'home')
@@ -147,25 +159,23 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
 
         if self._compute_calibration:
             try:
-                res = self._compute_calibration()
+                res = self._compute_calibration.call()
                 print(res.message)
                 if res.success:
                     self._save_camera_placement(res.Tec)
-                    res = self._save_calibration()
+                    res = self._save_calibration.call()
                     print(res.message)
-            except rospy.ServiceException as e:
-                rospy.logerr('Service call failed: %s', e)
             except Exception as e:
-                rospy.logerr(e)
+                self.get_logger().error(e)
         self.go_to_named_pose(self._robot_name, 'home')
 
     def go_to_marker(self):
         self.trigger_frame(self._camera_name)
         try:
-            marker_pose = rospy.wait_for_message('/aruco_detector_3d/pose',
-                                                 gmsg.PoseStamped, 5)
-        except rospy.exceptions.ROSException as e:
-            rospy.logerr(e)
+            marker_pose = rclpy.wait_for_message(PoseStamped, self,
+                                                 '/aruco_detector_3d/pose')
+        except Exception as e:
+            self.get_logger().error(e)
             return
 
         #  We must transform the marker pose to reference frame before moving
@@ -178,7 +188,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
                                        end_effector_link=self._robot_effector_tip_frame)
         print('  reached %s' %
               self.format_pose(self.get_current_pose(self._robot_name)))
-        rospy.sleep(1)
+        time.sleep(1.0)
         print('  move to %s' % self.format_pose(marker_pose))
         success = self.go_to_pose_goal(self._robot_name,
                                        marker_pose, speed=0.05,
@@ -193,9 +203,9 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         for i in range(3):
             print('\n--- Subpose [%d/5]: Try! ---' % (i + 1))
             if self._move_to(subpose, keypose_num, i + 1):
-                rospy.loginfo('Subpose [%d/5]: Succeeded.', i + 1)
+                self.get_logger().info('Subpose [%d/5]: Succeeded.' % (i + 1))
             else:
-                rospy.logerr('Subpose [%d/5]: Failed.', i + 1)
+                self.get_logger().error('Subpose [%d/5]: Failed.' % (i + 1))
             subpose[3] -= 30
 
         subpose[3] = roll - 30
@@ -204,9 +214,9 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         for i in range(2):
             print('\n--- Subpose [%d/5]: Try! ---' % (i + 4))
             if self._move_to(subpose, keypose_num, i + 4):
-                rospy.loginfo('Subpose [%d/5]: Succeeded.', i + 4)
+                self.get_logger().info('Subpose [%d/5]: Succeeded.' % (i + 4))
             else:
-                rospy.logerr('Subpose [%d/5]: Failed.', i + 4)
+                self.get_logger().error('Subpose [%d/5]: Failed.' % (i + 4))
             subpose[4] -= 30
 
     def _move_to(self, subpose, keypose_num, subpose_num):
@@ -214,18 +224,19 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
             return False
 
         if self._take_sample:
-            rospy.sleep(self._sleep_time)  # Wait for the robot to settle.
-            self._take_sample.send_goal(TakeSampleGoal())
+            time.sleep(self._sleep_time)  # Wait for the robot to settle.
+            self._send_goal()
             self.trigger_frame(self._camera_name)
-            if not self._take_sample.wait_for_result(rospy.Duration(3.0)):
+            result = self._wait_for_result(Duration(seconds=3))
+            if  result is None:
                 self._take_sample.cancel_goal()  # timeout expired
-                rospy.logerr('TakeSampleAction: timeout expired')
+                self.get_logger().error('TakeSampleAction: timeout expired')
                 return False
-            if self._take_sample.get_state() != GoalStatus.SUCCEEDED:
-                rospy.logerr('TakeSampleAction: not in succeeded state')
+            if self._goal_handle.status != GoalStatus.SUCCEEDED:
+                self.get_logger().error(
+                    'TakeSampleAction: not in succeeded state')
                 return False
 
-            result = self._take_sample.get_result()
             pose = PoseStamped()
             pose.header = result.Tcm.header
             pose.pose.position    = result.Tcm.transform.translation
@@ -236,7 +247,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
             pose.pose.orientation = result.Twe.transform.rotation
             print('  world  <= effector %s' % self.format_pose(pose))
 
-            n = len(self._get_sample_list().Tcm)
+            n = len(self._get_sample_list.call().Tcm)
             print('  %d samples taken' % n)
 
         return True
@@ -253,7 +264,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
 
     def _save_camera_placement(self, Tec):
         # Frame to which the camera attached
-        camera_parent_frame = rospy.get_param('~camera_parent_frame')
+        camera_parent_frame = self.get_param('~camera_parent_frame')
 
         # Get camera base frame whose parent is camera_parent_frame.
         camera_frame      = Tec.child_frame_id
@@ -289,18 +300,47 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
                 'origin': xyz + rpy}
 
         # Save the transform.
-        filename = rospkg.RosPack().get_path('aist_handeye_calibration') \
-                 + '/calib/' + self._camera_name + '.yaml'
+        filename = filepath_from_url('package://aist_handeye_calibration/calib/' + self._camera_name + '.yaml')
         with open(filename, mode='w') as file:
             yaml.dump(data, file, default_flow_style=False)
-            rospy.loginfo('Saved transform from camera base frame[%s] to camera parent frame[%s] into %s'
-                          % (camera_base_frame, camera_parent_frame, filename))
+            self.get_logger().info('Saved transform from camera base frame[%s] to camera parent frame[%s] into %s'
+                                   % (camera_base_frame,
+                                      camera_parent_frame, filename))
+
+    def _send_goal(self):
+        self._goal_handle = None
+        self._get_result_future = None
+        self._take_sample.send_goal_async(TakeSample.Goal()) \
+            .add_done_callback(self._goal_response_cb)
+
+    def _wait_for_result(self, timeout):
+        timeout_time = self.get_clock().now() + timeout
+        while self._get_result_future is None or \
+              not self._get_result_future.done():
+            if self.get_clock().now() > timeout_time:
+                self.get_logger().error('timeout[%.1fs] has expired before goal finised' % (timeout.nanoseconds * 1.0e-9))
+                return None
+            time.sleep(0.1)
+        return self._get_result_future.result()
+
+    def _goal_response_cb(self, future):
+        self._goal_handle = future.result()
+        if not self._goal_handle.accepted:
+            self.get_logger().error('goal rejected')
+            return
+        self.get_logger().info('goal accepted')
+        self._get_result_future = self._goal_handle.get_result_async()
 
 ######################################################################
 #  global functions                                                  #
 ######################################################################
-if __name__ == '__main__':
-    rospy.init_node('run_calibration')
+def main():
+    rclpy.init(args=sys.argv)
 
-    routines = HandEyeCalibrationRoutines()
-    routines.run()
+    node = HandEyeCalibrationRoutines('run_calibration')
+    executor = MultiThreadedExecutor()
+    executor.add_node(node)
+    executor.spin()
+
+if __name__ == '__main__':
+    main()
