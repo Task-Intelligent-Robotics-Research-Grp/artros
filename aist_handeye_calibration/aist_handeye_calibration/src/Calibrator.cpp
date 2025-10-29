@@ -106,7 +106,6 @@ class Calibrator : public rclcpp::Node
 		Calibrator(const rclcpp::NodeOptions& options)		;
 
   private:
-     std::string	node_name()	const	{ return get_name(); }
     const std::string&	camera_frame()				const	;
     const std::string&	effector_frame()			const	;
     const std::string&	marker_frame()				const	;
@@ -134,6 +133,7 @@ class Calibrator : public rclcpp::Node
     const EmptySrvPtr				  _reset_srv;
     const TakeSampleSrvPtr			  _take_sample_srv;
     TakeSampleGoalHandlePtr			  _current_goal_handle;
+    std::mutex					  _current_goal_mtx;
 
     tf2_ros::Buffer				  _tf2_buffer;
     const tf2_ros::TransformListener		  _tf2_listener;
@@ -150,32 +150,32 @@ class Calibrator : public rclcpp::Node
 
 Calibrator::Calibrator(const rclcpp::NodeOptions& options)
     :rclcpp::Node("calibrator", options),
-     _pose_sub(create_subscription<pose_t>("/pose", 1,
+     _pose_sub(create_subscription<pose_t>("pose", 1,
 					   std::bind(&Calibrator::pose_cb,
 						     this,
 						     std::placeholders::_1))),
      _get_sample_list_srv(create_service<GetSampleList>(
-			      node_name() + "/get_sample_list",
+			      "~/get_sample_list",
 			      std::bind(&Calibrator::get_sample_list, this,
 					std::placeholders::_1,
 					std::placeholders::_2))),
      _compute_calibration_srv(create_service<ComputeCalibration>(
-				  node_name() + "/compute_calibration",
+				  "~/compute_calibration",
 				  std::bind(&Calibrator::compute_calibration,
 					    this,
 					    std::placeholders::_1,
 					    std::placeholders::_2))),
      _save_calibration_srv(create_service<Trigger>(
-			       node_name() + "/save_calibration",
+			       "~/save_calibration",
 			       std::bind(&Calibrator::save_calibration, this,
 					 std::placeholders::_1,
 					 std::placeholders::_2))),
-     _reset_srv(create_service<Empty>(node_name() + "/reset",
+     _reset_srv(create_service<Empty>("~/reset",
 				      std::bind(&Calibrator::reset, this,
 						std::placeholders::_1,
 						std::placeholders::_2))),
      _take_sample_srv(rclcpp_action::create_server<TakeSample>(
-			  this, node_name() + "/take_sample",
+			  this, "~/take_sample",
 			  std::bind(&Calibrator::take_sample_goal_cb, this,
 				    std::placeholders::_1,
 				    std::placeholders::_2),
@@ -184,6 +184,7 @@ Calibrator::Calibrator(const rclcpp::NodeOptions& options)
 			  std::bind(&Calibrator::take_sample_accept_cb, this,
 				    std::placeholders::_1))),
      _current_goal_handle(nullptr),
+     _current_goal_mtx(),
      _tf2_buffer(get_clock()),
      _tf2_listener(_tf2_buffer),
      _use_dual_quaternion(ddynamic_reconfigure2::declare_read_only_parameter(
@@ -199,19 +200,19 @@ Calibrator::Calibrator(const rclcpp::NodeOptions& options)
     {
 	_Tec.header.frame_id = ddynamic_reconfigure2::
 			       declare_read_only_parameter(
-				   this, "robot_effector_frame", "tool0");
+				   this, "effector_frame", "tool0");
 	_Twm.header.frame_id = ddynamic_reconfigure2::
 			       declare_read_only_parameter(
-				   this, "robot_base_frame", "base_link");
+				   this, "reference_frame", "base_link");
     }
     else
     {
 	_Twm.header.frame_id = ddynamic_reconfigure2::
 			       declare_read_only_parameter(
-				   this, "robot_effector_frame", "tool0");
+				   this, "effector_frame", "tool0");
 	_Tec.header.frame_id = ddynamic_reconfigure2::
 			       declare_read_only_parameter(
-				   this, "robot_base_frame", "base_link");
+				   this, "reference_frame", "base_link");
     }
 
     _Tec.child_frame_id = "";
@@ -249,6 +250,8 @@ Calibrator::pose_cb(pose_p pose)
     if (!_current_goal_handle)
 	return;
 
+    const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
+
     try
     {
 	using namespace	aist_utility;
@@ -257,19 +260,26 @@ Calibrator::pose_cb(pose_p pose)
 	_Tec.child_frame_id = pose->header.frame_id;
 
       // Convert marker pose to camera <= object transform.
+	RCLCPP_INFO_STREAM(get_logger(), "### OK0");
 	auto	result = std::make_shared<TakeSample::Result>();
 	result->transform_cm = aist_utility::toTransform(*pose,
 							 marker_frame());
+	RCLCPP_INFO_STREAM(get_logger(), "### lookup: " << world_frame()
+			   << "<==" << effector_frame());
 
       // Lookup world <= effector transform at the moment marker detected.
 	result->transform_we = _tf2_buffer.lookupTransform(
 				   world_frame(), effector_frame(),
 				   pose->header.stamp,
 				   tf2::durationFromSec(1.0));
-	RCLCPP_DEBUG_STREAM(get_logger(),
+	RCLCPP_INFO_STREAM(get_logger(),
 			    "Tcm: " << result->transform_cm.transform);
-	RCLCPP_DEBUG_STREAM(get_logger(),
+	RCLCPP_INFO_STREAM(get_logger(),
 			    "Twe: " << result->transform_we.transform);
+	// RCLCPP_DEBUG_STREAM(get_logger(),
+	// 		    "Tcm: " << result->transform_cm.transform);
+	// RCLCPP_DEBUG_STREAM(get_logger(),
+	// 		    "Twe: " << result->transform_we.transform);
 
 	_Tcm.emplace_back(result->transform_cm);
 	_Twe.emplace_back(result->transform_we);
@@ -430,9 +440,7 @@ Calibrator::take_sample_goal_cb(const rclcpp_action::GoalUUID&,
 {
     RCLCPP_INFO_STREAM(get_logger(), "TakeSampleAction: new goal received");
 
-    return (!_current_goal_handle ?
-	    rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE :
-	    rclcpp_action::GoalResponse::REJECT);
+    return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
 }
 
 rclcpp_action::CancelResponse
@@ -449,6 +457,18 @@ Calibrator::take_sample_cancel_cb(TakeSampleGoalHandlePtr)
 void
 Calibrator::take_sample_accept_cb(TakeSampleGoalHandlePtr gh)
 {
+    const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
+
+  // If any active goal exists, abort it.
+    if (_current_goal_handle != nullptr && _current_goal_handle->is_active())
+    {
+	auto	result = std::make_unique<TakeSample::Result>();
+	_current_goal_handle->abort(std::move(result));
+	_current_goal_handle = nullptr;
+
+	RCLCPP_WARN_STREAM(get_logger(), "previous goal ABORTED");
+    }
+
     _current_goal_handle = gh;
 
     RCLCPP_INFO_STREAM(get_logger(), "take_sample(): new goal accepted");

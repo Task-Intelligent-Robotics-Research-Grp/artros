@@ -33,7 +33,7 @@
 #
 # Author: Toshio Ueshiba
 #
-import rclpy
+import rclpy, time
 from ddynamic_reconfigure2.client import ParameterClient
 from std_srvs.srv                 import Trigger
 

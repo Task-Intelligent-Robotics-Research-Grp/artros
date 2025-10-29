@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Software License Agreement (BSD License)
 #
@@ -35,19 +35,23 @@
 #
 # Author: Toshio Ueshiba
 #
-import rclpy, copy, yaml
+import rclpy, sys, time, copy, yaml, threading
 import numpy as np
 import tf_transformations as tfs
 
-from rclpy.action                 import ActionClient
-from rclpy.duration               import Duration
-from std_srvs.srv                 import Empty, Trigger
-from geometry_msgs.msg            import PoseStamped, Pose, Point, Quaternion
-from action_msgs.msg              import GoalStatus
-from aist_routines.base           import AISTBaseRoutines
-from aist_handeye_calibration.srv import GetSampleList, ComputeCalibration
-from aist_handeye_calibration.msg import TakeSampleAction, TakeSampleGoal
-from aist_utility                 import filepath_from_url
+from rclpy.action                         import ActionClient
+from rclpy.duration                       import Duration
+from rclpy.executors                      import MultiThreadedExecutor
+from rclpy.callback_groups                import MutuallyExclusiveCallbackGroup
+from std_srvs.srv                         import Empty, Trigger
+from geometry_msgs.msg                    import (PoseStamped, Pose, Point,
+                                                  Quaternion)
+from action_msgs.msg                      import GoalStatus
+from aist_routines.base                   import AISTBaseRoutines
+from aist_handeye_calibration_msgs.srv    import (GetSampleList,
+                                                  ComputeCalibration)
+from aist_handeye_calibration_msgs.action import TakeSample
+from aist_utility.fileio                  import filepath_from_url
 
 ######################################################################
 #  class HandEyeCalibrationRoutines                                  #
@@ -58,24 +62,24 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
 
         self._camera_name = self.declare_parameter('camera_name',
                                                    'a_motioncam').value
-        self._robot_name  = self.decalre_parameter('robot_name', 'b_bot').value
+        self._robot_name  = self.declare_parameter('robot_name', 'b_bot').value
         self._eye_on_hand = self.declare_parameter('eye_on_hand', False).value
         self._robot_effector_frame \
             = self.declare_parameter('robot_effector_frame',
                                      'b_bot_flange').value
         self._robot_effector_tip_frame \
             = self.declare_parameter('robot_effector_tip_frame', '').value
-        self._initpose   = self.declare_parameter('initpose', [])\
+        self._initpose   = self.declare_parameter('initpose', [0.0])\
                                .get_parameter_value().double_array_value
-        self._keyposes   = np.array(self.decalre_parameter('keyposes', [])\
+        self._keyposes   = np.array(self.declare_parameter('keyposes', [0.0])\
                                     .get_parameter_value().double_array_value)\
-                             .reshape(-1, 6).to_list()
-        self._speed      = self.decalre_parameter('speed', 1.0).value
+                             .reshape(-1, 6).tolist()
+        self._speed      = self.declare_parameter('speed', 1.0).value
         self._sleep_time = self.declare_parameter('sleep_time', 2.0).value
 
-        if self.decalre_parameter('calibration', True).value:
+        if self.declare_parameter('calibration', True).value:
             ns = 'handeye_calibrator'
-            self._cbg                 = MutuallyExclusiveCallbackGroup
+            self._cbg                 = MutuallyExclusiveCallbackGroup()
             self._get_sample_list     = self.create_client(
                                             GetSampleList,
                                             ns + '/get_sample_list',
@@ -90,16 +94,20 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
             self._reset               = self.create_client(
                                             Empty, ns + '/reset',
                                             callback_group=self._cbg)
-            self._take_sample         = ActionClient(
-                                            self, TakeSampleAction,
-                                            ns + '/take_sample',
-                                            callback_group=self._cbg)
+            self._take_sample_cbg     = MutuallyExclusiveCallbackGroup()
+            self._take_sample         = ActionClient(self, TakeSample,
+                                                     ns + '/take_sample',
+                                                     callback_group=self._take_sample_cbg)
         else:
             self._get_sample_list     = None
             self._compute_calibration = None
             # self._save_calibration    = None
             self._reset               = None
             self._take_sample         = None
+
+        cli_thread = threading.Thread(target=self.run)
+        cli_thread.daemon = True
+        cli_thread.start()
 
     def run(self):
         # Reset pose
@@ -116,6 +124,8 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
             key = input(prompt)
             _, axis, _ = self.interactive(key, self._robot_name, axis,
                                           self._speed)
+        self.destroy_node()
+        rclpy.shutdown()
 
     # interactive stuffs
     def print_help_messages(self):
@@ -137,15 +147,16 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         return robot_name, axis, speed
 
     def go_to_initpose(self):
+        print('initpose=%s' % self._initpose)
         self._move(self._initpose)
 
     def calibrate(self):
-        if self._reset:
-            self._reset.call()
+        # if self._reset:
+        #     self._reset.call(Empty.Request())
 
         # Reset pose
         self.go_to_named_pose(self._robot_name, 'home')
-        self.go_to_initpose()
+        #self.go_to_initpose()
 
         # Collect samples over pre-defined poses
         keyposes = self._keyposes
@@ -159,11 +170,13 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
 
         if self._compute_calibration:
             try:
-                res = self._compute_calibration.call()
+                res = self._compute_calibration.call(
+                          ComputeCalibration.Request())
                 print(res.message)
                 if res.success:
                     self._save_camera_placement(res.Tec)
-                    res = self._save_calibration.call()
+                    res = self._save_calibration.call(
+                              SaveCalibration.Request())
                     print(res.message)
             except Exception as e:
                 self.get_logger().error(e)
@@ -229,7 +242,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
             self.trigger_frame(self._camera_name)
             result = self._wait_for_result(Duration(seconds=3))
             if  result is None:
-                self._take_sample.cancel_goal()  # timeout expired
+#                self._goal_handle.cancel_goal_async()  # timeout expired
                 self.get_logger().error('TakeSampleAction: timeout expired')
                 return False
             if self._goal_handle.status != GoalStatus.SUCCEEDED:
@@ -247,7 +260,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
             pose.pose.orientation = result.Twe.transform.rotation
             print('  world  <= effector %s' % self.format_pose(pose))
 
-            n = len(self._get_sample_list.call().Tcm)
+            n = len(self._get_sample_list.call(GetSampleList.Request()).Tcm)
             print('  %d samples taken' % n)
 
         return True
@@ -312,6 +325,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         self._get_result_future = None
         self._take_sample.send_goal_async(TakeSample.Goal()) \
             .add_done_callback(self._goal_response_cb)
+        self.get_logger().info('### goal sent to the server')
 
     def _wait_for_result(self, timeout):
         timeout_time = self.get_clock().now() + timeout
@@ -324,6 +338,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         return self._get_result_future.result()
 
     def _goal_response_cb(self, future):
+        self.get_logger().info('### goal_response_cb()')
         self._goal_handle = future.result()
         if not self._goal_handle.accepted:
             self.get_logger().error('goal rejected')

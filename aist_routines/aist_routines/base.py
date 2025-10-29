@@ -42,8 +42,10 @@ from math                                 import degrees, sqrt, pi
 from rclpy.node                           import Node
 from rclpy.duration                       import Duration
 from rclpy.time                           import Time
+from rclpy.parameter                      import Parameter
 from tf2_ros.buffer                       import Buffer
 from tf2_ros.transform_listener           import TransformListener
+from rcl_interfaces.msg                   import ParameterDescriptor
 from std_msgs.msg                         import Header
 from geometry_msgs.msg                    import (PoseStamped, Pose, Point,
                                                   Quaternion, PoseArray,
@@ -59,6 +61,7 @@ from aist_routines.camera_client          import CameraClient
 #from aist_routines.MarkerPublisher    import MarkerPublisher
 from aist_utility.fileio                  import filepath_from_url
 from aist_collision_object_manager.client import CollisionObjectManagerClient
+from ddynamic_reconfigure2.utils          import declare_read_only_parameter
 
 ######################################################################
 #  global functions                                                  #
@@ -142,7 +145,7 @@ class AISTBaseRoutines(Node):
 
         # Load setting parameters
         self._settings = {}
-        for url in self.declare_parameter('setting_urls', ['']).value:
+        for url in self.declare_parameter('setting_urls', [''], ParameterDescriptor(type=Parameter.Type.STRING_ARRAY)).value:
             with open(filepath_from_url(url), 'r') as f:
                 self._settings |= yaml.safe_load(f)
 
