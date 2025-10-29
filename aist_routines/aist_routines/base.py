@@ -45,7 +45,6 @@ from rclpy.time                           import Time
 from rclpy.parameter                      import Parameter
 from tf2_ros.buffer                       import Buffer
 from tf2_ros.transform_listener           import TransformListener
-from rcl_interfaces.msg                   import ParameterDescriptor
 from std_msgs.msg                         import Header
 from geometry_msgs.msg                    import (PoseStamped, Pose, Point,
                                                   Quaternion, PoseArray,
@@ -145,7 +144,8 @@ class AISTBaseRoutines(Node):
 
         # Load setting parameters
         self._settings = {}
-        for url in self.declare_parameter('setting_urls', [''], ParameterDescriptor(type=Parameter.Type.STRING_ARRAY)).value:
+        for url in self.declare_parameter_with_type(
+                       'setting_urls', Parameter.Type.STRING_ARRAY, []).value:
             with open(filepath_from_url(url), 'r') as f:
                 self._settings |= yaml.safe_load(f)
 
@@ -183,6 +183,10 @@ class AISTBaseRoutines(Node):
     #         self._pick_or_place.shutdown()
     #     rospy.signal_shutdown('AISTBaseRoutines() completed.')
     #     return False  # Do not forward exceptions
+
+    def declare_parameter_with_type(self, name, type_, value):
+        param = Parameter('tmp', type_=type_, value=value)
+        return self.declare_parameter(name, param.get_parameter_value())
 
     @property
     def tf2_buffer(self):
