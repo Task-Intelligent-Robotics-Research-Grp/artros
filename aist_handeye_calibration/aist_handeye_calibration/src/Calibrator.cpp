@@ -200,7 +200,7 @@ Calibrator::Calibrator(const rclcpp::NodeOptions& options)
     {
 	_Tec.header.frame_id = ddynamic_reconfigure2::
 			       declare_read_only_parameter(
-				   this, "effector_frame", "tool0");
+				   this, "end_effector_link", "tool0");
 	_Twm.header.frame_id = ddynamic_reconfigure2::
 			       declare_read_only_parameter(
 				   this, "reference_frame", "base_link");
@@ -209,7 +209,7 @@ Calibrator::Calibrator(const rclcpp::NodeOptions& options)
     {
 	_Twm.header.frame_id = ddynamic_reconfigure2::
 			       declare_read_only_parameter(
-				   this, "effector_frame", "tool0");
+				   this, "end_effector_link", "tool0");
 	_Tec.header.frame_id = ddynamic_reconfigure2::
 			       declare_read_only_parameter(
 				   this, "reference_frame", "base_link");
@@ -260,8 +260,7 @@ Calibrator::pose_cb(pose_p pose)
 	_Tec.child_frame_id = pose->header.frame_id;
 
       // Convert marker pose to camera <= object transform.
-	RCLCPP_INFO_STREAM(get_logger(), "### OK0");
-	auto	result = std::make_shared<TakeSample::Result>();
+	auto	result = std::make_unique<TakeSample::Result>();
 	result->transform_cm = aist_utility::toTransform(*pose,
 							 marker_frame());
 	RCLCPP_INFO_STREAM(get_logger(), "### lookup: " << world_frame()
@@ -284,7 +283,8 @@ Calibrator::pose_cb(pose_p pose)
 	_Tcm.emplace_back(result->transform_cm);
 	_Twe.emplace_back(result->transform_we);
 
-	_current_goal_handle->succeed(result);
+	_current_goal_handle->succeed(std::move(result));
+	_current_goal_handle = nullptr;
 
 	RCLCPP_INFO_STREAM(get_logger(), "take_sample(): succeeded");
     }

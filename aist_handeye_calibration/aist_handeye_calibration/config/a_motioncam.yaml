@@ -15,7 +15,7 @@ detector_3d:
   ros__parameters:
     camera_name:          a_motioncam
     reference_frame:      workspace_center
-    effector_frame:       b_bot_gripper_base_link
+    end_effector_link:    b_bot_gripper_base_link
     eye_on_hand:          false
 
 handeye_calibrator:
@@ -27,9 +27,9 @@ run_calibration:
     robot_name:           b_bot
     camera_parent_frame:  workspace_center
     initpose:             [ 0.10,  0.10, 0.35,  0.0, 90.0, 0.0]
-    keyposes:             [ 0.16,  0.15, 0.15, 40.0, 25.0, 0.0,
-                            0.16,  0.03, 0.15, 30.0, 25.0, 0.0,
-                            0.16, -0.06, 0.15, 20.0, 25.0, 0.0,
+    keyposes:             [ 0.16,  0.15, 0.17, 40.0, 25.0, 0.0,
+                            0.16,  0.03, 0.17, 30.0, 25.0, 0.0,
+                            0.16, -0.06, 0.17, 20.0, 25.0, 0.0,
                            -0.05, -0.07, 0.23, 20.0, 25.0, 0.0,
                            -0.05,  0.03, 0.23, 30.0, 25.0, 0.0,
                            -0.05,  0.15, 0.23, 40.0, 25.0, 0.0]

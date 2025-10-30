@@ -144,10 +144,13 @@ class AISTBaseRoutines(Node):
 
         # Load setting parameters
         self._settings = {}
-        for url in self.declare_parameter_with_type(
-                       'setting_urls', Parameter.Type.STRING_ARRAY, []).value:
-            with open(filepath_from_url(url), 'r') as f:
-                self._settings |= yaml.safe_load(f)
+        for url in self.declare_parameter('setting_urls', ['']).value:
+            try:
+                with open(filepath_from_url(url), 'r') as f:
+                    self._settings |= yaml.safe_load(f)
+            except Exception as e:
+                self.get_logger().error('failed to open setting file[%s]: %s'
+                                        % (url, e))
 
         # CollisionObjectManager wrapping MoveIt PlanningSceneInterface
         if 'initial_object_config' in self.settings:
@@ -323,7 +326,6 @@ class AISTBaseRoutines(Node):
             self.move_relative(robot_name, offset, speed)
         elif _is_num(key):
             xyzrpy = self.xyzrpy_from_pose(self.get_current_pose(robot_name))
-            print(xyzrpy)
             if axis == 'X':
                 xyzrpy[0] = float(key)
             elif axis == 'Y':

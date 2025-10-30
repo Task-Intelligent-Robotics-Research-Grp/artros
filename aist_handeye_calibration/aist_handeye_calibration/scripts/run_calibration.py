@@ -64,9 +64,8 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
                                                    'a_motioncam').value
         self._robot_name  = self.declare_parameter('robot_name', 'b_bot').value
         self._eye_on_hand = self.declare_parameter('eye_on_hand', False).value
-        self._robot_effector_frame \
-            = self.declare_parameter('robot_effector_frame',
-                                     'b_bot_flange').value
+        self._end_effector_link = self.declare_parameter('end_effector_link',
+                                                         'b_bot_flange').value
         self._robot_effector_tip_frame \
             = self.declare_parameter('robot_effector_tip_frame', '').value
         self._initpose   = self.declare_parameter('initpose', [0.0])\
@@ -147,7 +146,6 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         return robot_name, axis, speed
 
     def go_to_initpose(self):
-        print('initpose=%s' % self._initpose)
         self._move(self._initpose)
 
     def calibrate(self):
@@ -156,14 +154,14 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
 
         # Reset pose
         self.go_to_named_pose(self._robot_name, 'home')
-        #self.go_to_initpose()
+        self.go_to_initpose()
 
         # Collect samples over pre-defined poses
         keyposes = self._keyposes
         for i, keypose in enumerate(keyposes, 1):
             print('\n*** Keypose [%d/%d]: Try! ***' % (i, len(keyposes)))
             if self._eye_on_hand:
-                self._move_to(keypose, i, 1)
+                self._move_to(keypose)
             else:
                 self._move_to_subposes(keypose, i)
             print('*** Keypose [%d/%d]: Completed. ***' % (i, len(keyposes)))
@@ -174,9 +172,8 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
                           ComputeCalibration.Request())
                 print(res.message)
                 if res.success:
-                    self._save_camera_placement(res.Tec)
-                    res = self._save_calibration.call(
-                              SaveCalibration.Request())
+                    #self._save_camera_placement(res.transform_ec)
+                    res = self._save_calibration.call(Trigger.Request())
                     print(res.message)
             except Exception as e:
                 self.get_logger().error(e)
@@ -215,25 +212,25 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         roll = subpose[3]
         for i in range(3):
             print('\n--- Subpose [%d/5]: Try! ---' % (i + 1))
-            if self._move_to(subpose, keypose_num, i + 1):
+            if self._move_to(subpose):
                 self.get_logger().info('Subpose [%d/5]: Succeeded.' % (i + 1))
             else:
                 self.get_logger().error('Subpose [%d/5]: Failed.' % (i + 1))
-            subpose[3] -= 30
+            subpose[3] -= 30.0
 
-        subpose[3] = roll - 30
-        subpose[4] += 15
+        subpose[3]  = roll - 30.0
+        subpose[4] += 15.0
 
         for i in range(2):
             print('\n--- Subpose [%d/5]: Try! ---' % (i + 4))
-            if self._move_to(subpose, keypose_num, i + 4):
+            if self._move_to(subpose):
                 self.get_logger().info('Subpose [%d/5]: Succeeded.' % (i + 4))
             else:
                 self.get_logger().error('Subpose [%d/5]: Failed.' % (i + 4))
-            subpose[4] -= 30
+            subpose[4] -= 30.0
 
-    def _move_to(self, subpose, keypose_num, subpose_num):
-        if not self._move(subpose):
+    def _move_to(self, pose):
+        if not self._move(pose):
             return False
 
         if self._take_sample:
@@ -245,32 +242,34 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
 #                self._goal_handle.cancel_goal_async()  # timeout expired
                 self.get_logger().error('TakeSampleAction: timeout expired')
                 return False
-            if self._goal_handle.status != GoalStatus.SUCCEEDED:
+            if self._goal_handle.status != GoalStatus.STATUS_SUCCEEDED:
                 self.get_logger().error(
                     'TakeSampleAction: not in succeeded state')
                 return False
 
             pose = PoseStamped()
-            pose.header = result.Tcm.header
-            pose.pose.position    = result.Tcm.transform.translation
-            pose.pose.orientation = result.Tcm.transform.rotation
-#            print('  camera <= marker   %s' % self.format_pose(pose))
-            pose.header = result.Twe.header
-            pose.pose.position    = result.Twe.transform.translation
-            pose.pose.orientation = result.Twe.transform.rotation
+            transform = result.result.transform_cm
+            pose.header           = transform.header
+            pose.pose.position    = transform.transform.translation
+            pose.pose.orientation = transform.transform.rotation
+            print('  camera <= marker   %s' % self.format_pose(pose))
+            transform = result.result.transform_we
+            pose.header           = transform.header
+            pose.pose.position    = transform.transform.translation
+            pose.pose.orientation = transform.transform.rotation
             print('  world  <= effector %s' % self.format_pose(pose))
 
-            n = len(self._get_sample_list.call(GetSampleList.Request()).Tcm)
+            n = len(self._get_sample_list.call(GetSampleList.Request())\
+                    .transform_cm)
             print('  %d samples taken' % n)
 
         return True
 
     def _move(self, xyzrpy):
         pose = self.pose_from_xyzrpy(xyzrpy)
-        print('  move to %s' % self.format_pose(pose))
         success = self.go_to_pose_goal(self._robot_name, pose,
                                        speed=self._speed,
-                                       end_effector_link=self._robot_effector_frame)
+                                       end_effector_link=self._end_effector_link)
         print('  reached %s' %
               self.format_pose(self.get_current_pose(self._robot_name)))
         return success
