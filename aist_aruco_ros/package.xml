@@ -26,8 +26,8 @@
   <depend>tf2_geometry_msgs</depend>
   <depend>ddynamic_reconfigure2</depend>
 
+  <depend>aist_msgs</depend>
   <depend>aist_utility</depend>
-  <depend>aist_aruco_msgs</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
