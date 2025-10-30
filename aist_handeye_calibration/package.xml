@@ -21,7 +21,7 @@
   <depend>geometry_msgs</depend>
   <depend>tf2_ros</depend>
   <depend>tf2_geometry_msgs</depend>
-  <depend>aist_handeye_calibration_msgs</depend>
+  <depend>aist_msgs</depend>
   <depend>aist_utility</depend>
   <depend>ddynamic_reconfigure2</depend>
 
