@@ -173,6 +173,20 @@ SuctionToolController::SuctionToolController(
 SuctionToolController::goal_response_t
 SuctionToolController::goal_cb(const goal_uuid_t&, const goal_cp goal)
 {
+    const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
+
+  // If any active goal exists, abort it.
+    if (_current_goal_handle != nullptr && _current_goal_handle->is_active())
+    {
+	auto	result = std::make_unique<suction_tool_command_t::Result>();
+	result->suctioned = _suctioned;
+	_current_goal_handle->abort(std::move(result));
+
+	RCLCPP_WARN_STREAM(get_logger(), "previous goal ABORTED");
+    }
+
+    _current_goal_handle = nullptr;
+
     RCLCPP_INFO_STREAM(get_logger(),
 		       "goal ACCEPTED: suck=" << std::boolalpha << goal->suck
 		       << ", min_period="
@@ -191,17 +205,6 @@ void
 SuctionToolController::handle_accepted_cb(const goal_handle_p goal_handle)
 {
     const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
-
-  // If any active goal exists, abort it.
-    if (_current_goal_handle != nullptr && _current_goal_handle->is_active())
-    {
-	auto	result = std::make_unique<suction_tool_command_t::Result>();
-	result->suctioned = _suctioned;
-	_current_goal_handle->abort(std::move(result));
-	_current_goal_handle = nullptr;
-
-	RCLCPP_WARN_STREAM(get_logger(), "previous goal ABORTED");
-    }
 
   // Send suck/blow commands.
     if (!set_out_port(_suck_port,  goal_handle->get_goal()->suck) ||
