@@ -256,20 +256,6 @@ ScrewToolController::ScrewToolController(const rclcpp::NodeOptions& options)
 ScrewToolController::goal_response_t
 ScrewToolController::goal_cb(const goal_uuid_t&, const goal_cp goal)
 {
-    const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
-
-  // If any active goal exists, abort it.
-    if (_current_goal_handle != nullptr && _current_goal_handle->is_active())
-    {
-	auto	result = std::make_unique<screw_tool_command_t::Result>();
-	result->stalled = false;
-	_current_goal_handle->abort(std::move(result));
-
-	RCLCPP_WARN_STREAM(get_logger(), "previous goal ABORTED");
-    }
-
-    _current_goal_handle = nullptr;
-
     RCLCPP_INFO_STREAM(get_logger(),
 		       "goal ACCEPTED: op="
 		       << (goal->speed > 0 ? "tighten" : "loosen")
@@ -296,6 +282,17 @@ void
 ScrewToolController::handle_accepted_cb(const goal_handle_p goal_handle)
 {
     const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
+
+  // If any active goal exists, abort it.
+    if (_current_goal_handle != nullptr && _current_goal_handle->is_active())
+    {
+	auto	result = std::make_unique<screw_tool_command_t::Result>();
+	result->stalled = false;
+	_current_goal_handle->abort(std::move(result));
+	_current_goal_handle = nullptr;
+
+	RCLCPP_WARN_STREAM(get_logger(), "previous goal ABORTED");
+    }
 
     if (!send_dxl_command("Torque_Enable", 1) ||
 	!send_dxl_command("Moving_Speed",

@@ -203,23 +203,6 @@ PrecisionToolController::PrecisionToolController(
 PrecisionToolController::goal_response_t
 PrecisionToolController::goal_cb(const goal_uuid_t&, const goal_cp goal)
 {
-    const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
-
-  // If any active goal exists, abort it.
-    if (_current_goal_handle != nullptr && _current_goal_handle->is_active())
-    {
-	auto	result = std::make_unique<gripper_command_t::Result>();
-	result->position     = actual_position(_present_pos);
-	result->effort	     = 0.0;
-	result->stalled	     = false;
-	result->reached_goal = false;
-	_current_goal_handle->abort(std::move(result));
-
-	RCLCPP_WARN_STREAM(get_logger(), "previous goal ABORTED");
-    }
-
-    _current_goal_handle = nullptr;
-
     RCLCPP_INFO_STREAM(get_logger(),
 		       "goal ACCEPTED: position=" << goal->command.position
 		       << ", max_effort=" << goal->command.max_effort);
@@ -237,6 +220,20 @@ void
 PrecisionToolController::handle_accepted_cb(const goal_handle_p goal_handle)
 {
     const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
+
+  // If any active goal exists, abort it.
+    if (_current_goal_handle != nullptr && _current_goal_handle->is_active())
+    {
+	auto	result = std::make_unique<gripper_command_t::Result>();
+	result->position     = actual_position(_present_pos);
+	result->effort	     = 0.0;
+	result->stalled	     = false;
+	result->reached_goal = false;
+	_current_goal_handle->abort(std::move(result));
+	_current_goal_handle = nullptr;
+
+	RCLCPP_WARN_STREAM(get_logger(), "previous goal ABORTED");
+    }
 
     _last_move_time = now();
 

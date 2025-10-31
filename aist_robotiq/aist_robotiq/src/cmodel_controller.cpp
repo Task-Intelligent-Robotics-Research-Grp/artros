@@ -232,23 +232,6 @@ CModelController::set_velocity_cb(const set_velocity_req req,
 CModelController::goal_response_t
 CModelController::goal_cb(const goal_uuid_t&, const goal_cp goal)
 {
-    const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
-
-  // If any active goal exists, abort it.
-    if (_current_goal_handle != nullptr && _current_goal_handle->is_active())
-    {
-	auto	result = std::make_unique<gripper_command_t::Result>();
-	result->position     = actual_position(_cmodel_status);
-	result->effort	     = actual_effort(_cmodel_status);
-	result->stalled	     = stalled(_cmodel_status);
-	result->reached_goal = reached_goal(_cmodel_status);
-	_current_goal_handle->abort(std::move(result));
-
-	RCLCPP_WARN_STREAM(get_logger(), "previous goal ABORTED");
-    }
-
-    _current_goal_handle = nullptr;
-
     RCLCPP_INFO_STREAM(get_logger(),
 		       "goal ACCEPTED: position=" << goal->command.position
 		       << ", max_effort=" << goal->command.max_effort);
@@ -265,12 +248,27 @@ CModelController::cancel_cb(const goal_handle_p)
 void
 CModelController::handle_accepted_cb(const goal_handle_p goal_handle)
 {
+    const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
+
+  // If any active goal exists, abort it.
+    if (_current_goal_handle != nullptr && _current_goal_handle->is_active())
+    {
+	auto	result = std::make_unique<gripper_command_t::Result>();
+	result->position     = actual_position(_cmodel_status);
+	result->effort	     = actual_effort(_cmodel_status);
+	result->stalled	     = stalled(_cmodel_status);
+	result->reached_goal = reached_goal(_cmodel_status);
+	_current_goal_handle->abort(std::move(result));
+	_current_goal_handle = nullptr;
+
+	RCLCPP_WARN_STREAM(get_logger(), "previous goal ABORTED");
+    }
+    _current_goal_handle = goal_handle;
+
   // Send a move command to the gripper.
     _goal_r_pr = send_move_command(
 		     goal_handle->get_goal()->command.position, _velocity,
 		     goal_handle->get_goal()->command.max_effort);
-
-    _current_goal_handle = goal_handle;
 }
 
 void
