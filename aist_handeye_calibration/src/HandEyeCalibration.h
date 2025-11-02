@@ -284,9 +284,17 @@ objectToWorld(const std::vector<Transform<T> >& Tcm,
     return DualNumber<Quaternion<T> >(p, d);
 }
 
-template <class T> void
-evaluateAccuracy(std::ostream& out,
-		 const std::vector<Transform<T> >& Tcm,
+template <class T>
+struct CalibrationError
+{
+    T	mean_translation_error;	// meters
+    T	max_translation_error;	// meters
+    T	mean_rotation_error;	// radian
+    T	max_rotation_error;	// radian
+};
+
+template <class T> CalibrationError<T>
+evaluateAccuracy(const std::vector<Transform<T> >& Tcm,
 		 const std::vector<Transform<T> >& Twe,
 		 const Transform<T>& Tec, const Transform<T>& Twm)
 {
@@ -314,16 +322,13 @@ evaluateAccuracy(std::ostream& out,
     tdiff_mean = std::sqrt(tdiff_mean/nposes);
     adiff_mean = std::sqrt(adiff_mean/nposes);
 
-    constexpr T	degree = 180.0/M_PI;
-    out << "\n=== estimated camera pose ====\n";
-    Tec.print(out);
-    out << "\n=== estimated marker pose ===\n";
-    Twm.print(out);
-    out << "\ntrans. err(m)  : (mean, max) = ("
-	<< tdiff_mean << ", " << tdiff_max
-	<< ")\nangle err(deg.): (mean, max) = ("
-	<< adiff_mean * degree << ", " << adiff_max * degree << ')'
-	<< std::endl;
+    CalibrationError<T>	error;
+    error.mean_translation_error = tdiff_mean;
+    error.max_translation_error  = tdiff_max;
+    error.mean_rotation_error	 = adiff_mean;
+    error.max_rotation_error	 = adiff_max;
+
+    return error;
 }
 }	// namespace TU
 #endif	// !HANDEYECALIBRATION_H

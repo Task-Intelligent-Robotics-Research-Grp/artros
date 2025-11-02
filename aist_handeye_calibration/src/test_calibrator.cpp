@@ -32,7 +32,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 #include <cstdlib>	// for std::getenv()
 #include <aist_utility/geometry_msgs.hpp>
-#include "HandeyeCalibration.h"
+#include "HandEyeCalibration.h"
 
 namespace TU
 {
@@ -63,7 +63,7 @@ doJob(const std::string& camera_name, bool single)
     const auto	Tec = (single ? cameraToEffectorSingle(Tcm, Twe)
 			      : cameraToEffectorDual(Tcm, Twe));
     const auto	Twm = objectToWorld(Tcm, Twe, Tec);
-    evaluateAccuracy(std::cout, Tcm, Twe, Tec, Twm);
+    const auto	error = evaluateAccuracy(Tcm, Twe, Tec, Twm);
 
   // Print calibration result.
     std::cout << "\n=== camera_transform ===\n" << Tec << std::endl

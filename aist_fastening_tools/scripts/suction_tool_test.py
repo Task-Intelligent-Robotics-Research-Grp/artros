@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import rclpy, sys, threading
-from rclpy.executors      import MultiThreadedExecutor
-from rclpy.node           import Node
-from aist_fastening_tools import SuctionTool
+from rclpy.executors             import MultiThreadedExecutor
+from rclpy.node                  import Node
+from aist_fastening_tools.client import SuctionTool
 
 
 class SuctionToolTest(Node):

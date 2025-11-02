@@ -20,12 +20,14 @@ detector_3d:
 
 handeye_calibrator:
   ros__parameters:
+    pose_timeout:         3.0
     use_dual_quaternion:  true
 
 run_calibration:
   ros__parameters:
     robot_name:           b_bot
     camera_parent_frame:  workspace_center
+    calibration_file:     package://aist_description/scenes/calib/a_motioncam.yaml
     initpose:             [ 0.10,  0.10, 0.35,  0.0, 90.0, 0.0]
     keyposes:             [ 0.16,  0.15, 0.17, 40.0, 25.0, 0.0,
                             0.16,  0.03, 0.17, 30.0, 25.0, 0.0,

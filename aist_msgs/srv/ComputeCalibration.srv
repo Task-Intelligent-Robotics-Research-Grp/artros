@@ -1,5 +1,8 @@
 ---
-bool success
-string message
+bool                           success
 geometry_msgs/TransformStamped transform_ec  # effector <- camera transformation
 geometry_msgs/TransformStamped transform_wm  # world    <- marker transformation
+float64                        mean_translation_error  # in meters
+float64                        max_translation_error   # in meters
+float64                        mean_rotation_error     # in radian
+float64                        max_rotation_error      # in radian

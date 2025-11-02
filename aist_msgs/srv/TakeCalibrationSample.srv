@@ -1,7 +1,7 @@
-# Goal
+# Request
 ---
-# Result
+# Response
+bool                           success
+string                         message
 geometry_msgs/TransformStamped transform_cm  # camera <- marker   transform
 geometry_msgs/TransformStamped transform_we  # world  <- effector transform
----
-# Feedback
