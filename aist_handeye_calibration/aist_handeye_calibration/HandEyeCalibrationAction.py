@@ -171,10 +171,6 @@ class HandEyeCalibrationAction(object):
             self._node.get_logger().info('goal canceled')
 
     # Server stuffs
-    @property
-    def current_goal(self):
-        return self._server_goal_handle.request
-
     def _goal_cb(self, goal):
         self._node.get_logger().info('goal accepted')
         return GoalResponse.ACCEPT
@@ -198,27 +194,28 @@ class HandEyeCalibrationAction(object):
         try:
             result = HandEyeCalibration.Result()
 
-            self._node.go_to_named_pose(self.current_goal.robot_name, 'home')
-            self._move(self.current_goal.robot_name,
-                       self.current_goal.initpose,
-                       self.current_goal.end_effector_link)
+            self._calibrator.reset()
+            self._node.go_to_named_pose(goal_handle.request.robot_name, 'home')
+            self._move(goal_handle.request.robot_name,
+                       goal_handle.request.initpose,
+                       goal_handle.request.end_effector_link)
 
             # Collect samples over pre-defined poses
-            keyposes = np.array(self.current_goal.keyposes).reshape(-1, 6)\
-                                                           .tolist()
+            keyposes = np.array(goal_handle.request.keyposes).reshape(-1, 6)\
+                                                             .tolist()
             for i, keypose in enumerate(keyposes, 1):
                 print('\n*** Keypose [%d/%d]: Try! ***' % (i, len(keyposes)))
-                if self.current_goal.eye_on_hand:
-                    self._move_to(keypose)
+                if goal_handle.request.eye_on_hand:
+                    self._move_to(goal_handle, keypose)
                 else:
-                    self._move_to_subposes(keypose, i)
+                    self._move_to_subposes(goal_handle, keypose, i)
                     print('*** Keypose [%d/%d]: Completed. ***'
                           % (i, len(keyposes)))
 
             res = self._calibrator.compute_calibration()
 
             self._save_calibration(res)
-            self._node.go_to_named_pose(self.current_goal.robot_name, 'home')
+            self._node.go_to_named_pose(goal_handle.request.robot_name, 'home')
 
             result.success = res.success
             with self._goal_lock:
@@ -241,12 +238,12 @@ class HandEyeCalibrationAction(object):
                                  % e)
         return result
 
-    def _move_to_subposes(self, keypose, keypose_num):
+    def _move_to_subposes(self, goal_handle, keypose, keypose_num):
         subpose = copy.copy(keypose)
         roll = subpose[3]
         for i in range(3):
             print('\n--- Subpose [%d/5]: Try! ---' % (i + 1))
-            if self._move_to(subpose):
+            if self._move_to(goal_handle, subpose):
                 self._node.get_logger().info('Subpose [%d/5]: Succeeded.'
                                              % (i + 1))
             else:
@@ -259,7 +256,7 @@ class HandEyeCalibrationAction(object):
 
         for i in range(2):
             print('\n--- Subpose [%d/5]: Try! ---' % (i + 4))
-            if self._move_to(subpose):
+            if self._move_to(goal_handle, subpose):
                 self._node.get_logger().info('Subpose [%d/5]: Succeeded.'
                                              % (i + 4))
             else:
@@ -267,26 +264,26 @@ class HandEyeCalibrationAction(object):
                                               % (i + 4))
                 subpose[4] -= 30.0
 
-    def _move_to(self, xyzrpy):
+    def _move_to(self, goal_handle, xyzrpy):
         with self._goal_lock:
-            if self._server_goal_handle.is_cancel_requested:
+            if goal_handle.is_cancel_requested:
                 raise HandEyeCalibrationAction.CancelRequestedException()
-            if not self._server_goal_handle.is_active:
+            if not goal_handle.is_active:
                 raise HandEyeCalibrationAction.AbortedException()
 
-        if not self._move(self.current_goal.robot_name, xyzrpy,
-                          self.current_goal.end_effector_link):
+        if not self._move(goal_handle.request.robot_name, xyzrpy,
+                          goal_handle.request.end_effector_link):
             return False
 
         with self._goal_lock:
-            if self._server_goal_handle.is_cancel_requested:
+            if goal_handle.is_cancel_requested:
                 raise HandEyeCalibrationAction.CancelRequestedException()
-            if not self._server_goal_handle.is_active:
+            if not goal_handle.is_active:
                 raise HandEyeCalibrationAction.AbortedException()
 
         time.sleep(self._sleep_time)  # Wait for the robot to settle.
         future = self._calibrator.take_sample_async()
-        self._node.trigger_frame(self.current_goal.camera_name)
+        self._node.trigger_frame(goal_handle.request.camera_name)
         res = self._calibrator.wait_for_sample(future)
         if not res.success:
             self._node.get_logger().error('failed to take sample: %s'
