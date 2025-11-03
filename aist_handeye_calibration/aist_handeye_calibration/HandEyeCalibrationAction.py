@@ -97,7 +97,6 @@ class HandEyeCalibrationAction(object):
                                                 callback_group=self._client_cbg)
         self._client.wait_for_server()
 
-    # Client stuffs
     @property
     def robot_name(self):
         return self._robot_name
@@ -129,6 +128,7 @@ class HandEyeCalibrationAction(object):
         print('  reached %s' %
               self.format_pose(self._node.get_current_pose(self._robot_name)))
 
+    # Client stuffs
     def calibrate(self):
         self._get_result_future = None
 

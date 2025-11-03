@@ -62,6 +62,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
     def robot_name(self):
         return self._handeye_calibration.robot_name
 
+    @property
     def speed(self):
         return self._handeye_calibration.speed
 
