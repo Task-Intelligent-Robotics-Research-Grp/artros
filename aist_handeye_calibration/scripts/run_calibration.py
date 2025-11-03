@@ -67,7 +67,6 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
 
     def run(self):
         # Reset pose
-        self._handeye_calibration.go_to_initpose()
         self.print_help_messages()
         print('')
 
@@ -85,11 +84,12 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
 
     # interactive stuffs
     def print_help_messages(self):
-        super(HandEyeCalibrationRoutines, self).print_help_messages()
+        super().print_help_messages()
         print('=== Calibration commands ===')
-        print('  init:  go to initial pose')
-        print('  calib: do calibration')
-        print('  check: go to marker')
+        print('  init:   go to initial pose')
+        print('  calib:  do calibration')
+        print('  cancel: cancel calibration and then return to home pose')
+        print('  check:  go to marker')
 
     def interactive(self, key, robot_name, axis, speed):
         if key == 'init':
@@ -98,8 +98,10 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
             self._handeye_calibration.calibrate()
         elif key == 'cancel':
             self._handeye_calibration.cancel()
+            self._handeye_calibration.wait()
+            self.go_to_named_pose(robot_name, 'home')
         elif key == 'check':
-            self.go_to_marker()
+            self._handeye_calibration.go_to_marker()
         else:
             return super().interactive(key, robot_name, axis, speed)
         return robot_name, axis, speed

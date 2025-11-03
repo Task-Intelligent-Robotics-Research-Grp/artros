@@ -109,7 +109,7 @@ class HandEyeCalibrationAction(object):
         return self._speed
 
     def go_to_initpose(self):
-        self._move(self._initpose)
+        self._move(self._robot_name, self._initpose, self._end_effector_link)
 
     def calibrate(self):
         self._get_result_future = None
@@ -124,13 +124,11 @@ class HandEyeCalibrationAction(object):
         self._client.send_goal_async(goal) \
                     .add_done_callback(self._goal_response_cb)
 
-    def wait_for_result(self):
+    def wait(self):
         while self._get_result_future is None or \
               not self._get_result_future.done():
             time.sleep(0.1)
-        result = self._get_result_future.result().result
-
-        return result.result
+        return self._get_result_future.result().result.success
 
     def cancel(self):
         if not self._client_goal_handle:
@@ -169,8 +167,8 @@ class HandEyeCalibrationAction(object):
                self._server_goal_handle.is_active:
                 self._server_goal_handle.abort()
                 self._node.get_logger().warn('previous goal aborted')
-                self._server_goal_handle = goal_handle
-                self._server_goal_handle.execute()
+            self._server_goal_handle = goal_handle
+        self._server_goal_handle.execute()
 
     def _cancel_cb(self, goal):
         self._node.get_logger().warn('goal requested to cancel')
@@ -183,7 +181,9 @@ class HandEyeCalibrationAction(object):
             result = HandEyeCalibration.Result()
 
             self._node.go_to_named_pose(self.current_goal.robot_name, 'home')
-            self._move(self.current_goal.initpose)
+            self._move(self.current_goal.robot_name,
+                       self.current_goal.initpose,
+                       self.current_goal.end_effector_link)
 
             # Collect samples over pre-defined poses
             keyposes = np.array(self.current_goal.keyposes).reshape(-1, 6)\
@@ -202,7 +202,7 @@ class HandEyeCalibrationAction(object):
             self._save_calibration(res)
             self._node.go_to_named_pose(self.current_goal.robot_name, 'home')
 
-            result.success = response.success
+            result.success = res.success
             with self._goal_lock:
                 goal_handle.succeed()
                 self._node.get_logger().info('goal succeeded')
@@ -219,7 +219,8 @@ class HandEyeCalibrationAction(object):
             with self._goal_lock:
                 goal_handle.abort()
                 self._node.get_logger()\
-                          .error('goal aborted due to unexpected error: %s' % e)
+                          .error('goal aborted due to unexpected error: %s'
+                                 % e)
         return result
 
     def _move_to_subposes(self, keypose, keypose_num):
@@ -228,9 +229,11 @@ class HandEyeCalibrationAction(object):
         for i in range(3):
             print('\n--- Subpose [%d/5]: Try! ---' % (i + 1))
             if self._move_to(subpose):
-                self.get_logger().info('Subpose [%d/5]: Succeeded.' % (i + 1))
+                self._node.get_logger().info('Subpose [%d/5]: Succeeded.'
+                                             % (i + 1))
             else:
-                self.get_logger().error('Subpose [%d/5]: Failed.' % (i + 1))
+                self._node.get_logger().error('Subpose [%d/5]: Failed.'
+                                              % (i + 1))
                 subpose[3] -= 30.0
 
         subpose[3]  = roll - 30.0
@@ -239,9 +242,11 @@ class HandEyeCalibrationAction(object):
         for i in range(2):
             print('\n--- Subpose [%d/5]: Try! ---' % (i + 4))
             if self._move_to(subpose):
-                self.get_logger().info('Subpose [%d/5]: Succeeded.' % (i + 4))
+                self._node.get_logger().info('Subpose [%d/5]: Succeeded.'
+                                             % (i + 4))
             else:
-                self.get_logger().error('Subpose [%d/5]: Failed.' % (i + 4))
+                self._node.get_logger().error('Subpose [%d/5]: Failed.'
+                                              % (i + 4))
                 subpose[4] -= 30.0
 
     def _move_to(self, xyzrpy):
@@ -251,7 +256,8 @@ class HandEyeCalibrationAction(object):
             if not self._server_goal_handle.is_active:
                 raise HandEyeCalibrationAction.AbortedException()
 
-        if not self._move(xyzrpy):
+        if not self._move(self.current_goal.robot_name, xyzrpy,
+                          self.current_goal.end_effector_link):
             return False
 
         with self._goal_lock:
@@ -262,35 +268,22 @@ class HandEyeCalibrationAction(object):
 
         time.sleep(self._sleep_time)  # Wait for the robot to settle.
         future = self._calibrator.take_sample_async()
-        self._node.trigger_frame(camera_name)
-        response = self._calibrator.wait_for_sample(future)
-        if not response.success:
-            self._node.get_logger().error('failed to take sample')
+        self._node.trigger_frame(self.current_goal.camera_name)
+        res = self._calibrator.wait_for_sample(future)
+        if not res.success:
+            self._node.get_logger().error('failed to take sample: %s'
+                                          % res.message)
             return False
 
-        pose = PoseStamped()
-        pose.header           = response.transform_cm.header
-        pose.pose.position    = response.transform_cm.transform.translation
-        pose.pose.orientation = response.transform_cm.transform.rotation
-        print('  camera <= marker   %s' % self._node.format_pose(pose))
-        pose.header           = response.transform_we.header
-        pose.pose.position    = response.transform_we.transform.translation
-        pose.pose.orientation = response.transform_we.transform.rotation
-        print('  world  <= effector %s' % self.format_pose(pose))
-
-        n = len(self._calibrator.get_sample_list().transform_cm)
-        print('  %d samples taken' % n)
-
+        self._node.get_logger().info('  %d-th sample taken'
+                                     % len(self._calibrator.get_sample_list()\
+                                           .transform_cm))
         return True
 
-    def _move(self, xyzrpy):
-        pose = self._node.pose_from_xyzrpy(xyzrpy)
-        success = self._node.go_to_pose_goal(self._robot_name, pose,
-                                             end_effector_link=self._end_effector_link)
-        print('  reached %s' %
-              self._node.format_pose(
-                  self._node.get_current_pose(self._robot_name)))
-        return success
+    def _move(self, robot_name, xyzrpy, end_effector_link):
+        return self._node.go_to_pose_goal(robot_name,
+                                          self._node.pose_from_xyzrpy(xyzrpy),
+                                          end_effector_link=end_effector_link)
 
     def _save_calibration(self, res):
         def xyzrpy_from_transform(transform):
@@ -304,22 +297,22 @@ class HandEyeCalibrationAction(object):
                     degrees(rpy[0]), degrees(rpy[1]), degrees(rpy[2])]
 
         if not res.success:
-            print('### calibration failed')
-        else:
-            print('=== estimated camera pose ===')
-            print('[{:.4f}, {:.4f}, {:.4f}; {:.2f}, {:.2f}. {:.2f}]'\
-                  .format(*xyzrpy_from_transform(res.transform_ec.transform)))
-            print('=== estimated marker pose ===')
-            print('[{:.4f}, {:.4f}, {:.4f}; {:.2f}, {:.2f}. {:.2f}]'\
-                  .format(*xyzrpy_from_transform(res.transform_wm.transform)))
-            print('trans. err(m): (mean, max) = (%f, %f)'
-                  % (res.mean_translation_error, res.max_translation_error))
-            print('rot. err(deg): (mean, max) = (%f, %f)'
-                  % (res.mean_rotation_error, res.max_rotation_error))
+            self._node.get_logger().error('calibration failed: %s'
+                                          % res.message)
+            return
+
+        print('=== estimated camera pose ===')
+        print('[{:.4f}, {:.4f}, {:.4f}; {:.2f}, {:.2f}. {:.2f}]'\
+              .format(*xyzrpy_from_transform(res.transform_ec.transform)))
+        print('=== estimated marker pose ===')
+        print('[{:.4f}, {:.4f}, {:.4f}; {:.2f}, {:.2f}. {:.2f}]'\
+              .format(*xyzrpy_from_transform(res.transform_wm.transform)))
+        print('trans. err(m): (mean, max) = (%f, %f)'
+              % (res.mean_translation_error, res.max_translation_error))
+        print('rot. err(deg): (mean, max) = (%f, %f)'
+              % (res.mean_rotation_error, res.max_rotation_error))
 
         # Convert the transform to xyz-rpy representation.
-        xyz  = list(map(float, tfs.translation_from_matrix(Mpb)))
-        rpy  = list(map(float, tfs.euler_from_quaternion(Mpb)))
         data = {'parent': res.transform_ec.header.frame_id,
                 'child' : res.transform_ec.child_frame_id,
                 'origin': xyzrpy_from_transform(res.transform_ec.transform)}
@@ -328,6 +321,4 @@ class HandEyeCalibrationAction(object):
         filename = filepath_from_url(self._calib_file)
         with open(filename, mode='w') as file:
             yaml.dump(data, file, default_flow_style=False)
-            self.get_logger().info('Saved transform from camera base frame[%s] to camera parent frame[%s] into %s'
-                                   % (camera_base_frame,
-                                      camera_parent_frame, filename))
+        self.get_logger().info('saved calibration result in [%s]' % filename)

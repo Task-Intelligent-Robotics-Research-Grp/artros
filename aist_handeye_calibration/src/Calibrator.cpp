@@ -330,6 +330,7 @@ Calibrator::compute_calibration(const req_p<compute_calibration_t>,
 
 	const auto	error = TU::evaluateAccuracy(Tcm, Twe, Tec, Twm);
 	res->success		    = true;
+	res->message		    = "Calibrator::compute_calibration(): succeeded";
 	res->transform_ec	    = _Tec;
 	res->transform_wm	    = _Twm;
 	res->mean_translation_error = error.mean_translation_error;
@@ -337,14 +338,14 @@ Calibrator::compute_calibration(const req_p<compute_calibration_t>,
 	res->mean_rotation_error    = error.mean_rotation_error;
 	res->max_rotation_error	    = error.max_rotation_error;
 
-	RCLCPP_INFO_STREAM(get_logger(), "compute_calibration(): succeed");
+	RCLCPP_INFO_STREAM(get_logger(), res->message);
     }
     catch (const std::exception& err)
     {
 	res->success = false;
-
-	RCLCPP_ERROR_STREAM(get_logger(),
-			    "compute_calibration(): " << err.what());
+	res->message = "Calibrator::compute_calibration(): "
+		     + std::string(err.what());
+	RCLCPP_ERROR_STREAM(get_logger(), res->message);
     }
 }
 
