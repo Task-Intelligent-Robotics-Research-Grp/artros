@@ -29,8 +29,8 @@ launch_arguments = [
     },
     {
         'name':        'container',
-        'default':     'handeye_calibrator_container',
-        'description': 'name of the component container for cameras'
+        'default':     'handeye_calibration_container',
+        'description': 'name of the component container for calibration'
     },
     {
         'name':        'check',
@@ -62,37 +62,12 @@ def launch_setup(context):
     camera_name = LaunchConfiguration('camera_name').perform(context)
     camera_type = load_config(context).get('cameras', {})[camera_name]['type']
 
-    client_node = Node(name='run_calibration',
-                       package='aist_handeye_calibration',
-                       executable='run_calibration.py',
-                       parameters=[
-                           LaunchConfiguration('params_file'),
-                           {'config_file':
-                            PathJoinSubstitution([
-                                FindPackageShare('aist_bringup'), 'config',
-                                [LaunchConfiguration('config'), '.yaml']]),
-                            'use_sim_time': LaunchConfiguration('sim')}
-                       ],
-                       remappings=[('pose', 'detector_3d/pose')],
-                       prefix=['xterm -fn 7x14 -sb -geometry 80x60 -e'],
-                       output=LaunchConfiguration('output'),
-                       arguments=['--ros-args', '--log-level',
-                                  LaunchConfiguration('log_level')])
-
     return [
         SetLaunchConfiguration(
             'params_file',
             PathJoinSubstitution([
                 FindPackageShare('aist_handeye_calibration'), 'config',
                 [LaunchConfiguration('camera_name'), '.yaml']])),
-        Node(name=LaunchConfiguration('container'),
-             package='rclcpp_components',
-             executable='component_container_mt',
-             output=LaunchConfiguration('output'),
-             arguments=['--ros-args', '--log-level',
-                        LaunchConfiguration('log_level')],
-             condition=UnlessCondition(
-                           LaunchConfiguration('external_container'))),
         LoadComposableNodes(
             target_container=LaunchConfiguration('container'),
             composable_node_descriptions=[
@@ -112,12 +87,25 @@ def launch_setup(context):
                 ('camera_name',        camera_name),
                 ('camera_type',        camera_type),
                 ('config_file',        LaunchConfiguration('params_file')),
-                # ('external_container', LaunchConfiguration('external_container')),
-                # ('container',     LaunchConfiguration('container')),
-                ('external_container', 'true'),
-                ('container',          'cameras_container'),
+                ('external_container', LaunchConfiguration('external_container')),
+                ('container',          LaunchConfiguration('container')),
             ]),
-        client_node,
+        Node(name='run_calibration',
+             package='aist_handeye_calibration',
+             executable='run_calibration.py',
+             parameters=[
+                 LaunchConfiguration('params_file'),
+                 {'config_file':
+                  PathJoinSubstitution([
+                      FindPackageShare('aist_bringup'), 'config',
+                      [LaunchConfiguration('config'), '.yaml']]),
+                  'use_sim_time': LaunchConfiguration('sim')}
+             ],
+             remappings=[('pose', 'detector_3d/pose')],
+             prefix=['xterm -fn 7x14 -sb -geometry 80x60 -e'],
+             output=LaunchConfiguration('output'),
+             arguments=['--ros-args', '--log-level',
+                        LaunchConfiguration('log_level')])
     ]
 
     return actions
