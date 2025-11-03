@@ -70,14 +70,12 @@ class HandEyeCalibrationAction(object):
         self._eye_on_hand = node.declare_parameter('eye_on_hand', False).value
         self._end_effector_link = node.declare_parameter('end_effector_link',
                                                          'b_bot_flange').value
-        self._calib_file = node.declare_parameter('calib_file', '').value
-        self._robot_effector_tip_frame \
-            = node.declare_parameter('robot_effector_tip_frame', '').value
-        self._initpose   = node.declare_parameter('initpose', [0.0]).value
-        self._keyposes   = node.declare_parameter('keyposes', [0.0]).value
-        self._speed      = node.declare_parameter('speed', 1.0).value
-        self._sleep_time = node.declare_parameter('sleep_time', 2.0).value
-        self._calibrator = HandEyeCalibratorClient(node, calibrator_ns)
+        self._calib_file  = node.declare_parameter('calib_file', '').value
+        self._initpose    = node.declare_parameter('initpose', [0.0]).value
+        self._keyposes    = node.declare_parameter('keyposes', [0.0]).value
+        self._speed       = node.declare_parameter('speed', 1.0).value
+        self._sleep_time  = node.declare_parameter('sleep_time', 2.0).value
+        self._calibrator  = HandEyeCalibratorClient(node, calibrator_ns)
 
         # Action server
         self._server_cbg = MutuallyExclusiveCallbackGroup()
