@@ -220,7 +220,8 @@
 				    )/scenes/calib/a_motioncam.yaml"/>
   <xacro:include filename="$(find aist_phoxi_camera
 			   )/urdf/motioncam_m_camera.urdf.xacro"/>
-  <xacro:motioncam_m_camera name="a_motioncam" parent="workspace_center">
+  <xacro:motioncam_m_camera name="a_motioncam" parent="workspace_center"
+			    use_nominal_extrinsics="true">
     <origin xyz="${origin[0]} ${origin[1]} ${origin[2]}"
     	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/>
   </xacro:motioncam_m_camera>

@@ -17,7 +17,7 @@ launch_arguments = [
     },
     {
         'name':        'container',
-        'default':     'cameeras_container',
+        'default':     'cameras_container',
         'description': 'name of the component container for cameras'
     },
 ]

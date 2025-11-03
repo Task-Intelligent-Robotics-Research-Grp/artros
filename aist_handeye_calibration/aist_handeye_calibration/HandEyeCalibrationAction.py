@@ -41,8 +41,8 @@ import tf_transformations as tfs
 from rclpy.action                    import (ActionServer, ActionClient,
                                              GoalResponse, CancelResponse)
 from rclpy.callback_groups           import MutuallyExclusiveCallbackGroup
-from geometry_msgs.msg               import (PoseStamped, Pose, Point,
-                                             Quaternion)
+from rclpy.wait_for_message          import wait_for_message
+from geometry_msgs.msg               import PoseStamped
 from aist_routines.base              import AISTBaseRoutines
 from aist_msgs.action                import HandEyeCalibration
 from aist_handeye_calibration.client import HandEyeCalibratorClient
@@ -108,6 +108,26 @@ class HandEyeCalibrationAction(object):
 
     def go_to_initpose(self):
         self._move(self._robot_name, self._initpose, self._end_effector_link)
+
+    def go_to_marker(self):
+        self._node.trigger_frame(self._camera_name)
+        _, marker_pose = wait_for_message(PoseStamped, self._node, 'pose',
+                                          time_to_wait=2.0)
+        if marker_pose is None:
+            self._node.get_logger().error('failed to detect marker')
+            return False
+        marker_pose = self._node.transform_pose_to_target_frame(marker_pose)
+        success = self.go_to_pose_goal(self._robot_name,
+                                       marker_pose, (0.0, 0.0, 0.05),
+                                       speed=self._speed)
+        print('  reached %s' %
+              self.format_pose(self._node.get_current_pose(self._robot_name)))
+        time.sleep(1.0)
+        print('  move to %s' % self._node.format_pose(marker_pose))
+        success = self.go_to_pose_goal(self._robot_name,
+                                       marker_pose, speed=0.05)
+        print('  reached %s' %
+              self.format_pose(self._node.get_current_pose(self._robot_name)))
 
     def calibrate(self):
         self._get_result_future = None
