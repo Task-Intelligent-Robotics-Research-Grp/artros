@@ -37,8 +37,9 @@
 import rclpy, time, copy
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from std_srvs.srv          import Empty, Trigger
-from aist_msgs.srv         import (GetCalibrationSampleList,
-                                   ComputeCalibration, TakeCalibrationSample)
+from aist_msgs.srv         import (HandEyeCalibrationTakeSample,
+                                   HandEyeCalibrationGetSampleList,
+                                   HandEyeCalibrationComputeCalibration)
 from aist_utility.fileio   import filepath_from_url
 
 ######################################################################
@@ -50,15 +51,15 @@ class HandEyeCalibratorClient(object):
 
         self._cbg                 = MutuallyExclusiveCallbackGroup()
         self._take_sample         = node.create_client(
-                                        TakeCalibrationSample,
+                                        HandEyeCalibrationTakeSample,
                                         server_ns + '/take_sample',
                                         callback_group=self._cbg)
         self._get_sample_list     = node.create_client(
-                                        GetCalibrationSampleList,
+                                        HandEyeCalibrationGetSampleList,
                                         server_ns + '/get_sample_list',
                                         callback_group=self._cbg)
         self._compute_calibration = node.create_client(
-                                        ComputeCalibration,
+                                        HandEyeCalibrationComputeCalibration,
                                         server_ns + '/compute_calibration',
                                         callback_group=self._cbg)
         self._save_calibration    = node.create_client(
@@ -70,7 +71,8 @@ class HandEyeCalibratorClient(object):
                                         callback_group=self._cbg)
 
     def take_sample_async(self):
-        return self._take_sample.call_async(TakeCalibrationSample.Request())
+        return self._take_sample.call_async(HandEyeCalibrationTakeSample\
+                                            .Request())
 
     def wait_for_sample(self, future):
         while not future.done():
@@ -78,10 +80,12 @@ class HandEyeCalibratorClient(object):
         return future.result()
 
     def get_sample_list(self):
-        return self._get_sample_list.call(GetCalibrationSampleList.Request())
+        return self._get_sample_list.call(HandEyeCalibrationGetSampleList\
+                                          .Request())
 
     def compute_calibration(self):
-        return self._compute_calibration.call(ComputeCalibration.Request())
+        return self._compute_calibration.call(
+                   HandEyeCalibrationComputeCalibration.Request())
 
     def save_calibration(self):
         return self._save_calibration.call(Trigger.Request())
