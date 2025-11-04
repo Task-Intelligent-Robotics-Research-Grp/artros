@@ -39,22 +39,15 @@
 */
 #include <mutex>
 #include <condition_variable>
-#include <fstream>
-#include <sstream>
-#include <ctime>
-#include <cstdlib>	// for std::getenv()
-#include <sys/stat.h>	// for mkdir()
-#include <errno.h>
 #include <rclcpp/rclcpp.hpp>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <std_srvs/srv/empty.hpp>
 #include <std_srvs/srv/trigger.hpp>
-#include <rclcpp_action/rclcpp_action.hpp>
+#include <aist_msgs/srv/hand_eye_calibration_take_sample.hpp>
 #include <aist_msgs/srv/hand_eye_calibration_get_sample_list.hpp>
 #include <aist_msgs/srv/hand_eye_calibration_compute_calibration.hpp>
-#include <aist_msgs/srv/hand_eye_calibration_take_sample.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <aist_utility/geometry_msgs.hpp>
 #include <aist_utility/fileio.hpp>
@@ -82,13 +75,13 @@ class Calibrator : public rclcpp::Node
     using transform_t		= geometry_msgs::msg::TransformStamped;
     using pose_t		= geometry_msgs::msg::PoseStamped;
     using pose_cp		= pose_t::ConstSharedPtr;
+    using trigger_t		= std_srvs::srv::Trigger;
+    using empty_t		= std_srvs::srv::Empty;
+    using take_sample_t		= aist_msgs::srv::HandEyeCalibrationTakeSample;
     using get_sample_list_t	= aist_msgs::srv
 					   ::HandEyeCalibrationGetSampleList;
     using compute_calibration_t	= aist_msgs::srv
 				      ::HandEyeCalibrationComputeCalibration;
-    using trigger_t		= std_srvs::srv::Trigger;
-    using empty_t		= std_srvs::srv::Empty;
-    using take_sample_t		= aist_msgs::srv::HandEyeCalibrationTakeSample;
 
   public:
 		Calibrator(const rclcpp::NodeOptions& options)		;

@@ -1,0 +1,4 @@
+---
+bool                                      success
+string                                    message
+aist_msgs/PointCorrespondenceArrayArray[] correspondences_sets
