@@ -13,7 +13,6 @@ detector_3d:
 
 /**:
   ros__parameters:
-    camera_name:         a_bot_camera
     reference_frame:     workspace_center
     end_effector_link:   a_bot_gripper_base_link
     eye_on_hand:         true
@@ -25,8 +24,11 @@ handeye_calibrator:
 
 run_calibration:
   ros__parameters:
+    camera_name:         a_bot_camera
     robot_name:          a_bot
-    calibration_file:    package://aist_description/scenes/calib/a_bot.yaml
+    calibration_file:    package://aist_description/scenes/calib/a_bot_camera.yaml
+    speed:               1.0
+    settling_time:       2.0
     initpose:            [-0.145,  0.00, 0.60,  -90.0,  90.0,   0.0]
     keyposes:            [-0.290,  0.00, 0.45,  -90.0,  60.0,   0.0,
                           -0.215,  0.00, 0.45,  -90.0,  75.0,   0.0,

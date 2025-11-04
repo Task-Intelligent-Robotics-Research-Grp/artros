@@ -78,6 +78,7 @@ class Calibrator : public rclcpp::Node
     template <class SRV>
     using res_p		= typename SRV::Response::SharedPtr;
 
+    using callback_group_p	= rclcpp::CallbackGroup::SharedPtr;
     using transform_t		= geometry_msgs::msg::TransformStamped;
     using pose_t		= geometry_msgs::msg::PoseStamped;
     using pose_cp		= pose_t::ConstSharedPtr;
@@ -107,6 +108,7 @@ class Calibrator : public rclcpp::Node
 
   private:
     const sub_p<pose_t>			_pose_sub;
+    const callback_group_p		_take_sample_cbg;
     const srv_p<take_sample_t>		_take_sample_srv;
     const srv_p<get_sample_list_t>	_get_sample_list_srv;
     const srv_p<compute_calibration_t>	_compute_calibration_srv;
@@ -127,7 +129,6 @@ class Calibrator : public rclcpp::Node
 
     const bool			_use_dual_quaternion;
     const bool			_eye_on_hand;
-    const std::string		_camera_name;
 };
 
 Calibrator::Calibrator(const rclcpp::NodeOptions& options)
@@ -136,11 +137,14 @@ Calibrator::Calibrator(const rclcpp::NodeOptions& options)
 					   std::bind(&Calibrator::pose_cb,
 						     this,
 						     std::placeholders::_1))),
+     _take_sample_cbg(create_callback_group(
+			  rclcpp::CallbackGroupType::MutuallyExclusive)),
      _take_sample_srv(create_service<take_sample_t>(
 			  "~/take_sample",
 			  std::bind(&Calibrator::take_sample, this,
 				    std::placeholders::_1,
-				    std::placeholders::_2))),
+				    std::placeholders::_2),
+			  rclcpp::ServicesQoS(), _take_sample_cbg)),
      _get_sample_list_srv(create_service<get_sample_list_t>(
 			      "~/get_sample_list",
 			      std::bind(&Calibrator::get_sample_list, this,
@@ -160,15 +164,13 @@ Calibrator::Calibrator(const rclcpp::NodeOptions& options)
      _pose_mtx(),
      _pose_cv(),
      _pose_timeout(ddynamic_reconfigure2::declare_read_only_parameter(
-		       this, "pose_timeout", 3.0)),
+		       this, "pose_timeout", 5.0)),
      _tf2_buffer(get_clock()),
      _tf2_listener(_tf2_buffer),
      _use_dual_quaternion(ddynamic_reconfigure2::declare_read_only_parameter(
 			      this, "use_dual_quaternion", true)),
      _eye_on_hand(ddynamic_reconfigure2::declare_read_only_parameter(
-		      this, "eye_on_hand", true)),
-     _camera_name(ddynamic_reconfigure2::declare_read_only_parameter(
-		      this, "camera_name", "camera"))
+		      this, "eye_on_hand", true))
 {
     if (_eye_on_hand)
     {
@@ -249,6 +251,8 @@ Calibrator::take_sample(const req_p<take_sample_t>,
 	res->success = false;
 	res->message = "timeout[" + std::to_string(_pose_timeout.count())
 		     + "sec] has expired before marker pose available";
+
+	RCLCPP_ERROR_STREAM(get_logger(), res->message);
 	return;
     }
 
@@ -278,10 +282,8 @@ Calibrator::take_sample(const req_p<take_sample_t>,
 
     res->success = true;
 
-    RCLCPP_INFO_STREAM(get_logger(), "Tcm: " << res->transform_cm.transform);
-    RCLCPP_INFO_STREAM(get_logger(), "Twe: " << res->transform_we.transform);
-  // RCLCPP_DEBUG_STREAM(get_logger(), "Tcm: " << res->transform_cm.transform);
-  // RCLCPP_DEBUG_STREAM(get_logger(), "Twe: " << res->transform_we.transform);
+    RCLCPP_DEBUG_STREAM(get_logger(), "Tcm: " << res->transform_cm.transform);
+    RCLCPP_DEBUG_STREAM(get_logger(), "Twe: " << res->transform_we.transform);
 
     _Tcm.emplace_back(res->transform_cm);
     _Twe.emplace_back(res->transform_we);

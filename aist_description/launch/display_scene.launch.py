@@ -44,7 +44,9 @@ def launch_setup(context):
                                           [LaunchConfiguration('config'),
                                            '_base_scene.urdf.xacro']]),
                                      ' scene:=',
-                                     LaunchConfiguration('scene')]),
+                                     LaunchConfiguration('scene'),
+                                     ' sim:=',
+                                     LaunchConfiguration('sim')]),
                             value_type=str)
     return [Node(package='robot_state_publisher',
                  executable='robot_state_publisher',

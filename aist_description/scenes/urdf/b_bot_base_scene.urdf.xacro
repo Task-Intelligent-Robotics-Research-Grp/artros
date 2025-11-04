@@ -160,34 +160,36 @@
   </xacro:usb_repeater>
 
   <!-- Add Motioncam-3D scanner -->
-  <xacro:include filename="$(find aist_description
-			   )/scenes/urdf/load_calibration.urdf.xacro"/>
-  <xacro:load_calibration filename="$(find aist_description
-				    )/scenes/calib/a_motioncam.yaml"/>
   <xacro:include filename="$(find aist_phoxi_camera
 			   )/urdf/motioncam_m_camera.urdf.xacro"/>
-  <xacro:motioncam_m_camera name="a_motioncam" parent="workspace_center">
-    <origin xyz="${origin[0]} ${origin[1]} ${origin[2]}"
-    	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/>
+  <xacro:motioncam_m_camera name="a_motioncam" parent="workspace_center"
+			    use_nominal_extrinsics="$(arg sim)">
+    <origin xyz="0.524 -0.074 0.657" rpy="-0.015 1.063 3.134"/>
   </xacro:motioncam_m_camera>
 
   <!-- Add RealSense cameras -->
   <xacro:include filename="$(find aist_description
-			   )/devices/urdf/sr305_on_2f85.urdf.xacro" />
-  <xacro:sr305_on_2f85 prefix="b_bot_"
-		       parent="b_bot_gripper_base_link"
-		       use_nominal_extrinsics="true"/>
+			   )/objects/urdf/sr305_mount_2f85.urdf.xacro"/>
+  <xacro:sr305_mount_2f85 prefix="b_bot_"
+			  parent="b_bot_gripper_coupling_flange_link"/>
+  <xacro:include filename="$(find aist_description
+			   )/devices/urdf/_sr305.urdf.xacro"/>
+  <xacro:sensor_sr305 name="b_bot_camera" parent="b_bot_camera_mount_flange"
+		      use_nominal_extrinsics="$(arg sim)">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:sensor_sr305>
 
-  <!-- Add live camera -->
-  <xacro:load_calibration filename="$(find aist_description
-				    )/scenes/calib/live_camera.yaml"/>
-  <link name="live_camera_optical_frame"/>
-  <joint name="live_camera_joint" type="fixed">
-    <parent link="workspace_center"/>
-    <child  link="live_camera_optical_frame"/>
-    <origin xyz="${origin[0]} ${origin[1]} ${origin[2]}"
-    	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/>
-  </joint>
+  <!-- Add camera optical links from camera calibrations -->
+  <xacro:unless value="$(arg sim)">
+    <xacro:include filename="$(find aist_description
+			     )/scenes/urdf/load_link.urdf.xacro"/>
+    <xacro:load_link filename="$(find aist_description
+			       )/scenes/calib/a_motioncam.yaml"/>
+    <xacro:load_link filename="$(find aist_description
+			       )/scenes/calib/b_bot_camera.yaml"/>
+    <xacro:load_link filename="$(find aist_description
+			       )/scenes/calib/live_camera.yaml"/>
+  </xacro:unless>
 
   <!-- Add virtual screen -->
   <link name="virtual_screen"/>

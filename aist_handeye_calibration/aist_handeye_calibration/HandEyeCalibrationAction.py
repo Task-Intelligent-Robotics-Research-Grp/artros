@@ -38,6 +38,7 @@ import rclpy, time, copy, yaml, threading
 import numpy as np
 import tf_transformations as tfs
 
+from math                            import degrees
 from rclpy.action                    import (ActionServer, ActionClient,
                                              GoalResponse, CancelResponse)
 from rclpy.callback_groups           import MutuallyExclusiveCallbackGroup
@@ -63,19 +64,23 @@ class HandEyeCalibrationAction(object):
     def __init__(self, node, calibrator_ns, server_ns):
         super().__init__()
 
-        self._node        = node
-        self._camera_name = node.declare_parameter('camera_name',
-                                                   'a_motioncam').value
-        self._robot_name  = node.declare_parameter('robot_name', 'b_bot').value
-        self._eye_on_hand = node.declare_parameter('eye_on_hand', False).value
+        self._node          = node
+        self._camera_name   = node.declare_parameter('camera_name',
+                                                     'a_motioncam').value
+        self._robot_name    = node.declare_parameter('robot_name',
+                                                     'b_bot').value
+        self._eye_on_hand   = node.declare_parameter('eye_on_hand',
+                                                     False).value
         self._end_effector_link = node.declare_parameter('end_effector_link',
                                                          'b_bot_flange').value
-        self._calib_file  = node.declare_parameter('calib_file', '').value
-        self._initpose    = node.declare_parameter('initpose', [0.0]).value
-        self._keyposes    = node.declare_parameter('keyposes', [0.0]).value
-        self._speed       = node.declare_parameter('speed', 1.0).value
-        self._sleep_time  = node.declare_parameter('sleep_time', 2.0).value
-        self._calibrator  = HandEyeCalibratorClient(node, calibrator_ns)
+        self._calib_file    = node.declare_parameter('calibration_file',
+                                                     '').value
+        self._speed         = node.declare_parameter('speed', 1.0).value
+        self._settling_time = node.declare_parameter('settling_time',
+                                                     2.0).value
+        self._initpose      = node.declare_parameter('initpose', [0.0]).value
+        self._keyposes      = node.declare_parameter('keyposes', [0.0]).value
+        self._calibrator    = HandEyeCalibratorClient(node, calibrator_ns)
 
         # Action server
         self._server_cbg = MutuallyExclusiveCallbackGroup()
@@ -105,6 +110,10 @@ class HandEyeCalibrationAction(object):
     def speed(self):
         return self._speed
 
+    @property
+    def _logger(self):
+        return self._node.get_logger()
+
     def go_to_initpose(self):
         self._move(self._robot_name, self._initpose, self._end_effector_link)
 
@@ -113,7 +122,7 @@ class HandEyeCalibrationAction(object):
         _, marker_pose = wait_for_message(PoseStamped, self._node, 'pose',
                                           time_to_wait=2.0)
         if marker_pose is None:
-            self._node.get_logger().error('failed to detect marker')
+            self._logger.error('failed to detect marker')
             return False
         marker_pose = self._node.transform_pose_to_target_frame(marker_pose)
         success = self.go_to_pose_goal(self._robot_name,
@@ -150,7 +159,7 @@ class HandEyeCalibrationAction(object):
 
     def cancel(self):
         if not self._client_goal_handle:
-            self._node.get_logger().warn('no active goals')
+            self._logger.warn('no active goals')
             return
         self._client_goal_handle.cancel_goal_async().add_done_callback(
             self._cancel_response_cb)
@@ -158,21 +167,21 @@ class HandEyeCalibrationAction(object):
     def _goal_response_cb(self, future):
         self._client_goal_handle = future.result()
         if not self._client_goal_handle.accepted:
-            self._node.get_logger().error('goal rejected')
+            self._logger.error('goal rejected')
             return
-        self._node.get_logger().info('goal accepted')
+        self._logger.info('goal accepted')
         self._get_result_future = self._client_goal_handle.get_result_async()
 
     def _cancel_response_cb(self, future):
         cancel_response = future.result()
         if len(cancel_response.goals_canceling) == 0:
-            self._node.get_logger().warn('no active goals')
+            self._logger.warn('no active goals')
         else:
-            self._node.get_logger().info('goal canceled')
+            self._logger.info('goal canceled')
 
     # Server stuffs
     def _goal_cb(self, goal):
-        self._node.get_logger().info('goal accepted')
+        self._logger.info('goal accepted')
         return GoalResponse.ACCEPT
 
     def _handle_accepted_cb(self, goal_handle):
@@ -180,16 +189,16 @@ class HandEyeCalibrationAction(object):
             if self._server_goal_handle is not None and \
                self._server_goal_handle.is_active:
                 self._server_goal_handle.abort()
-                self._node.get_logger().warn('previous goal aborted')
+                self._logger.warn('previous goal aborted')
             self._server_goal_handle = goal_handle
         self._server_goal_handle.execute()
 
     def _cancel_cb(self, goal):
-        self._node.get_logger().warn('goal requested to cancel')
+        self._logger.warn('goal requested to cancel')
         return CancelResponse.ACCEPT
 
     def _execute_cb(self, goal_handle):
-        self._node.get_logger().info('executing goal...')
+        self._logger.info('executing goal...')
 
         try:
             result = HandEyeCalibration.Result()
@@ -220,22 +229,21 @@ class HandEyeCalibrationAction(object):
             result.success = res.success
             with self._goal_lock:
                 goal_handle.succeed()
-                self._node.get_logger().info('goal succeeded')
+                self._logger.info('goal succeeded')
         except HandEyeCalibrationAction.CancelRequestedException:
             result.success = False
             with self._goal_lock:
                 goal_handle.canceled()
-                self._node.get_logger().warn('goal canceled')
+                self._logger.warn('goal canceled')
         except HandEyeCalibrationAction.AbortedException:
             result.success = False
-            self._node.get_logger().warn('goal already aborted')
+            self._logger.warn('goal already aborted')
         except Exception as e:
             result.success = False
             with self._goal_lock:
                 goal_handle.abort()
-                self._node.get_logger()\
-                          .error('goal aborted due to unexpected error: %s'
-                                 % e)
+                self._logger.error('goal aborted due to unexpected error: %s'
+                                   % e)
         return result
 
     def _move_to_subposes(self, goal_handle, keypose, keypose_num):
@@ -244,11 +252,9 @@ class HandEyeCalibrationAction(object):
         for i in range(3):
             print('\n--- Subpose [%d/5]: Try! ---' % (i + 1))
             if self._move_to(goal_handle, subpose):
-                self._node.get_logger().info('Subpose [%d/5]: Succeeded.'
-                                             % (i + 1))
+                self._logger.info('Subpose [%d/5]: Succeeded.' % (i + 1))
             else:
-                self._node.get_logger().error('Subpose [%d/5]: Failed.'
-                                              % (i + 1))
+                self._logger.error('Subpose [%d/5]: Failed.' % (i + 1))
                 subpose[3] -= 30.0
 
         subpose[3]  = roll - 30.0
@@ -257,11 +263,9 @@ class HandEyeCalibrationAction(object):
         for i in range(2):
             print('\n--- Subpose [%d/5]: Try! ---' % (i + 4))
             if self._move_to(goal_handle, subpose):
-                self._node.get_logger().info('Subpose [%d/5]: Succeeded.'
-                                             % (i + 4))
+                self._logger.info('Subpose [%d/5]: Succeeded.' % (i + 4))
             else:
-                self._node.get_logger().error('Subpose [%d/5]: Failed.'
-                                              % (i + 4))
+                self._logger.error('Subpose [%d/5]: Failed.' % (i + 4))
                 subpose[4] -= 30.0
 
     def _move_to(self, goal_handle, xyzrpy):
@@ -281,18 +285,17 @@ class HandEyeCalibrationAction(object):
             if not goal_handle.is_active:
                 raise HandEyeCalibrationAction.AbortedException()
 
-        time.sleep(self._sleep_time)  # Wait for the robot to settle.
+        time.sleep(self._settling_time)  # Wait for the robot to settle.
         future = self._calibrator.take_sample_async()
         self._node.trigger_frame(goal_handle.request.camera_name)
         res = self._calibrator.wait_for_sample(future)
         if not res.success:
-            self._node.get_logger().error('failed to take sample: %s'
-                                          % res.message)
+            self._logger.error('failed to take sample: %s' % res.message)
             return False
 
-        self._node.get_logger().info('  %d-th sample taken'
-                                     % len(self._calibrator.get_sample_list()\
-                                           .transform_cm))
+        self._logger.info('  %d-th sample taken'
+                          % len(self._calibrator.get_sample_list()\
+                                .transform_cm))
         return True
 
     def _move(self, robot_name, xyzrpy, end_effector_link):
@@ -312,8 +315,7 @@ class HandEyeCalibrationAction(object):
                     degrees(rpy[0]), degrees(rpy[1]), degrees(rpy[2])]
 
         if not res.success:
-            self._node.get_logger().error('calibration failed: %s'
-                                          % res.message)
+            self._logger.error('calibration failed: %s' % res.message)
             return
 
         print('=== estimated camera pose ===')
@@ -336,4 +338,4 @@ class HandEyeCalibrationAction(object):
         filename = filepath_from_url(self._calib_file)
         with open(filename, mode='w') as file:
             yaml.dump(data, file, default_flow_style=False)
-        self.get_logger().info('saved calibration result in [%s]' % filename)
+        self._logger.info('saved calibration result in [%s]' % filename)
