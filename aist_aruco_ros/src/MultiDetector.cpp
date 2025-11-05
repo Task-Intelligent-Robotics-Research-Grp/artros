@@ -142,8 +142,8 @@ MultiDetector::MultiDetector(const rclcpp::NodeOptions& options)
      _image_subs(),
      _result_pubs(),
      _debug_pubs(),
-     _corres_pub(create_publisher<correses_set_t>("point_correspondences_set",
-						  1)),
+     _corres_pub(create_publisher<correses_set_t>(
+		     "~/point_correspondences_set", 1)),
      _sync(),
      _tf2_buffer(get_clock()),
      _tf2_listener(_tf2_buffer),

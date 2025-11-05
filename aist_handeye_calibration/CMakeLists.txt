@@ -28,11 +28,6 @@ ament_auto_add_library(
     src/Calibrator.cpp
 )
 
-ament_target_dependencies(
-  ${PROJECT_NAME}
-    YAML-CPP
-)
-
 rclcpp_components_register_nodes(
   ${PROJECT_NAME}
     ${PROJECT_NAME}::Calibrator
@@ -77,4 +72,4 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-ament_auto_package(INSTALL_TO_SHARE launch config calib)
+ament_auto_package(INSTALL_TO_SHARE launch config)

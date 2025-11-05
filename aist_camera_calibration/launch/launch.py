@@ -18,7 +18,7 @@ launch_arguments = [
     },
     {
         'name':        'camera_name',
-        'default':     'a_motioncam',
+        'default':     'live_camera',
         'description': 'name of the camera to be calibrated'
     },
     {
@@ -29,7 +29,7 @@ launch_arguments = [
     },
     {
         'name':        'container',
-        'default':     'handeye_calibration_container',
+        'default':     'camera_calibration_container',
         'description': 'name of the component container for calibration'
     },
     {
@@ -66,24 +66,25 @@ def launch_setup(context):
         SetLaunchConfiguration(
             'params_file',
             PathJoinSubstitution([
-                FindPackageShare('aist_handeye_calibration'), 'config',
+                FindPackageShare('aist_camera_calibration'), 'config',
                 [LaunchConfiguration('camera_name'), '.yaml']])),
         LoadComposableNodes(
             target_container=LaunchConfiguration('container'),
             composable_node_descriptions=[
                 ComposableNode(
-                    name='handeye_calibrator',
-                    package='aist_handeye_calibration',
-                    plugin='aist_handeye_calibration::Calibrator',
+                    name='camera_calibrator',
+                    package='aist_camera_calibration',
+                    plugin='aist_camera_calibration::Calibrator',
                     parameters=[LaunchConfiguration('params_file')],
-                    remappings=[('pose', 'detector_3d/pose')],
+                    remappings=[('point_correspondences_set',
+                                 'multi_detector/point_correspondences_set')],
                     extra_arguments=[{'use_intra_process_comms': True}])
             ]),
         IncludeLaunchDescription(
             PathJoinSubstitution([FindPackageShare('aist_aruco_ros'), 'launch',
-                                  'detector_3d.launch.py']),
+                                  'multi_detector.launch.py']),
             launch_arguments=[
-                ('detector_name',      'detector_3d'),
+                ('detector_name',      'multi_detector'),
                 ('camera_name',        camera_name),
                 ('camera_type',        camera_type),
                 ('config_file',        LaunchConfiguration('params_file')),
@@ -91,7 +92,7 @@ def launch_setup(context):
                 ('container',          LaunchConfiguration('container')),
             ]),
         Node(name='run_calibration',
-             package='aist_handeye_calibration',
+             package='aist_camera_calibration',
              executable='run_calibration.py',
              parameters=[
                  LaunchConfiguration('params_file'),
@@ -101,12 +102,12 @@ def launch_setup(context):
                       [LaunchConfiguration('config'), '.yaml']]),
                   'use_sim_time': LaunchConfiguration('sim')}
              ],
-             remappings=[('pose', 'detector_3d/pose')],
              prefix=['xterm -fn 7x14 -sb -geometry 80x60 -e'],
              output=LaunchConfiguration('output'),
              arguments=['--ros-args', '--log-level',
                         LaunchConfiguration('log_level')])
     ]
+
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \

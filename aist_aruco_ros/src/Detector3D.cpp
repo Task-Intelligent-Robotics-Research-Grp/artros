@@ -184,9 +184,9 @@ Detector3D::Detector3D(const rclcpp::NodeOptions& options)
      _marker_frame(ddynamic_reconfigure2::declare_read_only_parameter(
 		       this, "marker_frame", "marker_frame")),
      _it(rclcpp::Node::SharedPtr(this)),
-     _image_sub(this, "/image", "raw"),
-     _depth_sub(this, "/depth", "raw"),
-     _cloud_sub(this, "/pointcloud"),
+     _image_sub(this, "image", "raw"),
+     _depth_sub(this, "depth", "raw"),
+     _cloud_sub(this, "pointcloud"),
      _camera_info_sub(this, "/camera_info"),
      _depth_sync(_image_sub, _depth_sub, _camera_info_sub, 3),
      _cloud_sync(_cloud_sub, _camera_info_sub, 3),
