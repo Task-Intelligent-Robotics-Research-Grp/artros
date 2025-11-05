@@ -83,13 +83,13 @@ class TexturedMeshDisplay: public rviz::Display,
     virtual void	unsubscribe()					;
 
   private:
-    using image_t  = sensor_msgs::Image;
-    using image_cp = sensor_msgs::Image::ConstPtr;
-    using mesh_t   = aist_visualization::TexturedMeshStamped;
-    using mesh_cp  = aist_visualization::TexturedMeshStampedPtr;
+    using image_t  = sensor_msgs::msg::Image;
+    using image_cp = image_t::ConstSharedPtr;
+    using mesh_t   = aist_msgs::msg::TexturedMeshStamped;
+    using mesh_cp  = mesh_t::ConstSharedPtr;
 
-    void		updateImage(const image_cp& image)		;
-    void		updateMesh(const mesh_cp& mesh)			;
+    void		updateImage(const image_cp image)		;
+    void		updateMesh(const mesh_cp mesh)			;
 
     void		createTexture()					;
     void		createMesh()					;

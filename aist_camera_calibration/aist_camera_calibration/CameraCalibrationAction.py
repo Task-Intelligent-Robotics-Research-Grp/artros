@@ -48,6 +48,8 @@ from aist_routines.base             import AISTBaseRoutines
 from aist_msgs.action               import CameraCalibration
 from aist_camera_calibration.client import CameraCalibratorClient
 from aist_utility.fileio            import filepath_from_url
+from camera_info_manager\
+    .camera_info_manager            import saveCalibration
 
 ######################################################################
 #  class CameraCalibrationAction                                     #
@@ -263,7 +265,7 @@ class CameraCalibrationAction(object):
             print('[{:.4f}, {:.4f}, {:.4f}; {:.2f}, {:.2f}. {:.2f}]'\
                   .format(*self._node.xyzrpy_from_pose(camera_pose)))
 
-            # Convert the transform to xyz-rpy representation.
+            # Convert camera pose to xyz-rpy representation.
             data = {'parent': camera_pose.header.frame_id,
                     'child' : camera_info.header.frame_id,
                     'origin': self._node.xyzrpy_from_pose(camera_pose)}
@@ -273,4 +275,9 @@ class CameraCalibrationAction(object):
             filename = dirname + '/' + camera_name + '.yaml'
             with open(filename, mode='w') as file:
                 yaml.dump(data, file, default_flow_style=False)
-            self._logger.info('saved calibration result in [%s]' % filename)
+            self._logger.info('saved camera extrinsiscs in [%s]' % filename)
+
+            # Save camera_info.
+            filename = dirname + '/' + camera_name + '-camera_info.yaml'
+            saveCalibration(camera_info, filename, camera_name)
+            self._logger.info('saved camera intrinsiscs in [%s]' % filename)

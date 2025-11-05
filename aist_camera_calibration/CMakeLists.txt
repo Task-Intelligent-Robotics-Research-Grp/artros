@@ -65,7 +65,6 @@ install(
   PROGRAMS
     scripts/run_calibration.py
     scripts/run_plane_calibration.py
-    scripts/run_volume_calibration.py
   DESTINATION
     lib/${PROJECT_NAME}
 )

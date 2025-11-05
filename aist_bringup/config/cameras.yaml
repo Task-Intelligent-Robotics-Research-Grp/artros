@@ -110,16 +110,16 @@ a_motioncam:
 
 live_camera:
   ros__parameters:
-    video_device:       "/dev/video0"
+    video_device:       /dev/video0
     framerate:          5.0
-    io_method:          "mmap"
+    io_method:          mmap
     frame_id:           live_camera_optical_frame
-    pixel_format:       "mjpeg2rgb"  # see usb_cam/supported_formats for list of supported formats
-    av_device_format:   "YUV422P"
+    pixel_format:       mjpeg2rgb  # see usb_cam/supported_formats for list of supported formats
+    av_device_format:   YUV422P
     image_width:        1920
     image_height:       1080
     camera_name:        live_camera
-#    camera_info_url:    "package://usb_cam/config/camera_info.yaml"
+#    camera_info_url:    package://aist_description/scenes/calib/live_camera-camera_info.yaml
     brightness:         -1
     contrast:           -1
     saturation:         -1
