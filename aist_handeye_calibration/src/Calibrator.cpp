@@ -92,7 +92,7 @@ class Calibrator : public rclcpp::Node
     const std::string&	marker_frame()				const	;
     const std::string&	world_frame()				const	;
 
-    void	pose_cb(pose_cp pose)					;
+    void	pose_cb(const pose_cp pose)				;
     void	take_sample(const req_p<take_sample_t>,
 			    const res_p<take_sample_t> res)		;
     void	get_sample_list(const req_p<get_sample_list_t>,
@@ -218,7 +218,7 @@ Calibrator::world_frame() const
 }
 
 void
-Calibrator::pose_cb(pose_cp pose)
+Calibrator::pose_cb(const pose_cp pose)
 {
     const std::lock_guard<std::mutex>	lock(_pose_mtx);
 
