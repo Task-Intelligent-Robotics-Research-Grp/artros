@@ -17,8 +17,8 @@ endif()
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
-find_package(PkgConfig)
-pkg_check_modules(YAML-CPP REQUIRED yaml-cpp)
+# find_package(PkgConfig)
+# pkg_check_modules(YAML-CPP REQUIRED yaml-cpp)
 
 ###########
 #  Build  #
@@ -40,20 +40,10 @@ ament_auto_add_executable(
     src/CameraCalibrator.cpp
 )
 
-ament_target_dependencies(
-  planeCalib
-    YAML-CPP
-)
-
 ament_auto_add_executable(
   volumeCalib
     src/volumeCalib.cpp
     src/CameraCalibrator.cpp
-)
-
-ament_target_dependencies(
-  volumeCalib
-    YAML-CPP
 )
 
 ########################

@@ -50,32 +50,3 @@ def depths_to_points(camera_info, u, v, d):
     xy = xy.ravel().reshape(npoints, 2)
     return [ Point(x=xy[i, 0]*d[i], y=xy[i, 1]*d[i], z=d[i])
              for i in range(npoints) ]
-
-def tuple_from_vector3(v):
-    return (v.x, v.y, v.z)
-
-def tuple_from_quaternion(q):
-    return (q.x, q.y, q.z, q.w)
-
-def tuple_from_transform(t):
-    return (tuple_from_vector3(t.translation),
-            tuple_from_quaternion(t.rotation))
-
-def dict_from_point_correspondence(pc):
-    return {'source_point': tuple_from_vector3(pc.source_point),
-            'image_point':  tuple_from_vector3(pc.image_point)}
-
-def dict_from_point_correspondences(pcs):
-    return {'image_frame':     pcs.header.frame_id,
-            'camera_name':     pcs.camera_name,
-            'reference_frame': pcs.reference_frame,
-            'correspondences': [dict_from_point_correspondence(pc)
-                                for pc in pcs.correspondences]}
-
-def dict_from_point_correspondences_set(pcss):
-    return [dict_from_point_correspondences(pcs)
-            for pcs in pcss.correspondences_set]
-
-def dict_from_point_correspondences_sets(pcsss):
-    return [dict_from_point_correspondences_set(pcss)
-            for pcss in pcsss.correspondences_sets]

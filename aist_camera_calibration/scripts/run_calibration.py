@@ -36,11 +36,12 @@
 # Author: Toshio Ueshiba
 #
 import rclpy, sys, threading, yaml
-from rclpy.executors            import MultiThreadedExecutor
-from aist_routines.base         import AISTBaseRoutines
-from aist_camera_calibration\
-    .CameraCalibrationAction    import CameraCalibrationAction
-from aist_utility.geometry_msgs import dict_from_point_correspondences_sets
+from rclpy.executors    import MultiThreadedExecutor
+from aist_routines.base import AISTBaseRoutines
+from aist_camera_calibration.CameraCalibrationAction \
+                        import CameraCalibrationAction
+from aist_camera_calibration.utilities \
+                        import dict_from_point_correspondences_sets
 
 ######################################################################
 #  class CameraCalibrationRoutines                                   #
@@ -88,9 +89,9 @@ class CameraCalibrationRoutines(AISTBaseRoutines):
     def print_help_messages(self):
         super().print_help_messages()
         print('=== Calibration commands ===')
-        print('  init:   go to initial pose')
-        print('  calib:  do calibration')
-        print('  cancel: cancel calibration and then return to home pose')
+        print('  init:    go to initial pose')
+        print('  calib:   do calibration')
+        print('  ccancel: cancel calibration and then return to home pose')
         print('  clist:   get list of sample points')
         print('  creset:  discard all sample potins')
 
@@ -99,7 +100,7 @@ class CameraCalibrationRoutines(AISTBaseRoutines):
             self._camera_calibration.go_to_initpose()
         elif key == 'calib':
             self._camera_calibration.calibrate()
-        elif key == 'cancel':
+        elif key == 'ccancel':
             self._camera_calibration.cancel()
             self._camera_calibration.wait()
             self.go_to_named_pose(robot_name, 'home')

@@ -1,9 +1,0 @@
-child: g_bot_camera_bottom_screw_frame
-origin:
-- 0.048
-- 0.035
-- -0.048
-- 3.141592
-- 0
-- 0
-parent: g_bot_gripper_base_link

@@ -38,18 +38,17 @@ import rclpy, time, copy, yaml, threading
 import numpy as np
 import tf_transformations as tfs
 
-from math                           import degrees
-from rclpy.action                   import (ActionServer, ActionClient,
-                                            GoalResponse, CancelResponse)
-from rclpy.callback_groups          import MutuallyExclusiveCallbackGroup
-from rclpy.wait_for_message         import wait_for_message
-from geometry_msgs.msg              import PoseStamped
-from aist_routines.base             import AISTBaseRoutines
-from aist_msgs.action               import CameraCalibration
-from aist_camera_calibration.client import CameraCalibratorClient
-from aist_utility.fileio            import filepath_from_url
-from camera_info_manager\
-    .camera_info_manager            import saveCalibration
+from math                              import degrees
+from rclpy.action                      import (ActionServer, ActionClient,
+                                               GoalResponse, CancelResponse)
+from rclpy.callback_groups             import MutuallyExclusiveCallbackGroup
+from rclpy.wait_for_message            import wait_for_message
+from geometry_msgs.msg                 import PoseStamped
+from aist_routines.base                import AISTBaseRoutines
+from aist_msgs.action                  import CameraCalibration
+from aist_camera_calibration.client    import CameraCalibratorClient
+from aist_camera_calibration.utilities import dict_from_camera_info
+from aist_utility.fileio               import filepath_from_url
 
 ######################################################################
 #  class CameraCalibrationAction                                     #
@@ -293,8 +292,9 @@ class CameraCalibrationAction(object):
 
             # Save camera_info.
             filename = dirname + '/' + camera_name + '-camera_info.yaml'
-            print('*** %s' % camera_info)
-            saveCalibration(camera_info, filename, camera_name)
+            with open(filename, mode='w') as file:
+                yaml.dump(dict_from_camera_info(camera_name, camera_info),
+                          file, default_flow_style=False)
             self._logger.info('saved camera intrinsiscs in [%s]' % filename)
 
         print('=== reprojection error: %f(pix) ===' % res.error)
