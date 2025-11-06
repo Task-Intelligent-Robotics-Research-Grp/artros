@@ -66,36 +66,45 @@ class CameraCalibrationAction(object):
     def __init__(self, node, calibrator_ns, server_ns):
         super().__init__()
 
-        self._node          = node
-        self._robot_name    = node.declare_parameter('robot_name',
-                                                     'b_bot').value
-        self._calib_dir     = node.declare_parameter('calibration_dir',
-                                                     '').value
-        self._speed         = node.declare_parameter('speed', 1.0).value
-        self._settling_time = node.declare_parameter('settling_time',
-                                                     2.0).value
-        self._initpose      = node.declare_parameter('initpose', [0.0]).value
-        self._keyposes      = node.declare_parameter('keyposes', [0.0]).value
-        self._calibrator    = CameraCalibratorClient(node, calibrator_ns)
+        self._node              = node
+        self._robot_name        = node.declare_parameter(
+                                      'robot_name', 'b_bot').value
+        self._end_effector_link = node.declare_parameter(
+                                      'end_effector_link',
+                                      'b_bot_flange').value
+        self._calib_dir         = node.declare_parameter(
+                                      'calibration_dir', '').value
+        self._speed             = node.declare_parameter(
+                                      'speed', 1.0).value
+        self._settling_time     = node.declare_parameter(
+                                      'settling_time', 2.0).value
+        self._initpose          = node.declare_parameter(
+                                      'initpose', [0.0]).value
+        self._keyposes          = node.declare_parameter(
+                                      'keyposes', [0.0]).value
+
+        # Service clients
+        self._calibrator = CameraCalibratorClient(node, calibrator_ns)
 
         # Action server
         self._server_cbg = MutuallyExclusiveCallbackGroup()
-        self._server     = ActionServer(node, CameraCalibration, server_ns,
-                                        execute_callback=self._execute_cb,
-                                        callback_group=self._server_cbg,
-                                        goal_callback=self._goal_cb,
-                                        handle_accepted_callback=self._handle_accepted_cb,
-                                        cancel_callback=self._cancel_cb)
-        self._server_goal_handle = None
-        self._goal_lock          = threading.Lock()
+        self._server     = ActionServer(
+                               node, CameraCalibration, server_ns,
+                               execute_callback=self._execute_cb,
+                               callback_group=self._server_cbg,
+                               goal_callback=self._goal_cb,
+                               handle_accepted_callback=self._handle_accepted_cb,
+                               cancel_callback=self._cancel_cb)
+        self._server_gh  = None
+        self._goal_lock  = threading.Lock()
 
         # Action client
-        self._client_goal_handle = None
-        self._get_result_furue   = None
-        self._client_cbg         = MutuallyExclusiveCallbackGroup()
-        self._client             = ActionClient(node, CameraCalibration,
-                                                server_ns,
-                                                callback_group=self._client_cbg)
+        self._client_gh  = None
+        self._get_result_future = None
+        self._client_cbg = MutuallyExclusiveCallbackGroup()
+        self._client     = ActionClient(
+                               node, CameraCalibration, server_ns,
+                               callback_group=self._client_cbg)
         self._client.wait_for_server()
 
     @property
@@ -113,12 +122,17 @@ class CameraCalibrationAction(object):
     def go_to_initpose(self):
         self._move(self._robot_name, self._initpose, self._end_effector_link)
 
+    def get_sample_list(self):
+        return self._calibrator.get_sample_list()
+
+    def reset(self):
+        return self._calibrator.reset()
+
     # Client stuffs
     def calibrate(self):
         self._get_result_future = None
 
         goal = CameraCalibration.Goal()
-        goal.camera_name       = self._camera_name
         goal.robot_name        = self._robot_name
         goal.end_effector_link = self._end_effector_link
         goal.initpose          = self._initpose
@@ -133,19 +147,19 @@ class CameraCalibrationAction(object):
         return self._get_result_future.result().result.success
 
     def cancel(self):
-        if not self._client_goal_handle:
+        if not self._client_gh:
             self._logger.warn('no active goals')
             return
-        self._client_goal_handle.cancel_goal_async().add_done_callback(
+        self._client_gh.cancel_goal_async().add_done_callback(
             self._cancel_response_cb)
 
     def _goal_response_cb(self, future):
-        self._client_goal_handle = future.result()
-        if not self._client_goal_handle.accepted:
+        self._client_gh = future.result()
+        if not self._client_gh.accepted:
             self._logger.error('goal rejected')
             return
         self._logger.info('goal accepted')
-        self._get_result_future = self._client_goal_handle.get_result_async()
+        self._get_result_future = self._client_gh.get_result_async()
 
     def _cancel_response_cb(self, future):
         cancel_response = future.result()
@@ -161,12 +175,12 @@ class CameraCalibrationAction(object):
 
     def _handle_accepted_cb(self, goal_handle):
         with self._goal_lock:
-            if self._server_goal_handle is not None and \
-               self._server_goal_handle.is_active:
-                self._server_goal_handle.abort()
+            if self._server_gh is not None and \
+               self._server_gh.is_active:
+                self._server_gh.abort()
                 self._logger.warn('previous goal aborted')
-            self._server_goal_handle = goal_handle
-        self._server_goal_handle.execute()
+            self._server_gh = goal_handle
+        self._server_gh.execute()
 
     def _cancel_cb(self, goal):
         self._logger.warn('goal requested to cancel')
@@ -201,21 +215,21 @@ class CameraCalibrationAction(object):
             result.success = res.success
             with self._goal_lock:
                 goal_handle.succeed()
-                self._logger.info('goal succeeded')
+            self._logger.info('goal succeeded')
         except CameraCalibrationAction.CancelRequestedException:
             result.success = False
             with self._goal_lock:
                 goal_handle.canceled()
-                self._logger.warn('goal canceled')
+            self._logger.warn('goal canceled')
         except CameraCalibrationAction.AbortedException:
             result.success = False
             self._logger.warn('goal already aborted')
-        except Exception as e:
-            result.success = False
-            with self._goal_lock:
-                goal_handle.abort()
-                self._logger.error('goal aborted due to unexpected error: %s'
-                                   % e)
+        # except Exception as e:
+        #     result.success = False
+        #     with self._goal_lock:
+        #         goal_handle.abort()
+        #     self._logger.error('goal aborted due to unexpected error: %s'
+        #                            % e)
         return result
 
     def _move_to(self, goal_handle, xyzrpy):
@@ -261,7 +275,7 @@ class CameraCalibrationAction(object):
         for camera_name, camera_info, camera_pose in zip(res.camera_names,
                                                          res.intrinsics,
                                                          res.camera_poses):
-            print('=== estimated pose of % ===' % camera_name)
+            print('=== estimated pose of %s ===' % camera_name)
             print('[{:.4f}, {:.4f}, {:.4f}; {:.2f}, {:.2f}. {:.2f}]'\
                   .format(*self._node.xyzrpy_from_pose(camera_pose)))
 
@@ -279,5 +293,8 @@ class CameraCalibrationAction(object):
 
             # Save camera_info.
             filename = dirname + '/' + camera_name + '-camera_info.yaml'
+            print('*** %s' % camera_info)
             saveCalibration(camera_info, filename, camera_name)
             self._logger.info('saved camera intrinsiscs in [%s]' % filename)
+
+        print('=== reprojection error: %f(pix) ===' % res.error)

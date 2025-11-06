@@ -87,22 +87,28 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
     def print_help_messages(self):
         super().print_help_messages()
         print('=== Calibration commands ===')
-        print('  init:   go to initial pose')
-        print('  calib:  do calibration')
-        print('  cancel: cancel calibration and then return to home pose')
-        print('  check:  go to marker')
+        print('  init:    go to initial pose')
+        print('  calib:   do calibration')
+        print('  ccancel: cancel calibration and then return to home pose')
+        print('  check:   go to marker')
+        print('  clist:   get list of sample points')
+        print('  creset:  discard all sample potins')
 
     def interactive(self, key, robot_name, axis, speed):
         if key == 'init':
             self._handeye_calibration.go_to_initpose()
         elif key == 'calib':
             self._handeye_calibration.calibrate()
-        elif key == 'cancel':
+        elif key == 'ccancel':
             self._handeye_calibration.cancel()
             self._handeye_calibration.wait()
             self.go_to_named_pose(robot_name, 'home')
         elif key == 'check':
             self._handeye_calibration.go_to_marker()
+        elif key == 'clist':
+            print(self._handeye_calibration.get_sample_list())
+        elif key == 'creset':
+            self._handeye_calibration.reset()
         else:
             return super().interactive(key, robot_name, axis, speed)
         return robot_name, axis, speed

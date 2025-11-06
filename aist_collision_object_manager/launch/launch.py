@@ -10,7 +10,7 @@ from aist_bringup.launch_common        import declare_launch_arguments
 
 launch_arguments = [
     {
-        'name':        'config_file',
+        'name':        'param_file',
         'default':     PathJoinSubstitution([
                            FindPackageShare('aist_collision_object_manager'),
                            'config', 'default.yaml']),
@@ -35,7 +35,7 @@ def launch_setup(context):
                  package='aist_collision_object_manager',
                  executable='collision_object_manager',
                  parameters=[
-                     ParameterFile(LaunchConfiguration('config_file'))
+                     ParameterFile(LaunchConfiguration('param_file'))
                  ],
                  arguments=[
                      '--ros-args', '--log-level',

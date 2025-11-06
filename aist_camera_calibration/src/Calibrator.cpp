@@ -278,13 +278,16 @@ Calibrator::corres_cb(const correses_set_msg_cp correses_set_msg)
 	for (const auto& correspondences
 		 : correses_set_msg->correspondences_set)
 	    if (correspondences.correspondences.empty())
-		throw std::runtime_error("No correspondences found for "
-					 + correspondences.camera_name);
+	    {
+		RCLCPP_WARN_STREAM(get_logger(),
+				   "No correspondences found for "
+				   << correspondences.camera_name);
+		return;
+	    }
     }
     catch (std::runtime_error& err)
     {
-	RCLCPP_ERROR_STREAM(get_logger(), "Illegal input correspondences["
-			    << err.what() << ']');
+	RCLCPP_ERROR_STREAM(get_logger(), err.what());
 	return;
     }
 

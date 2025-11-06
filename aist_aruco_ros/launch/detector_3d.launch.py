@@ -27,7 +27,7 @@ launch_arguments = [
         'description': 'type of the camera'
     },
     {
-        'name':        'config_file',
+        'name':        'param_file',
         'default':     PathJoinSubstitution(
                            [FindPackageShare('aist_aruco_ros'), 'config',
                             'default.yaml']),
@@ -78,7 +78,7 @@ def launch_setup(context):
                     name=LaunchConfiguration('detector_name'),
                     package='aist_aruco_ros',
                     plugin='aist_aruco_ros::Detector3D',
-                    parameters=[LaunchConfiguration('config_file')],
+                    parameters=[LaunchConfiguration('param_file')],
                     remappings=[
                         ('camera_info',
                          [LaunchConfiguration('camera_name'), '/',

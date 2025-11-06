@@ -168,8 +168,10 @@ MultiDetector::MultiDetector(const rclcpp::NodeOptions& options)
 	if (_camera_names.size() >= 2)
 	    _image_subs.emplace_back(std::make_unique<subscriber_t>(
 					 this, camera_name + "/image", "raw"));
-	_result_pubs.emplace_back(_it.advertise(camera_name + "/result", 1));
-	_debug_pubs .emplace_back(_it.advertise(camera_name + "/debug",  1));
+	_result_pubs.emplace_back(_it.advertise("~/" + camera_name + "/result",
+						1));
+	_debug_pubs .emplace_back(_it.advertise("~/" + camera_name + "/debug",
+						1));
 	RCLCPP_INFO_STREAM(get_logger(),
 			   "Subscribe camera[" << camera_name << ']');
     }

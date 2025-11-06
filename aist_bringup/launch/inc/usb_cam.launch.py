@@ -15,7 +15,7 @@ launch_arguments = [
         'description': 'Name of the camera'
     },
     {
-        'name':        'config_file',
+        'name':        'param_file',
         'default':     PathJoinSubstitution([
                            FindPackageShare('aist_bringup'), 'config',
                            'cameras.yaml']),
@@ -61,10 +61,10 @@ def launch_setup(context):
             composable_node_descriptions=[
                 ComposableNode(
                     namespace=LaunchConfiguration('name'),
-                    name=LaunchConfiguration('name'),
+                    name='usb_cam',
                     package='usb_cam',
                     plugin='usb_cam::UsbCamNode',
-                    parameters=[LaunchConfiguration('config_file')],
+                    parameters=[LaunchConfiguration('param_file')],
                     extra_arguments=[{'use_intra_process_comms': True}])])]
 
 def generate_launch_description():

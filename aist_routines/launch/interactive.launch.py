@@ -21,7 +21,7 @@ launch_arguments = [
         'description': 'Name of the hardware configuration'
     },
     {
-        'name':        'setting_file',
+        'name':        'param_file',
         'default':     PathJoinSubstitution([
                            FindPackageShare('aist_routines'), 'config',
                            [LaunchConfiguration('name'), '.yaml']]),
@@ -48,7 +48,7 @@ def launch_setup(context):
                  #     # set_configurable_parameters(param_args)
                  # ],
                  parameters=[
-                     ParameterFile(LaunchConfiguration('setting_file'),
+                     ParameterFile(LaunchConfiguration('param_file'),
                                    allow_substs=True),
                      {'config_file':
                       PathJoinSubstitution([

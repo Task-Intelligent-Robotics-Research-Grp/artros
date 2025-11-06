@@ -35,11 +35,12 @@
 #
 # Author: Toshio Ueshiba
 #
-import rclpy, sys, threading
-from rclpy.executors         import MultiThreadedExecutor
-from aist_routines.base      import AISTBaseRoutines
+import rclpy, sys, threading, yaml
+from rclpy.executors            import MultiThreadedExecutor
+from aist_routines.base         import AISTBaseRoutines
 from aist_camera_calibration\
-    .CameraCalibrationAction import CameraCalibrationAction
+    .CameraCalibrationAction    import CameraCalibrationAction
+from aist_utility.geometry_msgs import dict_from_point_correspondences_sets
 
 ######################################################################
 #  class CameraCalibrationRoutines                                   #
@@ -90,6 +91,8 @@ class CameraCalibrationRoutines(AISTBaseRoutines):
         print('  init:   go to initial pose')
         print('  calib:  do calibration')
         print('  cancel: cancel calibration and then return to home pose')
+        print('  clist:   get list of sample points')
+        print('  creset:  discard all sample potins')
 
     def interactive(self, key, robot_name, axis, speed):
         if key == 'init':
@@ -100,6 +103,11 @@ class CameraCalibrationRoutines(AISTBaseRoutines):
             self._camera_calibration.cancel()
             self._camera_calibration.wait()
             self.go_to_named_pose(robot_name, 'home')
+        elif key == 'clist':
+            print(yaml.dump(dict_from_point_correspondences_sets(
+                                self._camera_calibration.get_sample_list())))
+        elif key == 'creset':
+            self._camera_calibration.reset()
         else:
             return super().interactive(key, robot_name, axis, speed)
         return robot_name, axis, speed

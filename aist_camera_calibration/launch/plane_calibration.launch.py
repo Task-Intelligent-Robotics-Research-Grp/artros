@@ -17,7 +17,7 @@ launch_arguments = [
         'description': 'Name of the hardware configuration'
     },
     {
-        'name':        'params_file',
+        'name':        'param_file',
         'default':     PathJoinSubstitution([
                            FindPackageShare('aist_camera_calibration'),
                            'config', 'plane_calibration.yaml']),
@@ -63,7 +63,7 @@ def launch_setup(context):
 
     return [
         SetLaunchConfiguration(
-            'params_file',
+            'param_file',
             PathJoinSubstitution([
                 FindPackageShare('aist_camera_calibration'), 'config',
                 [LaunchConfiguration('camera_name'), '.yaml']])),
@@ -74,7 +74,7 @@ def launch_setup(context):
                     name='camera_calibrator',
                     package='aist_camera_calibration',
                     plugin='aist_camera_calibration::Calibrator',
-                    parameters=[LaunchConfiguration('params_file')],
+                    parameters=[LaunchConfiguration('param_file')],
                     remappings=[('point_correspondences_set',
                                  'multi_detector/point_correspondences_set')],
                     extra_arguments=[{'use_intra_process_comms': True}])
@@ -86,7 +86,7 @@ def launch_setup(context):
                 ('detector_name',      'multi_detector'),
                 ('camera_name',        camera_names),
                 ('camera_type',        camera_types),
-                ('config_file',        LaunchConfiguration('params_file')),
+                ('param_file',         LaunchConfiguration('param_file')),
                 ('external_container', LaunchConfiguration('external_container')),
                 ('container',          LaunchConfiguration('container')),
             ]),
@@ -94,8 +94,8 @@ def launch_setup(context):
              package='aist_camera_calibration',
              executable='run_plane_calibration.py',
              parameters=[
-                 LaunchConfiguration('params_file'),
-                 {'config_file':
+                 LaunchConfiguration('param_file'),
+                 {'param_file':
                   PathJoinSubstitution([
                       FindPackageShare('aist_bringup'), 'config',
                       [LaunchConfiguration('config'), '.yaml']])}

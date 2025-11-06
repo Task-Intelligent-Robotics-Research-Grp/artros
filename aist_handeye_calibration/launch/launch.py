@@ -64,7 +64,7 @@ def launch_setup(context):
 
     return [
         SetLaunchConfiguration(
-            'params_file',
+            'param_file',
             PathJoinSubstitution([
                 FindPackageShare('aist_handeye_calibration'), 'config',
                 [LaunchConfiguration('camera_name'), '.yaml']])),
@@ -75,7 +75,7 @@ def launch_setup(context):
                     name='handeye_calibrator',
                     package='aist_handeye_calibration',
                     plugin='aist_handeye_calibration::Calibrator',
-                    parameters=[LaunchConfiguration('params_file')],
+                    parameters=[LaunchConfiguration('param_file')],
                     remappings=[('pose', 'detector_3d/pose')],
                     extra_arguments=[{'use_intra_process_comms': True}])
             ]),
@@ -86,7 +86,7 @@ def launch_setup(context):
                 ('detector_name',      'detector_3d'),
                 ('camera_name',        camera_name),
                 ('camera_type',        camera_type),
-                ('config_file',        LaunchConfiguration('params_file')),
+                ('param_file',         LaunchConfiguration('param_file')),
                 ('external_container', LaunchConfiguration('external_container')),
                 ('container',          LaunchConfiguration('container')),
             ]),
@@ -94,7 +94,7 @@ def launch_setup(context):
              package='aist_handeye_calibration',
              executable='run_calibration.py',
              parameters=[
-                 LaunchConfiguration('params_file'),
+                 LaunchConfiguration('param_file'),
                  {'config_file':
                   PathJoinSubstitution([
                       FindPackageShare('aist_bringup'), 'config',

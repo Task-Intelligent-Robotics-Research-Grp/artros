@@ -64,7 +64,7 @@ def launch_setup(context):
                     PathJoinSubstitution(
                         [FindPackageShare(camera['package']), 'launch',
                          camera['launch_file']])),
-                launch_arguments={'config_file':
+                launch_arguments={'param_file':
                                   PathJoinSubstitution(
                                       [ThisLaunchFileDir(), '..', 'config',
                                        camera_name + '.yaml']),

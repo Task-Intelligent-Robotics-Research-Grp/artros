@@ -1,5 +1,4 @@
 # Goal
-string    camera_name
 string    robot_name
 string    end_effector_link
 float64[] initpose

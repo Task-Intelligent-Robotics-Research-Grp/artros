@@ -31,7 +31,7 @@ launch_arguments = [
         'description': 'unique ID of camera'
     },
     {
-        'name':        'config_file',
+        'name':        'param_file',
         'default':     PathJoinSubstitution([ThisLaunchFileDir(),
                                              '..', 'config', 'default.yaml']),
         'description': 'absolute path to YAML file for configuring detector'
@@ -69,7 +69,7 @@ def launch_setup(context):
                 camera_props['launch_file'],
                 launch_arguments=[
                     ('camera_name',        LaunchConfiguration('camera_name')),
-                    ('config_file',        LaunchConfiguration('config_file')),
+                    ('param_file',         LaunchConfiguration('param_file')),
                     (camera_props['key_of_id'], LaunchConfiguration('id')),
                     ('container',          LaunchConfiguration('container')),
                     ('external_container', 'true'),
@@ -92,7 +92,7 @@ def launch_setup(context):
                 ('detector_name', LaunchConfiguration('detector_type')),
                 ('camera_name',   LaunchConfiguration('camera_name')),
                 ('camera_type',   camera_types),
-                ('config_file',   LaunchConfiguration('config_file')),
+                ('param_file',    LaunchConfiguration('param_file')),
                 ('container',     LaunchConfiguration('container')),
             ]),
         Node(name='rviz',

@@ -27,7 +27,7 @@ launch_arguments = [
         'description': 'type of the camera'
     },
     {
-        'name':        'config_file',
+        'name':        'param_file',
         'default':     PathJoinSubstitution(
                            [FindPackageShare('aist_aruco_ros'), 'config',
                             'default.yaml']),
@@ -87,7 +87,7 @@ def launch_setup(context):
                     name=LaunchConfiguration('detector_name'),
                     package='aist_aruco_ros',
                     plugin='aist_aruco_ros::MultiDetector',
-                    parameters=[LaunchConfiguration('config_file'),
+                    parameters=[LaunchConfiguration('param_file'),
                                 {'camera_names': camera_names}],
                     remappings=remappings,
                     extra_arguments=[{'use_intra_process_comms': True}])]),
