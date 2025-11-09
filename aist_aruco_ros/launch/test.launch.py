@@ -23,6 +23,7 @@ launch_arguments = [
     {
         'name':        'camera_name',
         'default':     'realsense',
+        'choices':     ['realsense', 'phoxi'],
         'description': 'name of the camera'
     },
     {

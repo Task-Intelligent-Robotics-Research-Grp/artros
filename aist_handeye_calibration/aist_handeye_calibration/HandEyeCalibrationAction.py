@@ -263,8 +263,7 @@ class HandEyeCalibrationAction(object):
             result.success = False
             with self._goal_lock:
                 goal_handle.abort()
-            self._logger.error('goal aborted due to unexpected error: %s'
-                               % e)
+            self._logger.error('goal aborted due to unexpected error: %s' % e)
         return result
 
     def _move_to_subposes(self, goal_handle, keypose, keypose_num):

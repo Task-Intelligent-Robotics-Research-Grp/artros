@@ -45,7 +45,7 @@ def depths_to_points(camera_info, u, v, d):
     xy = cv2.undistortPoints(np.expand_dims(np.array(list(zip(u, v)),
                                                      dtype=np.float32),
                                             axis=0),
-                             np.array(camera_info.k).reshape((3, 3)),
+                             camera_info.k.reshape((3, 3)),
                              np.array(camera_info.d))
     xy = xy.ravel().reshape(npoints, 2)
     return [ Point(x=xy[i, 0]*d[i], y=xy[i, 1]*d[i], z=d[i])
