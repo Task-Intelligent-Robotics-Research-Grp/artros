@@ -130,24 +130,36 @@ class HandEyeCalibrationAction(object):
     def go_to_marker(self):
         self._node.trigger_frame(self._camera_name)
         _, marker_pose = wait_for_message(PoseStamped, self._node,
-                                          'pose', time_to_wait=2.0)
+                                          '/detector_3d/pose',
+                                          time_to_wait=2.0)
         if marker_pose is None:
             self._logger.error('failed to detect marker')
             return False
         marker_pose = self._node.transform_pose_to_target_frame(marker_pose)
-        success = self.go_to_pose_goal(self._robot_name,
-                                       marker_pose, (0.0, 0.0, 0.05),
-                                       speed=self._speed)
-        print('  reached %s' %
-              self.format_pose(
-                  self._node.get_current_pose(self._robot_name)))
+        success = self._node.go_to_pose_goal(self._robot_name,
+                                             marker_pose, (0.0, 0.0, 0.05),
+                                             speed=self._speed)
+        if success:
+            self._logger.info('  reached approach pose: %s' %
+                              self._node.format_pose(
+                                  self._node.get_current_pose(
+                                      self._robot_name)))
+        else:
+            self._logger.error('  failed to reach approach pose: %s' %
+                               self._node.format_pose(marker_pose))
+
         time.sleep(1.0)
-        print('  move to %s' % self._node.format_pose(marker_pose))
-        success = self.go_to_pose_goal(self._robot_name,
-                                       marker_pose, speed=0.05)
-        print('  reached %s' %
-              self.format_pose(
-                  self._node.get_current_pose(self._robot_name)))
+
+        success = self._node.go_to_pose_goal(self._robot_name,
+                                             marker_pose, speed=0.05)
+        if success:
+            self._logger.info('  reached marker pose: %s' %
+                              self._node.format_pose(
+                                  self._node.get_current_pose(
+                                      self._robot_name)))
+        else:
+            self._logger.error('  failed to reach marker pose: %s' %
+                               self._node.format_pose(marker_pose))
 
     def get_sample_list(self):
         return self._calibrator.get_sample_list()
@@ -272,12 +284,10 @@ class HandEyeCalibrationAction(object):
         for i in range(3):
             print('\n--- Subpose [%d/5]: Try! ---' % (i + 1))
             if self._move_to(goal_handle, subpose):
-                self._logger.info('Subpose [%d/5]: Succeeded.'
-                                  % (i + 1))
+                self._logger.info('Subpose [%d/5]: Succeeded.' % (i + 1))
             else:
-                self._logger.error('Subpose [%d/5]: Failed.'
-                                   % (i + 1))
-                subpose[3] -= 30.0
+                self._logger.error('Subpose [%d/5]: Failed.' % (i + 1))
+            subpose[3] -= 30.0
 
         subpose[3]  = roll - 30.0
         subpose[4] += 15.0
@@ -285,12 +295,10 @@ class HandEyeCalibrationAction(object):
         for i in range(2):
             print('\n--- Subpose [%d/5]: Try! ---' % (i + 4))
             if self._move_to(goal_handle, subpose):
-                self._logger.info('Subpose [%d/5]: Succeeded.'
-                                  % (i + 4))
+                self._logger.info('Subpose [%d/5]: Succeeded.' % (i + 4))
             else:
-                self._logger.error('Subpose [%d/5]: Failed.'
-                                   % (i + 4))
-                subpose[4] -= 30.0
+                self._logger.error('Subpose [%d/5]: Failed.' % (i + 4))
+            subpose[4] -= 30.0
 
     def _move_to(self, goal_handle, xyzrpy):
         with self._goal_lock:
@@ -299,6 +307,7 @@ class HandEyeCalibrationAction(object):
             if not goal_handle.is_active:
                 raise HandEyeCalibrationAction.AbortedException()
 
+        self._logger.info('trying to move to %s' % xyzrpy)
         if not self._move(goal_handle.request.robot_name, xyzrpy,
                           goal_handle.request.end_effector_link):
             return False
