@@ -281,20 +281,21 @@ class CameraCalibrationAction(object):
             # Convert camera pose to xyz-rpy representation.
             data = {'parent': camera_pose.header.frame_id,
                     'child' : camera_info.header.frame_id,
-                    'origin': self._node.xyzrpy_from_pose(camera_pose)}
+                    'origin': [float(t) for t in self._node.xyzrpy_from_pose(
+                                                     camera_pose)]}
 
             # Save camera pose.
             dirname  = filepath_from_url(self._calib_dir)
             filename = dirname + '/' + camera_name + '.yaml'
-            with open(filename, mode='w') as file:
-                yaml.dump(data, file, default_flow_style=False)
+            with open(filename, mode='w') as f:
+                yaml.dump(data, f, default_flow_style=False)
             self._logger.info('saved camera extrinsiscs in [%s]' % filename)
 
             # Save camera_info.
             filename = dirname + '/' + camera_name + '-camera_info.yaml'
-            with open(filename, mode='w') as file:
+            with open(filename, mode='w') as f:
                 yaml.dump(dict_from_camera_info(camera_name, camera_info),
-                          file, default_flow_style=False)
+                          f, default_flow_style=False)
             self._logger.info('saved camera intrinsiscs in [%s]' % filename)
 
         print('=== reprojection error: %f(pix) ===' % res.error)

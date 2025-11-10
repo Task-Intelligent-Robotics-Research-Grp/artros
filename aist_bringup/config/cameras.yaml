@@ -118,8 +118,8 @@ a_motioncam:
     av_device_format:   YUV422P
     image_width:        1920
     image_height:       1080
-#    camera_name:        live_camera
-#    camera_info_url:    package://aist_description/scenes/calib/live_camera-camera_info.yaml
+    camera_name:        usb_cam
+    camera_info_url:    package://aist_description/scenes/calib/live_camera-camera_info.yaml
     brightness:         -1
     contrast:           -1
     saturation:         -1

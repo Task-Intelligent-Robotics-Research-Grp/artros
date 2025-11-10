@@ -67,16 +67,16 @@ def dict_from_point_correspondences_sets(pcsss):
     return [dict_from_point_correspondences_set(pcss)
             for pcss in pcsss.correspondences_sets]
 
-def dict_from_camera_info(cinfo, camera_name):
+def dict_from_camera_info(camera_name, cinfo):
     return {'camera_name':             camera_name,
             'image_height':            cinfo.height,
             'image_width':             cinfo.width,
             'distortion_model':        cinfo.distortion_model,
             'distortion_coefficients': {'rows': 1, 'cols': len(cinfo.d),
-                                        'data': [d for d in cinfo.d]},
+                                        'data': [float(d) for d in cinfo.d]},
             'camera_matrix':           {'rows': 3, 'cols': 3,
-                                        'data': [k for k in cinfo.k]},
+                                        'data': [float(k) for k in cinfo.k]},
             'rectification_matrix':    {'rows': 3, 'cols': 3,
-                                        'data': [r for r in cinfo.r]},
+                                        'data': [float(r) for r in cinfo.r]},
             'projection_matrix':       {'rows': 3, 'cols': 4,
-                                        'data': [p for p in cinfo.p]}}
+                                        'data': [float(p) for p in cinfo.p]}}
