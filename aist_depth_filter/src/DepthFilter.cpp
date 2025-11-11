@@ -40,11 +40,11 @@
  */
 #include <cstdlib>	// for getenv()
 #include <sys/stat.h>	// for mkdir()
-#include <sensor_msgs/image_encodings.h>
-#include <aist_utility/tiff.h>
-#include <aist_utility/ply.h>
-#include <aist_utility/sensor_msgs.h>
-#include <aist_utility/opencv.h>
+#include <sensor_msgs/image_encodings.hpp>
+#include <aist_utility/tiff.hpp>
+#include <aist_utility/ply.hpp>
+#include <aist_utility/sensor_msgs.hpp>
+#include <aist_utility/opencv.hpp>
 #include "binarize.h"
 #include "ransac.h"
 #include "DepthFilter.h"
@@ -54,36 +54,6 @@ namespace aist_depth_filter
 /************************************************************************
 *  static functions							*
 ************************************************************************/
-template <class T, class ITER> ITER
-get_dark_pixels(const sensor_msgs::Image& image, ITER iter)
-{
-    using namespace	aist_utility;
-
-  // Create an array of intensity values.
-    std::vector<float>	intensities(image.height * image.width);
-    auto		q = intensities.begin();
-    for (size_t v = 0; v < image.height; ++v)
-    {
-	const auto	p = ptr<T>(image, v);
-	q = std::transform(p, p + image.width, q, intensity<T>);
-    }
-
-  // Binarize intensities with Otsu's method
-    const auto	thresh = *TU::binarize(intensities.begin(), intensities.end());
-
-  // Extract pixels with itensities below the threshold
-    auto	out = iter;
-    for (size_t v = 0; v < image.height; ++v)
-    {
-	auto	p = ptr<T>(image, v);
-	for (const auto pe = p + image.width; p != pe; ++p, ++iter)
-	    if (intensity(*p) < thresh && (*iter)(2) != 0.0f)
-		*out++ = *iter;
-    }
-
-    return out;		// past-the-end of the dark pixels
-}
-
 template <class T> inline bool
 is_valid(T val)
 {
@@ -93,120 +63,80 @@ is_valid(T val)
 /************************************************************************
 *  class DepthFilter							*
 ************************************************************************/
-DepthFilter::DepthFilter(ros::NodeHandle& nh)
-    :_saveBG_srv(nh.advertiseService("saveBG", &DepthFilter::saveBG_cb, this)),
-     _capture_srv(nh.advertiseService("capture",
-				      &DepthFilter::capture_cb, this)),
-     _it(nh),
-     _camera_info_sub(nh, "/camera_info", 1),
-     _image_sub( _it, "/image",  1),
-     _depth_sub( _it, "/depth",  1),
-     _normal_sub(_it, "/normal", 1),
-     _sync(_camera_info_sub, _image_sub, _depth_sub, _normal_sub, 3),
-     _sync2(_camera_info_sub, _image_sub, _depth_sub, 3),
-     _image_pub (_it.advertise("image",  1)),
-     _depth_pub( _it.advertise("depth",  1)),
-     _normal_pub(_it.advertise("normal", 1)),
-     _colored_normal_pub(_it.advertise("colored_normal", 1)),
-     _plane_pub(nh.advertise<cloud_t>("base_plane", 1)),
-     _camera_info_pub(nh.advertise<camera_info_t>("camera_info", 1)),
-     _file_info_pub(nh.advertise<file_info_t>("file_info", 1)),
-     _detect_plane_srv(nh, "detect_plane",
-		       boost::bind(&DepthFilter::detect_plane_cb, this, _1),
-		       false),
-     _ddr(nh),
-     _camera_info_org(nullptr),
-     _camera_info(),
-     _image_org(nullptr),
-     _image(),
+DepthFilter::DepthFilter(const rclcpp::NodeOptions& options)
+    :rclcpp::Node("depth_filter", options),
+     _service_cbg(create_callback_group(
+		      rclcpp::CallbackGroupType::MutuallyExclusive)),
+     _save_bg_srv(create_service<trigger_t>(
+		     "~/save_bg",
+		     std::bind(&DepthFilter::save_bg_cb, this,
+			       std::placeholders::_1, std::placeholders::_2),
+		     rclcpp::ServicesQoS(), _service_cbg)),
+     _it(rclcpp::Node::SharedPtr(this)),
+     _camera_info_sub(),
+     _image_sub(),
+     _depth_sub(),
+     _normal_sub(),
+     _sync_with_normal(_camera_info_sub,
+		       _image_sub, _depth_sub, _normal_sub, 3),
+     _sync_without_normal(_camera_info_sub, _image_sub, _depth_sub, 3),
+     _image_pub(	 _it.advertise("~/image",	   1)),
+     _depth_pub(	 _it.advertise("~/depth",	   1)),
+     _normal_pub(	 _it.advertise("~/normal",	   1)),
+     _colored_normal_pub(_it.advertise("~/colored_normal", 1)),
+     _camera_info_pub(create_publisher<camera_info_t>("~/camera_info", 1)),
+     _ddr(rclcpp::Node::SharedPtr(this)),
      _depth_org(nullptr),
      _depth_bg(nullptr),
-     _depth(),
-     _normal(),
-     _threshBG(0.0),
+     _thresh_bg(0.0),
      _near(0.0),
-     _far(4.0),
+     _far(FarMax),
      _top(0),
      _bottom(2048),
      _left(0),
      _right(3072),
      _scale(1.0),
-     _window_radius(2),
-     _threshPlane(0.001)
+     _window_radius(2)
 {
-  // Setup DetectPlane action server.
-    _detect_plane_srv.registerPreemptCallback(
-	boost::bind(&DepthFilter::preempt_cb, this));
-    _detect_plane_srv.start();
-
   // Setup parameters
-    _ddr.registerVariable<double>("thresh_bg", _threshBG,
-				  boost::bind(
-				      &DepthFilter::setVariable<double>,
-				      this, &DepthFilter::_threshBG, _1),
-				  "Threshold value for background removal",
-				  0.0, 0.1);
-    _ddr.registerVariable<double>("near", _near,
-				  boost::bind(
-				      &DepthFilter::setVariable<double>,
-				      this, &DepthFilter::_near, _1),
-				  "Nearest depth value", 0.0, 1.0);
-    _ddr.registerVariable<double>("far", _far,
-				  boost::bind(
-				      &DepthFilter::setVariable<double>,
-				      this, &DepthFilter::_far, _1),
-				  "Farest depth value", 0.0, FarMax);
-    _ddr.registerVariable<int>("top", _top,
-			       boost::bind(&DepthFilter::setVariable<int>,
-					   this, &DepthFilter::_top, _1),
-			       "Top of ROI", 0, 2048);
-    _ddr.registerVariable<int>("bottom", _bottom,
-			       boost::bind(&DepthFilter::setVariable<int>,
-					   this, &DepthFilter::_bottom, _1),
-			       "Bottom of ROI", 0, 2048);
-    _ddr.registerVariable<int>("left", _left,
-			       boost::bind(&DepthFilter::setVariable<int>,
-					   this, &DepthFilter::_left, _1),
-			       "Left of ROI", 0, 3072);
-    _ddr.registerVariable<int>("right", _right,
-			       boost::bind(&DepthFilter::setVariable<int>,
-					   this, &DepthFilter::_right, _1),
-			       "Right of ROI", 0, 3072);
-    _ddr.registerVariable<double>("scale", _scale,
-				  boost::bind(
-				      &DepthFilter::setVariable<double>,
-				      this, &DepthFilter::_scale, _1),
-				  "Scale depth", 0.5, 1.5);
-    _ddr.registerVariable<double>("thresh_plane", &_threshPlane,
-				  "Threshold for plane fitting", 0.0, 0.01);
+    _ddr.registerVariable("thresh_bg", &_thresh_bg,
+			  "Threshold value for background removal",
+			  {0.0, 0.1});
+    _ddr.registerVariable("near", &_near, "Nearest depth value", {0.0, 1.0});
+    _ddr.registerVariable("far",  &_far, "Farest depth value",  {0.0, FarMax});
+    _ddr.registerVariable("top",    &_top,    "Top of ROI",    {0, 2048});
+    _ddr.registerVariable("bottom", &_bottom, "Bottom of ROI", {0, 2048});
+    _ddr.registerVariable("left",   &_left,   "Left of ROI",   {0, 3072});
+    _ddr.registerVariable("right",  &_right,  "Right of ROI",  {0, 3072});
+    _ddr.registerVariable("scale",  &_scale,  "Scale depth",   {0.5, 1.5});
 
-    if (nh.param("subscribe_normal", true))
+  // Setup subscribers
+    _camera_info_sub.subscribe(this, "/camera_info");
+    _image_sub.subscribe(this, "/image", "raw");
+    _depth_sub.subscribe(this, "/depth", "raw");
+
+    if (ddynamic_reconfigure2::declare_read_only_parameter(this,
+							   "subscribe_normal",
+							   true))
     {
-	_sync.registerCallback(&DepthFilter::filter_with_normal_cb, this);
+	_ddr.registerVariable("window_radius", &_window_radius,
+			      "Window radius", {0, 5});
+
+	_normal_sub.subscribe(this, "/normal", "raw");
+	_sync_with_normal.registerCallback(&DepthFilter::filter_with_normal_cb,
+					   this);
     }
     else
     {
-	_ddr.registerVariable<int>("window_radius", _window_radius,
-				   boost::bind(
-				       &DepthFilter::setVariable<int>,
-				       this, &DepthFilter::_window_radius, _1),
-				   "Window radius", 0, 5);
-	_sync2.registerCallback(&DepthFilter::filter_without_normal_cb, this);
+	_sync_without_normal.registerCallback(
+	    &DepthFilter::filter_without_normal_cb, this);
     }
 
-    _ddr.publishServicesTopicsAndUpdateConfigData();
+    RCLCPP_INFO_STREAM(get_logger(), "initialized");
 }
 
-template <class T> void
-DepthFilter::setVariable(T DepthFilter::* p, T value)
-{
-    this->*p = value;
-    _depth.data.clear();	// Invalidate old depth data.
-}
-
-bool
-DepthFilter::saveBG_cb(std_srvs::Trigger::Request&  req,
-		       std_srvs::Trigger::Response& res)
+void
+DepthFilter::save_bg_cb(const req_p<trigger_t>, const res_p<trigger_t> res)
 {
     try
     {
@@ -218,83 +148,27 @@ DepthFilter::saveBG_cb(std_srvs::Trigger::Request&  req,
 	_depth_bg  = _depth_org;
 	_depth_org = nullptr;
 
-	res.success = true;
-	res.message = "succeeded.";
+	res->success = true;
+	res->message = "succeeded";
     }
     catch (const std::exception& err)
     {
-	ROS_ERROR_STREAM("DepthFilter::saveBG_cb(): " << err.what());
+	RCLCPP_ERROR_STREAM(get_logger(),
+			    "DepthFilter::save_bg_cb(): " << err.what());
 
-	res.success = false;
-	res.message = "failed.";
+	res->success = false;
+	res->message = "failed";
     }
 
-    ROS_INFO_STREAM("(DepthFilter) save background image: " << res.message);
-
-    return true;
-}
-
-bool
-DepthFilter::capture_cb(std_srvs::Trigger::Request&  req,
-			std_srvs::Trigger::Response& res)
-{
-    try
-    {
-	if (_depth.data.empty())
-	    throw std::runtime_error("no filtered depth image available!");
-
-	const auto	file_path = open_dir() + "/scene.ply";
-	aist_utility::savePly(_camera_info, _image, _depth, _normal,
-			      file_path);
-	_depth.data.clear();
-
-	file_info_t	file_info;
-	file_info.file_path = file_path;
-	file_info.header    = _camera_info.header;
-
-	if (_threshPlane > 0.0)
-	{
-	    const auto	plane = detect_plane(*_camera_info_org,
-					     *_image_org, *_depth_org,
-					     _threshPlane);
-	    file_info.plane_detected = true;
-	    file_info.normal.x = plane.normal()(0);
-	    file_info.normal.y = plane.normal()(1);
-	    file_info.normal.z = plane.normal()(2);
-	    file_info.distance = plane.distance();
-	}
-	else
-	{
-	    file_info.plane_detected = false;
-	    file_info.normal.x = 0;
-	    file_info.normal.y = 0;
-	    file_info.normal.z = -1;
-	    file_info.distance = 0;
-	}
-
-	_file_info_pub.publish(file_info);
-
-	res.success = true;
-	res.message = "succeeded.";
-
-	ROS_INFO_STREAM("(DepthFilter) save as OrderedPly: " << res.message);
-    }
-    catch (const std::exception& err)
-    {
-	ROS_ERROR_STREAM("(DepthFilter) capture_cb(): " << err.what());
-
-	res.success = false;
-	res.message = "failed.";
-    }
-
-    return true;
+    RCLCPP_INFO_STREAM(get_logger(),
+		       "save background image: " << res->message);
 }
 
 void
-DepthFilter::filter_with_normal_cb(const camera_info_cp& camera_info,
-				   const image_cp& image,
-				   const image_cp& depth,
-				   const image_cp& normal)
+DepthFilter::filter_with_normal_cb(const camera_info_cp camera_info,
+				   const image_cp image,
+				   const image_cp depth,
+				   const image_cp normal)
 {
     _top    = std::max(0,     std::min(_top,    int(image->height)));
     _bottom = std::max(_top,  std::min(_bottom, int(image->height)));
@@ -306,50 +180,38 @@ DepthFilter::filter_with_normal_cb(const camera_info_cp& camera_info,
 
     try
     {
-	using namespace	sensor_msgs;
-
       // Keep pointers to original data.
-	_camera_info_org = camera_info;
-	_image_org	 = image;
-	_depth_org	 = depth;
+	_depth_org = depth;
 
       // Create camera_info according to ROI.
-	_camera_info	    = *camera_info;
-	_camera_info.height = _bottom - _top;
-	_camera_info.width  = _right  - _left;
-	_camera_info.K[2]  -= _left;
-	_camera_info.K[5]  -= _top;
-	_camera_info.P[2]  -= _left;
-	_camera_info.P[6]  -= _top;
+	auto	subcamera_info	= create_subcamera_info(*camera_info);
+	auto	subdepth	= create_subimage(*depth);
+	auto	subnormal	= create_subimage(*normal);
 
-	create_subimage(*image,  _image);
-	create_subimage(*depth,  _depth);
-	create_subimage(*normal, _normal);
-	create_colored_normal(_normal, _colored_normal);
+	if (depth->encoding == sensor_msgs::image_encodings::MONO16 ||
+	    depth->encoding == sensor_msgs::image_encodings::TYPE_16UC1)
+	    filter<uint16_t>(*subcamera_info, subdepth);
+	else if (depth->encoding == sensor_msgs::image_encodings::TYPE_32FC1)
+	    filter<float>(*subcamera_info, subdepth);
 
-	if (depth->encoding == image_encodings::MONO16 ||
-	    depth->encoding == image_encodings::TYPE_16UC1)
-	    filter<uint16_t>(_camera_info, _depth);
-	else if (depth->encoding == image_encodings::TYPE_32FC1)
-	    filter<float>(_camera_info, _depth);
-
-	_camera_info_pub.publish(_camera_info);
-	_image_pub.publish(_image);
-	_depth_pub.publish(_depth);
-	_normal_pub.publish(_normal);
-	_colored_normal_pub.publish(_colored_normal);
+	_camera_info_pub->publish(std::move(subcamera_info));
+	_image_pub.publish(create_subimage(*image));
+	_depth_pub.publish(std::move(subdepth));
+	_colored_normal_pub.publish(create_colored_normal(*subnormal));
+	_normal_pub.publish(std::move(subnormal));
     }
     catch (const std::exception& err)
     {
-	ROS_ERROR_STREAM("DepthFilter::filter_with_normal_cb(): "
-			 << err.what());
+	RCLCPP_ERROR_STREAM(get_logger(),
+			    "DepthFilter::filter_with_normal_cb(): "
+			    << err.what());
     }
 }
 
 void
-DepthFilter::filter_without_normal_cb(const camera_info_cp& camera_info,
-				      const image_cp& image,
-				      const image_cp& depth)
+DepthFilter::filter_without_normal_cb(const camera_info_cp camera_info,
+				      const image_cp image,
+				      const image_cp depth)
 {
     _top    = std::max(0,     std::min(_top,    int(image->height)));
     _bottom = std::max(_top,  std::min(_bottom, int(image->height)));
@@ -361,177 +223,170 @@ DepthFilter::filter_without_normal_cb(const camera_info_cp& camera_info,
 
     try
     {
-	using	namespace sensor_msgs;
-
       // Keep pointers to original data.
-	_camera_info_org = camera_info;
-	_image_org	 = image;
-	_depth_org	 = depth;
+	_depth_org = depth;
 
       // Create camera_info according to ROI.
-	_camera_info	    = *camera_info;
-	_camera_info.height = _bottom - _top;
-	_camera_info.width  = _right  - _left;
-	_camera_info.K[2]  -= _left;
-	_camera_info.K[5]  -= _top;
-	_camera_info.P[2]  -= _left;
-	_camera_info.P[6]  -= _top;
+	auto	subcamera_info	= create_subcamera_info(*camera_info);
+	auto	subdepth	= create_subimage(*depth);
+	image_p	subnormal;
 
-	create_subimage(*image, _image);
-	create_subimage(*depth, _depth);
+	if (depth->encoding == sensor_msgs::image_encodings::MONO16 ||
+	    depth->encoding == sensor_msgs::image_encodings::TYPE_16UC1)
+	    subnormal = filter<uint16_t>(*subcamera_info, subdepth);
+	else if (depth->encoding == sensor_msgs::image_encodings::TYPE_32FC1)
+	    subnormal = filter<float>(*subcamera_info, subdepth);
 
-	if (depth->encoding == image_encodings::MONO16 ||
-	    depth->encoding == image_encodings::TYPE_16UC1)
-	    filter<uint16_t>(_camera_info, _depth);
-	else if (depth->encoding == image_encodings::TYPE_32FC1)
-	    filter<float>(_camera_info, _depth);
-
-	_camera_info_pub.publish(_camera_info);
-	_image_pub.publish(_image);
-	_depth_pub.publish(_depth);
-	_normal_pub.publish(_normal);
-	_colored_normal_pub.publish(_colored_normal);
+	_camera_info_pub->publish(std::move(subcamera_info));
+	_image_pub.publish(create_subimage(*image));
+	_depth_pub.publish(std::move(subdepth));
+	_colored_normal_pub.publish(create_colored_normal(*subnormal));
+	_normal_pub.publish(std::move(subnormal));
     }
     catch (const std::exception& err)
     {
-	ROS_ERROR_STREAM("DepthFilter::filter_without_cb(): " << err.what());
+	RCLCPP_ERROR_STREAM(get_logger(),
+			    "DepthFilter::filter_without_normal_cb(): "
+			    << err.what());
     }
 }
 
-void
-DepthFilter::preempt_cb()
+template <class T> DepthFilter::image_p
+DepthFilter::filter(const camera_info_t& camera_info, const image_p& depth)
 {
-    _detect_plane_srv.setPreempted();
-    ROS_INFO_STREAM("(DepthFilter)   *DetectPlaneAction preempted*");
-}
-
-void
-DepthFilter::detect_plane_cb(const goal_cp& goal)
-{
-    try
-    {
-	if (!_camera_info_org || !_image_org || !_depth_org)
-	    throw std::runtime_error("no images receved!");
-
-	if (_threshPlane <= 0.0)
-	    throw std::runtime_error("parameter threshPlane is not positive!");
-
-	const auto	plane = detect_plane(*_camera_info_org,
-					     *_image_org, *_depth_org,
-					     _threshPlane);
-
-	DetectPlaneResult	result;
-	result.plane.header	    = _camera_info_org->header;
-	result.plane.plane.normal.x = plane.normal()(0);
-	result.plane.plane.normal.y = plane.normal()(1);
-	result.plane.plane.normal.z = plane.normal()(2);
-	result.plane.plane.distance = plane.distance();
-
-	_detect_plane_srv.setSucceeded(result);
-    }
-    catch (const std::exception& err)
-    {
-	ROS_ERROR_STREAM("(DepthFilter) detect_plane_cb(): "
-			 << err.what());
-	_detect_plane_srv.setAborted();
-    }
-}
-
-template <class T> void
-DepthFilter::filter(const camera_info_t& camera_info, image_t& depth)
-{
-    if (_threshBG > 0)
+    if (_thresh_bg > 0)
     {
 	try
 	{
 	    if (!_depth_bg)
 		_depth_bg = aist_utility::loadTiff(open_dir() + "/bg.tif");
 
-	    removeBG<T>(depth, *_depth_bg);
+	    remove_bg<T>(depth, *_depth_bg);
 	}
 	catch (const std::exception& err)
 	{
 	    _depth_bg = nullptr;
-	    _threshBG = 0;
+	    _thresh_bg = 0;
 	}
     }
     if (_near > 0.0 || _far < FarMax)
-    {
 	z_clip<T>(depth);
-    }
-    if (_window_radius > 0)
-    {
-	computeNormal<T>(camera_info, depth);
-    }
+
     if (_scale != 1.0)
-    {
 	scale<T>(depth);
-    }
+
+    if (_window_radius > 0)
+	return create_normal<T>(camera_info, *depth);
+    else
+	return nullptr;
 }
 
 template <class T> void
-DepthFilter::removeBG(image_t& depth, const image_t& depth_bg) const
+DepthFilter::remove_bg(const image_p& depth, const image_t& depth_bg) const
 {
-    for (int v = 0; v < depth.height; ++v)
+    for (u_int v = 0; v < depth->height; ++v)
     {
 	using namespace	aist_utility;
 
-	auto	p = ptr<T>(depth, v);
+	auto	p = ptr<T>(*depth, v);
 	auto	b = ptr<T>(depth_bg, v + _top) + _left;
-	for (const auto q = p + depth.width; p != q; ++p, ++b)
-	    if (*b != 0 && std::abs(meters(*p) - meters(*b)) < _threshBG)
+	for (const auto q = p + depth->width; p != q; ++p, ++b)
+	    if (*b != 0 && std::abs(meters(*p) - meters(*b)) < _thresh_bg)
 		*p = 0;
     }
 }
 
 template <class T> void
-DepthFilter::z_clip(image_t& depth) const
+DepthFilter::z_clip(const image_p& depth) const
 {
-    for (int v = 0; v < depth.height; ++v)
+    for (u_int v = 0; v < depth->height; ++v)
     {
 	using namespace	aist_utility;
 
-	const auto	p = ptr<T>(depth, v);
-	std::replace_if(p, p + depth.width,
+	const auto	p = ptr<T>(*depth, v);
+	std::replace_if(p, p + depth->width,
 			[this](const auto& val)
-			{ return (meters(val) < _near || meters(val) > _far); },
+			{return (meters(val) < _near || meters(val) > _far);},
 			0);
     }
 }
 
 template <class T> void
-DepthFilter::computeNormal(const camera_info_t& camera_info,
+DepthFilter::scale(const image_p& depth) const
+{
+    for (u_int v = 0; v < depth->height; ++v)
+    {
+	using namespace	aist_utility;
+
+	const auto	p = ptr<T>(*depth, v);
+	std::transform(p, p + depth->width, p,
+		       [this](const auto& val){ return _scale * val; });
+    }
+}
+
+DepthFilter::camera_info_p
+DepthFilter::create_subcamera_info(const camera_info_t& camera_info) const
+{
+  // Create camera_info according to ROI.
+    camera_info_p	cinfo(new camera_info_t(camera_info));
+    cinfo->height = _bottom - _top;
+    cinfo->width  = _right  - _left;
+    cinfo->k[2]	 -= _left;
+    cinfo->k[5]  -= _top;
+    cinfo->p[2]  -= _left;
+    cinfo->p[6]  -= _top;
+
+    return cinfo;
+}
+
+DepthFilter::image_p
+DepthFilter::create_subimage(const image_t& image) const
+{
+    using	namespace sensor_msgs;
+
+    const auto	nbytesPerPixel = image_encodings::bitDepth(image.encoding)/8
+			       * image_encodings::numChannels(image.encoding);
+
+    image_p	subimage(new image_t);
+    subimage->header	   = image.header;
+    subimage->height	   = _bottom - _top;
+    subimage->width	   = _right  - _left;
+    subimage->encoding	   = image.encoding;
+    subimage->is_bigendian = image.is_bigendian;
+    subimage->step	   = subimage->width*nbytesPerPixel;
+    subimage->data.resize(subimage->height * subimage->step);
+
+    auto p = image.data.begin() + _top*image.step + _left*nbytesPerPixel;
+    for (auto q = subimage->data.begin(); q != subimage->data.end();
+	 q += subimage->step)
+    {
+	std::copy_n(p, subimage->width*nbytesPerPixel, q);
+	p += image.step;
+    }
+
+    return subimage;
+}
+
+template <class T> DepthFilter::image_p
+DepthFilter::create_normal(const camera_info_t& camera_info,
 			   const image_t& depth)
 {
-    using namespace	sensor_msgs;
-
   // Computation of normals should be done in double-precision
   // in order to avoid truncation error when sliding windows
-    using normal_t		= std::array<value_t, 3>;
-    using colored_normal_t	= std::array<uint8_t, 3>;
-    using vector3_t		= cv::Vec<double, 3>;	   // double-precision
-    using matrix33_t		= cv::Matx<double, 3, 3>;  // double-precision
+    using normal_t	= std::array<value_t, 3>;
+    using vector3_t	= cv::Vec<double, 3>;	   // double-precision
+    using matrix33_t	= cv::Matx<double, 3, 3>;  // double-precision
 
-  // 0: Allocate image for output normals.
-    _normal.header		= depth.header;
-    _normal.encoding		= image_encodings::TYPE_32FC3;
-    _normal.height		= depth.height;
-    _normal.width		= depth.width;
-    _normal.step		= _normal.width * sizeof(normal_t);
-    _normal.is_bigendian	= false;
-    _normal.data.resize(_normal.height * _normal.step);
-    std::fill(_normal.data.begin(), _normal.data.end(), 0);
-
-  // 1: Allocate image for output colored normals.
-    _colored_normal.header	 = depth.header;
-    _colored_normal.encoding	 = image_encodings::RGB8;
-    _colored_normal.height	 = depth.height;
-    _colored_normal.width	 = depth.width;
-    _colored_normal.step	 = _colored_normal.width
-				 * sizeof(colored_normal_t);
-    _colored_normal.is_bigendian = false;
-    _colored_normal.data.resize(_colored_normal.height * _colored_normal.step);
-    std::fill(_colored_normal.data.begin(), _colored_normal.data.end(), 0);
+  // 1: Allocate image for output normals.
+    image_p	normal(new image_t);
+    normal->header		= depth.header;
+    normal->encoding		= sensor_msgs::image_encodings::TYPE_32FC3;
+    normal->height		= depth.height;
+    normal->width		= depth.width;
+    normal->step		= normal->width * sizeof(normal_t);
+    normal->is_bigendian	= false;
+    normal->data.resize(normal->height * normal->step);
+    std::fill(normal->data.begin(), normal->data.end(), 0);
 
   // 2: Compute 3D coordinates.
     cv::Mat_<vector3_t>		xyz(depth.height, depth.width);
@@ -605,9 +460,7 @@ DepthFilter::computeNormal(const camera_info_t& camera_info,
 	    sum_M += M(u, v);
 	}
 
-	auto	norm  = ptr<normal_t>(_normal, _window_radius)
-		      + _window_radius + u;
-	auto	cnorm = ptr<colored_normal_t>(_colored_normal, _window_radius)
+	auto	norm  = ptr<normal_t>(*normal, _window_radius)
 		      + _window_radius + u;
 	for (int v = ws1; v < n.cols; ++v)
 	{
@@ -640,10 +493,8 @@ DepthFilter::computeNormal(const camera_info_t& camera_info,
 		// 	  << norm(1) << ", "
 		// 	  << norm(2) << ")" << std::endl;
 
-		*norm  = {normal(0), normal(1), normal(2)};
-		*cnorm = {uint8_t(128 + 127*normal(0)),
-			  uint8_t(128 + 127*normal(1)),
-			  uint8_t(128 + 127*normal(2))};
+		*norm  = {value_t(normal(0)),
+			  value_t(normal(1)), value_t(normal(2))};
 	    }
 
 	    const auto	vh = v - ws1;
@@ -651,119 +502,35 @@ DepthFilter::computeNormal(const camera_info_t& camera_info,
 	    sum_c -= c(u, vh);
 	    sum_M -= M(u, vh);
 
-	    norm  += _normal.width;
-	    cnorm += _colored_normal.width;
+	    norm  += normal->width;
 	}
     }
+
+    return normal;
 }
 
-template <class T> void
-DepthFilter::scale(image_t& depth) const
+DepthFilter::image_p
+DepthFilter::create_colored_normal(const image_t& normal) const
 {
-    for (int v = 0; v < depth.height; ++v)
-    {
-	using namespace	aist_utility;
-
-	const auto	p = ptr<T>(depth, v);
-	std::transform(p, p + depth.width, p,
-		       [this](const auto& val){ return _scale * val; });
-    }
-}
-
-DepthFilter::plane_t
-DepthFilter::detect_plane(const camera_info_t& camera_info,
-			  const image_t& image,
-			  const image_t& depth, float thresh) const
-{
-    using namespace	sensor_msgs;
-    using namespace	aist_utility;
-
-    using grey_t	= uint8_t;
-    using rgb_t		= std::array<uint8_t, 3>;
-    using vector3_t	= cv::Vec<value_t, 3>;
-
-  // Convert depths to 3D coordinates.
-    std::vector<vector3_t>	xyz(depth.height * depth.width);
-    if (depth.encoding == image_encodings::MONO16 ||
-	depth.encoding == image_encodings::TYPE_16UC1)
-	depth_to_points<uint16_t>(camera_info, depth, xyz.begin(),
-				  meters<uint16_t>);
-    else if (depth.encoding == image_encodings::TYPE_32FC1)
-	depth_to_points<float>(camera_info, depth, xyz.begin(), meters<float>);
-    else
-	throw std::runtime_error("unknown dpeth encoding: " + depth.encoding);
-
-  // Extract pixels with intesities below the threshold.
-    const auto	end = (image.encoding == image_encodings::RGB8  ||
-		       image.encoding == image_encodings::TYPE_8UC3 ?
-    		       get_dark_pixels< rgb_t>(image, xyz.begin()) :
-    		       get_dark_pixels<grey_t>(image, xyz.begin()));
-
-  // Fit a dominant plane to the extract pixels.
-    plane_t	plane;
-    const auto	inliers = TU::ransac(xyz.begin(), end, plane,
-				     [thresh](const auto& p, const auto& plane)
-				     { return plane.distance(p) < thresh; },
-				     value_t(0.5), value_t(0.99));
-
-  // Create pointcloud and publish it.
-    const auto	cloud = create_pointcloud(inliers.begin(), inliers.end(),
-					  depth.header.stamp,
-					  depth.header.frame_id);
-    _plane_pub.publish(cloud);
-
-    return plane;
-}
-
-void
-DepthFilter::create_subimage(const image_t& image, image_t& subimage) const
-{
-    using	namespace sensor_msgs;
-
-    const auto	nbytesPerPixel = image_encodings::bitDepth(image.encoding)/8
-			       * image_encodings::numChannels(image.encoding);
-
-    subimage.header	  = image.header;
-    subimage.height	  = _bottom - _top;
-    subimage.width	  = _right  - _left;
-    subimage.encoding	  = image.encoding;
-    subimage.is_bigendian = image.is_bigendian;
-    subimage.step	  = subimage.width*nbytesPerPixel;
-    subimage.data.resize(subimage.height * subimage.step);
-
-    auto p = image.data.begin() + _top*image.step + _left*nbytesPerPixel;
-    for (auto q = subimage.data.begin(); q != subimage.data.end();
-	 q += subimage.step)
-    {
-	std::copy_n(p, subimage.width*nbytesPerPixel, q);
-	p += image.step;
-    }
-}
-
-void
-DepthFilter::create_colored_normal(const image_t& normal,
-				   image_t& colored_normal) const
-{
-    using	namespace sensor_msgs;
-
     using normal_t		= std::array<float, 3>;
     using colored_normal_t	= std::array<uint8_t, 3>;
 
-    colored_normal.header	= normal.header;
-    colored_normal.height	= normal.height;
-    colored_normal.width	= normal.width;
-    colored_normal.encoding	= image_encodings::RGB8;
-    colored_normal.is_bigendian = normal.is_bigendian;
-    colored_normal.step		= colored_normal.width
-				* sizeof(colored_normal_t);
-    colored_normal.data.resize(colored_normal.height * colored_normal.step);
+    image_p	colored_normal(new(image_t));
+    colored_normal->header	 = normal.header;
+    colored_normal->height	 = normal.height;
+    colored_normal->width	 = normal.width;
+    colored_normal->encoding	 = sensor_msgs::image_encodings::RGB8;
+    colored_normal->is_bigendian = normal.is_bigendian;
+    colored_normal->step	 = colored_normal->width
+				 * sizeof(colored_normal_t);
+    colored_normal->data.resize(colored_normal->height * colored_normal->step);
 
-    for (int v = 0; v < normal.height; ++v)
+    for (u_int v = 0; v < normal.height; ++v)
     {
 	using namespace	aist_utility;
 
 	const auto	p = ptr<normal_t>(normal, v);
-	const auto	q = ptr<colored_normal_t>(colored_normal, v);
+	const auto	q = ptr<colored_normal_t>(*colored_normal, v);
 
 	std::transform(p, p + normal.width, q,
 		       [](const auto& norm)
@@ -774,17 +541,19 @@ DepthFilter::create_colored_normal(const image_t& normal,
 				        uint8_t(128 + 127*norm[2])});
 		       });
     }
+
+    return colored_normal;
 }
 
 std::string
-DepthFilter::open_dir()
+DepthFilter::open_dir() const
 {
     const auto	home = getenv("HOME");
     if (!home)
 	throw std::runtime_error("Environment variable[HOME] is not set.");
 
     const auto	dir_name = home + std::string("/.ros")
-				+ ros::this_node::getNamespace();
+				+ get_namespace();
     struct stat	buf;
     if (stat(dir_name.c_str(), &buf) && mkdir(dir_name.c_str(), S_IRWXU))
 	throw std::runtime_error("Cannot create " + dir_name + ": "
@@ -792,5 +561,8 @@ DepthFilter::open_dir()
 
     return dir_name;
 }
-
 }	// namespace aist_depth_filter
+
+#include <rclcpp_components/register_node_macro.hpp>
+
+RCLCPP_COMPONENTS_REGISTER_NODE(aist_depth_filter::DepthFilter)

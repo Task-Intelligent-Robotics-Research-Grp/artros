@@ -41,96 +41,88 @@
 #ifndef DEPTHFILTER_H
 #define DEPTHFILTER_H
 
-#include <ros/ros.h>
-#include <std_srvs/Trigger.h>
-#include <image_transport/image_transport.h>
-#include <image_transport/subscriber_filter.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <aist_depth_filter/FileInfo.h>
+#include <rclcpp/rclcpp.hpp>
+#include <std_srvs/srv/trigger.hpp>
+#include <image_transport/image_transport.hpp>
+#include <image_transport/subscriber_filter.hpp>
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
-#include <ddynamic_reconfigure/ddynamic_reconfigure.h>
-#include <actionlib/server/simple_action_server.h>
-#include <aist_depth_filter/DetectPlaneAction.h>
-#include <aist_utility/opencv.h>
+#include <ddynamic_reconfigure2/ddynamic_reconfigure2.hpp>
+#include <aist_utility/opencv.hpp>
 
 namespace aist_depth_filter
 {
 /************************************************************************
 *  class DepthFilter							*
 ************************************************************************/
-class DepthFilter
+class DepthFilter : public rclcpp::Node
 {
-  private:
-    using value_t	 = float;
-    using camera_info_t	 = sensor_msgs::CameraInfo;
-    using camera_info_cp = sensor_msgs::CameraInfoConstPtr;
-    using image_t	 = sensor_msgs::Image;
-    using image_cp	 = sensor_msgs::ImageConstPtr;
-    using image_p	 = sensor_msgs::ImagePtr;
-    using cloud_t	 = sensor_msgs::PointCloud2;
-    using sync_t	 = message_filters::TimeSynchronizer<
-				camera_info_t, image_t, image_t, image_t>;
-    using sync2_t	 = message_filters::TimeSynchronizer<
-				camera_info_t, image_t, image_t>;
-    using file_info_t	 = aist_depth_filter::FileInfo;
-    using plane_t	 = aist_utility::opencv::Plane<value_t, 3>;
+  public:
+    using value_t	   = float;
+    using callback_group_p = rclcpp::CallbackGroup::SharedPtr;
+    using camera_info_t	   = sensor_msgs::msg::CameraInfo;
+    using camera_info_cp   = camera_info_t::ConstSharedPtr;
+    using camera_info_p    = camera_info_t::UniquePtr;
+    using image_t	   = sensor_msgs::msg::Image;
+    using image_cp	   = image_t::ConstSharedPtr;
+    using image_p	   = image_t::UniquePtr;
 
-    using action_t	 = aist_depth_filter::DetectPlaneAction;
-    using feedback_t	 = aist_depth_filter::DetectPlaneFeedback;
-    using result_t	 = aist_depth_filter::DetectPlaneResult;
-    using goal_cp	 = aist_depth_filter::DetectPlaneGoalConstPtr;
-    using server_t	 = actionlib::SimpleActionServer<action_t>;
+  private:
+    template <class MSG>
+    using pub_p		= typename rclcpp::Publisher<MSG>::SharedPtr;
+    template <class MSG>
+    using sub_p		= typename rclcpp::Subscription<MSG>::SharedPtr;
+    template <class SRV>
+    using srv_p		= typename rclcpp::Service<SRV>::SharedPtr;
+    template <class SRV>
+    using req_p		= typename SRV::Request::SharedPtr;
+    template <class SRV>
+    using res_p		= typename SRV::Response::SharedPtr;
+
+    using sync_t	= message_filters::TimeSynchronizer<
+				camera_info_t, image_t, image_t, image_t>;
+    using sync2_t	= message_filters::TimeSynchronizer<
+				camera_info_t, image_t, image_t>;
+
+    using trigger_t	= std_srvs::srv::Trigger;
 
   public:
-		DepthFilter(ros::NodeHandle& nh)			;
+		DepthFilter(const rclcpp::NodeOptions& options)		;
 
   private:
-    template <class T>
-    void	setVariable(T DepthFilter::* p, T value)		;
-    bool	saveBG_cb(std_srvs::Trigger::Request&  req,
-			  std_srvs::Trigger::Response& res)		;
-    bool	capture_cb(std_srvs::Trigger::Request&  req,
-			   std_srvs::Trigger::Response& res)		;
-    void	filter_with_normal_cb(const camera_info_cp& camera_info,
-				      const image_cp& image,
-				      const image_cp& depth,
-				      const image_cp& normal)		;
-    void	filter_without_normal_cb(const camera_info_cp& camera_info,
-					 const image_cp& image,
-					 const image_cp& depth)		;
-
-    void	preempt_cb()						;
-    void	detect_plane_cb(const goal_cp& goal)			;
+    void	save_bg_cb(const req_p<trigger_t>,
+			   const res_p<trigger_t> res)			;
+    void	filter_with_normal_cb(const camera_info_cp camera_info,
+				      const image_cp image,
+				      const image_cp depth,
+				      const image_cp normal)		;
+    void	filter_without_normal_cb(const camera_info_cp camera_info,
+					 const image_cp image,
+					 const image_cp depth)		;
 
     template <class T>
-    void	filter(const camera_info_t& camera_info,
-		       image_t& depth)					;
+    image_p	filter(const camera_info_t& camera_info,
+		       const image_p& depth)				;
     template <class T>
-    void	removeBG(image_t& depth, const image_t& depth_bg) const	;
+    void	remove_bg(const image_p& depth,
+			  const image_t& depth_bg)		const	;
     template <class T>
-    void	z_clip(image_t& depth)				  const	;
+    void	z_clip(const image_p& depth)			const	;
     template <class T>
-    void	computeNormal(const camera_info_t& camera_info,
+    void	scale(const image_p& depth)			const	;
+    camera_info_p
+		create_subcamera_info(
+		    const camera_info_t& camera_into)		const	;
+    image_p	create_subimage(const image_t& image)		const	;
+    template <class T>
+    image_p	create_normal(const camera_info_t& camera_info,
 			      const image_t& depth)			;
-    template <class T>
-    void	scale(image_t& depth)				  const	;
-    plane_t	detect_plane(const camera_info_t& camera_info,
-			     const image_t& image,
-			     const image_t& depth,
-			     float thresh)			  const	;
-    void	create_subimage(const image_t& image,
-				image_t& subimage)		  const	;
-    void	create_colored_normal(const image_t& normal,
-				      image_t& colored_normal)	  const	;
-    static std::string
-		open_dir()					  	;
+    image_p	create_colored_normal(const image_t& normal)	const	;
+    std::string	open_dir()					const	;
 
   private:
-    ros::NodeHandle				_nh;
-
-    const ros::ServiceServer			_saveBG_srv;
-    const ros::ServiceServer			_capture_srv;
+    const callback_group_p			_service_cbg;
+    const srv_p<trigger_t>			_save_bg_srv;
 
     image_transport::ImageTransport		_it;
 
@@ -138,34 +130,23 @@ class DepthFilter
     image_transport::SubscriberFilter		_image_sub;
     image_transport::SubscriberFilter		_depth_sub;
     image_transport::SubscriberFilter		_normal_sub;
-    sync_t					_sync;
-    sync2_t					_sync2;
+    sync_t					_sync_with_normal;
+    sync2_t					_sync_without_normal;
 
     const image_transport::Publisher		_image_pub;
     const image_transport::Publisher		_depth_pub;
     const image_transport::Publisher		_normal_pub;
     const image_transport::Publisher		_colored_normal_pub;
-    const ros::Publisher			_plane_pub;
-    const ros::Publisher			_camera_info_pub;
-    const ros::Publisher			_file_info_pub;
+    const pub_p<camera_info_t>			_camera_info_pub;
 
-    server_t					_detect_plane_srv;
+    ddynamic_reconfigure2::DDynamicReconfigure<>	_ddr;
 
-    ddynamic_reconfigure::DDynamicReconfigure	_ddr;
-
-    camera_info_cp				_camera_info_org;
-    camera_info_t				_camera_info;
-    image_cp					_image_org;
-    image_t					_image;
     image_cp					_depth_org;
     image_cp					_depth_bg;
-    image_t					_depth;
-    image_t					_normal;
-    image_t					_colored_normal;
 
   // Remove background.
-    double					_threshBG;
-    std::string					_fileBG;
+    double					_thresh_bg;
+    std::string					_file_bg;
 
   // Clip outside of [_near, _far].
     double					_near;
@@ -185,9 +166,6 @@ class DepthFilter
 
   // Radius of window for computing normals.
     int						_window_radius;
-
-  // Threshold of plane fitting for bottom plane detection
-    double					_threshPlane;
 
   private:
     constexpr static double			FarMax = 4.0;
