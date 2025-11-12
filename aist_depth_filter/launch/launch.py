@@ -1,13 +1,15 @@
-from launch                     import LaunchDescription
-from launch.actions             import OpaqueFunction, SetLaunchConfiguration
-from launch.substitutions       import (LaunchConfiguration,
-                                        PathJoinSubstitution)
-from launch.conditions          import UnlessCondition
-from launch_ros.actions         import Node, LoadComposableNodes
-from launch_ros.substitutions   import FindPackageShare
-from launch_ros.descriptions    import ComposableNode
-from aist_bringup.launch_common import (declare_launch_arguments,
-                                        get_camera_props)
+from launch                            import LaunchDescription
+from launch.actions                    import (OpaqueFunction,
+                                               SetLaunchConfiguration)
+from launch.substitutions              import (LaunchConfiguration,
+                                               PathJoinSubstitution)
+from launch.conditions                 import UnlessCondition
+from launch_ros.actions                import Node, LoadComposableNodes
+from launch_ros.substitutions          import FindPackageShare
+from launch_ros.descriptions           import ComposableNode
+from launch_ros.parameter_descriptions import ParameterFile
+from aist_bringup.launch_common        import (declare_launch_arguments,
+                                               get_camera_props)
 
 
 launch_arguments = [
@@ -26,12 +28,18 @@ launch_arguments = [
         'default':     'RealsenseCamera',
         'description': 'type of the camera'
     },
+    # {
+    #     'name':        'subscribe_normal',
+    #     'default':     'false',
+    #     'description': 'subscribe normal image from the camera if true',
+    #     'choices':     ['true', 'false', 'True', 'False']
+    # },
     {
         'name':        'param_file',
         'default':     PathJoinSubstitution(
                            [FindPackageShare('aist_depth_filter'), 'config',
                             'default.yaml']),
-        'description': 'absolute path to YAML file for configuring detector'
+        'description': 'absolute path to YAML file for configuring filter'
     },
     {
         'name':        'external_container',
@@ -75,9 +83,8 @@ def launch_setup(context):
         remappings.append(('/normal',
                            [LaunchConfiguration('camera_name'), '/',
                             camera_props['normal_topic']]))
-    # else:
-    #     SetLaunchConfiguration('subscribe_normal', False)
-
+    param_file = ParameterFile(LaunchConfiguration('param_file'),
+                               allow_substs=True)
     return [
         Node(name=LaunchConfiguration('container'),
              package='rclcpp_components',

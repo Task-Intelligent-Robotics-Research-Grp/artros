@@ -1,10 +1,9 @@
 from launch                     import LaunchDescription
 from launch.actions             import IncludeLaunchDescription, OpaqueFunction
-from launch.substitutions       import (LaunchConfiguration, ThisLaunchFileDir,
+from launch.substitutions       import (LaunchConfiguration,
                                         PathJoinSubstitution)
-from launch_ros.actions         import Node, LoadComposableNodes
+from launch_ros.actions         import Node
 from launch_ros.substitutions   import FindPackageShare
-from launch_ros.descriptions    import ComposableNode
 from aist_bringup.launch_common import (declare_launch_arguments,
                                         get_camera_props)
 
@@ -26,10 +25,24 @@ launch_arguments = [
         'description': 'unique ID of camera'
     },
     {
+        'name':        'camera_param_file',
+        'default':     PathJoinSubstitution([
+                           FindPackageShare('aist_depth_filter'), 'config',
+                           'cameras.yaml']),
+        'description': 'absolute path to YAML file for configuring camera'
+    },
+    {
         'name':        'param_file',
-        'default':     PathJoinSubstitution([ThisLaunchFileDir(),
-                                             '..', 'config', 'default.yaml']),
-        'description': 'absolute path to YAML file for configuring detector'
+        'default':     PathJoinSubstitution(
+                           [FindPackageShare('aist_depth_filter'), 'config',
+                            'default.yaml']),
+        'description': 'absolute path to YAML file for configuring filter'
+    },
+    {
+        'name':        'subscribe_normal',
+        'default':     'false',
+        'description': 'subscribe normal image from the camera if true',
+        'choices':     ['true', 'false', 'True', 'False']
     },
     {
         'name':        'container',
@@ -61,7 +74,7 @@ def launch_setup(context):
             camera_props['launch_file'],
             launch_arguments=[
                 ('camera_name',        LaunchConfiguration('camera_name')),
-                ('param_file',         LaunchConfiguration('param_file')),
+                ('param_file', LaunchConfiguration('camera_param_file')),
                 (camera_props['key_of_id'], LaunchConfiguration('id')),
                 ('container',          LaunchConfiguration('container')),
                 ('external_container', 'false'),
@@ -75,7 +88,8 @@ def launch_setup(context):
                 ('name',               'depth_filter'),
                 ('camera_name',        LaunchConfiguration('camera_name')),
                 ('camera_type',        camera_type),
-                ('param_file',         LaunchConfiguration('param_file')),
+                # ('subscribe_normal', LaunchConfiguration('subscribe_normal')),
+                #('param_file',         LaunchConfiguration('param_file')),
                 ('external_container', 'true'),
                 ('container',          LaunchConfiguration('container')),
             ]),

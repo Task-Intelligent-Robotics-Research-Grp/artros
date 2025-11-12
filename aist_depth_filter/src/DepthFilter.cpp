@@ -40,14 +40,19 @@
  */
 #include <cstdlib>	// for getenv()
 #include <sys/stat.h>	// for mkdir()
+#include <rclcpp/rclcpp.hpp>
+#include <std_srvs/srv/trigger.hpp>
+#include <image_transport/image_transport.hpp>
+#include <image_transport/subscriber_filter.hpp>
+#include <message_filters/subscriber.h>
+#include <message_filters/time_synchronizer.h>
+#include <ddynamic_reconfigure2/ddynamic_reconfigure2.hpp>
+#include <aist_utility/opencv.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 #include <aist_utility/tiff.hpp>
 #include <aist_utility/ply.hpp>
 #include <aist_utility/sensor_msgs.hpp>
 #include <aist_utility/opencv.hpp>
-#include "binarize.h"
-#include "ransac.h"
-#include "DepthFilter.h"
 
 namespace aist_depth_filter
 {
@@ -60,9 +65,134 @@ is_valid(T val)
     return (val != T(0) && !std::isnan(val));
 }
 
+inline rclcpp::SubscriptionOptions
+create_subscription_options(rclcpp::CallbackGroup::SharedPtr cbg)
+{
+    rclcpp::SubscriptionOptions	options;
+    options.callback_group = cbg;
+    return options;
+}
+
 /************************************************************************
 *  class DepthFilter							*
 ************************************************************************/
+class DepthFilter : public rclcpp::Node
+{
+  public:
+    using value_t	   = float;
+    using callback_group_p = rclcpp::CallbackGroup::SharedPtr;
+    using camera_info_t	   = sensor_msgs::msg::CameraInfo;
+    using camera_info_cp   = camera_info_t::ConstSharedPtr;
+    using camera_info_p    = camera_info_t::UniquePtr;
+    using image_t	   = sensor_msgs::msg::Image;
+    using image_cp	   = image_t::ConstSharedPtr;
+    using image_p	   = image_t::UniquePtr;
+
+  private:
+    template <class MSG>
+    using pub_p		= typename rclcpp::Publisher<MSG>::SharedPtr;
+    template <class MSG>
+    using sub_p		= typename rclcpp::Subscription<MSG>::SharedPtr;
+    template <class SRV>
+    using srv_p		= typename rclcpp::Service<SRV>::SharedPtr;
+    template <class SRV>
+    using req_p		= typename SRV::Request::SharedPtr;
+    template <class SRV>
+    using res_p		= typename SRV::Response::SharedPtr;
+
+    using sync_t	= message_filters::TimeSynchronizer<
+				camera_info_t, image_t, image_t, image_t>;
+    using sync2_t	= message_filters::TimeSynchronizer<
+				camera_info_t, image_t, image_t>;
+
+    using trigger_t	= std_srvs::srv::Trigger;
+
+  public:
+		DepthFilter(const rclcpp::NodeOptions& options)		;
+
+  private:
+    void	save_bg_cb(const req_p<trigger_t>,
+			   const res_p<trigger_t> res)			;
+    void	filter_with_normal_cb(const camera_info_cp camera_info,
+				      const image_cp image,
+				      const image_cp depth,
+				      const image_cp normal)		;
+    void	filter_without_normal_cb(const camera_info_cp camera_info,
+					 const image_cp image,
+					 const image_cp depth)		;
+
+    template <class T>
+    image_p	filter(const camera_info_t& camera_info,
+		       const image_p& depth)				;
+    template <class T>
+    void	remove_bg(const image_p& depth,
+			  const image_t& depth_bg)		const	;
+    template <class T>
+    void	z_clip(const image_p& depth)			const	;
+    template <class T>
+    void	scale(const image_p& depth)			const	;
+    camera_info_p
+		create_subcamera_info(
+		    const camera_info_t& camera_into)		const	;
+    image_p	create_subimage(const image_t& image)		const	;
+    template <class T>
+    image_p	create_normal(const camera_info_t& camera_info,
+			      const image_t& depth)			;
+    image_p	create_colored_normal(const image_t& normal)	const	;
+    std::string	open_dir()					const	;
+
+  private:
+    const callback_group_p			_service_cbg;
+    const srv_p<trigger_t>			_save_bg_srv;
+
+    image_transport::ImageTransport		_it;
+
+    const callback_group_p			_subscription_cbg;
+    message_filters::Subscriber<camera_info_t>	_camera_info_sub;
+    image_transport::SubscriberFilter		_image_sub;
+    image_transport::SubscriberFilter		_depth_sub;
+    image_transport::SubscriberFilter		_normal_sub;
+    sync_t					_sync_with_normal;
+    sync2_t					_sync_without_normal;
+
+    const image_transport::Publisher		_image_pub;
+    const image_transport::Publisher		_depth_pub;
+    const image_transport::Publisher		_normal_pub;
+    const image_transport::Publisher		_colored_normal_pub;
+    const pub_p<camera_info_t>			_camera_info_pub;
+
+    ddynamic_reconfigure2::DDynamicReconfigure<>	_ddr;
+
+    image_cp					_depth_org;
+    image_cp					_depth_bg;
+
+  // Remove background.
+    double					_thresh_bg;
+    std::string					_file_bg;
+
+  // Clip outside of [_near, _far].
+    double					_near;
+    double					_far;
+
+  // Mask outside of ROI.
+    int						_top;
+    int						_bottom;
+    int						_left;
+    int						_right;
+
+  // Scaling of depth values.
+    double					_scale;
+
+  // Save as OrderPly file.
+    std::string					_fileOPly;
+
+  // Radius of window for computing normals.
+    int						_window_radius;
+
+  private:
+    constexpr static double			FarMax = 4.0;
+};
+
 DepthFilter::DepthFilter(const rclcpp::NodeOptions& options)
     :rclcpp::Node("depth_filter", options),
      _service_cbg(create_callback_group(
@@ -73,6 +203,8 @@ DepthFilter::DepthFilter(const rclcpp::NodeOptions& options)
 			       std::placeholders::_1, std::placeholders::_2),
 		     rclcpp::ServicesQoS(), _service_cbg)),
      _it(rclcpp::Node::SharedPtr(this)),
+     _subscription_cbg(create_callback_group(
+			   rclcpp::CallbackGroupType::MutuallyExclusive)),
      _camera_info_sub(),
      _image_sub(),
      _depth_sub(),
@@ -111,23 +243,27 @@ DepthFilter::DepthFilter(const rclcpp::NodeOptions& options)
     _ddr.registerVariable("scale",  &_scale,  "Scale depth",   {0.5, 1.5});
 
   // Setup subscribers
-    _camera_info_sub.subscribe(this, "/camera_info");
-    _image_sub.subscribe(this, "/image", "raw");
-    _depth_sub.subscribe(this, "/depth", "raw");
+    _camera_info_sub.subscribe(this, "/camera_info", rmw_qos_profile_default,
+			       create_subscription_options(_subscription_cbg));
+    _image_sub.subscribe(this, "/image", "raw", rmw_qos_profile_default,
+			 create_subscription_options(_subscription_cbg));
+    _depth_sub.subscribe(this, "/depth", "raw", rmw_qos_profile_default,
+			 create_subscription_options(_subscription_cbg));
 
     if (ddynamic_reconfigure2::declare_read_only_parameter(this,
 							   "subscribe_normal",
-							   true))
+							   false))
     {
-	_ddr.registerVariable("window_radius", &_window_radius,
-			      "Window radius", {0, 5});
-
-	_normal_sub.subscribe(this, "/normal", "raw");
+	_normal_sub.subscribe(this, "/normal", "raw", rmw_qos_profile_default,
+			       create_subscription_options(_subscription_cbg));
 	_sync_with_normal.registerCallback(&DepthFilter::filter_with_normal_cb,
 					   this);
     }
     else
     {
+	_ddr.registerVariable("window_radius", &_window_radius,
+			      "Window radius", {0, 5});
+
 	_sync_without_normal.registerCallback(
 	    &DepthFilter::filter_without_normal_cb, this);
     }
@@ -275,10 +411,7 @@ DepthFilter::filter(const camera_info_t& camera_info, const image_p& depth)
     if (_scale != 1.0)
 	scale<T>(depth);
 
-    if (_window_radius > 0)
-	return create_normal<T>(camera_info, *depth);
-    else
-	return nullptr;
+    return create_normal<T>(camera_info, *depth);
 }
 
 template <class T> void
@@ -387,6 +520,9 @@ DepthFilter::create_normal(const camera_info_t& camera_info,
     normal->is_bigendian	= false;
     normal->data.resize(normal->height * normal->step);
     std::fill(normal->data.begin(), normal->data.end(), 0);
+
+    if (_window_radius < 1)
+	return normal;
 
   // 2: Compute 3D coordinates.
     cv::Mat_<vector3_t>		xyz(depth.height, depth.width);

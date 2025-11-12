@@ -80,6 +80,7 @@ CAMERA_PROPS = {
         'depth_topic':        'depth_map',
         'cinfo_topic':        'camera_info',
         'color_topic':        'texture',
+        'normal_topic':       'normal_map',
         'gz_bridge_template': PathJoinSubstitution(
                                   [FindPackageShare('aist_bringup'),
                                    'config', 'templates',
