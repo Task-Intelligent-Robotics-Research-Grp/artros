@@ -14,7 +14,7 @@ from aist_bringup.launch_common        import (declare_launch_arguments,
 
 launch_arguments = [
     {
-        'name':        'name',
+        'name':        'filter_name',
         'default':     'depth_filter',
         'description': 'node name of the filter'
     },
@@ -28,12 +28,12 @@ launch_arguments = [
         'default':     'RealsenseCamera',
         'description': 'type of the camera'
     },
-    # {
-    #     'name':        'subscribe_normal',
-    #     'default':     'false',
-    #     'description': 'subscribe normal image from the camera if true',
-    #     'choices':     ['true', 'false', 'True', 'False']
-    # },
+    {
+        'name':        'subscribe_normal',
+        'default':     'false',
+        'description': 'subscribe normal image from the camera if true',
+        'choices':     ['true', 'false', 'True', 'False']
+    },
     {
         'name':        'param_file',
         'default':     PathJoinSubstitution(
@@ -98,10 +98,10 @@ def launch_setup(context):
             target_container=LaunchConfiguration('container'),
             composable_node_descriptions=[
                 ComposableNode(
-                    name=LaunchConfiguration('name'),
+                    name=LaunchConfiguration('filter_name'),
                     package='aist_depth_filter',
                     plugin='aist_depth_filter::DepthFilter',
-                    parameters=[LaunchConfiguration('param_file')],
+                    parameters=[param_file],
                     remappings=remappings,
                     extra_arguments=[{'use_intra_process_comms': True}])]),
     ]

@@ -25,13 +25,6 @@ launch_arguments = [
         'description': 'unique ID of camera'
     },
     {
-        'name':        'camera_param_file',
-        'default':     PathJoinSubstitution([
-                           FindPackageShare('aist_depth_filter'), 'config',
-                           'cameras.yaml']),
-        'description': 'absolute path to YAML file for configuring camera'
-    },
-    {
         'name':        'param_file',
         'default':     PathJoinSubstitution(
                            [FindPackageShare('aist_depth_filter'), 'config',
@@ -73,25 +66,15 @@ def launch_setup(context):
         IncludeLaunchDescription(
             camera_props['launch_file'],
             launch_arguments=[
-                ('camera_name',        LaunchConfiguration('camera_name')),
-                ('param_file', LaunchConfiguration('camera_param_file')),
                 (camera_props['key_of_id'], LaunchConfiguration('id')),
-                ('container',          LaunchConfiguration('container')),
-                ('external_container', 'false'),
-                ('output',             LaunchConfiguration('output')),
-                ('log_level',          LaunchConfiguration('log_level')),
+                ('external_container',      'false'),
             ]),
         IncludeLaunchDescription(
             PathJoinSubstitution([FindPackageShare('aist_depth_filter'),
                                   'launch', 'launch.py']),
             launch_arguments=[
-                ('name',               'depth_filter'),
-                ('camera_name',        LaunchConfiguration('camera_name')),
                 ('camera_type',        camera_type),
-                # ('subscribe_normal', LaunchConfiguration('subscribe_normal')),
-                #('param_file',         LaunchConfiguration('param_file')),
                 ('external_container', 'true'),
-                ('container',          LaunchConfiguration('container')),
             ]),
         Node(name='rviz',
              package='rviz2', executable='rviz2', output='screen',
