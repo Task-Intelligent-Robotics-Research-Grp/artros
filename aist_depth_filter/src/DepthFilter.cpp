@@ -104,13 +104,15 @@ class DepthFilter : public rclcpp::Node
 				camera_info_t, image_t, image_t, image_t>;
     using sync2_t	= message_filters::TimeSynchronizer<
 				camera_info_t, image_t, image_t>;
-
+    using ddr_t		= ddynamic_reconfigure2::DDynamicReconfigure<>;
     using trigger_t	= std_srvs::srv::Trigger;
 
   public:
 		DepthFilter(const rclcpp::NodeOptions& options)		;
 
   private:
+    template <class T>
+    void	setVariable(T DepthFilter::* p, T value)		;
     void	save_bg_cb(const req_p<trigger_t>,
 			   const res_p<trigger_t> res)			;
     void	filter_with_normal_cb(const camera_info_cp camera_info,
@@ -142,12 +144,13 @@ class DepthFilter : public rclcpp::Node
     std::string	open_dir()					const	;
 
   private:
+  // Service
     const callback_group_p			_service_cbg;
     const srv_p<trigger_t>			_save_bg_srv;
 
+  // Subscribers
+    const rclcpp::SubscriptionOptions		_subscription_options;
     image_transport::ImageTransport		_it;
-
-    const callback_group_p			_subscription_cbg;
     message_filters::Subscriber<camera_info_t>	_camera_info_sub;
     image_transport::SubscriberFilter		_image_sub;
     image_transport::SubscriberFilter		_depth_sub;
@@ -155,42 +158,32 @@ class DepthFilter : public rclcpp::Node
     sync_t					_sync_with_normal;
     sync2_t					_sync_without_normal;
 
+  // Publishers
     const image_transport::Publisher		_image_pub;
     const image_transport::Publisher		_depth_pub;
     const image_transport::Publisher		_normal_pub;
     const image_transport::Publisher		_colored_normal_pub;
     const pub_p<camera_info_t>			_camera_info_pub;
 
-    ddynamic_reconfigure2::DDynamicReconfigure<>	_ddr;
-
+  // Depth buffers for backgroud removal
     image_cp					_depth_org;
     image_cp					_depth_bg;
 
-  // Remove background.
-    double					_thresh_bg;
-    std::string					_file_bg;
-
-  // Clip outside of [_near, _far].
-    double					_near;
-    double					_far;
-
-  // Mask outside of ROI.
-    int						_top;
-    int						_bottom;
-    int						_left;
-    int						_right;
-
-  // Scaling of depth values.
-    double					_scale;
-
-  // Save as OrderPly file.
-    std::string					_fileOPly;
-
-  // Radius of window for computing normals.
-    int						_window_radius;
+  // Parameters
+    ddr_t			_ddr;
+    mutable std::mutex		_param_mtx;
+    double			_thresh_bg;	// thresh for bg removal
+    double			_near;		// clip nearer
+    double			_far;		// clip farer
+    int				_top;		// clip upper
+    int				_bottom;	// clip lower
+    int				_left;		// clip left
+    int				_right;		// clip right
+    double			_scale;		// depth scaling
+    int				_window_radius;	// kernel for computing normals
 
   private:
-    constexpr static double			FarMax = 4.0;
+    constexpr static double	FarMax = 4.0;
 };
 
 DepthFilter::DepthFilter(const rclcpp::NodeOptions& options)
@@ -202,10 +195,13 @@ DepthFilter::DepthFilter(const rclcpp::NodeOptions& options)
 		     std::bind(&DepthFilter::save_bg_cb, this,
 			       std::placeholders::_1, std::placeholders::_2),
 		     rclcpp::ServicesQoS(), _service_cbg)),
+     _subscription_options(
+	 create_subscription_options(
+	     create_callback_group(
+		 rclcpp::CallbackGroupType::MutuallyExclusive))),
      _it(rclcpp::Node::SharedPtr(this)),
-     _subscription_cbg(create_callback_group(
-			   rclcpp::CallbackGroupType::MutuallyExclusive)),
-     _camera_info_sub(),
+     _camera_info_sub(this, "/camera_info",
+		      rmw_qos_profile_default, _subscription_options),
      _image_sub(),
      _depth_sub(),
      _normal_sub(),
@@ -217,9 +213,10 @@ DepthFilter::DepthFilter(const rclcpp::NodeOptions& options)
      _normal_pub(	 _it.advertise("~/normal",	   1)),
      _colored_normal_pub(_it.advertise("~/colored_normal", 1)),
      _camera_info_pub(create_publisher<camera_info_t>("~/camera_info", 1)),
-     _ddr(rclcpp::Node::SharedPtr(this)),
      _depth_org(nullptr),
      _depth_bg(nullptr),
+     _ddr(rclcpp::Node::SharedPtr(this)),
+     _param_mtx(),
      _thresh_bg(0.0),
      _near(0.0),
      _far(FarMax),
@@ -230,45 +227,76 @@ DepthFilter::DepthFilter(const rclcpp::NodeOptions& options)
      _scale(1.0),
      _window_radius(2)
 {
+    using	namespace std::placeholders;
+
   // Setup parameters
-    _ddr.registerVariable("thresh_bg", &_thresh_bg,
-			  "Threshold value for background removal",
-			  {0.0, 0.1});
-    _ddr.registerVariable("near", &_near, "Nearest depth value", {0.0, 1.0});
-    _ddr.registerVariable("far",  &_far, "Farest depth value",  {0.0, FarMax});
-    _ddr.registerVariable("top",    &_top,    "Top of ROI",    {0, 2048});
-    _ddr.registerVariable("bottom", &_bottom, "Bottom of ROI", {0, 2048});
-    _ddr.registerVariable("left",   &_left,   "Left of ROI",   {0, 3072});
-    _ddr.registerVariable("right",  &_right,  "Right of ROI",  {0, 3072});
-    _ddr.registerVariable("scale",  &_scale,  "Scale depth",   {0.5, 1.5});
+    _ddr.registerVariable<double>("thresh_bg", _thresh_bg,
+				  std::bind(&DepthFilter::setVariable<double>,
+					    this,
+					    &DepthFilter::_thresh_bg, _1),
+				  "Threshold value for background removal",
+				  {0.0, 0.1});
+    _ddr.registerVariable<double>("near", _near,
+				  std::bind(&DepthFilter::setVariable<double>,
+					    this, &DepthFilter::_near, _1),
+				  "Nearest depth value", {0.0, 1.0});
+    _ddr.registerVariable<double>("far", _far,
+				  std::bind(&DepthFilter::setVariable<double>,
+					    this, &DepthFilter::_far, _1),
+				  "Farest depth value", {0.0, FarMax});
+    _ddr.registerVariable<int>("top", _top,
+			       std::bind(&DepthFilter::setVariable<int>,
+					 this, &DepthFilter::_top, _1),
+			       "Top of ROI", {0, 2048});
+    _ddr.registerVariable<int>("bottom", _bottom,
+			       std::bind(&DepthFilter::setVariable<int>,
+					 this, &DepthFilter::_bottom, _1),
+			       "Bottom of ROI", {0, 2048});
+    _ddr.registerVariable<int>("left", _left,
+			       std::bind(&DepthFilter::setVariable<int>,
+					 this, &DepthFilter::_left, _1),
+			       "Left of ROI", {0, 3072});
+    _ddr.registerVariable<int>("right", _right,
+			       std::bind(&DepthFilter::setVariable<int>,
+					 this, &DepthFilter::_right, _1),
+			       "Top of ROI", {0, 3072});
+    _ddr.registerVariable<double>("scale", _scale,
+			       std::bind(&DepthFilter::setVariable<double>,
+					 this, &DepthFilter::_scale, _1),
+			       "Scale factor for depth", {0.5, 1.5});
 
   // Setup subscribers
-    _camera_info_sub.subscribe(this, "/camera_info", rmw_qos_profile_default,
-			       create_subscription_options(_subscription_cbg));
-    _image_sub.subscribe(this, "/image", "raw", rmw_qos_profile_default,
-			 create_subscription_options(_subscription_cbg));
-    _depth_sub.subscribe(this, "/depth", "raw", rmw_qos_profile_default,
-			 create_subscription_options(_subscription_cbg));
-
+    _image_sub.subscribe(this, "/image", "raw",
+			 rmw_qos_profile_default, _subscription_options);
+    _depth_sub.subscribe(this, "/depth", "raw",
+			 rmw_qos_profile_default, _subscription_options);
     if (ddynamic_reconfigure2::declare_read_only_parameter(this,
 							   "subscribe_normal",
 							   false))
     {
-	_normal_sub.subscribe(this, "/normal", "raw", rmw_qos_profile_default,
-			       create_subscription_options(_subscription_cbg));
+	_normal_sub.subscribe(this, "/normal", "raw",
+			      rmw_qos_profile_default, _subscription_options);
 	_sync_with_normal.registerCallback(&DepthFilter::filter_with_normal_cb,
 					   this);
     }
     else
     {
 	_ddr.registerVariable("window_radius", &_window_radius,
-			      "Window radius", {0, 5});
+			      "Window radius for computing normals", {0, 5});
 
 	_sync_without_normal.registerCallback(
 	    &DepthFilter::filter_without_normal_cb, this);
     }
 
     RCLCPP_INFO_STREAM(get_logger(), "initialized");
+}
+
+template <class T> void
+DepthFilter::setVariable(T DepthFilter::* p, T value)
+{
+    const std::lock_guard<std::mutex>	lock(_param_mtx);
+
+    this->*p = value;
 }
 
 void
@@ -306,13 +334,17 @@ DepthFilter::filter_with_normal_cb(const camera_info_cp camera_info,
 				   const image_cp depth,
 				   const image_cp normal)
 {
-    _top    = std::max(0,     std::min(_top,    int(image->height)));
-    _bottom = std::max(_top,  std::min(_bottom, int(image->height)));
-    _left   = std::max(0,     std::min(_left,   int(image->width)));
-    _right  = std::max(_left, std::min(_right,  int(image->width)));
+    {
+	const std::lock_guard<std::mutex>	lock(_param_mtx);
 
-    if (_top == _bottom || _left == _right)
-	return;
+	_top    = std::max(0,     std::min(_top,    int(image->height)));
+	_bottom = std::max(_top,  std::min(_bottom, int(image->height)));
+	_left   = std::max(0,     std::min(_left,   int(image->width)));
+	_right  = std::max(_left, std::min(_right,  int(image->width)));
+
+	if (_top == _bottom || _left == _right)
+	    return;
+    }
 
     try
     {
@@ -349,13 +381,17 @@ DepthFilter::filter_without_normal_cb(const camera_info_cp camera_info,
 				      const image_cp image,
 				      const image_cp depth)
 {
-    _top    = std::max(0,     std::min(_top,    int(image->height)));
-    _bottom = std::max(_top,  std::min(_bottom, int(image->height)));
-    _left   = std::max(0,     std::min(_left,   int(image->width)));
-    _right  = std::max(_left, std::min(_right,  int(image->width)));
+    {
+	const std::lock_guard<std::mutex>	lock(_param_mtx);
 
-    if (_top == _bottom || _left == _right)
-	return;
+	_top    = std::max(0,     std::min(_top,    int(image->height)));
+	_bottom = std::max(_top,  std::min(_bottom, int(image->height)));
+	_left   = std::max(0,     std::min(_left,   int(image->width)));
+	_right  = std::max(_left, std::min(_right,  int(image->width)));
+
+	if (_top == _bottom || _left == _right)
+	    return;
+    }
 
     try
     {
@@ -405,11 +441,9 @@ DepthFilter::filter(const camera_info_t& camera_info, const image_p& depth)
 	    _thresh_bg = 0;
 	}
     }
-    if (_near > 0.0 || _far < FarMax)
-	z_clip<T>(depth);
 
-    if (_scale != 1.0)
-	scale<T>(depth);
+    z_clip<T>(depth);
+    scale<T>(depth);
 
     return create_normal<T>(camera_info, *depth);
 }
@@ -417,14 +451,24 @@ DepthFilter::filter(const camera_info_t& camera_info, const image_p& depth)
 template <class T> void
 DepthFilter::remove_bg(const image_p& depth, const image_t& depth_bg) const
 {
+    int		top, left;
+    double	thresh_bg;
+    {
+	const std::lock_guard<std::mutex>	lock(_param_mtx);
+
+	top	  = _top;
+	left	  = _left;
+	thresh_bg = _thresh_bg;
+    }
+
     for (u_int v = 0; v < depth->height; ++v)
     {
 	using namespace	aist_utility;
 
 	auto	p = ptr<T>(*depth, v);
-	auto	b = ptr<T>(depth_bg, v + _top) + _left;
+	auto	b = ptr<T>(depth_bg, v + top) + left;
 	for (const auto q = p + depth->width; p != q; ++p, ++b)
-	    if (*b != 0 && std::abs(meters(*p) - meters(*b)) < _thresh_bg)
+	    if (*b != 0 && std::abs(meters(*p) - meters(*b)) < thresh_bg)
 		*p = 0;
     }
 }
@@ -432,14 +476,25 @@ DepthFilter::remove_bg(const image_p& depth, const image_t& depth_bg) const
 template <class T> void
 DepthFilter::z_clip(const image_p& depth) const
 {
+    double	near, far;
+    {
+	std::lock_guard<std::mutex>	lock(_param_mtx);
+
+	near = _near;
+	far  = _far;
+    }
+
+    if (near <= 0.0 && far >= FarMax)
+	return;
+
     for (u_int v = 0; v < depth->height; ++v)
     {
 	using namespace	aist_utility;
 
 	const auto	p = ptr<T>(*depth, v);
 	std::replace_if(p, p + depth->width,
-			[this](const auto& val)
-			{return (meters(val) < _near || meters(val) > _far);},
+			[near, far](const auto& val)
+			{return (meters(val) < near || meters(val) > far);},
 			0);
     }
 }
@@ -447,19 +502,31 @@ DepthFilter::z_clip(const image_p& depth) const
 template <class T> void
 DepthFilter::scale(const image_p& depth) const
 {
+    double	scale;
+    {
+	const std::lock_guard<std::mutex>	lock(_param_mtx);
+
+	scale = _scale;
+    }
+
+    if (scale == 1.0)
+	return;
+
     for (u_int v = 0; v < depth->height; ++v)
     {
 	using namespace	aist_utility;
 
 	const auto	p = ptr<T>(*depth, v);
 	std::transform(p, p + depth->width, p,
-		       [this](const auto& val){ return _scale * val; });
+		       [scale](const auto& val){ return scale * val; });
     }
 }
 
 DepthFilter::camera_info_p
 DepthFilter::create_subcamera_info(const camera_info_t& camera_info) const
 {
+    std::lock_guard<std::mutex>	lock(_param_mtx);
+
   // Create camera_info according to ROI.
     camera_info_p	cinfo(new camera_info_t(camera_info));
     cinfo->height = _bottom - _top;
@@ -476,20 +543,26 @@ DepthFilter::image_p
 DepthFilter::create_subimage(const image_t& image) const
 {
     using	namespace sensor_msgs;
+    using	iterator_t = decltype(image.data.begin());
 
     const auto	nbytesPerPixel = image_encodings::bitDepth(image.encoding)/8
 			       * image_encodings::numChannels(image.encoding);
-
+    iterator_t	p;
     image_p	subimage(new image_t);
-    subimage->header	   = image.header;
-    subimage->height	   = _bottom - _top;
-    subimage->width	   = _right  - _left;
+    subimage->header = image.header;
+    {
+	std::lock_guard<std::mutex>	lock(_param_mtx);
+
+	subimage->height = _bottom - _top;
+	subimage->width	 = _right  - _left;
+
+	p = image.data.begin() + _top*image.step + _left*nbytesPerPixel;
+    }
     subimage->encoding	   = image.encoding;
     subimage->is_bigendian = image.is_bigendian;
     subimage->step	   = subimage->width*nbytesPerPixel;
     subimage->data.resize(subimage->height * subimage->step);
 
-    auto p = image.data.begin() + _top*image.step + _left*nbytesPerPixel;
     for (auto q = subimage->data.begin(); q != subimage->data.end();
 	 q += subimage->step)
     {
@@ -521,7 +594,8 @@ DepthFilter::create_normal(const camera_info_t& camera_info,
     normal->data.resize(normal->height * normal->step);
     std::fill(normal->data.begin(), normal->data.end(), 0);
 
-    if (_window_radius < 1)
+    const auto	window_radius = _window_radius;
+    if (window_radius < 1)
 	return normal;
 
   // 2: Compute 3D coordinates.
@@ -530,7 +604,7 @@ DepthFilter::create_normal(const camera_info_t& camera_info,
 				     aist_utility::milimeters<T>);
 
   // 3: Compute normals.
-    const auto			ws1 = 2 * _window_radius;
+    const auto			ws1 = 2 * window_radius;
     cv::Mat_<int>		n(depth.width - ws1, depth.height);
     cv::Mat_<vector3_t>		c(depth.width - ws1, depth.height);
     cv::Mat_<matrix33_t>	M(depth.width - ws1, depth.height);
@@ -596,8 +670,8 @@ DepthFilter::create_normal(const camera_info_t& camera_info,
 	    sum_M += M(u, v);
 	}
 
-	auto	norm  = ptr<normal_t>(*normal, _window_radius)
-		      + _window_radius + u;
+	auto	norm = ptr<normal_t>(*normal, window_radius)
+		     + window_radius + u;
 	for (int v = ws1; v < n.cols; ++v)
 	{
 	    sum_n += n(u, v);

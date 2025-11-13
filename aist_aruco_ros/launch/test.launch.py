@@ -69,13 +69,8 @@ def launch_setup(context):
             IncludeLaunchDescription(
                 camera_props['launch_file'],
                 launch_arguments=[
-                    ('camera_name',        LaunchConfiguration('camera_name')),
-                    ('param_file',         LaunchConfiguration('param_file')),
                     (camera_props['key_of_id'], LaunchConfiguration('id')),
-                    ('container',          LaunchConfiguration('container')),
-                    ('external_container', 'true'),
-                    ('output',             LaunchConfiguration('output')),
-                    ('log_level',          LaunchConfiguration('log_level')),
+                    ('external_container',      'true'),
                 ]))
 
     actions += [
@@ -91,10 +86,7 @@ def launch_setup(context):
                                    '.launch.py']]),
             launch_arguments=[
                 ('detector_name', LaunchConfiguration('detector_type')),
-                ('camera_name',   LaunchConfiguration('camera_name')),
                 ('camera_type',   camera_types),
-                ('param_file',    LaunchConfiguration('param_file')),
-                ('container',     LaunchConfiguration('container')),
             ]),
         Node(name='rviz',
              package='rviz2', executable='rviz2', output='screen',

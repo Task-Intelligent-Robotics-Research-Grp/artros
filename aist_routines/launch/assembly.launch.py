@@ -31,16 +31,11 @@ def launch_setup(context):
         IncludeLaunchDescription(
             PathJoinSubstitution(
                 [FindPackageShare('aist_collision_object_manager'),
-                 'launch', 'launch.py']),
-            launch_arguments=[('log_level', LaunchConfiguration('log_level')),
-                              ('output',    LaunchConfiguration('output'))]),
+                 'launch', 'launch.py'])),
         IncludeLaunchDescription(
             PathJoinSubstitution(
                 [FindPackageShare('aist_bringup'), 'launch',
-                 'cameras.launch.py']),
-            launch_arguments=[('config',    LaunchConfiguration('config')),
-                              ('log_level', LaunchConfiguration('log_level')),
-                              ('output',    LaunchConfiguration('output'))]),
+                 'cameras.launch.py'])),
     ]
 
 def generate_launch_description():
