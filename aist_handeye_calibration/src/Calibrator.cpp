@@ -63,18 +63,19 @@ class Calibrator : public rclcpp::Node
 {
   private:
     template <class MSG>
+    using msg_cp	= typename MSG::ConstSharedPtr;
+    template <class MSG>
     using sub_p		= typename rclcpp::Subscription<MSG>::SharedPtr;
     template <class SRV>
     using srv_p		= typename rclcpp::Service<SRV>::SharedPtr;
     template <class SRV>
-    using req_p		= typename SRV::Request::SharedPtr;
+    using req_cp	= typename SRV::Request::ConstSharedPtr;
     template <class SRV>
     using res_p		= typename SRV::Response::SharedPtr;
 
     using callback_group_p	= rclcpp::CallbackGroup::SharedPtr;
     using transform_t		= geometry_msgs::msg::TransformStamped;
     using pose_t		= geometry_msgs::msg::PoseStamped;
-    using pose_cp		= pose_t::ConstSharedPtr;
     using trigger_t		= std_srvs::srv::Trigger;
     using empty_t		= std_srvs::srv::Empty;
     using take_sample_t		= aist_msgs::srv::HandEyeCalibrationTakeSample;
@@ -92,14 +93,14 @@ class Calibrator : public rclcpp::Node
     const std::string&	marker_frame()				const	;
     const std::string&	world_frame()				const	;
 
-    void	pose_cb(const pose_cp pose)				;
-    void	take_sample(const req_p<take_sample_t>,
-			    const res_p<take_sample_t> res)		;
-    void	get_sample_list(const req_p<get_sample_list_t>,
-				const res_p<get_sample_list_t> res)	;
-    void	compute_calibration(const req_p<compute_calibration_t>,
-				    const res_p<compute_calibration_t> res);
-    void	reset(const req_p<empty_t>, const res_p<empty_t>)	;
+    void	pose_cb(const msg_cp<pose_t>& pose)			;
+    void	take_sample(req_cp<take_sample_t>,
+			    res_p<take_sample_t> res)			;
+    void	get_sample_list(req_cp<get_sample_list_t>,
+				res_p<get_sample_list_t> res)		;
+    void	compute_calibration(req_cp<compute_calibration_t>,
+				    res_p<compute_calibration_t> res)	;
+    void	reset(req_cp<empty_t>, res_p<empty_t>)			;
 
   private:
     const sub_p<pose_t>			_pose_sub;
@@ -109,7 +110,7 @@ class Calibrator : public rclcpp::Node
     const srv_p<compute_calibration_t>	_compute_calibration_srv;
     const srv_p<empty_t>		_reset_srv;
 
-    pose_cp				_pose;
+    msg_cp<pose_t>			_pose;
     std::mutex				_pose_mtx;
     std::condition_variable		_pose_cv;
     const std::chrono::duration<double>	_pose_timeout;
@@ -218,7 +219,7 @@ Calibrator::world_frame() const
 }
 
 void
-Calibrator::pose_cb(const pose_cp pose)
+Calibrator::pose_cb(const msg_cp<pose_t>& pose)
 {
     const std::lock_guard<std::mutex>	lock(_pose_mtx);
 
@@ -227,7 +228,7 @@ Calibrator::pose_cb(const pose_cp pose)
 }
 
 void
-Calibrator::take_sample(const req_p<take_sample_t>,
+Calibrator::take_sample(const req_cp<take_sample_t>,
 			const res_p<take_sample_t> res)
 {
     using	namespace aist_utility;
@@ -285,8 +286,8 @@ Calibrator::take_sample(const req_p<take_sample_t>,
 }
 
 void
-Calibrator::get_sample_list(const req_p<get_sample_list_t>,
-			    const res_p<get_sample_list_t> res)
+Calibrator::get_sample_list(req_cp<get_sample_list_t>,
+			    res_p<get_sample_list_t> res)
 {
     res->success	= true;
     res->message	= std::to_string(_Tcm.size()) + " samples in hand.";
@@ -297,8 +298,8 @@ Calibrator::get_sample_list(const req_p<get_sample_list_t>,
 }
 
 void
-Calibrator::compute_calibration(const req_p<compute_calibration_t>,
-				const res_p<compute_calibration_t> res)
+Calibrator::compute_calibration(req_cp<compute_calibration_t>,
+				res_p<compute_calibration_t> res)
 {
     try
     {
@@ -347,7 +348,7 @@ Calibrator::compute_calibration(const req_p<compute_calibration_t>,
 }
 
 void
-Calibrator::reset(const req_p<empty_t>, const res_p<empty_t>)
+Calibrator::reset(const req_cp<empty_t>, const res_p<empty_t>)
 {
     _Tcm.clear();
     _Twe.clear();

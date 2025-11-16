@@ -82,13 +82,13 @@ class DepthFilter : public rclcpp::Node
     using value_t	   = float;
     using callback_group_p = rclcpp::CallbackGroup::SharedPtr;
     using camera_info_t	   = sensor_msgs::msg::CameraInfo;
-    using camera_info_cp   = camera_info_t::ConstSharedPtr;
-    using camera_info_p    = camera_info_t::UniquePtr;
     using image_t	   = sensor_msgs::msg::Image;
-    using image_cp	   = image_t::ConstSharedPtr;
-    using image_p	   = image_t::UniquePtr;
 
   private:
+    template <class MSG>
+    using msg_cp	= typename MSG::ConstSharedPtr;
+    template <class MSG>
+    using msg_p		= typename MSG::UniquePtr;
     template <class MSG>
     using pub_p		= typename rclcpp::Publisher<MSG>::SharedPtr;
     template <class MSG>
@@ -96,14 +96,14 @@ class DepthFilter : public rclcpp::Node
     template <class SRV>
     using srv_p		= typename rclcpp::Service<SRV>::SharedPtr;
     template <class SRV>
-    using req_p		= typename SRV::Request::SharedPtr;
+    using req_cp	= typename SRV::Request::ConstSharedPtr;
     template <class SRV>
     using res_p		= typename SRV::Response::SharedPtr;
 
     using sync_t	= message_filters::TimeSynchronizer<
-				camera_info_t, image_t, image_t, image_t>;
+			      camera_info_t, image_t, image_t, image_t>;
     using sync2_t	= message_filters::TimeSynchronizer<
-				camera_info_t, image_t, image_t>;
+			      camera_info_t, image_t, image_t>;
     using ddr_t		= ddynamic_reconfigure2::DDynamicReconfigure<>;
     using trigger_t	= std_srvs::srv::Trigger;
 
@@ -113,34 +113,37 @@ class DepthFilter : public rclcpp::Node
   private:
     template <class T>
     void	setVariable(T DepthFilter::* p, T value)		;
-    void	save_bg_cb(const req_p<trigger_t>,
-			   const res_p<trigger_t> res)			;
-    void	filter_with_normal_cb(const camera_info_cp camera_info,
-				      const image_cp image,
-				      const image_cp depth,
-				      const image_cp normal)		;
-    void	filter_without_normal_cb(const camera_info_cp camera_info,
-					 const image_cp image,
-					 const image_cp depth)		;
+    void	save_bg_cb(req_cp<trigger_t>, res_p<trigger_t> res)	;
+    void	filter_with_normal_cb(
+		    const msg_cp<camera_info_t>& camera_info,
+		    const msg_cp<image_t>&	 image,
+		    const msg_cp<image_t>&	 depth,
+		    const msg_cp<image_t>&	 normal)		;
+    void	filter_without_normal_cb(
+		    const msg_cp<camera_info_t>& camera_info,
+		    const msg_cp<image_t>&	 image,
+		    const msg_cp<image_t>&	 depth)			;
 
+    template <class T> msg_p<image_t>
+		filter(const camera_info_t& camera_info,
+		       const msg_p<image_t>& depth)			;
     template <class T>
-    image_p	filter(const camera_info_t& camera_info,
-		       const image_p& depth)				;
-    template <class T>
-    void	remove_bg(const image_p& depth,
+    void	remove_bg(const msg_p<image_t>& depth,
 			  const image_t& depth_bg)		const	;
     template <class T>
-    void	z_clip(const image_p& depth)			const	;
+    void	z_clip(const msg_p<image_t>& depth)		const	;
     template <class T>
-    void	scale(const image_p& depth)			const	;
-    camera_info_p
+    void	scale(const msg_p<image_t>& depth)		const	;
+    msg_p<camera_info_t>
 		create_subcamera_info(
 		    const camera_info_t& camera_into)		const	;
-    image_p	create_subimage(const image_t& image)		const	;
-    template <class T>
-    image_p	create_normal(const camera_info_t& camera_info,
+    msg_p<image_t>
+		create_subimage(const image_t& image)		const	;
+    template <class T> msg_p<image_t>
+		create_normal(const camera_info_t& camera_info,
 			      const image_t& depth)			;
-    image_p	create_colored_normal(const image_t& normal)	const	;
+    msg_p<image_t>
+		create_colored_normal(const image_t& normal)	const	;
     std::string	open_dir()					const	;
 
   private:
@@ -166,8 +169,8 @@ class DepthFilter : public rclcpp::Node
     const pub_p<camera_info_t>			_camera_info_pub;
 
   // Depth buffers for backgroud removal
-    image_cp					_depth_org;
-    image_cp					_depth_bg;
+    msg_cp<image_t>				_depth_org;
+    msg_cp<image_t>				_depth_bg;
 
   // Parameters
     ddr_t			_ddr;
@@ -300,7 +303,7 @@ DepthFilter::setVariable(T DepthFilter::* p, T value)
 }
 
 void
-DepthFilter::save_bg_cb(const req_p<trigger_t>, const res_p<trigger_t> res)
+DepthFilter::save_bg_cb(req_cp<trigger_t>, res_p<trigger_t> res)
 {
     try
     {
@@ -329,10 +332,10 @@ DepthFilter::save_bg_cb(const req_p<trigger_t>, const res_p<trigger_t> res)
 }
 
 void
-DepthFilter::filter_with_normal_cb(const camera_info_cp camera_info,
-				   const image_cp image,
-				   const image_cp depth,
-				   const image_cp normal)
+DepthFilter::filter_with_normal_cb(const msg_cp<camera_info_t>& camera_info,
+				   const msg_cp<image_t>& image,
+				   const msg_cp<image_t>& depth,
+				   const msg_cp<image_t>& normal)
 {
     {
 	const std::lock_guard<std::mutex>	lock(_param_mtx);
@@ -377,9 +380,9 @@ DepthFilter::filter_with_normal_cb(const camera_info_cp camera_info,
 }
 
 void
-DepthFilter::filter_without_normal_cb(const camera_info_cp camera_info,
-				      const image_cp image,
-				      const image_cp depth)
+DepthFilter::filter_without_normal_cb(const msg_cp<camera_info_t>& camera_info,
+				      const msg_cp<image_t>& image,
+				      const msg_cp<image_t>& depth)
 {
     {
 	const std::lock_guard<std::mutex>	lock(_param_mtx);
@@ -399,9 +402,9 @@ DepthFilter::filter_without_normal_cb(const camera_info_cp camera_info,
 	_depth_org = depth;
 
       // Create camera_info according to ROI.
-	auto	subcamera_info	= create_subcamera_info(*camera_info);
-	auto	subdepth	= create_subimage(*depth);
-	image_p	subnormal;
+	auto		subcamera_info = create_subcamera_info(*camera_info);
+	auto		subdepth       = create_subimage(*depth);
+	msg_p<image_t>	subnormal;
 
 	if (depth->encoding == sensor_msgs::image_encodings::MONO16 ||
 	    depth->encoding == sensor_msgs::image_encodings::TYPE_16UC1)
@@ -423,8 +426,9 @@ DepthFilter::filter_without_normal_cb(const camera_info_cp camera_info,
     }
 }
 
-template <class T> DepthFilter::image_p
-DepthFilter::filter(const camera_info_t& camera_info, const image_p& depth)
+template <class T> DepthFilter::msg_p<DepthFilter::image_t>
+DepthFilter::filter(const camera_info_t& camera_info,
+		    const msg_p<image_t>& depth)
 {
     if (_thresh_bg > 0)
     {
@@ -449,7 +453,8 @@ DepthFilter::filter(const camera_info_t& camera_info, const image_p& depth)
 }
 
 template <class T> void
-DepthFilter::remove_bg(const image_p& depth, const image_t& depth_bg) const
+DepthFilter::remove_bg(const msg_p<image_t>& depth,
+		       const image_t& depth_bg) const
 {
     int		top, left;
     double	thresh_bg;
@@ -474,7 +479,7 @@ DepthFilter::remove_bg(const image_p& depth, const image_t& depth_bg) const
 }
 
 template <class T> void
-DepthFilter::z_clip(const image_p& depth) const
+DepthFilter::z_clip(const msg_p<image_t>& depth) const
 {
     double	near, far;
     {
@@ -500,7 +505,7 @@ DepthFilter::z_clip(const image_p& depth) const
 }
 
 template <class T> void
-DepthFilter::scale(const image_p& depth) const
+DepthFilter::scale(const msg_p<image_t>& depth) const
 {
     double	scale;
     {
@@ -522,13 +527,13 @@ DepthFilter::scale(const image_p& depth) const
     }
 }
 
-DepthFilter::camera_info_p
+DepthFilter::msg_p<DepthFilter::camera_info_t>
 DepthFilter::create_subcamera_info(const camera_info_t& camera_info) const
 {
     std::lock_guard<std::mutex>	lock(_param_mtx);
 
   // Create camera_info according to ROI.
-    camera_info_p	cinfo(new camera_info_t(camera_info));
+    msg_p<camera_info_t>	cinfo(new camera_info_t(camera_info));
     cinfo->height = _bottom - _top;
     cinfo->width  = _right  - _left;
     cinfo->k[2]	 -= _left;
@@ -539,7 +544,7 @@ DepthFilter::create_subcamera_info(const camera_info_t& camera_info) const
     return cinfo;
 }
 
-DepthFilter::image_p
+DepthFilter::msg_p<DepthFilter::image_t>
 DepthFilter::create_subimage(const image_t& image) const
 {
     using	namespace sensor_msgs;
@@ -547,8 +552,8 @@ DepthFilter::create_subimage(const image_t& image) const
 
     const auto	nbytesPerPixel = image_encodings::bitDepth(image.encoding)/8
 			       * image_encodings::numChannels(image.encoding);
-    iterator_t	p;
-    image_p	subimage(new image_t);
+    iterator_t		p;
+    msg_p<image_t>	subimage(new image_t);
     subimage->header = image.header;
     {
 	std::lock_guard<std::mutex>	lock(_param_mtx);
@@ -573,7 +578,7 @@ DepthFilter::create_subimage(const image_t& image) const
     return subimage;
 }
 
-template <class T> DepthFilter::image_p
+template <class T> DepthFilter::msg_p<DepthFilter::image_t>
 DepthFilter::create_normal(const camera_info_t& camera_info,
 			   const image_t& depth)
 {
@@ -584,7 +589,7 @@ DepthFilter::create_normal(const camera_info_t& camera_info,
     using matrix33_t	= cv::Matx<double, 3, 3>;  // double-precision
 
   // 1: Allocate image for output normals.
-    image_p	normal(new image_t);
+    msg_p<image_t>	normal(new image_t);
     normal->header		= depth.header;
     normal->encoding		= sensor_msgs::image_encodings::TYPE_32FC3;
     normal->height		= depth.height;
@@ -719,13 +724,13 @@ DepthFilter::create_normal(const camera_info_t& camera_info,
     return normal;
 }
 
-DepthFilter::image_p
+DepthFilter::msg_p<DepthFilter::image_t>
 DepthFilter::create_colored_normal(const image_t& normal) const
 {
     using normal_t		= std::array<float, 3>;
     using colored_normal_t	= std::array<uint8_t, 3>;
 
-    image_p	colored_normal(new(image_t));
+    msg_p<image_t>	colored_normal(new(image_t));
     colored_normal->header	 = normal.header;
     colored_normal->height	 = normal.height;
     colored_normal->width	 = normal.width;

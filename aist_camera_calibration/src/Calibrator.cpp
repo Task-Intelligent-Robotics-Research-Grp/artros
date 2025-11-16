@@ -95,11 +95,13 @@ class Calibrator : public rclcpp::Node
 
   private:
     template <class MSG>
+    using msg_cp	= typename MSG::ConstSharedPtr;
+    template <class MSG>
     using sub_p		= typename rclcpp::Subscription<MSG>::SharedPtr;
     template <class SRV>
     using srv_p		= typename rclcpp::Service<SRV>::SharedPtr;
     template <class SRV>
-    using req_p		= typename SRV::Request::SharedPtr;
+    using req_cp	= typename SRV::Request::ConstSharedPtr;
     template <class SRV>
     using res_p		= typename SRV::Response::SharedPtr;
 
@@ -108,7 +110,6 @@ class Calibrator : public rclcpp::Node
     using correses_msg_t	= aist_msgs::msg::PointCorrespondenceArray;
     using correses_set_msg_t	= aist_msgs::msg
 					   ::PointCorrespondenceArrayArray;
-    using correses_set_msg_cp	= correses_set_msg_t::ConstSharedPtr;
     using empty_t		= std_srvs::srv::Empty;
     using take_sample_t		= aist_msgs::srv::CameraCalibrationTakeSample;
     using get_sample_list_t	= aist_msgs::srv
@@ -192,14 +193,15 @@ class Calibrator : public rclcpp::Node
 		Calibrator(const rclcpp::NodeOptions& options)		;
 
   private:
-    void	corres_cb(const correses_set_msg_cp correses_set_msg)	;
-    void	take_sample(const req_p<take_sample_t>,
-			    const res_p<take_sample_t> res)		;
-    void	get_sample_list(const req_p<get_sample_list_t>,
-				const res_p<get_sample_list_t> res)	;
-    void	compute_calibration(const req_p<compute_calibration_t>,
-				    const res_p<compute_calibration_t> res);
-    void	reset(const req_p<empty_t>, const res_p<empty_t>)	;
+    void	corres_cb(
+		    const msg_cp<correses_set_msg_t>& correses_set_msg)	;
+    void	take_sample(req_cp<take_sample_t>,
+			    res_p<take_sample_t> res)			;
+    void	get_sample_list(req_cp<get_sample_list_t>,
+				res_p<get_sample_list_t> res)		;
+    void	compute_calibration(req_cp<compute_calibration_t>,
+				    res_p<compute_calibration_t> res)	;
+    void	reset(req_cp<empty_t>, res_p<empty_t>)			;
 
     correses_sets_t<corres22_t>
 		convert_correspondences_sets()			const	;
@@ -215,7 +217,7 @@ class Calibrator : public rclcpp::Node
     const srv_p<compute_calibration_t>	_compute_calibration_srv;
     const srv_p<empty_t>		_reset_srv;
 
-    correses_set_msg_cp			_correspondences_set;
+    msg_cp<correses_set_msg_t>		_correspondences_set;
     std::mutex				_correspondences_set_mtx;
     std::condition_variable		_correspondences_set_cv;
     const std::chrono::duration<double>	_correspondences_set_timeout;
@@ -268,7 +270,7 @@ Calibrator::Calibrator(const rclcpp::NodeOptions& options)
 }
 
 void
-Calibrator::corres_cb(const correses_set_msg_cp correses_set_msg)
+Calibrator::corres_cb(const msg_cp<correses_set_msg_t>& correses_set_msg)
 {
   // Check input correspondences set.
     try
@@ -297,8 +299,7 @@ Calibrator::corres_cb(const correses_set_msg_cp correses_set_msg)
 }
 
 void
-Calibrator::take_sample(const req_p<take_sample_t>,
-			const res_p<take_sample_t> res)
+Calibrator::take_sample(req_cp<take_sample_t>, res_p<take_sample_t> res)
 {
     RCLCPP_INFO_STREAM(get_logger(),
 		       "new request for CameraCalibrationTakeSample received");
@@ -345,8 +346,8 @@ Calibrator::take_sample(const req_p<take_sample_t>,
 }
 
 void
-Calibrator::get_sample_list(const req_p<get_sample_list_t>,
-			    const res_p<get_sample_list_t> res)
+Calibrator::get_sample_list(req_cp<get_sample_list_t>,
+			    res_p<get_sample_list_t> res)
 {
     res->correspondences_sets = _correspondences_sets;
     res->message = "get_sample_list: "
@@ -357,8 +358,8 @@ Calibrator::get_sample_list(const req_p<get_sample_list_t>,
 }
 
 void
-Calibrator::compute_calibration(const req_p<compute_calibration_t>,
-				const res_p<compute_calibration_t> res)
+Calibrator::compute_calibration(req_cp<compute_calibration_t>,
+				res_p<compute_calibration_t> res)
 {
     try
     {
@@ -430,7 +431,7 @@ Calibrator::compute_calibration(const req_p<compute_calibration_t>,
 }
 
 void
-Calibrator::reset(const req_p<empty_t>, const res_p<empty_t>)
+Calibrator::reset(req_cp<empty_t>, res_p<empty_t>)
 {
     _correspondences_sets.clear();
     _intrinsics.clear();

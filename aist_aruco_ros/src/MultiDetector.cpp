@@ -43,10 +43,12 @@ class MultiDetector : public rclcpp::Node
     using marker_map_t	= aruco::MarkerMap;
     using point2_t	= cv::Point2f;
     using point3_t	= cv::Point3f;
+    using ddr_t		= ddynamic_reconfigure2::DDynamicReconfigure<>;
 
-    using ddynamic_reconfigure_t = ddynamic_reconfigure2::DDynamicReconfigure<>;
+    template <class MSG>
+    using pub_p		= typename rclcpp::Publisher<MSG>::SharedPtr;
 
-    struct rgb_t		{ uint8_t r, g, b; };
+    struct rgb_t	{ uint8_t r, g, b; };
 
     template <size_t N, class... TYPES>
     struct Policy
@@ -101,35 +103,35 @@ class MultiDetector : public rclcpp::Node
     template <size_t N>
     void	image_cb()						;
     aist_msgs::msg::PointCorrespondenceArray
-    detect_marker(const image_cp& image_msg,
-		  const image_transport::Publisher& result_pub,
-		  const image_transport::Publisher& debug_pub,
-		  const std::string& camera_name)			;
+		detect_marker(const image_cp& image_msg,
+			      const image_transport::Publisher& result_pub,
+			      const image_transport::Publisher& debug_pub,
+			      const std::string& camera_name)		;
     static void	publish_image(const std_msgs::msg::Header& header,
 			      const cv::Mat& image,
 			      const image_transport::Publisher& pub)	;
 
   private:
-    ddynamic_reconfigure_t				_ddr;
+    ddr_t					_ddr;
 
-    const std::vector<std::string>			_camera_names;
+    const std::vector<std::string>		_camera_names;
 
-    image_transport::ImageTransport			_it;
-    image_transport::Subscriber				_image_sub;
-    std::vector<std::unique_ptr<subscriber_t> >		_image_subs;
-    std::vector<publisher_t>				_result_pubs;
-    std::vector<publisher_t>				_debug_pubs;
-    const rclcpp::Publisher<correses_set_t>::SharedPtr	_corres_pub;
-    std::unique_ptr<SyncBase>				_sync;
+    image_transport::ImageTransport		_it;
+    image_transport::Subscriber			_image_sub;
+    std::vector<std::unique_ptr<subscriber_t> >	_image_subs;
+    std::vector<publisher_t>			_result_pubs;
+    std::vector<publisher_t>			_debug_pubs;
+    const pub_p<correses_set_t>			_corres_pub;
+    std::unique_ptr<SyncBase>			_sync;
 
-    tf2_ros::Buffer					_tf2_buffer;
-    const tf2_ros::TransformListener			_tf2_listener;
-    const std::string					_reference_frame;
-    const std::string					_marker_frame;
+    tf2_ros::Buffer				_tf2_buffer;
+    const tf2_ros::TransformListener		_tf2_listener;
+    const std::string				_reference_frame;
+    const std::string				_marker_frame;
 
-    mdetector_t						_marker_detector;
-    marker_map_t					_marker_map;
-    correses_set_t					_correspondences_set;
+    mdetector_t					_marker_detector;
+    marker_map_t				_marker_map;
+    correses_set_t				_correspondences_set;
 };
 
 MultiDetector::MultiDetector(const rclcpp::NodeOptions& options)

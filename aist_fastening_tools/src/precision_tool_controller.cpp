@@ -57,30 +57,31 @@ class PrecisionToolController : public rclcpp::Node
 					DynamixelStateList;
     using dynamixel_state_t	= dynamixel_workbench_msgs::msg::
 					DynamixelState;
-    using dynamixel_states_cp	= dynamixel_states_t::UniquePtr;
     using dynamixel_command_t	= dynamixel_workbench_msgs::srv::
 					DynamixelCommand;
     using joint_state_t		= sensor_msgs::msg::JointState;
     using gripper_command_t	= control_msgs::action::GripperCommand;
-    using goal_cp		= std::shared_ptr<
-					const gripper_command_t::Goal>;
     using goal_uuid_t		= rclcpp_action::GoalUUID;
-    using goal_handle_t		= rclcpp_action::
-					ServerGoalHandle<gripper_command_t>;
-    using goal_handle_p		= std::shared_ptr<goal_handle_t>;
     using goal_response_t	= rclcpp_action::GoalResponse;
     using cancel_response_t	= rclcpp_action::CancelResponse;
-    using ddynamic_reconfigure_t= ddynamic_reconfigure2::DDynamicReconfigure<>;
-
     using callback_group_p	= rclcpp::CallbackGroup::SharedPtr;
+
     template <class MSG>
-    using publisher_p	 = typename rclcpp::Publisher<MSG>::SharedPtr;
+    using msg_p		= typename MSG::UniquePtr;
     template <class MSG>
-    using subscription_p = typename rclcpp::Subscription<MSG>::SharedPtr;
+    using pub_p		= typename rclcpp::Publisher<MSG>::SharedPtr;
+    template <class MSG>
+    using sub_p		= typename rclcpp::Subscription<MSG>::SharedPtr;
     template <class SRV>
-    using client_p	 = typename rclcpp::Client<SRV>::SharedPtr;
+    using clnt_p	= typename rclcpp::Client<SRV>::SharedPtr;
     template <class ACT>
-    using action_server_p= typename rclcpp_action::Server<ACT>::SharedPtr;
+    using action_p	= typename rclcpp_action::Server<ACT>::SharedPtr;
+    template <class ACT>
+    using goal_cp	= std::shared_ptr<const typename ACT::Goal>;
+    template <class ACT>
+    using goal_handle_t	= rclcpp_action::ServerGoalHandle<ACT>;
+    template <class ACT>
+    using goal_handle_p	= std::shared_ptr<goal_handle_t<ACT> >;
 
     enum Stage	{ ACTIVE, LOOSEN, RETIGHTEN, DONE };
 
@@ -89,11 +90,13 @@ class PrecisionToolController : public rclcpp::Node
 
   private:
     goal_response_t
-		goal_cb(const goal_uuid_t&, const goal_cp goal)		;
+		goal_cb(const goal_uuid_t&,
+			goal_cp<gripper_command_t> goal)		;
     cancel_response_t
-		cancel_cb(const goal_handle_p)				;
-    void	handle_accepted_cb(const goal_handle_p goal_handle)	;
-    void	dynamixel_states_cb(const dynamixel_states_cp& states)	;
+		cancel_cb(const goal_handle_p<gripper_command_t>)	;
+    void	handle_accepted_cb(
+		    goal_handle_p<gripper_command_t> goal_handle)	;
+    void	dynamixel_states_cb(msg_p<dynamixel_states_t> states)	;
 
     bool	send_move_command(double position,
 				  double max_effort)		const	;
@@ -110,33 +113,33 @@ class PrecisionToolController : public rclcpp::Node
 
   private:
   // Read-only parameters
-    const std::string				_driver_ns;
-    const uint8_t				_motor_id;
-    const double				_min_position;
-    const double				_max_position;
-    const double				_max_effort;
-    const int					_min_pos;
-    const int					_max_pos;
-    const int					_min_cur;
-    const int					_max_cur;
-    const double				_position_per_tick;
-    const double				_effort_per_tick;
-    const rclcpp::Duration			_stall_timeout;
+    const std::string			_driver_ns;
+    const uint8_t			_motor_id;
+    const double			_min_position;
+    const double			_max_position;
+    const double			_max_effort;
+    const int				_min_pos;
+    const int				_max_pos;
+    const int				_min_cur;
+    const int				_max_cur;
+    const double			_position_per_tick;
+    const double			_effort_per_tick;
+    const rclcpp::Duration		_stall_timeout;
 
   // Dynamixel driver stuffs
-    const subscription_p<dynamixel_states_t>	_dxl_states_sub;
-    const callback_group_p			_dxl_command_cbg;
-    const client_p<dynamixel_command_t>		_dxl_command;
-    int						_present_pos;
+    const sub_p<dynamixel_states_t>	_dxl_states_sub;
+    const callback_group_p		_dxl_command_cbg;
+    const clnt_p<dynamixel_command_t>	_dxl_command;
+    int					_present_pos;
 
   // Joint state publisher stuffs
-    const publisher_p<joint_state_t>		_joint_state_pub;
+    const pub_p<joint_state_t>		_joint_state_pub;
 
   // Gripper command action stuffs
-    const action_server_p<gripper_command_t>	_command_srv;
-    goal_handle_p				_current_goal_handle;
-    std::mutex					_current_goal_mtx;
-    rclcpp::Time				_last_move_time;
+    const action_p<gripper_command_t>	_command_srv;
+    goal_handle_p<gripper_command_t>	_current_goal_handle;
+    std::mutex				_current_goal_mtx;
+    rclcpp::Time			_last_move_time;
 };
 
 PrecisionToolController::PrecisionToolController(
@@ -201,7 +204,8 @@ PrecisionToolController::PrecisionToolController(
 }
 
 PrecisionToolController::goal_response_t
-PrecisionToolController::goal_cb(const goal_uuid_t&, const goal_cp goal)
+PrecisionToolController::goal_cb(const goal_uuid_t&,
+				 goal_cp<gripper_command_t> goal)
 {
     RCLCPP_INFO_STREAM(get_logger(),
 		       "goal ACCEPTED: position=" << goal->command.position
@@ -210,14 +214,15 @@ PrecisionToolController::goal_cb(const goal_uuid_t&, const goal_cp goal)
 }
 
 PrecisionToolController::cancel_response_t
-PrecisionToolController::cancel_cb(const goal_handle_p)
+PrecisionToolController::cancel_cb(goal_handle_p<gripper_command_t>)
 {
     RCLCPP_DEBUG_STREAM(get_logger(), "accepted request for cancelling goal");
     return cancel_response_t::ACCEPT;
 }
 
 void
-PrecisionToolController::handle_accepted_cb(const goal_handle_p goal_handle)
+PrecisionToolController::handle_accepted_cb(
+    goal_handle_p<gripper_command_t> goal_handle)
 {
     const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
 
@@ -255,7 +260,7 @@ PrecisionToolController::handle_accepted_cb(const goal_handle_p goal_handle)
 }
 
 void
-PrecisionToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
+PrecisionToolController::dynamixel_states_cb(msg_p<dynamixel_states_t> states)
 {
   // Find a dynamixel state with my motor ID.
     const auto	state = std::find_if(states->dynamixel_state.begin(),

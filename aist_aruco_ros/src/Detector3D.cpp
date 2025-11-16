@@ -47,32 +47,32 @@ val(const sensor_msgs::msg::Image& image_msg, int u, int v)
 }
 
 static aruco::CameraParameters
-rosCameraInfo2ArucoCamParams(const sensor_msgs::msg::CameraInfo& camera_info,
+rosCameraInfo2ArucoCamParams(const sensor_msgs::msg::CameraInfo& cinfo,
 			     bool useRectifiedParameters)
 {
     cv::Mat		cameraMatrix(3, 3, CV_64FC1, 0.0);
     cv::Mat		distorsionCoeff(4, 1, CV_64FC1, 0.0);
-    const cv::Size	size(camera_info.width, camera_info.height);
+    const cv::Size	size(cinfo.width, cinfo.height);
 
     if (useRectifiedParameters)
     {
-	cameraMatrix.at<double>(0, 0) = camera_info.p[0];
-	cameraMatrix.at<double>(0, 1) = camera_info.p[1];
-	cameraMatrix.at<double>(0, 2) = camera_info.p[2];
-	cameraMatrix.at<double>(1, 0) = camera_info.p[4];
-	cameraMatrix.at<double>(1, 1) = camera_info.p[5];
-	cameraMatrix.at<double>(1, 2) = camera_info.p[6];
-	cameraMatrix.at<double>(2, 0) = camera_info.p[8];
-	cameraMatrix.at<double>(2, 1) = camera_info.p[9];
-	cameraMatrix.at<double>(2, 2) = camera_info.p[10];
+	cameraMatrix.at<double>(0, 0) = cinfo.p[0];
+	cameraMatrix.at<double>(0, 1) = cinfo.p[1];
+	cameraMatrix.at<double>(0, 2) = cinfo.p[2];
+	cameraMatrix.at<double>(1, 0) = cinfo.p[4];
+	cameraMatrix.at<double>(1, 1) = cinfo.p[5];
+	cameraMatrix.at<double>(1, 2) = cinfo.p[6];
+	cameraMatrix.at<double>(2, 0) = cinfo.p[8];
+	cameraMatrix.at<double>(2, 1) = cinfo.p[9];
+	cameraMatrix.at<double>(2, 2) = cinfo.p[10];
     }
     else
     {
 	for (size_t i = 0; i < 9; ++i)
-	    *(cameraMatrix.ptr<double>() + i) = camera_info.k[i];
+	    *(cameraMatrix.ptr<double>() + i) = cinfo.k[i];
 
-	for (size_t i = 0; i < std::min(size_t(4), camera_info.d.size()); ++i)
-	    *(distorsionCoeff.ptr<double>() + i) = camera_info.d[i];
+	for (size_t i = 0; i < std::min(size_t(4), cinfo.d.size()); ++i)
+	    *(distorsionCoeff.ptr<double>() + i) = cinfo.d[i];
     }
 
     return {cameraMatrix, distorsionCoeff, size};
@@ -84,25 +84,27 @@ rosCameraInfo2ArucoCamParams(const sensor_msgs::msg::CameraInfo& camera_info,
 class Detector3D : public rclcpp::Node
 {
   private:
-    using camera_info_t		= sensor_msgs::msg::CameraInfo;
-    using camera_info_cp	= camera_info_t::ConstSharedPtr;
-    using image_t		= sensor_msgs::msg::Image;
-    using image_cp		= image_t::ConstSharedPtr;
-    using cloud_t		= sensor_msgs::msg::PointCloud2;
-    using cloud_cp		= cloud_t::ConstSharedPtr;
-    using depth_sync_t		= message_filters::TimeSynchronizer<
-					image_t, image_t, camera_info_t>;
-    using cloud_sync_t		= message_filters::TimeSynchronizer<
-					cloud_t, camera_info_t>;
-    using pose_t		= geometry_msgs::msg::PoseStamped;
-    using mdetector_t		= aruco::MarkerDetector;
-    using mparams_t		= mdetector_t::Params;
-    using marker_info_t		= aruco::Marker3DInfo;
-    using marker_map_t		= aruco::MarkerMap;
-    using point3_t		= cv::Vec<float, 3>;
-    using ddynamic_reconfigure_t= ddynamic_reconfigure2::DDynamicReconfigure<>;
+    using camera_info_t	= sensor_msgs::msg::CameraInfo;
+    using image_t	= sensor_msgs::msg::Image;
+    using cloud_t	= sensor_msgs::msg::PointCloud2;
+    using depth_sync_t	= message_filters::TimeSynchronizer<image_t, image_t,
+							    camera_info_t>;
+    using cloud_sync_t	= message_filters::TimeSynchronizer<cloud_t,
+							    camera_info_t>;
+    using pose_t	= geometry_msgs::msg::PoseStamped;
+    using mdetector_t	= aruco::MarkerDetector;
+    using mparams_t	= mdetector_t::Params;
+    using marker_info_t	= aruco::Marker3DInfo;
+    using marker_map_t	= aruco::MarkerMap;
+    using point3_t	= cv::Vec<float, 3>;
+    using ddr_t		= ddynamic_reconfigure2::DDynamicReconfigure<>;
 
-    struct rgb_t		{ uint8_t r, g, b; };
+    template <class MSG>
+    using pub_p		= typename rclcpp::Publisher<MSG>::SharedPtr;
+    template <class MSG>
+    using msg_cp	= typename MSG::ConstSharedPtr;
+
+    struct rgb_t	{ uint8_t r, g, b; };
 
   public:
 		Detector3D(const rclcpp::NodeOptions& options)		;
@@ -113,18 +115,18 @@ class Detector3D : public rclcpp::Node
     void	set_detection_mode(int mode)				;
     void	set_dictionary(const std::string& dict)			;
     void	detect_marker_from_depth_cb(
-		    const image_cp&	  image_msg,
-		    const image_cp&	  depth_msg,
-		    const camera_info_cp& camera_info_msg)		;
+		    const msg_cp<image_t>&	 image_msg,
+		    const msg_cp<image_t>&	 depth,
+		    const msg_cp<camera_info_t>& cinfo)			;
     void	detect_marker_from_cloud_cb(
-		    const cloud_cp&	  cloud_msg,
-		    const camera_info_cp& camera_info_msg)		;
+		    const msg_cp<cloud_t>&	 cloud,
+		    const msg_cp<camera_info_t>& cinfo)			;
     template <class MSG>
     void	detect_marker(const MSG& msg,
-			      const camera_info_t& camera_info_msg,
-			      cv::Mat& image)				;
+			      const camera_info_t& cinfo,
+			      cv::Mat& img)				;
     static void	publish_image(const std_msgs::msg::Header& header,
-			      const cv::Mat& image,
+			      const cv::Mat& img,
 			      const image_transport::Publisher& pub)	;
     template <class ITER>
     void	publish_transform(ITER begin, ITER end,
@@ -133,19 +135,18 @@ class Detector3D : public rclcpp::Node
 				  bool publish_pose)			;
     template <class MSG> std::vector<point3_t>
 		get_marker_corners(const aruco::Marker& marker,
-				   const MSG& msg,
-				   cv::Mat& image)		const	;
+				   const MSG& msg, cv::Mat& img) const	;
     template <class T> cv::Vec<T, 3>
 		view_vector(T u, T v)				const	;
     template <class T> cv::Vec<T, 3>
-		at(const image_t& depth_msg, int u, int v)	const	;
+		at(const image_t& depth, int u, int v)		const	;
     template <class T> cv::Vec<T, 3>
-		at(const cloud_t& cloud_msg, int u, int v)	const	;
+		at(const cloud_t& cloud, int u, int v)		const	;
     template <class T, class MSG> cv::Vec<T, 3>
 		at(const MSG& msg, T u, T v)			const	;
 
   private:
-    ddynamic_reconfigure_t			_ddr;
+    ddr_t					_ddr;
 
   // transformation stuff
     tf2_ros::TransformBroadcaster		_broadcaster;
@@ -156,7 +157,7 @@ class Detector3D : public rclcpp::Node
     image_transport::SubscriberFilter		_image_sub;
     image_transport::SubscriberFilter		_depth_sub;
     message_filters::Subscriber<cloud_t>	_cloud_sub;
-    message_filters::Subscriber<camera_info_t>	_camera_info_sub;
+    message_filters::Subscriber<camera_info_t>	_cinfo_sub;
     depth_sync_t				_depth_sync;
     cloud_sync_t				_cloud_sync;
 
@@ -168,7 +169,7 @@ class Detector3D : public rclcpp::Node
   // output stuff
     const image_transport::Publisher		_result_pub;
     const image_transport::Publisher		_debug_pub;
-    const rclcpp::Publisher<pose_t>::SharedPtr	_pose_pub;
+    const pub_p<pose_t>				_pose_pub;
 
     mdetector_t					_marker_detector;
     marker_map_t				_marker_map;
@@ -187,9 +188,9 @@ Detector3D::Detector3D(const rclcpp::NodeOptions& options)
      _image_sub(this, "image", "raw"),
      _depth_sub(this, "depth", "raw"),
      _cloud_sub(this, "pointcloud"),
-     _camera_info_sub(this, "/camera_info"),
-     _depth_sync(_image_sub, _depth_sub, _camera_info_sub, 3),
-     _cloud_sync(_cloud_sub, _camera_info_sub, 3),
+     _cinfo_sub(this, "/camera_info"),
+     _depth_sync(_image_sub, _depth_sub, _cinfo_sub, 3),
+     _cloud_sync(_cloud_sub, _cinfo_sub, 3),
      _camParam(),
      _useRectifiedImages(ddynamic_reconfigure2::declare_read_only_parameter(
 			     this, "image_is_rectified", false)),
@@ -328,53 +329,50 @@ Detector3D::set_dictionary(const std::string& dict)
 }
 
 void
-Detector3D::detect_marker_from_depth_cb(const image_cp& image_msg,
-					const image_cp& depth_msg,
-					const camera_info_cp& camera_info_msg)
+Detector3D::detect_marker_from_depth_cb(const msg_cp<image_t>& image,
+					const msg_cp<image_t>& depth,
+					const msg_cp<camera_info_t>& cinfo)
 {
-    using namespace	sensor_msgs;
-
-    auto	image = cv_bridge::toCvCopy(image_msg, image_encodings::RGB8)
-		      ->image;
-    detect_marker(*depth_msg, *camera_info_msg, image);
+    auto	img = cv_bridge::toCvCopy(image,
+					  sensor_msgs::image_encodings::RGB8)
+		    ->image;
+    detect_marker(*depth, *cinfo, img);
 }
 
 void
-Detector3D::detect_marker_from_cloud_cb(const cloud_cp& cloud_msg,
-					const camera_info_cp& camera_info_msg)
+Detector3D::detect_marker_from_cloud_cb(const msg_cp<cloud_t>& cloud,
+					const msg_cp<camera_info_t>& cinfo)
 {
-    if (cloud_msg->is_dense)
+    if (cloud->is_dense)
     {
 	RCLCPP_ERROR_STREAM(get_logger(), "Ordered point cloud required! Cloud with size["
-			    << cloud_msg->width << 'x' << cloud_msg->height
+			    << cloud->width << 'x' << cloud->height
 			    << "] supplied.");
 	return;
     }
 
-    cv::Mat	image(cloud_msg->height, cloud_msg->width, CV_8UC3);
-    aist_utility::pointcloud_to_rgb(*cloud_msg, image.ptr<rgb_t>());
-    detect_marker(*cloud_msg, *camera_info_msg, image);
+    cv::Mat	img(cloud->height, cloud->width, CV_8UC3);
+    aist_utility::pointcloud_to_rgb(*cloud, img.ptr<rgb_t>());
+    detect_marker(*cloud, *cinfo, img);
 }
 
 template <class MSG> void
-Detector3D::detect_marker(const MSG& msg, const camera_info_t& camera_info_msg,
-			  cv::Mat& image)
+Detector3D::detect_marker(const MSG& msg, const camera_info_t& cinfo,
+			  cv::Mat& img)
 {
   // Convert camera_info to aruco camera parameters
-    _camParam = rosCameraInfo2ArucoCamParams(camera_info_msg,
-					     _useRectifiedImages);
+    _camParam = rosCameraInfo2ArucoCamParams(cinfo, _useRectifiedImages);
 
   // Handle cartesian offset between stereo pairs.
   // See the sensor_msgs/CamaraInfo documentation for details.
     _rightToLeft.setIdentity();
-    _rightToLeft.setOrigin(tf2::Vector3(
-			       -camera_info_msg.p[3] / camera_info_msg.p[0],
-			       -camera_info_msg.p[7] / camera_info_msg.p[5],
-			       0.0));
+    _rightToLeft.setOrigin(tf2::Vector3(-cinfo.p[3] / cinfo.p[0],
+					-cinfo.p[7] / cinfo.p[5],
+					0.0));
 
   // Detect markers. Results will go into "markers"
     std::vector<aruco::Marker>	markers;
-    _marker_detector.detect(image, markers, _camParam, _marker_size, false);
+    _marker_detector.detect(img, markers, _camParam, _marker_size, false);
 
   // Show also the internal image resulting from the threshold operation
     publish_image(msg.header, _marker_detector.getThresholdedImage(),
@@ -387,11 +385,11 @@ Detector3D::detect_marker(const MSG& msg, const camera_info_t& camera_info_msg,
 	for (const auto& marker : markers)
 	{
 	  // For each marker, draw info and its boundaries in the image.
-	    marker.draw(image, cv::Scalar(0, 0, 255), 2);
+	    marker.draw(img, cv::Scalar(0, 0, 255), 2);
 	    aruco::CvDrawingUtils::draw3dAxis(
-		image, const_cast<aruco::Marker&>(marker), _camParam);
+		img, const_cast<aruco::Marker&>(marker), _camParam);
 
-	    const auto	corners = get_marker_corners(marker, msg, image);
+	    const auto	corners = get_marker_corners(marker, msg, img);
 	    const auto	i = _marker_map.getIndexOfMarkerId(marker.id);
 
 	    if (i < 0 || corners.size() < 4)
@@ -411,11 +409,11 @@ Detector3D::detect_marker(const MSG& msg, const camera_info_t& camera_info_msg,
 	for (const auto& marker : markers)
 	{
 	  // For each marker, draw info and its boundaries in the image.
-	    marker.draw(image, cv::Scalar(0, 0, 255), 2);
+	    marker.draw(img, cv::Scalar(0, 0, 255), 2);
 	    aruco::CvDrawingUtils::draw3dAxis(
-		image, const_cast<aruco::Marker&>(marker), _camParam);
+		img, const_cast<aruco::Marker&>(marker), _camParam);
 
-	    const auto	corners = get_marker_corners(marker, msg, image);
+	    const auto	corners = get_marker_corners(marker, msg, img);
 	    if (corners.size() < 4)
 		continue;
 
@@ -436,17 +434,18 @@ Detector3D::detect_marker(const MSG& msg, const camera_info_t& camera_info_msg,
 	}
     }
 
-    publish_image(msg.header, image, _result_pub);
+    publish_image(msg.header, img, _result_pub);
 }
 
 void
-Detector3D::publish_image(const std_msgs::msg::Header& header, const cv::Mat& image,
+Detector3D::publish_image(const std_msgs::msg::Header& header,
+			  const cv::Mat& img,
 			  const image_transport::Publisher& pub)
 {
     using namespace	sensor_msgs;
 
     if (pub.getNumSubscribers() > 0)
-	pub.publish(cv_bridge::CvImage(header, image_encodings::RGB8, image)
+	pub.publish(cv_bridge::CvImage(header, image_encodings::RGB8, img)
 		    .toImageMsg());
 }
 
@@ -593,27 +592,27 @@ Detector3D::view_vector(T u, T v) const
 }
 
 template <class T> inline cv::Vec<T, 3>
-Detector3D::at(const image_t& depth_msg, int u, int v) const
+Detector3D::at(const image_t& depth, int u, int v) const
 {
-    if (u < 0 || u >= int(depth_msg.width) ||
-	v < 0 || v >= int(depth_msg.height))
+    if (u < 0 || u >= int(depth.width) ||
+	v < 0 || v >= int(depth.height))
 	return {T(0), T(0), T(0)};
 
     const auto	xyz = view_vector<T>(u, v);
-    const auto	d   = val<T>(depth_msg, u, v);
+    const auto	d   = val<T>(depth, u, v);
 
     return {xyz[0]*d, xyz[1]*d, d};
 }
 
 template <class T> inline cv::Vec<T, 3>
-Detector3D::at(const cloud_t& cloud_msg, int u, int v) const
+Detector3D::at(const cloud_t& cloud, int u, int v) const
 {
-    if (u < 0 || u >= int(cloud_msg.width) ||
-	v < 0 || v >= int(cloud_msg.height))
+    if (u < 0 || u >= int(cloud.width) ||
+	v < 0 || v >= int(cloud.height))
 	return {T(0), T(0), T(0)};
 
-    sensor_msgs::PointCloud2ConstIterator<T>	xyz(cloud_msg, "x");
-    xyz += (v * cloud_msg.width + u);
+    sensor_msgs::PointCloud2ConstIterator<T>	xyz(cloud, "x");
+    xyz += (v * cloud.width + u);
 
     return (!std::isnan(xyz[2]) && xyz[2] > T(0) ?
 	    cv::Vec<T, 3>{xyz[0], xyz[1], xyz[2]} :
