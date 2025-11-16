@@ -71,37 +71,43 @@ class CModelController : public rclcpp::Node
     using joint_state_t	    = sensor_msgs::msg::JointState;
     using gripper_command_t = control_msgs::action::GripperCommand;
     using set_velocity_t    = aist_robotiq_msgs::srv::SetVelocity;
-    using set_velocity_req  = set_velocity_t::Request::SharedPtr;
-    using set_velocity_res  = set_velocity_t::Response::SharedPtr;
-    using goal_cp	    = std::shared_ptr<const gripper_command_t::Goal>;
     using goal_uuid_t	    = rclcpp_action::GoalUUID;
-    using goal_handle_t	    = rclcpp_action::
-				  ServerGoalHandle<gripper_command_t>;
-    using goal_handle_p	    = std::shared_ptr<goal_handle_t>;
     using goal_response_t   = rclcpp_action::GoalResponse;
     using cancel_response_t = rclcpp_action::CancelResponse;
-
     using callback_group_p  = rclcpp::CallbackGroup::SharedPtr;
+
     template <class MSG>
-    using publisher_p	    = typename rclcpp::Publisher<MSG>::SharedPtr;
+    using pub_p		= typename rclcpp::Publisher<MSG>::SharedPtr;
     template <class MSG>
-    using subscription_p    = typename rclcpp::Subscription<MSG>::SharedPtr;
+    using sub_p		= typename rclcpp::Subscription<MSG>::SharedPtr;
     template <class SRV>
-    using service_p	    = typename rclcpp::Service<SRV>::SharedPtr;
+    using srv_p		= typename rclcpp::Service<SRV>::SharedPtr;
+    template <class SRV>
+    using req_cp	= typename SRV::Request::ConstSharedPtr;
+    template <class SRV>
+    using res_p		= typename SRV::Response::SharedPtr;
     template <class ACT>
-    using action_server_p   = typename rclcpp_action::Server<ACT>::SharedPtr;
+    using action_p	= typename rclcpp_action::Server<ACT>::SharedPtr;
+    template <class ACT>
+    using goal_cp	= std::shared_ptr<const typename ACT::Goal>;
+    template <class ACT>
+    using goal_handle_t	= rclcpp_action::ServerGoalHandle<ACT>;
+    template <class ACT>
+    using goal_handle_p	= std::shared_ptr<goal_handle_t<ACT> >;
 
   public:
 		CModelController(const rclcpp::NodeOptions& options)	;
 
   private:
-    void	set_velocity_cb(const set_velocity_req req,
-				const set_velocity_res res)		;
+    void	set_velocity_cb(req_cp<set_velocity_t> req,
+				res_p<set_velocity_t>  res)		;
     goal_response_t
-		goal_cb(const goal_uuid_t&, const goal_cp goal)		;
+		goal_cb(const goal_uuid_t&,
+			goal_cp<gripper_command_t> goal)		;
     cancel_response_t
-		cancel_cb(const goal_handle_p)				;
-    void	handle_accepted_cb(const goal_handle_p goal_handle)	;
+		cancel_cb(goal_handle_p<gripper_command_t>)		;
+    void	handle_accepted_cb(
+		    goal_handle_p<gripper_command_t> goal_handle)	;
     void	cmodel_status_cb(const cmodel_status_cp& status)	;
 
     void	calibrate()						;
@@ -122,39 +128,39 @@ class CModelController : public rclcpp::Node
 
   private:
   // Read-only parameters
-    const double				_min_position;
-    const double				_max_position;
-    const double				_min_velocity;
-    const double				_max_velocity;
-    const double				_min_effort;
-    const double				_max_effort;
-    const std::string				_joint_name;
+    const double			_min_position;
+    const double			_max_position;
+    const double			_min_velocity;
+    const double			_max_velocity;
+    const double			_min_effort;
+    const double			_max_effort;
+    const std::string			_joint_name;
 
   // Position parameters to be calibrated
-    int						_min_gap_counts;
-    int						_max_gap_counts;
-    int						_calibration_step;
+    int					_min_gap_counts;
+    int					_max_gap_counts;
+    int					_calibration_step;
 
   // Publisher for JointState
-    const publisher_p<joint_state_t>		_joint_state_pub;
+    const pub_p<joint_state_t>		_joint_state_pub;
 
   // Service for setting velocity
-    double					_velocity;
-    const service_p<set_velocity_t>		_set_velocity_srv;
+    double				_velocity;
+    const srv_p<set_velocity_t>		_set_velocity_srv;
 
   // Publisher for command to the driver
-    const publisher_p<cmodel_command_t>		_cmodel_command_pub;
-    int						_goal_r_pr;
+    const pub_p<cmodel_command_t>	_cmodel_command_pub;
+    int					_goal_r_pr;
 
   // Subscriber for Status from the driver
-    cmodel_status_cp				_cmodel_status;
-    const callback_group_p			_cmodel_status_cbg;
-    const subscription_p<cmodel_status_t>	_cmodel_status_sub;
+    cmodel_status_cp			_cmodel_status;
+    const callback_group_p		_cmodel_status_cbg;
+    const sub_p<cmodel_status_t>	_cmodel_status_sub;
 
   // Gripper command action stuffs
-    const action_server_p<gripper_command_t>	_gripper_command_srv;
-    goal_handle_p				_current_goal_handle;
-    std::mutex					_current_goal_mtx;
+    const action_p<gripper_command_t>	_gripper_command_srv;
+    goal_handle_p<gripper_command_t>	_current_goal_handle;
+    std::mutex				_current_goal_mtx;
 };
 
 CModelController::CModelController(const rclcpp::NodeOptions& options)
@@ -222,15 +228,15 @@ CModelController::CModelController(const rclcpp::NodeOptions& options)
 }
 
 void
-CModelController::set_velocity_cb(const set_velocity_req req,
-				  const set_velocity_res res)
+CModelController::set_velocity_cb(req_cp<set_velocity_t> req,
+				  res_p<set_velocity_t>  res)
 {
     _velocity = req->velocity;
     res->success = true;
 }
 
 CModelController::goal_response_t
-CModelController::goal_cb(const goal_uuid_t&, const goal_cp goal)
+CModelController::goal_cb(const goal_uuid_t&, goal_cp<gripper_command_t> goal)
 {
     RCLCPP_INFO_STREAM(get_logger(),
 		       "goal ACCEPTED: position=" << goal->command.position
@@ -239,14 +245,14 @@ CModelController::goal_cb(const goal_uuid_t&, const goal_cp goal)
 }
 
 CModelController::cancel_response_t
-CModelController::cancel_cb(const goal_handle_p)
+CModelController::cancel_cb(goal_handle_p<gripper_command_t>)
 {
     RCLCPP_DEBUG_STREAM(get_logger(), "accepted request for cancelling goal");
     return cancel_response_t::ACCEPT;
 }
 
 void
-CModelController::handle_accepted_cb(const goal_handle_p goal_handle)
+CModelController::handle_accepted_cb(goal_handle_p<gripper_command_t> goal_handle)
 {
     const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
 
