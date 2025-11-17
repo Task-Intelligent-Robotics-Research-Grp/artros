@@ -48,6 +48,17 @@
 namespace aist_fastening_tools
 {
 /************************************************************************
+*  static functions							*
+************************************************************************/
+static inline rclcpp::SubscriptionOptions
+create_subscription_options(const rclcpp::CallbackGroup::SharedPtr& cbg)
+{
+    rclcpp::SubscriptionOptions	options;
+    options.callback_group = cbg;
+    return options;
+}
+
+/************************************************************************
 *  class PrecisionToolController					*
 ************************************************************************/
 class PrecisionToolController : public rclcpp::Node
@@ -127,6 +138,7 @@ class PrecisionToolController : public rclcpp::Node
     const rclcpp::Duration		_stall_timeout;
 
   // Dynamixel driver stuffs
+    const callback_group_p		_dxl_states_cbg;
     const sub_p<dynamixel_states_t>	_dxl_states_sub;
     const callback_group_p		_dxl_command_cbg;
     const clnt_p<dynamixel_command_t>	_dxl_command;
@@ -168,11 +180,14 @@ PrecisionToolController::PrecisionToolController(
      _stall_timeout(std::chrono::duration<double>(
 			ddynamic_reconfigure2::declare_read_only_parameter(
 			    this, "stall_timeout", 1.0))),
+     _dxl_states_cbg(create_callback_group(
+			 rclcpp::CallbackGroupType::MutuallyExclusive)),
      _dxl_states_sub(create_subscription<dynamixel_states_t>(
 			 _driver_ns + "/dynamixel_state", 1,
 			 std::bind(
 			     &PrecisionToolController::dynamixel_states_cb,
-			     this, std::placeholders::_1))),
+			     this, std::placeholders::_1),
+			 create_subscription_options(_dxl_states_cbg))),
      _dxl_command_cbg(create_callback_group(
 			  rclcpp::CallbackGroupType::MutuallyExclusive)),
      _dxl_command(create_client<dynamixel_command_t>(

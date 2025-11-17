@@ -51,6 +51,14 @@ namespace aist_fastening_tools
 /************************************************************************
 *  static functions							*
 ************************************************************************/
+static inline rclcpp::SubscriptionOptions
+create_subscription_options(const rclcpp::CallbackGroup::SharedPtr& cbg)
+{
+    rclcpp::SubscriptionOptions	options;
+    options.callback_group = cbg;
+    return options;
+}
+
 static int32_t
 target_speed(double speed)
 {
@@ -134,6 +142,7 @@ class ScrewToolController : public rclcpp::Node
     rclcpp::Time				_start_time;
 
   // Dynamixel driver stuffs
+    const callback_group_p			_dxl_states_cbg;
     const sub_p<dynamixel_states_t>		_dxl_states_sub;
     const callback_group_p			_dxl_command_cbg;
     const clnt_p<dynamixel_command_t>		_dxl_command;
@@ -168,10 +177,13 @@ ScrewToolController::ScrewToolController(const rclcpp::NodeOptions& options)
 		   this, "motor_id", 1)),
      _stage(DONE),
      _start_time(),
+     _dxl_states_cbg(create_callback_group(
+			 rclcpp::CallbackGroupType::MutuallyExclusive)),
      _dxl_states_sub(create_subscription<dynamixel_states_t>(
 			 _driver_ns + "/dynamixel_state", 1,
 			 std::bind(&ScrewToolController::dynamixel_states_cb,
-				   this, std::placeholders::_1))),
+				   this, std::placeholders::_1),
+			 create_subscription_options(_dxl_states_cbg))),
      _dxl_command_cbg(create_callback_group(
 			  rclcpp::CallbackGroupType::MutuallyExclusive)),
      _dxl_command(create_client<dynamixel_command_t>(

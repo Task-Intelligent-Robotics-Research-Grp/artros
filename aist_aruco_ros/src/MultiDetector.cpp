@@ -29,6 +29,17 @@
 namespace aist_aruco_ros
 {
 /************************************************************************
+*  static functions							*
+************************************************************************/
+static inline rclcpp::SubscriptionOptions
+create_subscription_options(const rclcpp::CallbackGroup::SharedPtr& cbg)
+{
+    rclcpp::SubscriptionOptions	options;
+    options.callback_group = cbg;
+    return options;
+}
+
+/************************************************************************
 *  class MultiDetector							*
 ************************************************************************/
 class MultiDetector : public rclcpp::Node
@@ -116,6 +127,7 @@ class MultiDetector : public rclcpp::Node
 
     const std::vector<std::string>		_camera_names;
 
+    const rclcpp::SubscriptionOptions		_subscription_options;
     image_transport::ImageTransport		_it;
     image_transport::Subscriber			_image_sub;
     std::vector<std::unique_ptr<subscriber_t> >	_image_subs;
@@ -168,8 +180,13 @@ MultiDetector::MultiDetector(const rclcpp::NodeOptions& options)
     for (const auto& camera_name : _camera_names)
     {
 	if (_camera_names.size() >= 2)
-	    _image_subs.emplace_back(std::make_unique<subscriber_t>(
-					 this, camera_name + "/image", "raw"));
+	{
+	    _image_subs.emplace_back(std::make_unique<subscriber_t>());
+	    _image_subs.back()->subscribe(this, camera_name + "/image", "raw",
+					  rmw_qos_profile_default,
+					  _subscription_options);
+	}
+
 	_result_pubs.emplace_back(_it.advertise("~/" + camera_name + "/result",
 						1));
 	_debug_pubs .emplace_back(_it.advertise("~/" + camera_name + "/debug",
@@ -182,7 +199,8 @@ MultiDetector::MultiDetector(const rclcpp::NodeOptions& options)
     {
       case 1:
 	_image_sub = _it.subscribe(_camera_names[0] + "/image", 1,
-				   &MultiDetector::image_cb<0>, this);
+				   &MultiDetector::image_cb<0>, this,
+				   nullptr, _subscription_options);
 	break;
       case 2:
 	_sync.reset(new sync_t<2>(

@@ -32,6 +32,14 @@ namespace aist_aruco_ros
 /************************************************************************
 *  static functions							*
 ************************************************************************/
+static inline rclcpp::SubscriptionOptions
+create_subscription_options(const rclcpp::CallbackGroup::SharedPtr& cbg)
+{
+    rclcpp::SubscriptionOptions	options;
+    options.callback_group = cbg;
+    return options;
+}
+
 template <class T> inline T
 val(const sensor_msgs::msg::Image& image_msg, int u, int v)
 {
@@ -153,6 +161,7 @@ class Detector3D : public rclcpp::Node
     std::string					_marker_frame;
 
   // input camera_info/image stuff
+    const rclcpp::SubscriptionOptions		_subscription_options;
     image_transport::ImageTransport		_it;
     image_transport::SubscriberFilter		_image_sub;
     image_transport::SubscriberFilter		_depth_sub;
@@ -184,11 +193,17 @@ Detector3D::Detector3D(const rclcpp::NodeOptions& options)
      _broadcaster(*this),
      _marker_frame(ddynamic_reconfigure2::declare_read_only_parameter(
 		       this, "marker_frame", "marker_frame")),
+     _subscription_options(
+	 create_subscription_options(
+	     create_callback_group(
+		 rclcpp::CallbackGroupType::MutuallyExclusive))),
      _it(rclcpp::Node::SharedPtr(this)),
-     _image_sub(this, "image", "raw"),
-     _depth_sub(this, "depth", "raw"),
-     _cloud_sub(this, "pointcloud"),
-     _cinfo_sub(this, "/camera_info"),
+     _image_sub(),
+     _depth_sub(),
+     _cloud_sub(this, "pointcloud",
+		rmw_qos_profile_default, _subscription_options),
+     _cinfo_sub(this, "camera_info",
+		rmw_qos_profile_default, _subscription_options),
      _depth_sync(_image_sub, _depth_sub, _cinfo_sub, 3),
      _cloud_sync(_cloud_sub, _cinfo_sub, 3),
      _camParam(),
@@ -286,6 +301,10 @@ Detector3D::Detector3D(const rclcpp::NodeOptions& options)
     	{0.0005, 0.05});
 
   // Register callback for marker detection.
+    _image_sub.subscribe(this, "image", "raw",
+			 rmw_qos_profile_default, _subscription_options);
+    _depth_sub.subscribe(this, "depth", "raw",
+			 rmw_qos_profile_default, _subscription_options);
     _depth_sync.registerCallback(&Detector3D::detect_marker_from_depth_cb,
 				 this);
     _cloud_sync.registerCallback(&Detector3D::detect_marker_from_cloud_cb,

@@ -49,6 +49,17 @@
 namespace aist_fastening_tools
 {
 /************************************************************************
+*  static functions							*
+************************************************************************/
+static inline rclcpp::SubscriptionOptions
+create_subscription_options(const rclcpp::CallbackGroup::SharedPtr& cbg)
+{
+    rclcpp::SubscriptionOptions	options;
+    options.callback_group = cbg;
+    return options;
+}
+
+/************************************************************************
 *  class SuctionToolController						*
 ************************************************************************/
 class SuctionToolController : public rclcpp::Node
@@ -110,6 +121,7 @@ class SuctionToolController : public rclcpp::Node
   // IO states ubscriber and publishers
     double					_cur_pos;
     bool					_suctioned;
+    const callback_group_p			_io_states_cbg;
     const sub_p<io_states_t>			_io_states_sub;
     const pub_p<joint_state_t>			_joint_state_pub;
     const pub_p<bool_t>				_suctioned_pub;
@@ -144,15 +156,16 @@ SuctionToolController::SuctionToolController(
 		  this, "max_position", 0.015)),
      _cur_pos(_min_pos),
      _suctioned(false),
+     _io_states_cbg(create_callback_group(
+			rclcpp::CallbackGroupType::MutuallyExclusive)),
      _io_states_sub(create_subscription<io_states_t>(
 			_driver_ns + "/io_states", 1,
 			std::bind(&SuctionToolController::io_states_cb,
-				  this, std::placeholders::_1))),
+				  this, std::placeholders::_1),
+			create_subscription_options(_io_states_cbg))),
      _joint_state_pub(_joint_name == "" ? nullptr :
 		      create_publisher<joint_state_t>("/joint_states", 1)),
      _suctioned_pub(create_publisher<bool_t>("~/suctioned", 1)),
-     _set_io_cbg(create_callback_group(
-		     rclcpp::CallbackGroupType::MutuallyExclusive)),
      _set_io_clnt(create_client<set_io_t>(_driver_ns + "/set_io",
 					  rclcpp::ServicesQoS(), _set_io_cbg)),
      _command_srv(rclcpp_action::create_server<suction_tool_command_t>(
