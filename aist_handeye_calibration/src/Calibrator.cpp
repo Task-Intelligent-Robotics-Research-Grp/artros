@@ -57,6 +57,17 @@
 namespace aist_handeye_calibration
 {
 /************************************************************************
+*  static functions							*
+************************************************************************/
+static inline rclcpp::SubscriptionOptions
+create_subscription_options(const rclcpp::CallbackGroup::SharedPtr& cbg)
+{
+    rclcpp::SubscriptionOptions	options;
+    options.callback_group = cbg;
+    return options;
+}
+
+/************************************************************************
 *  class Calibrator							*
 ************************************************************************/
 class Calibrator : public rclcpp::Node
@@ -103,8 +114,8 @@ class Calibrator : public rclcpp::Node
     void	reset(req_cp<empty_t>, res_p<empty_t>)			;
 
   private:
+    const callback_group_p		_pose_cbg;
     const sub_p<pose_t>			_pose_sub;
-    const callback_group_p		_take_sample_cbg;
     const srv_p<take_sample_t>		_take_sample_srv;
     const srv_p<get_sample_list_t>	_get_sample_list_srv;
     const srv_p<compute_calibration_t>	_compute_calibration_srv;
@@ -129,18 +140,18 @@ class Calibrator : public rclcpp::Node
 
 Calibrator::Calibrator(const rclcpp::NodeOptions& options)
     :rclcpp::Node("calibrator", options),
-     _pose_sub(create_subscription<pose_t>("pose", 1,
-					   std::bind(&Calibrator::pose_cb,
-						     this,
-						     std::placeholders::_1))),
-     _take_sample_cbg(create_callback_group(
-			  rclcpp::CallbackGroupType::MutuallyExclusive)),
+     _pose_cbg(create_callback_group(
+		   rclcpp::CallbackGroupType::MutuallyExclusive)),
+     _pose_sub(create_subscription<pose_t>(
+		   "pose", 1,
+		   std::bind(&Calibrator::pose_cb, this,
+			     std::placeholders::_1),
+		   create_subscription_options(_pose_cbg))),
      _take_sample_srv(create_service<take_sample_t>(
 			  "~/take_sample",
 			  std::bind(&Calibrator::take_sample, this,
 				    std::placeholders::_1,
-				    std::placeholders::_2),
-			  rclcpp::ServicesQoS(), _take_sample_cbg)),
+				    std::placeholders::_2))),
      _get_sample_list_srv(create_service<get_sample_list_t>(
 			      "~/get_sample_list",
 			      std::bind(&Calibrator::get_sample_list, this,

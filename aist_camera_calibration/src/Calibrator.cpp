@@ -55,6 +55,13 @@ namespace aist_camera_calibration
 /************************************************************************
 *  static functions							*
 ************************************************************************/
+static inline rclcpp::SubscriptionOptions
+create_subscription_options(const rclcpp::CallbackGroup::SharedPtr& cbg)
+{
+    rclcpp::SubscriptionOptions	options;
+    options.callback_group = cbg;
+    return options;
+}
   /*
 template <class T> std::ostream&
 operator <<(std::ostream& out, const TU::Point2<T>& p)
@@ -209,9 +216,9 @@ class Calibrator : public rclcpp::Node
 		rearrange_correspondences_sets()		const	;
 
   private:
+    const callback_group_p		_corres_cbg;
     const sub_p<correses_set_msg_t>	_corres_sub;
 
-    const callback_group_p		_take_sample_cbg;
     const srv_p<take_sample_t>		_take_sample_srv;
     const srv_p<get_sample_list_t>	_get_sample_list_srv;
     const srv_p<compute_calibration_t>	_compute_calibration_srv;
@@ -229,18 +236,18 @@ class Calibrator : public rclcpp::Node
 
 Calibrator::Calibrator(const rclcpp::NodeOptions& options)
     :rclcpp::Node("calibrator", options),
+     _corres_cbg(create_callback_group(
+		     rclcpp::CallbackGroupType::MutuallyExclusive)),
      _corres_sub(create_subscription<correses_set_msg_t>(
 		     "point_correspondences_set", 1,
 		     std::bind(&Calibrator::corres_cb,
-			       this, std::placeholders::_1))),
-     _take_sample_cbg(create_callback_group(
-			  rclcpp::CallbackGroupType::MutuallyExclusive)),
+			       this, std::placeholders::_1),
+		     create_subscription_options(_corres_cbg))),
      _take_sample_srv(create_service<take_sample_t>(
 			  "~/take_sample",
 			  std::bind(&Calibrator::take_sample, this,
 				    std::placeholders::_1,
-				    std::placeholders::_2),
-			  rclcpp::ServicesQoS(), _take_sample_cbg)),
+				    std::placeholders::_2))),
      _get_sample_list_srv(create_service<get_sample_list_t>(
 			      "~/get_sample_list",
 			      std::bind(&Calibrator::get_sample_list, this,
