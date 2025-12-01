@@ -2,7 +2,7 @@
 <launch>
 
   <arg name="file_name"		default="b_bot-pick_screw_m4"/>
-  <arg name="image_topic"	default="camera_multiplexer/image"/>
+  <arg name="image_topic"	default="b_bot_camera/color/image_raw"/>
   <arg name="encoding"		default="bgr8"/>
 
   <node name="image_saver"

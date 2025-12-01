@@ -7,10 +7,8 @@
   <arg name="use_dual_quaternion"	default="true"/>
 
   <!-- Start cameras -->
-  <include file="$(find aist_routines)/launch/aist_cameras.launch">
-    <arg unless="$(eval 'phoxi' in camera_name)"
-	 name="active_camera_name"	value="$(arg camera_name)"/>
-    <arg name="sim"			value="$(arg sim)"/>
+  <include unless="$(arg sim)"
+	   file="$(find aist_routines)/launch/aist_cameras.launch">
   </include>
 
   <!-- Launch ArUco and calibrator -->
