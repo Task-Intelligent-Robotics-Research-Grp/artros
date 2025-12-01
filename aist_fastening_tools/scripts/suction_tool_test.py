@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 
 import rclpy, sys, threading
-from rclpy.node           import Node
-from aist_fastening_tools import SuctionTool
+from rclpy.executors             import MultiThreadedExecutor
+from rclpy.node                  import Node
+from aist_fastening_tools.client import SuctionTool
 
 
 class SuctionToolTest(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        controller_ns = self.declare_parameter(
-                            'controller_ns', 'screw_tool_m4_controller').value
-        self._suction_tool = SuctionTool(self, controller_ns)
+        tool_name = self.declare_parameter('tool_name', 'suction_tool').value
+        self._suction_tool = SuctionTool(self, tool_name)
         self.get_logger().info('started')
 
         cli_thread = threading.Thread(target=self.interactive)
@@ -50,7 +50,12 @@ class SuctionToolTest(Node):
 
 
 if __name__ == '__main__':
-    rclpy.init(args=sys.argv)
+    try:
+        rclpy.init(args=sys.argv)
 
-    test = SuctionToolTest('suction_tool_test')
-    rclpy.spin(test)
+        test = SuctionToolTest('suction_tool_test')
+        executor = MultiThreadedExecutor()
+        executor.add_node(test)
+        executor.spin()
+    except Exception as e:
+        print('*** Terminate the node due to exception: %s' % e)

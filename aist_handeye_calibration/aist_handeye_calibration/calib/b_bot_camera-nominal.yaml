@@ -1,9 +1,0 @@
-child: b_bot_camera_connector_link
-origin:
-- 0.034
-- 0.020
-- 0.084
-- 3.141592
-- 0.3491
-- 0.0
-parent: b_bot_gripper_base_link

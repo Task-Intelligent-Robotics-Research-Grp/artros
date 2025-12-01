@@ -37,39 +37,44 @@
   \file		mesh_generator.cpp
   \author	Toshio Ueshiba
 */
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
+#include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <sensor_msgs/CameraInfo.h>
-#include <aist_visualization/TexturedMeshStamped.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include <sensor_msgs/msg/camera_info.hpp>
+#include <aist_msgs/msg/textured_mesh_stamped.hpp>
 #include <opencv2/imgproc.hpp>	// for cv::undistortPoints() (OpenCV3)
 #include <opencv2/calib3d.hpp>	// for cv::undistortPoints() (OpenCV4)
+#include <ddynamic_reconfigure2/ddynamic_reconfigure2.hpp>
 
 namespace aist_visualization
 {
 /************************************************************************
 *  class MeshGenerator							*
 ************************************************************************/
-class MeshGenerator
+class MeshGenerator : public rclcpp::Node
 {
   private:
-    using camera_info_t	 = sensor_msgs::CameraInfo;
-    using camera_info_cp = sensor_msgs::CameraInfoConstPtr;
-    using transform_t	 = geometry_msgs::TransformStamped;
-    using point_t	 = geometry_msgs::Point;
-    using mesh_t	 = TexturedMeshStamped;
+    template <class MSG>
+    using sub_p		 = typename rclcpp::Subscription<MSG>::SharedPtr;
+    template <class MSG>
+    using pub_p		 = typename rclcpp::Publisher<MSG>::SharedPtr;
+    using camera_info_t	 = sensor_msgs::msg::CameraInfo;
+    using camera_info_cp = camera_info_t::ConstSharedPtr;
+    using transform_t	 = geometry_msgs::msg::TransformStamped;
+    using point_t	 = geometry_msgs::msg::Point;
+    using mesh_t	 = aist_msgs::msg::TexturedMeshStamped;
 
   public:
-		MeshGenerator(ros::NodeHandle& nh)			;
-		~MeshGenerator()					{}
+		MeshGenerator(const rclcpp::NodeOptions& options)	;
 
   private:
-    void	camera_info_cb(const camera_info_cp& cinfo)		;
+    void	camera_info_cb(const camera_info_cp cinfo)		;
     point_t	get_intersection(const cv::Point2d& image_point) const	;
 
   private:
-    const ros::Subscriber		_camera_info_sub;
-    const ros::Publisher		_mesh_pub;
+    const sub_p<camera_info_t>		_camera_info_sub;
+    const pub_p<mesh_t>			_mesh_pub;
     tf2_ros::Buffer			_tf2_buffer;
     const tf2_ros::TransformListener	_tf2_listener;
 
@@ -80,23 +85,28 @@ class MeshGenerator
     mesh_t				_mesh;
 };
 
-MeshGenerator::MeshGenerator(ros::NodeHandle& nh)
-    :_camera_info_sub(nh.subscribe<camera_info_t>(
-			  "/camera_info", 1,
-			  &MeshGenerator::camera_info_cb, this)),
-     _mesh_pub(nh.advertise<mesh_t>("mesh", 1)),
-     _tf2_buffer(),
+MeshGenerator::MeshGenerator(const rclcpp::NodeOptions& options)
+    :rclcpp::Node("mesh_generator", options),
+     _camera_info_sub(create_subscription<camera_info_t>(
+			  "camera_info", 1,
+			  std::bind(&MeshGenerator::camera_info_cb,
+				    this, std::placeholders::_1))),
+     _mesh_pub(create_publisher<mesh_t>("~/mesh", 1)),
+     _tf2_buffer(get_clock()),
      _tf2_listener(_tf2_buffer),
      _Tsc(),
      _Trc(),
-     _nsteps_u(nh.param<int>("nsteps_u", 10)),
-     _nsteps_v(nh.param<int>("nsteps_v", 10)),
+     _nsteps_u(ddynamic_reconfigure2::declare_read_only_parameter(
+		   this, "nsteps_u", 10)),
+     _nsteps_v(ddynamic_reconfigure2::declare_read_only_parameter(
+		   this, "nsteps_v", 10)),
      _mesh()
 {
   // Set ID of the screen frame and reference frame.
-    _Tsc.header.frame_id = nh.param<std::string>("screen_frame", "world");
-    _Trc.header.frame_id = nh.param<std::string>("reference_frame",
-						 _Tsc.header.frame_id);
+    _Tsc.header.frame_id = ddynamic_reconfigure2::declare_read_only_parameter(
+			       this, "screen_frame", "world");
+    _Trc.header.frame_id = ddynamic_reconfigure2::declare_read_only_parameter(
+			       this, "reference_frame", _Tsc.header.frame_id);
 
   // *** Set up mesh to be published. ***
   // 1. Allocate buffers for triangles, vertices and texture coordinates.
@@ -132,11 +142,11 @@ MeshGenerator::MeshGenerator(ros::NodeHandle& nh)
 	    _mesh.v[idx] = double(j) / double(_nsteps_v);
 	}
 
-    ROS_INFO_STREAM("(MeshGenerator) started");
+    RCLCPP_INFO_STREAM(get_logger(), "mesh_generator started");
 }
 
 void
-MeshGenerator::camera_info_cb(const camera_info_cp& camera_info)
+MeshGenerator::camera_info_cb(const camera_info_cp camera_info)
 {
   // Get a transform from the camera frame to the screen frame
   // and the one from the camera frame to the reference frame.
@@ -145,15 +155,16 @@ MeshGenerator::camera_info_cb(const camera_info_cp& camera_info)
 	_Tsc = _tf2_buffer.lookupTransform(_Tsc.header.frame_id,
 					   camera_info->header.frame_id,
 					   camera_info->header.stamp,
-					   ros::Duration(1.0));
+					   tf2::durationFromSec(1.0));
 	_Trc = _tf2_buffer.lookupTransform(_Trc.header.frame_id,
 					   camera_info->header.frame_id,
 					   camera_info->header.stamp,
-					   ros::Duration(1.0));
+					   tf2::durationFromSec(1.0));
     }
     catch (const tf2::TransformException& err)
     {
-	ROS_ERROR_STREAM("MeshGenerator::camera_cb(): " << err.what());
+	RCLCPP_ERROR_STREAM(get_logger(), "MeshGenerator::camera_info_cb(): "
+			    << err.what());
 	return;
     }
 
@@ -166,8 +177,8 @@ MeshGenerator::camera_info_cb(const camera_info_cp& camera_info)
 
   // Extract camera matrix and lens distortion coefficients from camera_info.
     cv::Mat_<double>	K(3, 3), D(1, 4);
-    std::copy_n(std::begin(camera_info->K), 9, K.begin());
-    std::copy_n(std::begin(camera_info->D), 4, D.begin());
+    std::copy_n(std::begin(camera_info->k), 9, K.begin());
+    std::copy_n(std::begin(camera_info->d), 4, D.begin());
 
   // Transform the real image coordinates to the canonical image coordinates.
     cv::Mat_<cv::Point2d>	xy(_mesh.mesh.vertices.size(), 1);
@@ -178,25 +189,25 @@ MeshGenerator::camera_info_cb(const camera_info_cp& camera_info)
 	_mesh.mesh.vertices[idx] = get_intersection(xy(idx));
 
     _mesh.header = _Trc.header;
-    _mesh_pub.publish(_mesh);
+    _mesh_pub->publish(_mesh);
 }
 
 MeshGenerator::point_t
 MeshGenerator::get_intersection(const cv::Point2d& image_point) const
 {
   // Create a view vector w.r.t. the camera frame.
-    geometry_msgs::Vector3	vc;
+    geometry_msgs::msg::Vector3	vc;
     vc.x = image_point.x;
     vc.y = image_point.y;
     vc.z = 1;
 
   // Transform the view vector to the screen frame.
-    geometry_msgs::Vector3	vs;
+    geometry_msgs::msg::Vector3	vs;
     tf2::doTransform(vc, vs, _Tsc);
 
   // Compute the intersection of the view vector and the screen.
     const auto			k = -_Tsc.transform.translation.z / vs.z;
-    geometry_msgs::Point	p;
+    geometry_msgs::msg::Point	p;
     p.x = k * vc.x;
     p.y = k * vc.y;
     p.z = k;
@@ -208,26 +219,6 @@ MeshGenerator::get_intersection(const cv::Point2d& image_point) const
 }
 }	// namespace aist_visualization
 
-/************************************************************************
-*  global functions							*
-************************************************************************/
-int
-main(int argc, char* argv[])
-{
-    ros::init(argc, argv, "mesh_generator");
+#include <rclcpp_components/register_node_macro.hpp>
 
-    try
-    {
-	ros::NodeHandle	nh("~");
-	aist_visualization::MeshGenerator	mesh_generator(nh);
-
-	ros::spin();
-    }
-    catch (const std::exception& err)
-    {
-	std::cerr << err.what() << std::endl;
-	return 1;
-    }
-
-    return 0;
-}
+RCLCPP_COMPONENTS_REGISTER_NODE(aist_visualization::MeshGenerator)

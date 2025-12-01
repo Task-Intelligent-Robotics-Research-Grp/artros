@@ -1,98 +1,50 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.8)
 project(aist_visualization)
 
-add_compile_options(-std=c++14)
-add_compile_options(-D _CODE)
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
+endif()
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
-find_package(catkin REQUIRED
-  COMPONENTS
-    roscpp
-    message_generation
-    tf2_ros
-    tf2_geometry_msgs
-    shape_msgs
-    rviz
-    cv_bridge
+##################
+#  dependencies  #
+##################
+find_package(ament_cmake_auto REQUIRED)
+ament_auto_find_build_dependencies()
+
+#########################################
+#  component: libaist_visualization.so  #
+#########################################
+ament_auto_add_library(
+  ${PROJECT_NAME} SHARED
+    src/mesh_generator.cpp
 )
 
-find_package(OpenCV)
-
-set(CMAKE_AUTOMOC ON)
-find_package(Qt5 ${rviz_QT_VERSION} EXACT REQUIRED
-  Core
-  Widgets
-)
-set(QT_LIBRARIES Qt5::Widgets)
-add_definitions(-DQT_NO_KEYWORDS)
-
-add_message_files(
-  FILES
-    TexturedMeshStamped.msg
+rclcpp_components_register_nodes(
+  ${PROJECT_NAME}
+    ${PROJECT_NAME}::MeshGenerator
 )
 
-generate_messages(
-  DEPENDENCIES
-    std_msgs
-    geometry_msgs
-    shape_msgs
-)
+##########
+#  test  #
+##########
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
 
-catkin_package(
-  CATKIN_DEPENDS
-    roscpp
-    message_runtime
-    pluginlib
-    nodelet
-    tf2_ros
-    tf2_geometry_msgs
-    shape_msgs
-)
+  # the following line skips the linter which checks for copyrights
+  # comment the line when a copyright and license is added to all source files
+  set(ament_cmake_copyright_FOUND TRUE)
 
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS}
-  ${rviz_INCLUDE_DIRS}
-)
+  # the following line skips cpplint (only works in a git repo)
+  # comment the line when this package is in a git repo and when
+  # a copyright and license is added to all source files
+  set(ament_cmake_cpplint_FOUND TRUE)
+  ament_lint_auto_find_test_dependencies()
+endif()
 
-message("-- OpenCV_INCLUDE_DIRS: ${OpenCV_INCLUDE_DIRS}")
-
-add_executable(mesh_generator
-  src/mesh_generator.cpp
-)
-
-add_dependencies(mesh_generator
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-)
-
-target_link_libraries(mesh_generator
-  ${catkin_LIBRARIES}
-  ${OpenCV_LIBRARIES}
-  ${LEAG_LIBS}
-)
-
-add_library(textured_mesh_display
-  src/textured_mesh_display.cpp
-)
-
-add_dependencies(textured_mesh_display
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-)
-
-target_link_libraries(textured_mesh_display
-  ${catkin_LIBRARIES}
-  ${OpenCV_LIBRARIES}
-  ${QT_LIBRARIES}
-)
-
-install(
-  TARGETS
-    mesh_generator textured_mesh_display
-  ARCHIVE
-    DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY
-    DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME
-    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+ament_auto_package(INSTALL_TO_SHARE launch config)

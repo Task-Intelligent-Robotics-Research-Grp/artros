@@ -8,8 +8,6 @@
 
   <license>BSD</license>
 
-  <exec_depend>ament_index_python</exec_depend>
-
   <exec_depend>rclpy</exec_depend>
   <exec_depend>moveit</exec_depend>
   <exec_depend>moveit_py</exec_depend>

@@ -20,7 +20,7 @@
         <origin xyz="-0.007 -0.033 -0.011" rpy="0 0 0"/>
 	<geometry>
 	  <mesh
-	      filename="package://aist_description/objects/meshes/base_fixture_head-collision.stl" scale="0.001 0.001 0.001"/>
+	      filename="package://aist_description/objects/meshes/collision/base_fixture_head.stl" scale="0.001 0.001 0.001"/>
 	</geometry>
       </collision>
     </link>

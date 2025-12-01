@@ -50,14 +50,14 @@ GRIPPER_PROPS = {
         'extra_drivers_launch_file': PathJoinSubstitution(
                                          [FindPackageShare('aist_bringup'),
                                           'launch', 'inc',
-                                          'dynamixel_drivers.launch.py'])
+                                          'dynamixel_devices.launch.py'])
     },
     'URioDevices':
     {
         'extra_drivers_launch_file': PathJoinSubstitution(
                                          [FindPackageShare('aist_bringup'),
                                           'launch', 'inc',
-                                          'ur_io_drivers.launch.py'])
+                                          'ur_io_devices.launch.py'])
     },
 }
 
@@ -72,6 +72,7 @@ CAMERA_PROPS = {
         'depth_topic':        'depth_map',
         'cinfo_topic':        'camera_info',
         'color_topic':        'texture',
+        'normal_topic':       'normal_map',
         'gz_bridge_template': PathJoinSubstitution(
                                   [FindPackageShare('aist_bringup'),
                                    'config', 'templates',

@@ -49,34 +49,48 @@
 namespace aist_fastening_tools
 {
 /************************************************************************
+*  static functions							*
+************************************************************************/
+static inline rclcpp::SubscriptionOptions
+create_subscription_options(const rclcpp::CallbackGroup::SharedPtr& cbg)
+{
+    rclcpp::SubscriptionOptions	options;
+    options.callback_group = cbg;
+    return options;
+}
+
+/************************************************************************
 *  class SuctionToolController						*
 ************************************************************************/
 class SuctionToolController : public rclcpp::Node
 {
   private:
     using io_states_t		= ur_msgs::msg::IOStates;
-    using io_states_cp		= io_states_t::UniquePtr;
     using set_io_t		= ur_msgs::srv::SetIO;
     using joint_state_t		= sensor_msgs::msg::JointState;
     using bool_t		= std_msgs::msg::Bool;
     using suction_tool_command_t= aist_msgs::action::SuctionToolCommand;
-    using goal_cp		= std::shared_ptr<
-					const suction_tool_command_t::Goal>;
     using goal_uuid_t		= rclcpp_action::GoalUUID;
-    using goal_handle_t		= rclcpp_action::
-				      ServerGoalHandle<suction_tool_command_t>;
-    using goal_handle_p		= std::shared_ptr<goal_handle_t>;
     using goal_response_t	= rclcpp_action::GoalResponse;
     using cancel_response_t	= rclcpp_action::CancelResponse;
     using callback_group_p	= rclcpp::CallbackGroup::SharedPtr;
+
     template <class MSG>
-    using publisher_p	 = typename rclcpp::Publisher<MSG>::SharedPtr;
+    using msg_p		= typename MSG::UniquePtr;
     template <class MSG>
-    using subscription_p = typename rclcpp::Subscription<MSG>::SharedPtr;
+    using pub_p		= typename rclcpp::Publisher<MSG>::SharedPtr;
+    template <class MSG>
+    using sub_p		= typename rclcpp::Subscription<MSG>::SharedPtr;
     template <class SRV>
-    using client_p	 = typename rclcpp::Client<SRV>::SharedPtr;
+    using clnt_p	= typename rclcpp::Client<SRV>::SharedPtr;
     template <class ACT>
-    using action_server_p= typename rclcpp_action::Server<ACT>::SharedPtr;
+    using action_p	= typename rclcpp_action::Server<ACT>::SharedPtr;
+    template <class ACT>
+    using goal_cp	= std::shared_ptr<const typename ACT::Goal>;
+    template <class ACT>
+    using goal_handle_t	= rclcpp_action::ServerGoalHandle<ACT>;
+    template <class ACT>
+    using goal_handle_p	= std::shared_ptr<goal_handle_t<ACT> >;
 
     enum Stage	{ ACTIVE, LOOSEN, RETIGHTEN, DONE };
 
@@ -85,39 +99,42 @@ class SuctionToolController : public rclcpp::Node
 
   private:
     goal_response_t
-		goal_cb(const goal_uuid_t&, const goal_cp goal)		;
+		goal_cb(const goal_uuid_t&,
+			goal_cp<suction_tool_command_t> goal)		;
     cancel_response_t
-		cancel_cb(const goal_handle_p)				;
-    void	handle_accepted_cb(const goal_handle_p goal_handle)	;
-    void	io_states_cb(const io_states_cp& states)		;
+		cancel_cb(goal_handle_p<suction_tool_command_t>)	;
+    void	handle_accepted_cb(
+		    goal_handle_p<suction_tool_command_t> goal_handle)	;
+    void	io_states_cb(msg_p<io_states_t> states)			;
     bool	set_out_port(int port, bool state)		const	;
 
   private:
   // Read-only parameters
-    const std::string					_driver_ns;
-    const int						_in_port;
-    const int						_suck_port;
-    const int						_blow_port;
-    const std::string					_joint_name;
-    const double					_min_pos;
-    const double					_max_pos;
+    const std::string				_driver_ns;
+    const int					_in_port;
+    const int					_suck_port;
+    const int					_blow_port;
+    const std::string				_joint_name;
+    const double				_min_pos;
+    const double				_max_pos;
 
   // IO states ubscriber and publishers
-    double						_cur_pos;
-    bool						_suctioned;
-    const subscription_p<io_states_t>			_io_states_sub;
-    const publisher_p<joint_state_t>			_joint_state_pub;
-    const publisher_p<bool_t>				_suctioned_pub;
+    double					_cur_pos;
+    bool					_suctioned;
+    const callback_group_p			_io_states_cbg;
+    const sub_p<io_states_t>			_io_states_sub;
+    const pub_p<joint_state_t>			_joint_state_pub;
+    const pub_p<bool_t>				_suctioned_pub;
 
   // SetIO service client stuffs
-    const callback_group_p				_set_io_cbg;
-    const client_p<set_io_t>				_set_io_clnt;
+    const callback_group_p			_set_io_cbg;
+    const clnt_p<set_io_t>			_set_io_clnt;
 
   // Gripper command action stuffs
-    const action_server_p<suction_tool_command_t>	_command_srv;
-    goal_handle_p					_current_goal_handle;
-    std::mutex						_current_goal_mtx;
-    rclcpp::Time					_start_time;
+    const action_p<suction_tool_command_t>	_command_srv;
+    goal_handle_p<suction_tool_command_t>	_current_goal_handle;
+    std::mutex					_current_goal_mtx;
+    rclcpp::Time				_start_time;
 };
 
 SuctionToolController::SuctionToolController(
@@ -139,15 +156,16 @@ SuctionToolController::SuctionToolController(
 		  this, "max_position", 0.015)),
      _cur_pos(_min_pos),
      _suctioned(false),
+     _io_states_cbg(create_callback_group(
+			rclcpp::CallbackGroupType::MutuallyExclusive)),
      _io_states_sub(create_subscription<io_states_t>(
 			_driver_ns + "/io_states", 1,
 			std::bind(&SuctionToolController::io_states_cb,
-				  this, std::placeholders::_1))),
+				  this, std::placeholders::_1),
+			create_subscription_options(_io_states_cbg))),
      _joint_state_pub(_joint_name == "" ? nullptr :
 		      create_publisher<joint_state_t>("/joint_states", 1)),
      _suctioned_pub(create_publisher<bool_t>("~/suctioned", 1)),
-     _set_io_cbg(create_callback_group(
-		     rclcpp::CallbackGroupType::MutuallyExclusive)),
      _set_io_clnt(create_client<set_io_t>(_driver_ns + "/set_io",
 					  rclcpp::ServicesQoS(), _set_io_cbg)),
      _command_srv(rclcpp_action::create_server<suction_tool_command_t>(
@@ -171,7 +189,8 @@ SuctionToolController::SuctionToolController(
 }
 
 SuctionToolController::goal_response_t
-SuctionToolController::goal_cb(const goal_uuid_t&, const goal_cp goal)
+SuctionToolController::goal_cb(const goal_uuid_t&,
+			       goal_cp<suction_tool_command_t> goal)
 {
     RCLCPP_INFO_STREAM(get_logger(),
 		       "goal ACCEPTED: suck=" << std::boolalpha << goal->suck
@@ -181,14 +200,15 @@ SuctionToolController::goal_cb(const goal_uuid_t&, const goal_cp goal)
 }
 
 SuctionToolController::cancel_response_t
-SuctionToolController::cancel_cb(const goal_handle_p)
+SuctionToolController::cancel_cb(goal_handle_p<suction_tool_command_t>)
 {
     RCLCPP_WARN_STREAM(get_logger(), "accepted request for cancelling goal");
     return cancel_response_t::ACCEPT;
 }
 
 void
-SuctionToolController::handle_accepted_cb(const goal_handle_p goal_handle)
+SuctionToolController::handle_accepted_cb(
+    goal_handle_p<suction_tool_command_t> goal_handle)
 {
     const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
 
@@ -220,7 +240,7 @@ SuctionToolController::handle_accepted_cb(const goal_handle_p goal_handle)
 }
 
 void
-SuctionToolController::io_states_cb(const io_states_cp& states)
+SuctionToolController::io_states_cb(msg_p<io_states_t> states)
 {
     const auto	current_time = now();
 

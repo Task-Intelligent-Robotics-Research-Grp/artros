@@ -36,8 +36,8 @@
 # Author: Toshio Ueshiba
 #
 import rclpy, sys, threading
+from rclpy.executors    import MultiThreadedExecutor
 from aist_routines.base import AISTBaseRoutines
-
 
 ######################################################################
 #  class InteractiveRoutines                                         #
@@ -52,25 +52,27 @@ class InteractiveRoutines(AISTBaseRoutines):
         cli_thread.start()
 
     def interactive(self):
-        # robot_name = list(rospy.get_param('~robots').keys())[0]
-        # axis       = 'Y'
-        # speed      = rospy.get_param('~speed', 0.1)
+        if self.com and 'initial_object_config' in self.settings:
+            self._initialize_collision_objects(
+                self.settings['initial_object_config'])
 
-        # # Reset pose
-        # self.go_to_named_pose(robot_name, "home")
-        # self.print_help_messages()
+        arm_name = self.group_names[0]
+        axis       = 'Y'
+        speed      = 1.0
+
+        # Reset pose
+        self.go_to_named_pose(arm_name, "home")
+        self.print_help_messages()
 
         while rclpy.ok():
-            # prompt = '{:>5}:{}({})@{}>> ' \
-            #        .format(axis,
-            #                self.format_pose(self.get_current_pose(robot_name)),
-            #                speed, robot_name)
-            prompt = '> '
-            key = raw_input(prompt)
-            # robot_name, axis, speed = self.interactive(key, robot_name,
-            #                                            axis, speed)
-
-
+            current_pose = self.get_current_pose(arm_name)
+            prompt = '{:>5}:{}({})@{}>> ' \
+                   .format(axis,
+                           self.format_pose(current_pose),
+                           speed, arm_name)
+            key = input(prompt)
+            arm_name, axis, speed = super().interactive(key, arm_name,
+                                                        axis, speed)
 
 ######################################################################
 #  global functions                                                  #
@@ -78,8 +80,10 @@ class InteractiveRoutines(AISTBaseRoutines):
 def main():
     rclpy.init(args=sys.argv)
 
-    interactive = InteractiveRoutines('interactive')
-    rclpy.spin(interactive)
+    node = InteractiveRoutines('interactive')
+    executor = MultiThreadedExecutor()
+    executor.add_node(node)
+    executor.spin()
 
 if __name__ == '__main__':
     main()

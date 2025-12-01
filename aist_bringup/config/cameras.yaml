@@ -1,6 +1,7 @@
 a_bot_camera:
   ros__parameters:
     serial_no:       "636203005853"
+    camera_name:     a_bot_camera       # required for prefix of frame IDs
     usb_port_id:     ""
     device_type:     ""
     json_file_path:  ""
@@ -29,7 +30,7 @@ a_bot_camera:
     enable_gyro:  false
     enable_accel: false
 
-    publish_tf:      true
+    publish_tf:      false
     tf_publish_rate: "0"  # 0 - static transform
 
     clip_distance:           -2
@@ -47,6 +48,7 @@ a_bot_camera:
 b_bot_camera:
   ros__parameters:
     serial_no:       "636203005303"
+    camera_name:     b_bot_camera       # required for prefix of frame IDs
     usb_port_id:     ""
     device_type:     ""
     json_file_path:  ""
@@ -75,7 +77,7 @@ b_bot_camera:
     enable_gyro:  false
     enable_accel: false
 
-    publish_tf:      true
+    publish_tf:      false
     tf_publish_rate: "0"  # 0 - static transform
 
     clip_distance:           -2
@@ -93,7 +95,7 @@ b_bot_camera:
 a_motioncam:
   ros__parameters:
     id:                          LTR-066
-    trigger_mode:                0  # 0: Freerun, 1: Software, 2: Hardware
+    trigger_mode:                1  # 0: Freerun, 1: Software, 2: Hardware
     intensity_scale:             0.5
     rate:                        20.0
     processing_settings:
@@ -106,18 +108,18 @@ a_motioncam:
       send_texture:              true
       send_color_camera_image:   true
 
-live_camera:
+/live_camera/usb_cam:
   ros__parameters:
-    video_device:       "/dev/video0"
+    video_device:       /dev/video8
     framerate:          5.0
-    io_method:          "mmap"
+    io_method:          mmap
     frame_id:           live_camera_optical_frame
-    pixel_format:       "mjpeg2rgb"  # see usb_cam/supported_formats for list of supported formats
-    av_device_format:   "YUV422P"
+    pixel_format:       mjpeg2rgb  # see usb_cam/supported_formats for list of supported formats
+    av_device_format:   YUV422P
     image_width:        1920
     image_height:       1080
-    camera_name:        live_camera
-#    camera_info_url:    "package://usb_cam/config/camera_info.yaml"
+    camera_name:        usb_cam
+    camera_info_url:    package://aist_description/scenes/calib/live_camera-camera_info.yaml
     brightness:         -1
     contrast:           -1
     saturation:         -1

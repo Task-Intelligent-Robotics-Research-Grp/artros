@@ -35,10 +35,10 @@ def declare_launch_arguments(args, defaults={}):
                 description=arg['description']) \
             for arg in args]
 
-def load_parameters(config_file):
-    if config_file == '':
+def load_parameters(param_file):
+    if param_file == '':
         return {}
-    with open(config_file, 'r') as f:
+    with open(param_file, 'r') as f:
         return yaml.load(f, Loader=yaml.SafeLoader)
 
 def launch_setup(context):

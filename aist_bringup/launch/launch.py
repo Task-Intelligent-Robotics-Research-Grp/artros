@@ -3,7 +3,6 @@ from launch.actions             import IncludeLaunchDescription, OpaqueFunction
 from launch.conditions          import IfCondition, UnlessCondition
 from launch.substitutions       import (LaunchConfiguration,
                                         PathJoinSubstitution)
-from launch_ros.actions         import Node
 from launch_ros.substitutions   import FindPackageShare
 from aist_bringup.launch_common import declare_launch_arguments
 
@@ -43,14 +42,10 @@ def launch_setup(context):
     return [
         IncludeLaunchDescription(
             PathJoinSubstitution([FindPackageShare('aist_bringup'), 'launch',
-                                  'ros2_controllers.launch.py']),
-            launch_arguments=[('config', LaunchConfiguration('config')),
-                              ('scene',  LaunchConfiguration('scene')),
-                              ('sim',    LaunchConfiguration('sim'))]),
+                                  'ros2_controllers.launch.py'])),
         IncludeLaunchDescription(
             PathJoinSubstitution([FindPackageShare('aist_bringup'), 'launch',
                                   'ros_gz_bridge.launch.py']),
-            launch_arguments=[('config', LaunchConfiguration('config'))],
             condition=IfCondition(LaunchConfiguration('sim'))),
         # IncludeLaunchDescription(
         #     PathJoinSubstitution([FindPackageShare('aist_bringup'), 'launch',
@@ -61,9 +56,7 @@ def launch_setup(context):
             PathJoinSubstitution(
                 [FindPackageShare([LaunchConfiguration('config'),
                                    '_moveit_config']),
-                 'launch', 'move_group.launch.py']),
-            launch_arguments=[('sim', LaunchConfiguration('sim')),
-                              ('vis', LaunchConfiguration('vis'))])
+                 'launch', 'move_group.launch.py'])),
     ]
 
 def generate_launch_description():

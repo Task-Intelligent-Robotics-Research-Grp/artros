@@ -35,9 +35,9 @@
 #
 import cv2
 import numpy as np
-from geometry_msgs import msg as gmsg
+from geometry_msgs.msg import Point, Vector3, Quaternion, Transform
 
-def depths_to_points(self, camera_info, u, v, d):
+def depths_to_points(camera_info, u, v, d):
     """
     Back-project 2D image points to 3D space using depths
     """
@@ -45,8 +45,8 @@ def depths_to_points(self, camera_info, u, v, d):
     xy = cv2.undistortPoints(np.expand_dims(np.array(list(zip(u, v)),
                                                      dtype=np.float32),
                                             axis=0),
-                             np.array(camera_info.K).reshape((3, 3)),
-                             np.array(camera_info.D))
+                             camera_info.k.reshape((3, 3)),
+                             np.array(camera_info.d))
     xy = xy.ravel().reshape(npoints, 2)
-    return [ gmsg.Point(xy[i, 0]*d[i], xy[i, 1]*d[i], d[i])
+    return [ Point(x=xy[i, 0]*d[i], y=xy[i, 1]*d[i], z=d[i])
              for i in range(npoints) ]

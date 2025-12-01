@@ -1,21 +1,39 @@
-marker_map:           aruco-26-70x70-5
-enclosed_marker:      false
-detection_mode:       0
-marker_frame:         b_bot_ar_marker
-reference_frame:      workspace_center
-camera_parent_frame:  workspace_center
-robot_name:           b_bot
-robot_effector_frame: b_bot_gripper_base_link
-initpose:             [0.10,  0.10, 0.35, 0, 90, 0]
-keyposes:
-  - [0.10,  0.15, 0.16, 0, 25, 0]
-  - [0.10,  0.05, 0.24, 0, 25, 0]
-  - [0.10, -0.05, 0.32, 0, 25, 0]
-  - [0.10, -0.15, 0.24, 0, 25, 0]
-  - [0.10, -0.25, 0.16, 0, 25, 0]
+multi_detector:
+  ros__parameters:
+    marker_map_file:     package://aist_aruco_ros/config/aruco-26-70x70-5.yaml
+    marker_size:         0.050            # Effective only if marker_map == ""
+    marker_frame:        b_bot_ar_marker
+    image_is_rectified:  false
+    use_similarity:      false
+    planarity_tolerance: 0.001
+#    min_marker_size:     -1.0
+    enclosed_marker:     false
+    detection_mode:      1        # 0: DM_NORMAL, 1: DM_FAST, 2: DM_VIDEO_FAST
+    dictionary:          ARUCO
 
-  - [-0.05, -0.25, 0.32, 0, 25, 0]
-  - [-0.05, -0.15, 0.24, 0, 25, 0]
-  - [-0.05, -0.05, 0.16, 0, 25, 0]
-  - [-0.05,  0.05, 0.21, 0, 25, 0]
-  - [-0.05,  0.15, 0.26, 0, 25, 0]
+/**:
+  ros__parameters:
+    reference_frame:     workspace_center
+
+camera_calibrator:
+  ros__parameters:
+    correspondences_timeout: 5.0
+
+run_calibration:
+  ros__parameters:
+    robot_name:          b_bot
+    end_effector_link:   b_bot_gripper_base_link
+    calibration_dir:     package://aist_description/scenes/calib
+    speed:               1.0
+    settling_time:       2.0
+    initpose:            [ 0.10,  0.10, 0.35, 0.0, 90.0, 0.0]
+    keyposes:            [ 0.10,  0.15, 0.16, 0.0, 25.0, 0.0,
+                           0.10,  0.05, 0.24, 0.0, 25.0, 0.0,
+                           0.10, -0.05, 0.32, 0.0, 25.0, 0.0,
+                           0.10, -0.15, 0.24, 0.0, 25.0, 0.0,
+                           0.10, -0.25, 0.16, 0.0, 25.0, 0.0,
+                          -0.05, -0.25, 0.32, 0.0, 25.0, 0.0,
+                          -0.05, -0.15, 0.24, 0.0, 25.0, 0.0,
+                          -0.05, -0.05, 0.16, 0.0, 25.0, 0.0,
+                          -0.05,  0.05, 0.21, 0.0, 25.0, 0.0,
+                          -0.05,  0.15, 0.26, 0.0, 25.0, 0.0]

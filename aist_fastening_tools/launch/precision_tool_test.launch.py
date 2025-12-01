@@ -1,25 +1,37 @@
 from launch                     import LaunchDescription
-from launch.actions             import OpaqueFunction
-from launch.substitutions       import LaunchConfiguration
+from launch.actions             import OpaqueFunction, IncludeLaunchDescription
+from launch.substitutions       import (LaunchConfiguration, ThisLaunchFileDir,
+                                        PathJoinSubstitution)
 from launch_ros.actions         import Node
 from aist_bringup.launch_common import declare_launch_arguments
 
 launch_arguments = [
     {
-        'name':        'controller_ns',
-        'default':     'precision_tool_controller',
-        'description': 'namespace of the gripper controller'
+        'name':        'tool_name',
+        'default':     'precision_tool',
+        'description': 'name of the tool'
     }
 ]
 
 def launch_setup(context):
-    return [Node(name='test_client',
-                 package='aist_fastening_tools',
-                 executable='precision_tool_test.py',
-                 parameters=[
-                     {'controller_ns': LaunchConfiguration('controller_ns')}],
-                 prefix=['xterm -fn 7x14 -e'],
-                 output='screen')]
+    return [
+        IncludeLaunchDescription(
+            PathJoinSubstitution([ThisLaunchFileDir(),
+                                  'dynamixel_devices.launch.py']),
+            launch_arguments=[
+                ('tool_names', LaunchConfiguration('tool_name')),
+                ('tool_types', 'PrecisionTool'),
+                ('container',  'precision_tools_container'),
+                ('driver_ns',  'precision_tools_driver'),
+            ]),
+        Node(name='precision_tool_test',
+             package='aist_fastening_tools',
+             executable='precision_tool_test.py',
+             parameters=[{'controller_ns':
+                          [LaunchConfiguration('tool_name'), '_controller']}],
+             prefix=['xterm -fn 7x14 -e'],
+             output='screen')
+    ]
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \

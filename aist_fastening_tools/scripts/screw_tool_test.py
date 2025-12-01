@@ -2,18 +2,17 @@
 
 import rclpy, sys, threading
 import numpy as np
-from rclpy.node           import Node
-from aist_fastening_tools import ScrewTool
+from rclpy.node                  import Node
+from aist_fastening_tools.client import ScrewTool
 
 
 class ScrewToolTest(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        controller_ns = self.declare_parameter(
-                            'controller_ns',
-                            'screw_tool_m4_fastening_controller').value
-        self._screw_tool = ScrewTool(self, controller_ns)
+        tool_name = self.declare_parameter('tool_name',
+                                           'screw_tool_m3_fastening').value
+        self._screw_tool = ScrewTool(self, tool_name)
         self.get_logger().info('started')
 
         cli_thread = threading.Thread(target=self.interactive)

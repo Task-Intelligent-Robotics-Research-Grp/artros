@@ -1,0 +1,10 @@
+# Goal
+string    robot_name
+string    end_effector_link
+float64[] initpose
+float64[] keyposes
+---
+# Result
+bool      success
+---
+# Feedback

@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-
+#
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2021, OMRON SINIC X
@@ -34,17 +33,11 @@
 #
 # Author: Cristian C. Beltran-Hernandez
 
-import sys
-import threading
-
-import sys
-import signal
-
+import sys, threading, siganl
 
 def signal_handler(sig, frame):
     print('You pressed Ctrl+C!')
     sys.exit(0)
-
 
 signal.signal(signal.SIGINT, signal_handler)
 

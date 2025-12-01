@@ -1,7 +1,0 @@
-$(var name):
-  ID:                   $(var motor_id)
-  Return_Delay_Time:    0
-  Operating_Mode:       5  # Current-based Position Control Mode
-  Torque_Enable:        1
-  Profile_Acceleration: 0
-  Profile_Velocity:     0

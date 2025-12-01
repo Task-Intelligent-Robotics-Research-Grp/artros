@@ -17,7 +17,7 @@ launch_arguments = [
     {'name':        'multiplexer_name',
      'default':     '',
      'description': 'name of the multiplexer'},
-    {'name':        'config_file',
+    {'name':        'param_file',
      'default':     '',
      'description': 'path to YAML file for configuring the cameras'},
     {'name':        'active_camera_name',
@@ -44,21 +44,21 @@ launch_arguments = [
      'description': 'pipe node output',
      'choices':     ['screen', 'log', 'both']}]
 
-def get_node_names(config_file):
-    with open(config_file, 'r') as f:
+def get_node_names(param_file):
+    with open(param_file, 'r') as f:
         conf = yaml.safe_load(f)
     return list(conf.keys())
 
 def launch_setup(context):
-    config_file = IfElseSubstitution(
-                      EqualsSubstitution(
-                          LaunchConfiguration('config_file'), ''),
-                      PathJoinSubstitution(
-                          [ThisLaunchFileDir(), '..', 'config',
-                           'realsense.yaml']),
-                      LaunchConfiguration('config_file'))
+    param_file = IfElseSubstitution(
+                     EqualsSubstitution(
+                         LaunchConfiguration('param_file'), ''),
+                     PathJoinSubstitution(
+                         [ThisLaunchFileDir(), '..', 'config',
+                          'realsense.yaml']),
+                     LaunchConfiguration('param_file'))
 
-    camera_names = get_node_names(config_file.perform(context))
+    camera_names = get_node_names(param_file.perform(context))
     composable_nodes = []
     remappings = []
     for camera_name in camera_names:
@@ -68,7 +68,7 @@ def launch_setup(context):
                 name=camera_name,
                 package='realsense2_camera',
                 plugin='realsense2_camera::RealSenseNodeFactory',
-                parameters=[config_file],
+                parameters=[param_file],
                 extra_arguments=[{'use_intra_process_comms': True}],
                 condition=UnlessCondition(LaunchConfiguration('sim'))))
         remappings += [(camera_name + '/depth',

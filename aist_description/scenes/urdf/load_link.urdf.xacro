@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="load_link">
+
+  <xacro:macro name="load_link" params="filename">
+    <xacro:property name="transform" value="${xacro.load_yaml(filename)}"/>
+    <xacro:property name="origin"    value="${transform['origin']}"/>
+
+    <joint name="${transform['child']}_joint" type="fixed">
+      <parent link="${transform['parent']}"/>
+      <child  link="${transform['child']}"/>
+      <origin xyz="${origin[0]} ${origin[1]} ${origin[2]}"
+	      rpy="${radians(origin[3])}
+		   ${radians(origin[4])}
+		   ${radians(origin[5])}"/>
+    </joint>
+    <link name="${transform['child']}"/>
+  </xacro:macro>
+
+</robot>

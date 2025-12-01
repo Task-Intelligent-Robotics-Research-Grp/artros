@@ -37,25 +37,15 @@
   \file	 Calibrator.cpp
   \brief Calibrator node implementing a quick compute service, a compute service and 2 subscribers to world_effector_topic and camera_object_topic.
 */
-#include <fstream>
-#include <sstream>
-#include <ctime>
-#include <cstdlib>	// for std::getenv()
-#include <filesystem>
-#include <errno.h>
-#include <ros/ros.h>
-#include <std_srvs/Empty.h>
-#include <std_srvs/Trigger.h>
-#include <actionlib/server/simple_action_server.h>
-#include <nodelet/nodelet.h>
-#include <pluginlib/class_list_macros.h>
-#include <yaml-cpp/yaml.h>
-
-#include <aist_aruco_msgs/PointCorrespondenceArrayArray.h>
-#include <aist_camera_calibration/TakeSampleAction.h>
-#include <aist_camera_calibration/GetSampleList.h>
-#include <aist_camera_calibration/ComputeCalibration.h>
-#include <aist_utility/geometry_msgs.h>
+#include <mutex>
+#include <condition_variable>
+#include <rclcpp/rclcpp.hpp>
+#include <std_srvs/srv/empty.hpp>
+#include <aist_msgs/srv/camera_calibration_take_sample.hpp>
+#include <aist_msgs/srv/camera_calibration_get_sample_list.hpp>
+#include <aist_msgs/srv/camera_calibration_compute_calibration.hpp>
+#include <aist_utility/geometry_msgs.hpp>
+#include <ddynamic_reconfigure2/ddynamic_reconfigure2.hpp>
 #include "CameraCalibrator.h"
 #include "TU/Camera++.h"
 #include "TU/Quaternion.h"
@@ -65,6 +55,13 @@ namespace aist_camera_calibration
 /************************************************************************
 *  static functions							*
 ************************************************************************/
+static inline rclcpp::SubscriptionOptions
+create_subscription_options(const rclcpp::CallbackGroup::SharedPtr& cbg)
+{
+    rclcpp::SubscriptionOptions	options;
+    options.callback_group = cbg;
+    return options;
+}
   /*
 template <class T> std::ostream&
 operator <<(std::ostream& out, const TU::Point2<T>& p)
@@ -94,42 +91,38 @@ operator <<(std::ostream& out, const std::vector<T>& v)
     return out;
 }
 
-template <class ARRAY> void
-put(YAML::Emitter& emitter, size_t rows, const ARRAY& v)
-{
-    emitter << YAML::BeginMap
-	    << YAML::Key   << "rows"
-	    << YAML::Value << rows
-	    << YAML::Key   << "cols"
-	    << YAML::Value << v.size()/rows
-	    << YAML::Key   << "data"
-	    << YAML::Value
-	    << YAML::Flow
-	    << YAML::BeginSeq;
-    for (const auto& val : v)
-	emitter << val;
-    emitter << YAML::EndSeq
-	    << YAML::EndMap;
-}
-
 /************************************************************************
 *  class Calibrator							*
 ************************************************************************/
-class Calibrator
+class Calibrator : public rclcpp::Node
 {
   public:
-    using camera_info_t		= sensor_msgs::CameraInfo;
-    using pose_t		= geometry_msgs::PoseStamped;
+    using camera_info_t		= sensor_msgs::msg::CameraInfo;
+    using pose_t		= geometry_msgs::msg::PoseStamped;
 
   private:
+    template <class MSG>
+    using msg_cp	= typename MSG::ConstSharedPtr;
+    template <class MSG>
+    using sub_p		= typename rclcpp::Subscription<MSG>::SharedPtr;
+    template <class SRV>
+    using srv_p		= typename rclcpp::Service<SRV>::SharedPtr;
+    template <class SRV>
+    using req_cp	= typename SRV::Request::ConstSharedPtr;
+    template <class SRV>
+    using res_p		= typename SRV::Response::SharedPtr;
+
+    using callback_group_p	= rclcpp::CallbackGroup::SharedPtr;
     using element_t		= double;
-    using correses_msg_t	= aist_aruco_msgs::PointCorrespondenceArray;
-    using correses_set_msg_t	= aist_aruco_msgs
-				      ::PointCorrespondenceArrayArray;
-    using correses_set_msg_cp	= aist_aruco_msgs
-				      ::PointCorrespondenceArrayArrayConstPtr;
-    using action_server_t	= actionlib::SimpleActionServer<
-				      TakeSampleAction>;
+    using correses_msg_t	= aist_msgs::msg::PointCorrespondenceArray;
+    using correses_set_msg_t	= aist_msgs::msg
+					   ::PointCorrespondenceArrayArray;
+    using empty_t		= std_srvs::srv::Empty;
+    using take_sample_t		= aist_msgs::srv::CameraCalibrationTakeSample;
+    using get_sample_list_t	= aist_msgs::srv
+					   ::CameraCalibrationGetSampleList;
+    using compute_calibration_t	= aist_msgs::srv
+				      ::CameraCalibrationComputeCalibration;
 
     using point2_t		= TU::Point2<element_t>;
     using point3_t		= TU::Point3<element_t>;
@@ -148,7 +141,7 @@ class Calibrator
     struct to_corres
     {
 	std::pair<SRC_PNT, DST_PNT>
-	operator ()(const aist_aruco_msgs::PointCorrespondence& corres) const
+	operator ()(const aist_msgs::msg::PointCorrespondence& corres) const
 	{
 	    SRC_PNT	p;
 	    p[0] = corres.source_point.x;
@@ -164,7 +157,7 @@ class Calibrator
     struct to_corres<point3_t, DST_PNT>
     {
 	std::pair<point3_t, DST_PNT>
-	operator ()(const aist_aruco_msgs::PointCorrespondence& corres) const
+	operator ()(const aist_msgs::msg::PointCorrespondence& corres) const
 	{
 	    point3_t	p;
 	    p[0] = corres.source_point.x;
@@ -186,14 +179,14 @@ class Calibrator
 
     struct to_camera_info
     {
-	to_camera_info(const ros::Time& stamp)	:_stamp(stamp)		{}
+	to_camera_info(const rclcpp::Time& stamp) :_stamp(stamp)	{}
 
 	camera_info_t
 	operator ()(const camera_t& camera,
 		    const correses_msg_t& correses)		const	;
 
       private:
-	const ros::Time	_stamp;
+	const rclcpp::Time	_stamp;
     };
 
     struct to_pose
@@ -204,114 +197,88 @@ class Calibrator
     };
 
   public:
-		Calibrator(const ros::NodeHandle& nh,
-			   const std::string& nodelet_name)		;
-		~Calibrator()						;
+		Calibrator(const rclcpp::NodeOptions& options)		;
 
   private:
-    const std::string&
-		getName()					const	;
-    void	goal_cb()						;
-    void	preempt_cb()						;
-    void	corres_cb(const correses_set_msg_cp& correses_set_msg)	;
-    bool	get_sample_list(GetSampleList::Request&,
-				GetSampleList::Response& res)		;
-    bool	compute_calibration(ComputeCalibration::Request&,
-				    ComputeCalibration::Response& res)	;
-    bool	save_calibration(std_srvs::Trigger::Request&,
-				 std_srvs::Trigger::Response& res)	;
-    bool	reset(std_srvs::Empty::Request&,
-		      std_srvs::Empty::Response&)			;
+    void	corres_cb(
+		    const msg_cp<correses_set_msg_t>& correses_set_msg)	;
+    void	take_sample(req_cp<take_sample_t>,
+			    res_p<take_sample_t> res)			;
+    void	get_sample_list(req_cp<get_sample_list_t>,
+				res_p<get_sample_list_t> res)		;
+    void	compute_calibration(req_cp<compute_calibration_t>,
+				    res_p<compute_calibration_t> res)	;
+    void	reset(req_cp<empty_t>, res_p<empty_t>)			;
+
     correses_sets_t<corres22_t>
 		convert_correspondences_sets()			const	;
     correses_set_t<corres32_t>
 		rearrange_correspondences_sets()		const	;
-    void	save_calibration(const std::string& camera_name,
-				 const camera_info_t& intrinsic,
-				 const pose_t& camera_pose)	const	;
 
   private:
-    const std::string			_nodelet_name;
+    const callback_group_p		_corres_cbg;
+    const sub_p<correses_set_msg_t>	_corres_sub;
 
-    ros::NodeHandle			_nh;
-    ros::Subscriber			_corres_sub;
+    const srv_p<take_sample_t>		_take_sample_srv;
+    const srv_p<get_sample_list_t>	_get_sample_list_srv;
+    const srv_p<compute_calibration_t>	_compute_calibration_srv;
+    const srv_p<empty_t>		_reset_srv;
 
-    action_server_t			_take_sample_srv;
-    const ros::ServiceServer		_get_sample_list_srv;
-    const ros::ServiceServer		_compute_calibration_srv;
-    const ros::ServiceServer		_save_calibration_srv;
-    const ros::ServiceServer		_reset_srv;
+    msg_cp<correses_set_msg_t>		_correspondences_set;
+    std::mutex				_correspondences_set_mtx;
+    std::condition_variable		_correspondences_set_cv;
+    const std::chrono::duration<double>	_correspondences_set_timeout;
 
     std::vector<correses_set_msg_t>	_correspondences_sets;
     std::vector<camera_info_t>		_intrinsics;
     std::vector<pose_t>			_camera_poses;
 };
 
-Calibrator::Calibrator(const ros::NodeHandle& nh,
-		       const std::string& nodelet_name)
-    :_nodelet_name(nodelet_name),
-     _nh(nh),
-     _corres_sub(_nh.subscribe("/point_correspondences_set", 5,
-			       &Calibrator::corres_cb, this)),
-     _take_sample_srv(_nh, "take_sample", false),
-     _get_sample_list_srv(
-	 _nh.advertiseService("get_sample_list",
-			      &Calibrator::get_sample_list, this)),
-     _compute_calibration_srv(
-	 _nh.advertiseService("compute_calibration",
-			      &Calibrator::compute_calibration, this)),
-     _save_calibration_srv(
-	 _nh.advertiseService("save_calibration",
-			      &Calibrator::save_calibration, this)),
-     _reset_srv(_nh.advertiseService("reset", &Calibrator::reset, this)),
+Calibrator::Calibrator(const rclcpp::NodeOptions& options)
+    :rclcpp::Node("calibrator", options),
+     _corres_cbg(create_callback_group(
+		     rclcpp::CallbackGroupType::MutuallyExclusive)),
+     _corres_sub(create_subscription<correses_set_msg_t>(
+		     "point_correspondences_set", 1,
+		     std::bind(&Calibrator::corres_cb,
+			       this, std::placeholders::_1),
+		     create_subscription_options(_corres_cbg))),
+     _take_sample_srv(create_service<take_sample_t>(
+			  "~/take_sample",
+			  std::bind(&Calibrator::take_sample, this,
+				    std::placeholders::_1,
+				    std::placeholders::_2))),
+     _get_sample_list_srv(create_service<get_sample_list_t>(
+			      "~/get_sample_list",
+			      std::bind(&Calibrator::get_sample_list, this,
+					std::placeholders::_1,
+					std::placeholders::_2))),
+     _compute_calibration_srv(create_service<compute_calibration_t>(
+				  "~/compute_calibration",
+				  std::bind(&Calibrator::compute_calibration,
+					    this,
+					    std::placeholders::_1,
+					    std::placeholders::_2))),
+     _reset_srv(create_service<empty_t>("~/reset",
+					std::bind(&Calibrator::reset, this,
+						  std::placeholders::_1,
+						  std::placeholders::_2))),
+     _correspondences_set(),
+     _correspondences_set_mtx(),
+     _correspondences_set_cv(),
+     _correspondences_set_timeout(
+	 ddynamic_reconfigure2::declare_read_only_parameter(
+	     this, "correspondences_timeout", 5.0)),
      _correspondences_sets(),
      _intrinsics(),
      _camera_poses()
 {
-    _take_sample_srv.registerGoalCallback(boost::bind(&Calibrator::goal_cb,
-						      this));
-    _take_sample_srv.registerPreemptCallback(boost::bind(
-						 &Calibrator::preempt_cb,
-						 this));
-    _take_sample_srv.start();
-
-    NODELET_INFO_STREAM('(' << getName() << ") Calibrator initialized");
-}
-
-Calibrator::~Calibrator()
-{
-}
-
-const std::string&
-Calibrator::getName() const
-{
-    return _nodelet_name;
+    RCLCPP_INFO_STREAM(get_logger(), "calibrator initialized");
 }
 
 void
-Calibrator::goal_cb()
+Calibrator::corres_cb(const msg_cp<correses_set_msg_t>& correses_set_msg)
 {
-    _take_sample_srv.acceptNewGoal();
-
-    NODELET_INFO_STREAM('(' << getName()
-			<< ") ACCEPTED new goal to take samples");
-}
-
-void
-Calibrator::preempt_cb()
-{
-    _take_sample_srv.setPreempted();
-
-    NODELET_WARN_STREAM('(' << getName()
-			<< ") CANCELED taking samples");
-}
-
-void
-Calibrator::corres_cb(const correses_set_msg_cp& correses_set_msg)
-{
-    if (!_take_sample_srv.isActive())
-	return;
-
   // Check input correspondences set.
     try
     {
@@ -320,19 +287,51 @@ Calibrator::corres_cb(const correses_set_msg_cp& correses_set_msg)
 	for (const auto& correspondences
 		 : correses_set_msg->correspondences_set)
 	    if (correspondences.correspondences.empty())
-		throw std::runtime_error("No correspondences found for "
-					 + correspondences.camera_name);
+	    {
+		RCLCPP_WARN_STREAM(get_logger(),
+				   "No correspondences found for "
+				   << correspondences.camera_name);
+		return;
+	    }
     }
     catch (std::runtime_error& err)
     {
-	_take_sample_srv.setAborted();
-
-	NODELET_ERROR_STREAM('(' << getName() << ") ABORTED taking samples["
-			     << err.what() << ']');
+	RCLCPP_ERROR_STREAM(get_logger(), err.what());
 	return;
     }
 
-    _correspondences_sets.push_back(*correses_set_msg);
+    const std::lock_guard<std::mutex>	lock(_correspondences_set_mtx);
+    _correspondences_set = correses_set_msg;
+    _correspondences_set_cv.notify_all();
+}
+
+void
+Calibrator::take_sample(req_cp<take_sample_t>, res_p<take_sample_t> res)
+{
+    RCLCPP_INFO_STREAM(get_logger(),
+		       "new request for CameraCalibrationTakeSample received");
+
+    {
+	std::unique_lock<std::mutex>	lock(_correspondences_set_mtx);
+
+	_correspondences_set = nullptr;
+
+      // Get the latest pose of the marker.
+	if (!_correspondences_set_cv.wait_for(
+		lock, _correspondences_set_timeout,
+		[this]{ return _correspondences_set != nullptr; }))
+	{
+	    res->success = false;
+	    res->message = "timeout["
+			 + std::to_string(_correspondences_set_timeout.count())
+			 + "sec] has expired before correspondences available";
+
+	    RCLCPP_ERROR_STREAM(get_logger(), res->message);
+	    return;
+	}
+
+	_correspondences_sets.emplace_back(*_correspondences_set);
+    }
 
   // If using planar calibration object, set the reference frame of each
   // camera to the first camera frame.
@@ -343,29 +342,31 @@ Calibrator::corres_cb(const correses_set_msg_cp& correses_set_msg)
 	if (correspondences.reference_frame.empty())
 	    correspondences.reference_frame = first_camera_frame;
 
-    TakeSampleResult	result;
-    result.correspondences_set = correses_set_msg->correspondences_set;
-    _take_sample_srv.setSucceeded(result);
+    res->success = true;
+    res->message = "take_sample: corresnpondences between "
+		 + std::to_string(correspondences_set.
+				  correspondences_set.size())
+		 + " views obtained";
+    res->correspondences_set = correspondences_set.correspondences_set;
 
-    NODELET_INFO_STREAM('(' << getName() << ") SUCCEEDED in taking samples");
+    RCLCPP_INFO_STREAM(get_logger(), res->message);
 }
 
-bool
-Calibrator::get_sample_list(GetSampleList::Request&,
-			    GetSampleList::Response& res)
+void
+Calibrator::get_sample_list(req_cp<get_sample_list_t>,
+			    res_p<get_sample_list_t> res)
 {
-    res.correspondences_sets = _correspondences_sets;
-    res.message = "GetSampleList: "
-		+ std::to_string(res.correspondences_sets.size())
-		+ " samples obtained";
+    res->correspondences_sets = _correspondences_sets;
+    res->message = "get_sample_list: "
+		 + std::to_string(res->correspondences_sets.size())
+		 + " samples obtained";
 
-    NODELET_INFO_STREAM('(' << getName() << ") " << res.message);
-    return true;
+    RCLCPP_INFO_STREAM(get_logger(), res->message);
 }
 
-bool
-Calibrator::compute_calibration(ComputeCalibration::Request&,
-				ComputeCalibration::Response& res)
+void
+Calibrator::compute_calibration(req_cp<compute_calibration_t>,
+				res_p<compute_calibration_t> res)
 {
     try
     {
@@ -401,83 +402,49 @@ Calibrator::compute_calibration(ComputeCalibration::Request&,
 	    			       *camera++, true);
 	}
 
-	res.camera_names.clear();
-	res.intrinsics.clear();
-	res.camera_poses.clear();
+	res->camera_names.clear();
+	res->intrinsics.clear();
+	res->camera_poses.clear();
 
 	std::transform(first_correspondences_set.cbegin(),
 		       first_correspondences_set.cend(),
-		       std::back_inserter(res.camera_names), to_camera_name());
+		       std::back_inserter(res->camera_names),
+		       to_camera_name());
 	std::transform(cameras.cbegin(), cameras.cend(),
 		       first_correspondences_set.cbegin(),
-		       std::back_inserter(res.intrinsics),
-		       to_camera_info(ros::Time::now()));
+		       std::back_inserter(res->intrinsics),
+		       to_camera_info(get_clock()->now()));
 	std::transform(cameras.cbegin(), cameras.cend(),
 		       first_correspondences_set.cbegin(),
-		       std::back_inserter(res.camera_poses), to_pose());
+		       std::back_inserter(res->camera_poses), to_pose());
 
-	res.error   = calibrator.reprojectionError();
-	res.success = true;
-	res.message = "ComputeCalibration: succesfully computed calibration with reprojection error["
-		    + std::to_string(res.error) + "(pix)]";
+	res->error   = calibrator.reprojectionError();
+	res->success = true;
+	res->message = "Calibrator::cmpute_calibration: succesfully computed calibration with reprojection error["
+		     + std::to_string(res->error) + "(pix)]";
 
-	_intrinsics   = res.intrinsics;
-	_camera_poses = res.camera_poses;
+	_intrinsics   = res->intrinsics;
+	_camera_poses = res->camera_poses;
 
-	NODELET_INFO_STREAM('(' << getName() << ") " << res.message);
+	RCLCPP_INFO_STREAM(get_logger(), res->message);
     }
     catch (const std::exception& err)
     {
-	res.success = false;
-	res.message = "ComputeCalibration: failed to compute calibration["
-		    + std::string(err.what()) + ']';
-
-	NODELET_ERROR_STREAM('(' << getName() << ") " << res.message);
+	res->success = false;
+	res->message = "Calibrator::cmpute_calibration: "
+		     + std::string(err.what());
+	RCLCPP_ERROR_STREAM(get_logger(), res->message);
     }
-
-    return true;
 }
 
-bool
-Calibrator::save_calibration(std_srvs::Trigger::Request&,
-			     std_srvs::Trigger::Response& res)
-{
-
-    try
-    {
-	for (size_t i = 0; i < _intrinsics.size(); ++i)
-	    save_calibration(_correspondences_sets.front()
-			     .correspondences_set[i].camera_name,
-			     _intrinsics[i], _camera_poses[i]);
-
-	res.success = true;
-	res.message = "SaveCalibration: succesfully saved";
-
-	NODELET_INFO_STREAM('(' << getName() << ") " << res.message);
-    }
-    catch (const std::runtime_error& err)
-    {
-	res.success = false;
-	res.message = "SaveCalibration: failed to save calibration["
-		    + std::string(err.what()) + ']';
-
-	NODELET_ERROR_STREAM('(' << getName() << ") " << res.message);
-    }
-
-    return true;
-}
-
-bool
-Calibrator::reset(std_srvs::Empty::Request&, std_srvs::Empty::Response&)
+void
+Calibrator::reset(req_cp<empty_t>, res_p<empty_t>)
 {
     _correspondences_sets.clear();
     _intrinsics.clear();
     _camera_poses.clear();
 
-    NODELET_INFO_STREAM('(' << getName()
-			<< ") All samples and cameras cleared");
-
-    return true;
+    RCLCPP_INFO_STREAM(get_logger(), "reset(): all samples cleared.");
 }
 
 Calibrator::correses_sets_t<Calibrator::corres22_t>
@@ -535,84 +502,6 @@ Calibrator::rearrange_correspondences_sets() const
     return correses_set;
 }
 
-void
-Calibrator::save_calibration(const std::string& camera_name,
-			     const camera_info_t& intrinsic,
-			     const pose_t& pose) const
-{
-    using aist_utility::operator <<;
-
-    const auto	tval = time(nullptr);
-    const auto	tstr = ctime(&tval);
-    tstr[strlen(tstr)-1] = '\0';
-
-    YAML::Emitter	emitter;
-    emitter << YAML::BeginMap
-	    << YAML::Key   << "calibration_date"
-	    << YAML::Value << tstr;
-    emitter << YAML::Key   << "image_width"
-	    << YAML::Value << intrinsic.width
-	    << YAML::Key   << "image_height"
-	    << YAML::Value << intrinsic.height
-	    << YAML::Key   << "camera_name"
-	    << YAML::Value << camera_name;
-    put(emitter << YAML::Key << "camera_matrix" << YAML::Value,
-	3, intrinsic.K);
-    emitter << YAML::Key   << "distortion_model"
-	    << YAML::Value << intrinsic.distortion_model;
-    put(emitter << YAML::Key << "distortion_coefficients" << YAML::Value,
-	1, intrinsic.D);
-    put(emitter << YAML::Key << "rectification_matrix" << YAML::Value,
-	3, intrinsic.R);
-    put(emitter << YAML::Key << "projection_matrix" << YAML::Value,
-	3, intrinsic.P);
-    emitter << YAML::Key << "camera_pose" << YAML::Value
-	    << aist_utility::toTransform(pose, intrinsic.header.frame_id);
-
-  // Check existence of calibration directory and create if not present.
-    namespace fs = std::filesystem;
-    const fs::path	calib_dir(std::string(getenv("HOME"))
-				  + "/.ros/camera_info");
-    if (!fs::exists(calib_dir))
-	fs::create_directories(calib_dir);
-    else if (!fs::is_directory(calib_dir))
-	throw std::runtime_error('\"' + calib_dir.string()
-				 + "\" exists but not a directory");
-
-  // Create a file to which calibration results saved.
-    const auto		calib_file = calib_dir
-				   / fs::path(camera_name + ".yaml");
-    std::ofstream	out(calib_file);
-    if (!out)
-	throw std::runtime_error("cannot open " + calib_file.string()
-				 + ": " + strerror(errno));
-
-  // Save calitration results.
-    out << emitter.c_str() << std::endl;
-    out.close();
-
-    NODELET_INFO_STREAM('(' << getName() << ") SaveCalibration: saved in "
-			    << calib_file.string());
-
-  // Create a file to which original correspondence data saved.
-    const auto		corres_file = calib_dir
-				    / fs::path(camera_name + ".corres");
-    out.open(corres_file);
-    if (!out)
-	throw std::runtime_error("cannot open " + corres_file.string()
-				 + ": " + strerror(errno));
-
-  // Save correnpondences.
-    using	aist_camera_calibration::operator <<;
-    const auto& first_correspondences_set = _correspondences_sets.front()
-					   .correspondences_set;
-    if (const auto& correspondences = first_correspondences_set.front();
-	correspondences.reference_frame == correspondences.header.frame_id)
-	out << convert_correspondences_sets();
-    else
-	out << rearrange_correspondences_sets();
-}
-
 /************************************************************************
 *  struct Calibrator::to_camera_name					*
 ************************************************************************/
@@ -639,49 +528,49 @@ Calibrator::to_camera_info::operator()(const camera_t& camera,
 
   // Set distortion parameters.
     camera_info.distortion_model = "plumb_bob";
-    camera_info.D.resize(5);
-    camera_info.D[0] = camera.d1();
-    camera_info.D[1] = camera.d2();
-    camera_info.D[2] = 0.0;
-    camera_info.D[3] = 0.0;
-    camera_info.D[4] = 0.0;
+    camera_info.d.resize(5);
+    camera_info.d[0] = camera.d1();
+    camera_info.d[1] = camera.d2();
+    camera_info.d[2] = 0.0;
+    camera_info.d[3] = 0.0;
+    camera_info.d[4] = 0.0;
 
   // Set intrinsic parameters.
     const auto	K = camera.K();
-    camera_info.K[0] = K[0][0];
-    camera_info.K[1] = 0.0;
-    camera_info.K[2] = K[0][2];
-    camera_info.K[3] = 0.0;
-    camera_info.K[4] = K[1][1];
-    camera_info.K[5] = K[1][2];
-    camera_info.K[6] = 0.0;
-    camera_info.K[7] = 0.0;
-    camera_info.K[8] = 1.0;
+    camera_info.k[0] = K[0][0];
+    camera_info.k[1] = 0.0;
+    camera_info.k[2] = K[0][2];
+    camera_info.k[3] = 0.0;
+    camera_info.k[4] = K[1][1];
+    camera_info.k[5] = K[1][2];
+    camera_info.k[6] = 0.0;
+    camera_info.k[7] = 0.0;
+    camera_info.k[8] = 1.0;
 
   // Set rotation matrix.
-    camera_info.R[0] = 1.0;
-    camera_info.R[1] = 0.0;
-    camera_info.R[2] = 0.0;
-    camera_info.R[3] = 0.0;
-    camera_info.R[4] = 1.0;
-    camera_info.R[5] = 0.0;
-    camera_info.R[6] = 0.0;
-    camera_info.R[7] = 0.0;
-    camera_info.R[8] = 1.0;
+    camera_info.r[0] = 1.0;
+    camera_info.r[1] = 0.0;
+    camera_info.r[2] = 0.0;
+    camera_info.r[3] = 0.0;
+    camera_info.r[4] = 1.0;
+    camera_info.r[5] = 0.0;
+    camera_info.r[6] = 0.0;
+    camera_info.r[7] = 0.0;
+    camera_info.r[8] = 1.0;
 
   // Set projection matrix.
-    camera_info.P[ 0] = camera_info.K[0];
-    camera_info.P[ 1] = camera_info.K[1];
-    camera_info.P[ 2] = camera_info.K[2];
-    camera_info.P[ 3] = 0.0;
-    camera_info.P[ 4] = camera_info.K[3];
-    camera_info.P[ 5] = camera_info.K[4];
-    camera_info.P[ 6] = camera_info.K[5];
-    camera_info.P[ 7] = 0.0;
-    camera_info.P[ 8] = camera_info.K[6];
-    camera_info.P[ 9] = camera_info.K[7];
-    camera_info.P[10] = camera_info.K[8];
-    camera_info.P[11] = 0.0;
+    camera_info.p[ 0] = camera_info.k[0];
+    camera_info.p[ 1] = camera_info.k[1];
+    camera_info.p[ 2] = camera_info.k[2];
+    camera_info.p[ 3] = 0.0;
+    camera_info.p[ 4] = camera_info.k[3];
+    camera_info.p[ 5] = camera_info.k[4];
+    camera_info.p[ 6] = camera_info.k[5];
+    camera_info.p[ 7] = 0.0;
+    camera_info.p[ 8] = camera_info.k[6];
+    camera_info.p[ 9] = camera_info.k[7];
+    camera_info.p[10] = camera_info.k[8];
+    camera_info.p[11] = 0.0;
 
   // Set binning.
     camera_info.binning_x = 0;
@@ -712,29 +601,8 @@ Calibrator::to_pose::operator()(const camera_t& camera,
 
     return pose;
 }
-
-/************************************************************************
-*  class CalibratorNodelet						*
-************************************************************************/
-class CalibratorNodelet : public nodelet::Nodelet
-{
-  public:
-			CalibratorNodelet()				{}
-
-    virtual void	onInit()					;
-
-  private:
-    boost::shared_ptr<Calibrator>	_node;
-};
-
-void
-CalibratorNodelet::onInit()
-{
-    NODELET_INFO("aist_camera_calibrations::CalibratorNodelet::onInit()");
-    _node.reset(new Calibrator(getPrivateNodeHandle(), getName()));
-}
-
 }	// namespace aist_camera_calibration
 
-PLUGINLIB_EXPORT_CLASS(aist_camera_calibration::CalibratorNodelet,
-		       nodelet::Nodelet);
+#include <rclcpp_components/register_node_macro.hpp>
+
+RCLCPP_COMPONENTS_REGISTER_NODE(aist_camera_calibration::Calibrator)

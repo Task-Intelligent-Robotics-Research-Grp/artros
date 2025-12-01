@@ -1,7 +1,8 @@
 import shutil
 from launch                     import LaunchDescription
 from launch.actions             import SetLaunchConfiguration, OpaqueFunction
-from launch.substitutions       import PathJoinSubstitution
+from launch.substitutions       import (LaunchConfiguration,
+                                        PathJoinSubstitution)
 from launch_ros.actions         import Node
 from launch_ros.substitutions   import FindPackageShare
 from aist_bringup.launch_common import (declare_launch_arguments,
@@ -13,6 +14,11 @@ launch_arguments = [
         'name':        'config',
         'default':     'aist',
         'description': 'Name of the hardware configuration'
+    },
+    {
+        'name':        'container',
+        'default':     'cameras_container',
+        'description': 'name of the component container for cameras'
     },
 ]
 
@@ -26,7 +32,7 @@ def launch_setup(context):
                      'templates', 'clock_bridge.yaml']).perform(context),
                 bridge_config_file)
     append = False
-    for camera_name, camera_config in config['cameras'].items():
+    for camera_name, camera_config in config.get('cameras', {}).items():
         camera_props = get_camera_props(camera_config['type'])
         SetLaunchConfiguration('camera_name', camera_name).execute(context)
         if 'cloud_topic' in camera_props:
@@ -45,10 +51,16 @@ def launch_setup(context):
                          bridge_config_file, append)
         append = True
 
-    return [Node(package='ros_gz_bridge',
+    return [
+        Node(name=LaunchConfiguration('container'),
+             package='rclcpp_components',
+             executable='component_container_mt',
+             output='screen'),
+        Node(package='ros_gz_bridge',
                  executable='parameter_bridge',
                  parameters=[{'config_file': bridge_config_file}],
-                 output='screen')]
+                 output='screen')
+    ]
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \

@@ -36,8 +36,8 @@
 # Author: Toshio Ueshiba
 #
 import rclpy, threading
-from rclpy.node   import Node
-from aist_robotiq import EPickGripper
+from rclpy.node          import Node
+from aist_robotiq.client import EPickGripper
 
 #########################################################################
 #  class TestEPickClient                                                #

@@ -51,6 +51,14 @@ namespace aist_fastening_tools
 /************************************************************************
 *  static functions							*
 ************************************************************************/
+static inline rclcpp::SubscriptionOptions
+create_subscription_options(const rclcpp::CallbackGroup::SharedPtr& cbg)
+{
+    rclcpp::SubscriptionOptions	options;
+    options.callback_group = cbg;
+    return options;
+}
+
 static int32_t
 target_speed(double speed)
 {
@@ -79,26 +87,29 @@ class ScrewToolController : public rclcpp::Node
 					DynamixelCommand;
     using screw_tool_status_t	= aist_msgs::msg::ScrewToolStatus;
     using screw_tool_command_t	= aist_msgs::action::ScrewToolCommand;
-    using goal_cp		= std::shared_ptr<
-					const screw_tool_command_t::Goal>;
     using goal_uuid_t		= rclcpp_action::GoalUUID;
-    using goal_handle_t		= rclcpp_action::
-					ServerGoalHandle<screw_tool_command_t>;
-    using goal_handle_p		= std::shared_ptr<goal_handle_t>;
     using goal_response_t	= rclcpp_action::GoalResponse;
     using cancel_response_t	= rclcpp_action::CancelResponse;
-    using ddynamic_reconfigure_t= ddynamic_reconfigure2::DDynamicReconfigure<>;
+    using callback_group_p	= rclcpp::CallbackGroup::SharedPtr;
+    using ddr_t			= ddynamic_reconfigure2::DDynamicReconfigure<>;
     using filter_t		= aist_utility::ButterworthLPF<double, double>;
 
-    using callback_group_p	= rclcpp::CallbackGroup::SharedPtr;
     template <class MSG>
-    using publisher_p	 = typename rclcpp::Publisher<MSG>::SharedPtr;
+    using msg_p		= typename MSG::UniquePtr;
     template <class MSG>
-    using subscription_p = typename rclcpp::Subscription<MSG>::SharedPtr;
+    using pub_p		= typename rclcpp::Publisher<MSG>::SharedPtr;
+    template <class MSG>
+    using sub_p		= typename rclcpp::Subscription<MSG>::SharedPtr;
     template <class SRV>
-    using client_p	 = typename rclcpp::Client<SRV>::SharedPtr;
+    using clnt_p	= typename rclcpp::Client<SRV>::SharedPtr;
     template <class ACT>
-    using action_server_p= typename rclcpp_action::Server<ACT>::SharedPtr;
+    using action_p	= typename rclcpp_action::Server<ACT>::SharedPtr;
+    template <class ACT>
+    using goal_cp	= std::shared_ptr<const typename ACT::Goal>;
+    template <class ACT>
+    using goal_handle_t	= rclcpp_action::ServerGoalHandle<ACT>;
+    template <class ACT>
+    using goal_handle_p	= std::shared_ptr<goal_handle_t<ACT> >;
 
     enum Stage	{ ACTIVE, LOOSEN, RETIGHTEN, DONE };
 
@@ -107,11 +118,13 @@ class ScrewToolController : public rclcpp::Node
 
   private:
     goal_response_t
-		goal_cb(const goal_uuid_t&, const goal_cp goal)		;
+		goal_cb(const goal_uuid_t&,
+			goal_cp<screw_tool_command_t> goal)		;
     cancel_response_t
-		cancel_cb(const goal_handle_p)				;
-    void	handle_accepted_cb(const goal_handle_p goal_handle)	;
-    void	dynamixel_states_cb(const dynamixel_states_cp& states)	;
+		cancel_cb(goal_handle_p<screw_tool_command_t>)		;
+    void	handle_accepted_cb(
+		    goal_handle_p<screw_tool_command_t> goal_handle)	;
+    void	dynamixel_states_cb(msg_p<dynamixel_states_t> states)	;
 
     bool	is_settled(double value, double max_value,
 			   const rclcpp::Duration& min_period)		;
@@ -129,20 +142,21 @@ class ScrewToolController : public rclcpp::Node
     rclcpp::Time				_start_time;
 
   // Dynamixel driver stuffs
-    const subscription_p<dynamixel_states_t>	_dxl_states_sub;
+    const callback_group_p			_dxl_states_cbg;
+    const sub_p<dynamixel_states_t>		_dxl_states_sub;
     const callback_group_p			_dxl_command_cbg;
-    const client_p<dynamixel_command_t>		_dxl_command;
+    const clnt_p<dynamixel_command_t>		_dxl_command;
 
   // Status publishment stuffs
-    const publisher_p<screw_tool_status_t>	_status_pub;
+    const pub_p<screw_tool_status_t>		_status_pub;
 
   // Action stuffs
-    const action_server_p<screw_tool_command_t>	_command_srv;
-    goal_handle_p				_current_goal_handle;
+    const action_p<screw_tool_command_t>	_command_srv;
+    goal_handle_p<screw_tool_command_t>		_current_goal_handle;
     std::mutex					_current_goal_mtx;
 
   // Parameters
-    ddynamic_reconfigure_t			_ddr;
+    ddr_t					_ddr;
     rclcpp::Duration				_loosen_period;      // period before retighten
     double					_max_stall_speed;
     rclcpp::Duration				_min_stall_period;
@@ -163,10 +177,13 @@ ScrewToolController::ScrewToolController(const rclcpp::NodeOptions& options)
 		   this, "motor_id", 1)),
      _stage(DONE),
      _start_time(),
+     _dxl_states_cbg(create_callback_group(
+			 rclcpp::CallbackGroupType::MutuallyExclusive)),
      _dxl_states_sub(create_subscription<dynamixel_states_t>(
 			 _driver_ns + "/dynamixel_state", 1,
 			 std::bind(&ScrewToolController::dynamixel_states_cb,
-				   this, std::placeholders::_1))),
+				   this, std::placeholders::_1),
+			 create_subscription_options(_dxl_states_cbg))),
      _dxl_command_cbg(create_callback_group(
 			  rclcpp::CallbackGroupType::MutuallyExclusive)),
      _dxl_command(create_client<dynamixel_command_t>(
@@ -254,7 +271,8 @@ ScrewToolController::ScrewToolController(const rclcpp::NodeOptions& options)
 }
 
 ScrewToolController::goal_response_t
-ScrewToolController::goal_cb(const goal_uuid_t&, const goal_cp goal)
+ScrewToolController::goal_cb(const goal_uuid_t&,
+			     goal_cp<screw_tool_command_t> goal)
 {
     RCLCPP_INFO_STREAM(get_logger(),
 		       "goal ACCEPTED: op="
@@ -265,7 +283,7 @@ ScrewToolController::goal_cb(const goal_uuid_t&, const goal_cp goal)
 }
 
 ScrewToolController::cancel_response_t
-ScrewToolController::cancel_cb(const goal_handle_p)
+ScrewToolController::cancel_cb(goal_handle_p<screw_tool_command_t>)
 {
     if (!send_dxl_command("Moving_Speed",  0) ||
 	!send_dxl_command("Torque_Enable", 0))
@@ -279,7 +297,8 @@ ScrewToolController::cancel_cb(const goal_handle_p)
 }
 
 void
-ScrewToolController::handle_accepted_cb(const goal_handle_p goal_handle)
+ScrewToolController::handle_accepted_cb(
+    goal_handle_p<screw_tool_command_t> goal_handle)
 {
     const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
 
@@ -312,7 +331,7 @@ ScrewToolController::handle_accepted_cb(const goal_handle_p goal_handle)
 }
 
 void
-ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
+ScrewToolController::dynamixel_states_cb(msg_p<dynamixel_states_t> states)
 {
   // Find a dynamixel state with my motor ID.
     const auto	state = std::find_if(states->dynamixel_state.begin(),

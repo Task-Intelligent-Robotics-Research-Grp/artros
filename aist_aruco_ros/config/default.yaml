@@ -1,0 +1,80 @@
+realsense:
+  ros__parameters:
+    usb_port_id:     ""
+    device_type:     ""
+    json_file_path:  ""
+    rosbag_filename: ""
+
+    align_depth.enable: true
+
+    enable_color:  true
+    enable_depth:  true
+    enable_sync:   true
+    enable_infra1: true
+
+    rgb_camera.color_profile:               "640x480x30"
+    depth_module.depth_profile:             "640x480x30"  # D405, D435
+    depth_module.infra_profile:             "848x480x60"  # D405, D435
+    coded_light_depth_sensor.depth_profile: "640x480x30"  # SR305
+    coded_light_depth_sensor.infra_profile: "640x480x30"  # SR305
+
+    pointcloud.enable:                  true
+    # pointcloud.stream_filter:           RS2_STREAM_COLOR  # RS2_STREAM_ANY
+    pointcloud.stream_index_filter:     0
+    pointcloud.allow_no_texture_points: false
+    pointcloud.ordered_pc:              false
+
+    enable_gyro:  false
+    enable_accel: false
+
+    publish_tf:      true
+    tf_publish_rate: 0.0  # 0 - static transform
+
+    clip_distance:           -2.0
+    linear_accel_cov:        0.01
+    initial_reset:           false
+    reconnect_timeout:       6.0
+    wait_for_device_timeout: -1.0
+    unite_imu_method:        0  # [0:none, 1:copy, 2:linear_interpolation]
+    topic_odom_in:           odom_in
+    calib_odom_file:         ""
+    publish_odom_tf:         true
+    depth_multiplier:        1.0
+    depth_offset:            0.0
+
+phoxi:
+  ros__parameters:
+    trigger_mode:              0
+    intensity_scale:           0.5
+    rate:                      20.0
+    normals_estimation_radius: 2
+    send_point_cloud:          true
+    send_normal_map:           true
+    send_depth_map:            true
+    send_confidence_map:       false
+    send_texture:              true
+
+detector_3d:
+  ros__parameters:
+    marker_map_file:     package://aist_aruco_ros/config/aruco-26-70x70-5.yaml
+    marker_size:         0.050            # Effective only if marker_map == ""
+    marker_frame:        marker_frame
+    image_is_rectified:  false
+    use_similarity:      false
+    planarity_tolerance: 0.001
+#    min_marker_size:     -1.0
+    enclosed_marker:     false
+    detection_mode:      1        # 0: DM_NORMAL, 1: DM_FAST, 2: DM_VIDEO_FAST
+    dictionary:          ARUCO
+
+multi_detector:
+  ros__parameters:
+#    camera_names:        [a_bot_camera, b_bot_camera]
+    marker_map_file:     package://aist_aruco_ros/config/aruco-100_101_102_103-105x105-7.yaml
+    marker_size:         0.050            # Effective only if marker_map == ""
+    marker_frame:        marker_frame
+    reference_frame:     ""
+#    min_marker_size:     -1.0
+    enclosed_marker:     true
+    detection_mode:      1        # 0: DM_NORMAL, 1: DM_FAST, 2: DM_VIDEO_FAST
+    dictionary:          ARUCO

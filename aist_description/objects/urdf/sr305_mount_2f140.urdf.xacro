@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+
+<!-- This macro adds a convenient TF frame at the tip of the closed gripper. -->
+<!-- The position of the TF frame has not been measured at all and needs to be calibrated. -->
+
+<robot name="sr305_mount_2f140" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="sr305_mount_2f140" params="prefix parent">
+
+    <xacro:include filename="$(find aist_description
+			     )/devices/urdf/_sr305.urdf.xacro"/>
+
+    <xacro:property name="mesh_dir"
+		    value="package://aist_description/objects/meshes"/>
+
+    <link name="${prefix}camera_mount">
+      <inertial>
+        <origin rpy="${pi} 0 ${pi/2}" xyz="0 0 0.0"/>
+        <mass value="1.0"/>
+        <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0"/>
+      </inertial>
+      <visual>
+        <origin rpy="${pi} 0 ${pi/2}" xyz="0 0 0.0"/>
+        <geometry>
+          <mesh filename="${mesh_dir}/sr305_mount_2f140.stl"
+		scale=".001 .001 .001"/>
+        </geometry>
+        <material name="white">
+          <color rgba="1 1 1 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="${pi} 0 ${pi/2}" xyz="0 0 0.0"/>
+        <geometry>
+          <mesh filename="${mesh_dir}/collision/sr305_mount_2f140.stl"
+		scale=".001 .001 .001"/>
+        </geometry>
+      </collision>
+    </link>
+    <joint name="${prefix}camera_mount_joint" type="fixed">
+      <parent link="${parent}" />
+      <child link = "${prefix}camera_mount" />
+      <origin xyz="0.035 0.0 0.025" rpy="0 0 0"/>
+    </joint>
+
+    <link name="${prefix}camera_mount_flange"/>
+    <joint name="${prefix}camera_mount_flange_joint" type="fixed">
+      <parent link="${prefix}camera_mount" />
+      <child  link="${prefix}camera_mount_flange" />
+      <origin xyz="0.0546 0.015 0.0645" rpy="0 ${20.0*pi/180.0} 0"/>
+    </joint>
+
+  </xacro:macro>
+</robot>
