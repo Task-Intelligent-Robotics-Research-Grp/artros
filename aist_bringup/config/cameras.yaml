@@ -21,7 +21,7 @@ a_bot_camera:
     enable_infra2:              false
     depth_module.infra_profile: "848x480x60"
 
-    enable_pointcloud:                  false
+    pointcloud.enable:                  false
     pointcloud.stream_filter:           RS2_STREAM_COLOR  # RS2_STREAM_ANY
     pointcloud.stream_index_filter:     0
     pointcloud.allow_no_texture_points: false
@@ -68,7 +68,7 @@ b_bot_camera:
     enable_infra2:              false
     depth_module.infra_profile: "848x480x60"
 
-    enable_pointcloud:                  false
+    pointcloud.enable:                  false
     pointcloud.stream_filter:           RS2_STREAM_COLOR  # RS2_STREAM_ANY
     pointcloud.stream_index_filter:     0
     pointcloud.allow_no_texture_points: false
