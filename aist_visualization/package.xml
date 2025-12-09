@@ -20,6 +20,8 @@
   <depend>rviz</depend>
   <depend>cv_bridge</depend>
   <depend>ddynamic_reconfigure2</depend>
+  <depend>urdf</depend>
+  <depend>aist_utility</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

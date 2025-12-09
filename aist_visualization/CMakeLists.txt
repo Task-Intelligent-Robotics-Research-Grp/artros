@@ -23,11 +23,13 @@ ament_auto_find_build_dependencies()
 ament_auto_add_library(
   ${PROJECT_NAME} SHARED
     src/mesh_generator.cpp
+    src/robot_description_provider.cpp
 )
 
 rclcpp_components_register_nodes(
   ${PROJECT_NAME}
     ${PROJECT_NAME}::MeshGenerator
+    ${PROJECT_NAME}::RobotDescriptionProvider
 )
 
 ##########
