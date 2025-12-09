@@ -1,0 +1,103 @@
+<?xml version="1.0"?>
+<robot name="test_arm" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:macro name="test_arm" params="parent *origin">
+
+    <!-- DH parameters -->
+    <xacro:property name="link0_radius"	value="0.05"/>
+    <xacro:property name="link0_height"	value="0.01"/>
+    <xacro:property name="link2_radius"	value="0.01"/>
+    <xacro:property name="link2_height"	value="0.10"/>
+    <xacro:property name="link3_radius"	value="0.01"/>
+    <xacro:property name="link3_height"	value="0.05"/>
+
+    <!-- link rviz colors -->
+    <material name="Black">
+      <color rgba="0 0 0 1"/>
+    </material>
+    <material name="Gray">
+      <color rgba="0.6 0.6 0.6 1"/>
+    </material>
+    <material name="White">
+      <color rgba="1 1 1 1"/>
+    </material>
+
+    <!-- joint0 and Link0 -->
+    <joint name="joint0" type="fixed">
+      <parent link="${parent}"/>
+      <child  link="link0"/>
+      <xacro:insert_block name="origin"/>
+    </joint>
+    <link name="link0">
+      <visual>
+        <geometry>
+	  <box size="${2*link0_radius} ${2*link0_radius} ${link0_height}"/>
+        </geometry>
+        <material name="Black"/>
+        <origin xyz="0 0 ${link0_height/2}" rpy="0 0 0"/>
+      </visual>
+    </link>
+
+    <!-- joint1 and ink1 -->
+    <joint name="joint1" type="revolute">
+      <axis xyz="0 0 1" rpy="0 0 0" />
+      <limit lower="${-pi}" upper="${pi}"
+	     effort="100.0" velocity="${radians(100)}"/>
+      <origin xyz="0 0 ${link0_height}" rpy="0 0 0" />
+      <parent link="link0"/>
+      <child  link="link1"/>
+    </joint>
+    <link name="link1"/>
+
+    <!-- joint2 & link2 -->
+    <joint name="joint2" type="revolute">
+      <axis xyz="1 0 0" rpy="0 0 0" />
+      <limit lower="${-pi/2}" upper="${pi/2}"
+	     effort="100.0" velocity="${radians(100)}"/>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <parent link="link1"/>
+      <child  link="link2"/>
+    </joint>
+    <link name="link2">
+      <visual>
+        <geometry>
+  	  <box size="${2*link2_radius} ${2*link2_radius} ${link2_height}"/>
+        </geometry>
+        <material name="Gray"/>
+        <origin xyz="0 0 ${link2_height/2}" rpy="0 0 0"/>
+      </visual>
+    </link>
+
+    <!-- joint3 & link3 -->
+    <joint name="joint3" type="revolute">
+      <axis xyz="1 0 0" rpy="0 0 0" />
+      <limit lower="${-pi/2}" upper="${pi/2}"
+	     effort="100.0" velocity="${radians(100)}"/>
+      <origin xyz="0 0 ${link2_height}" rpy="${pi/2} 0 0" />
+      <parent link="link2"/>
+      <child  link="link3"/>
+    </joint>
+    <link name="link3">
+      <visual>
+        <geometry>
+  	  <box size="${2*link3_radius} ${2*link3_radius} ${link3_height}"/>
+        </geometry>
+        <material name="White"/>
+        <origin xyz="0 0 ${link3_height/2}" rpy="0 0 0"/>
+      </visual>
+    </link>
+
+    <!-- joint_ee & link_ee -->
+    <joint name="joint_ee" type="fixed">
+      <origin xyz="0 0 ${link3_height}" rpy="0 0 0" />
+      <parent link="link3"/>
+      <child  link="link_ee"/>
+    </joint>
+    <link name="link_ee"/>
+  </xacro:macro>
+
+  <link name="base_link"/>
+  <xacro:test_arm parent="base_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:test_arm>
+
+</robot>
