@@ -33,7 +33,7 @@
 #
 # Author: Toshio Ueshiba
 #
-import rclpy, sys, time, yaml
+import rclpy, sys, time, yaml, re
 import numpy as np
 import moveit_commander
 import tf_transformations as tfs
@@ -43,6 +43,7 @@ from rclpy.node                           import Node
 from rclpy.duration                       import Duration
 from rclpy.time                           import Time
 from rclpy.parameter                      import Parameter
+from rclpy.callback_groups                import MutuallyExclusiveCallbackGroup
 from tf2_ros.buffer                       import Buffer
 from tf2_ros.transform_listener           import TransformListener
 from std_msgs.msg                         import Header
@@ -55,9 +56,10 @@ from moveit_msgs.msg                      import (RobotTrajectory,
 from moveit_msgs.srv                      import GetPositionIK
 from trajectory_msgs.msg                  import (JointTrajectoryPoint,
                                                   JointTrajectory)
+from controller_manager_msgs.srv          import (ListControllers,
+                                                  SwitchController)
 from aist_routines.gripper_client         import GripperClient
 from aist_routines.camera_client          import CameraClient
-#from aist_routines.MarkerPublisher    import MarkerPublisher
 from aist_utility.fileio                  import filepath_from_url
 from aist_collision_object_manager.client import CollisionObjectManagerClient
 from ddynamic_reconfigure2.utils          import declare_read_only_parameter
@@ -89,6 +91,14 @@ def paramtuples(d):
 #  class AISTBaseRoutines                                            #
 ######################################################################
 class AISTBaseRoutines(Node):
+    ControllerTypes = ('joint_trajectory_controller/JointTrajectoryController',
+                       'ur_controllers/ScaledJointTrajectoryController',
+                       'position_controllers/JointGroupPositionController',
+                       'velocity_controllers/JointGroupVelocityController',
+                       'cartesian_motion_controller/CartesianMotionController',
+                       'cartesian_force_controller/CartesianForceController',
+                       'cartesian_compliance_controller/CartesianComplianceController')
+
     def __init__(self, name):
         super().__init__(name)
 
@@ -98,9 +108,20 @@ class AISTBaseRoutines(Node):
 
         time.sleep(1.0)        # Necessary for listner spinning up
 
+        # Controller services
+        self._service_cbg       = MutuallyExclusiveCallbackGroup()
+        self._list_controllers  = self.create_client(
+                                      ListControllers,
+                                      'controller_manager/list_controllers',
+                                      callback_group=self._service_cbg)
+        self._switch_controller = self.create_client(
+                                      SwitchController,
+                                      'controller_manager/switch_controller',
+                                      callback_group=self._service_cbg)
+
         # MoveIt planning parameters
-        self._eef_step = self.declare_parameter('moveit_eef_step',
-                                                0.0005).value
+        self._eef_step        = self.declare_parameter('moveit_eef_step',
+                                                       0.0005).value
         self._reference_frame = self.declare_parameter('reference_frame',
                                                        'world').value
 
@@ -118,7 +139,8 @@ class AISTBaseRoutines(Node):
             % (self.planning_frame, self.reference_frame, self.eef_step))
 
         # MoveIt GetPositionIK service client
-        self._compute_ik = self.create_client(GetPositionIK, '/compute_ik')
+        self._compute_ik = self.create_client(GetPositionIK, '/compute_ik',
+                                              callback_group=self._service_cbg)
 
         # Hardware configuration
         with open(self.declare_parameter('config_file', name + '.yaml').value,
@@ -169,12 +191,6 @@ class AISTBaseRoutines(Node):
         #     self._pick_or_place  = PickOrPlace(self)
         # else:
         #     self._pick_or_place = None
-
-        # Spiral motion action
-        # self._spiral_motion = SpiralMotion(self)
-
-        # Marker publisher
-        # self._markerPublisher = MarkerPublisher()
 
         self.get_logger().info('AISTBaseRoutines initialized.')
 
@@ -237,8 +253,9 @@ class AISTBaseRoutines(Node):
         print('  speed:       set speed')
         print('  stop:        stop arm immediately')
         print('  jvalues:     get current joint values')
-        print('  sm:          spiral motion')
-        print('  SM:          cancel spiral motion')
+        print('  switch:      Switch controller')
+        print('  toggle:      Toggle motion control handle')
+        print('  ftreset:     Reset bias of ft-sensor')
         print('=== Gripper commands ===')
         print('  gripper:     assign gripper to current robot')
         print('  pregrasp:    pregrasp with the current gripper')
@@ -367,10 +384,21 @@ class AISTBaseRoutines(Node):
             self.stop(robot_name)
         elif key == 'jvalues':
             print(self.get_current_joint_values(robot_name))
-        elif key == 'sm':
-            self.spiral_motion(robot_name)
-        elif key == 'SM':
-            self.cancel_spiral_motion()
+        elif key == 'switch':
+            controllers = self.list_controllers(robot_name)
+            print('  available controllers:')
+            for n, controller in enumerate(controllers):
+                if controller.state == 'active':
+                    print('   *%2d. %s' % (n, controller.name))
+                else:
+                    print('    %2d. %s' % (n, controller.name))
+            n = int(input('  controller #? '))
+            if n < len(controllers):
+                self.switch_controller(robot_name, controllers[n].name)
+        elif key == 'toggle':
+            self.toggle_control_handle(robot_name)
+        elif key == 'ftreset':
+            self.ftsensor_reset_bias(robot_name)
 
         # Gripper stuffs
         elif key == 'gripper':
@@ -586,6 +614,59 @@ class AISTBaseRoutines(Node):
         group.stop()
         group.clear_pose_targets()
 
+    # Controller stuffs
+    def list_controllers(self, robot_name):
+        return list(filter(lambda x: x.type in AISTBaseRoutines.ControllerTypes
+                           and re.search('^' + robot_name, x.name),
+                           self._list_controllers.call(
+                               ListControllers.Request()).controller))
+
+    def current_controller(self, robot_name):
+        for controller in self.list_controllers(robot_name):
+            if controller.state == 'active':
+                return controller
+        return None
+
+    def switch_controller(self, robot_name, controller_name):
+        for controller in self.list_controllers(robot_name):
+            if controller.name == controller_name:
+                if controller.state == 'active':
+                    self.get_logger().warn('Already active[%s]'
+                                           % controller_name)
+                    return True
+                elif controller.state == 'unconfigured' or \
+                     controller.state == 'inactive':
+                    if controller.type == 'cartesian_force_controller/CartesianForceController' or \
+                       controller.type == 'cartesian_compliance_controller/CartesianComplianceController':
+                        self.ftsensor_reset_bias()
+                    current_controller = self.current_controller(robot_name)
+                    req = SwitchController.Request()
+                    req.activate_controllers   = [controller_name]
+                    req.deactivate_controllers = [] if not current_controller \
+                                                 else [current_controller.name]
+                    req.strictness             = SwitchController.Request.STRICT
+                    req.activate_asap          = True
+                    req.timeout                = Duration(seconds=1).to_msg()
+                    res = self._switch_controller.call(req)
+                    time.sleep(0.5)
+                    if res.ok:
+                        self.get_logger().info('Succesfully switched to controller[%s]'
+                                               % controller_name)
+                    else:
+                        self.get_logger().error('Failed to switch to controller[%s]'
+                                                % controller_name)
+                    return res.ok
+                else:
+                    self.get_logger().warn("Controller state is '%', returning True."
+                                           % controller.state)
+                    return True
+        self.get_logger().error('Specified controller[%s] not found'
+                                % controller_name)
+        return False
+
+    def toggle_control_handle(self, robot_name):
+        pass
+
     # Gripper stuffs
     def default_gripper_name(self, robot_name):
         return self._default_gripper_names[robot_name]
@@ -638,17 +719,6 @@ class AISTBaseRoutines(Node):
 
     def trigger_frame(self, camera_name):
         return self.camera(camera_name).trigger_frame()
-
-    # Marker stuffs
-    def delete_all_markers(self):
-        self._markerPublisher.delete_all()
-
-    def add_marker(self, marker_type, pose, endpoint=None,
-                   text='', lifetime=15):
-        self._markerPublisher.add(marker_type, pose, endpoint, text, lifetime)
-
-    def publish_marker(self):
-        self._markerPublisher.publish()
 
     # Graspability stuffs
     def create_mask_image(self, camera_name, nmasks):
@@ -784,21 +854,6 @@ class AISTBaseRoutines(Node):
 
     def pick_or_place_cancel_goal(self):
         self._pick_or_place.cancel_goal()
-
-    # Spiral motion action stuffs
-    def spiral_motion(self, robot_name, end_effector_link='',
-                      npoints=36, angle_increment=30.0,
-                      radius_x_max=0.005, radius_y_max=0.0005,
-                      speed=0.005, accel=1.0, timeout=Duration(seconds=30.0)):
-        if end_effector_link == '':
-            end_effector_link = self.gripper(robot_name).tip_link
-        self._spiral_motion.send_goal(robot_name, end_effector_link,
-                                      npoints, angle_increment,
-                                      radius_x_max, radius_y_max,
-                                      speed, accel, timeout)
-
-    def cancel_spiral_motion(self):
-        self._spiral_motion.cancel_goal()
 
     # Utility functions
     def transform_pose_to_target_frame(self, pose, offset=(), target_frame=''):
