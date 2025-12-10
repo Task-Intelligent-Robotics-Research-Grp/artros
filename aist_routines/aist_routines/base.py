@@ -636,9 +636,9 @@ class AISTBaseRoutines(Node):
                     return True
                 elif controller.state == 'unconfigured' or \
                      controller.state == 'inactive':
-                    if controller.type == 'cartesian_force_controller/CartesianForceController' or \
-                       controller.type == 'cartesian_compliance_controller/CartesianComplianceController':
-                        self.ftsensor_reset_bias()
+                    # if controller.type == 'cartesian_force_controller/CartesianForceController' or \
+                    #    controller.type == 'cartesian_compliance_controller/CartesianComplianceController':
+                    #     self.ftsensor_reset_bias()
                     current_controller = self.current_controller(robot_name)
                     req = SwitchController.Request()
                     req.activate_controllers   = [controller_name]
@@ -650,22 +650,53 @@ class AISTBaseRoutines(Node):
                     res = self._switch_controller.call(req)
                     time.sleep(0.5)
                     if res.ok:
-                        self.get_logger().info('Succesfully switched to controller[%s]'
-                                               % controller_name)
+                        self.get_logger().info(
+                            'Succesfully switched to controller[%s]'
+                            % controller_name)
                     else:
-                        self.get_logger().error('Failed to switch to controller[%s]'
-                                                % controller_name)
+                        self.get_logger().error(
+                            'Failed to switch to controller[%s]'
+                            % controller_name)
                     return res.ok
                 else:
-                    self.get_logger().warn("Controller state is '%', returning True."
-                                           % controller.state)
+                    self.get_logger().warn(
+                        "Controller state is '%', returning True."
+                        % controller.state)
                     return True
         self.get_logger().error('Specified controller[%s] not found'
                                 % controller_name)
         return False
 
     def toggle_control_handle(self, robot_name):
-        pass
+        controller_name = robot_name + '_motion_control_handle'
+        for controller in self.list_controllers(robot_name):
+            if controller.name == controller_name:
+                req = SwitchController.Request()
+                if controller.state == 'active':
+                    req.activate_controllers    = []
+                    req.deactivate_controllers  = [controller_name]
+                    message = 'deactivated ' + controller_name
+                    self.switch_controller(robot_name,
+                                           robot_name +
+                                           '_scaled_pos_joint_traj_controller')
+                else:
+                    self.switch_controller(robot_name,
+                                           robot_name +
+                                           '_cartesian_compliance_controller')
+                    req.activate_controllers = [controller_name]
+                    req.deactivate_controllers  = []
+                    message = 'activated ' + controller_name
+                req.strictness        = SwitchControllerRequest.STRICT
+                req.start_asap        = True
+                req.timeout           = Duration(seconds=1).to_msg()
+                res = self._switch_controller.call(req)
+                time.sleep(0.5)
+                if res.ok:
+                    self.get_logger().info('Succesfully %s' % message)
+                else:
+                    self.get_logger().error('Failed to %s' % message)
+                return res.ok
+        return False
 
     # Gripper stuffs
     def default_gripper_name(self, robot_name):

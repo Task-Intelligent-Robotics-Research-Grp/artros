@@ -90,7 +90,7 @@ $(var tf_prefix)force_torque_sensor_broadcaster:
       - torque.y
       - torque.z
     frame_id: $(var tf_prefix)tool0
-    topic_name: ft_data
+    topic_name: wrench
 
 $(var tf_prefix)joint_trajectory_controller:
   ros__parameters:
