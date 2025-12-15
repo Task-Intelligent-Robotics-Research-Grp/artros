@@ -1,26 +1,5 @@
-nep_ip: 10.66.171.39
-rate:   10.0
-ros_to_nep:
-  - from: /tf
-    to:   Kitting/transforms
-  - from: /mesh_generator/mesh
-    to:   Kitting/screen_mesh
-  - from: /live_camera/image_raw
-    to:   Kitting/image
-  - from: /help
-    to:   Kitting/request_help
-  - from: /collision_object_manager/collision_marker
-    to:   Kitting/collision_marker
-
-nep_to_ros:
-  - from: Kitting/pointing
-    to:   /pointing
-    type: aist_msgs/Pointing
-
-services:
-  - name:     /robot_description_provider/get_links
-    request:  Kitting/get_links
-    response: Kitting/links
-  - name:     /collision_object_manager/get_mesh_resource
-    request:  Kitting/get_mesh_resource
-    response: Kitting/mesh_resource
+nep_bridge:
+  ros__parameters:
+    nep_ip:      10.66.171.39
+    period:      0.100
+    config_file: package://aist_routines/config/nep_bridge_assembly.yaml
