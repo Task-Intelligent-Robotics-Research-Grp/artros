@@ -17,6 +17,8 @@ endif()
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
+find_package(Qt5 REQUIRED COMPONENTS Widgets)
+
 #########################################
 #  component: libaist_visualization.so  #
 #########################################
@@ -31,6 +33,13 @@ rclcpp_components_register_nodes(
     ${PROJECT_NAME}::MeshGenerator
     ${PROJECT_NAME}::RobotDescriptionProvider
 )
+
+ament_auto_add_library(
+  ${PROJECT_NAME}_plugins SHARED
+    src/textured_mesh_display.cpp
+)
+
+pluginlib_export_plugin_description_file(rviz_common plugins_description.xml)
 
 ##########
 #  test  #
