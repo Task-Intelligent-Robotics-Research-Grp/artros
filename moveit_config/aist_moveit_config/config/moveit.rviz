@@ -2373,6 +2373,13 @@ Visualization Manager:
           Value: true
       Enabled: true
       Name: b_bot
+    - Class: aist_visualization/TexturedMesh
+      Enabled: true
+      Image Topic: /live_camera/image_raw
+      Image Transport Hint: raw
+      Mesh Topic: /mesh_generator/mesh
+      Name: TexturedMesh
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -2434,10 +2441,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.7653977870941162
+      Pitch: 0.6553977727890015
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.6703976988792419
+      Yaw: 1.0403977632522583
     Saved: ~
 Window Geometry:
   Displays:

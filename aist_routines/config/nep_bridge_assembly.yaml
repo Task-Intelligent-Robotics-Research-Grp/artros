@@ -19,10 +19,10 @@ ros_to_nep:
 nep_to_ros:
   - from: Kitting/pointing
     to:   /pointing
-    type: aist_msgs/Pointing
+#    type: aist_msgs/Pointing
   - from: Kitting/desired_robot_pose
     to:   /a_bot_cartesian_compliance_controller/target_frame
-    type: geometry_msgs/PoseStamped
+#    type: geometry_msgs/PoseStamped
 
 services:
   - name:     /robot_description_provider/get_links

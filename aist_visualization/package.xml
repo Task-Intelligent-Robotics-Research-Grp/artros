@@ -13,16 +13,18 @@
   <build_depend>rclcpp_components</build_depend>
   <exec_depend>rclcpp_components</exec_depend>
 
-  <depend>pluginlib</depend>
   <depend>tf2_ros</depend>
   <depend>tf2_geometry_msgs</depend>
   <depend>shape_msgs</depend>
   <depend>aist_msgs</depend>
+
+  <depend>rclcpp</depend>
   <depend>libqt5-widgets</depend>
   <depend>rviz_common</depend>
-  <depend>rviz_default_plugins</depend>
   <depend>rviz_rendering</depend>
   <depend>rviz_ogre_vendor</depend>
+  <depend>rviz_default_plugins</depend>
+
   <depend>cv_bridge</depend>
   <depend>ddynamic_reconfigure2</depend>
   <depend>urdf</depend>

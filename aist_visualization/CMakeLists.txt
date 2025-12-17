@@ -19,6 +19,8 @@ ament_auto_find_build_dependencies()
 
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
 
+set(CMAKE_AUTOMOC ON)
+
 #########################################
 #  component: libaist_visualization.so  #
 #########################################

@@ -64,19 +64,17 @@ fromMsg(const geometry_msgs::msg::Point& p)
  */
 TexturedMeshDisplay::TexturedMeshDisplay()
     :rviz_common::Display(),
-     Ogre::RenderTargetListener(),
-     Ogre::RenderQueueListener(),
      image_transport_property_(new enum_prop_t("Image Transport Hint", "raw",
 					       "Preferred method of sending images.",
-					       this, SLOT(updateTopics()))),
+					       this, SLOT(updateTopic()))),
      image_topic_property_(new topic_prop_t("Image Topic", "",
 					    "sensor_msgs/msg/Image",
 					    "Image topic to subscribe to.",
-					    this, SLOT(updateTopics()))),
+					    this, SLOT(updateTopic()))),
      mesh_topic_property_(new topic_prop_t("Mesh Topic", "",
 					   "aist_msgs/msg/TexturedMeshStamped",
 					   "Mesh topic to subscribe to.",
-					   this, SLOT(updateTopics()))),
+					   this, SLOT(updateTopic()))),
 
      it_(),
      image_sub_(),
@@ -106,13 +104,13 @@ TexturedMeshDisplay::~TexturedMeshDisplay()
 void
 TexturedMeshDisplay::onInitialize()
 {
-    auto	ros_node = context_->getRosNodeAbstraction().lock();
+    const auto	ros_node = context_->getRosNodeAbstraction().lock();
 
     image_topic_property_->initialize(ros_node);
     mesh_topic_property_ ->initialize(ros_node);
 
     it_.reset(new image_transport::ImageTransport(ros_node->get_raw_node()));
-    // Display::onInitialize();
+    Display::onInitialize();
 }
 
 void
@@ -187,6 +185,12 @@ TexturedMeshDisplay::onDisable()
 }
 
 void
+TexturedMeshDisplay::fixedFrameChanged()
+{
+    Display::reset();
+}
+
+void
 TexturedMeshDisplay::subscribe()
 {
     if (!isEnabled())
@@ -194,7 +198,7 @@ TexturedMeshDisplay::subscribe()
 
     try
     {
-	auto	ros_node = context_->getRosNodeAbstraction().lock();
+	const auto	ros_node = context_->getRosNodeAbstraction().lock();
 
 	image_sub_.reset(new image_transport::SubscriberFilter());
 	mesh_sub_ .reset(new message_filters::Subscriber<mesh_t>(
@@ -213,7 +217,7 @@ TexturedMeshDisplay::subscribe()
 	    mesh_sub_ ->subscribe(ros_node->get_raw_node(),
 				  mesh_topic_property_->getTopicStd(),
 				  rmw_qos_profile_default);
-	    sync_->registerCallback(&TexturedMeshDisplay::processMessagesCB,
+	    sync_->registerCallback(&TexturedMeshDisplay::processMessages,
 				    this);
 
 	    setStatus(rviz_common::properties::StatusProperty::Ok,
@@ -240,8 +244,8 @@ TexturedMeshDisplay::unsubscribe()
  *  private member functions
  */
 void
-TexturedMeshDisplay::processMessagesCB(msg_cp<image_t> image,
-				       msg_cp<mesh_t>  mesh)
+TexturedMeshDisplay::processMessages(msg_cp<image_t> image,
+				     msg_cp<mesh_t>  mesh)
 {
     std::lock_guard<std::mutex>	lock(msg_mtx_);
 
@@ -257,6 +261,11 @@ TexturedMeshDisplay::createTexture()
     const auto	img = cv_bridge::toCvCopy(*cur_image_,
 					  sensor_msgs::image_encodings::RGBA8);
     texture_->addMessage(img->toImageMsg());
+
+    const auto	ros_node = context_->getRosNodeAbstraction().lock();
+    RCLCPP_INFO_STREAM(ros_node->get_raw_node()->get_logger(),
+		       "### image_size: "
+		       << cur_image_->width << 'x' << cur_image_->height);
 }
 
 void
@@ -379,7 +388,7 @@ TexturedMeshDisplay::updateCamera()
  *  private member functions: Q_SLOTS
  */
 void
-TexturedMeshDisplay::updateTopics()
+TexturedMeshDisplay::updateTopic()
 {
     unsubscribe();
     subscribe();

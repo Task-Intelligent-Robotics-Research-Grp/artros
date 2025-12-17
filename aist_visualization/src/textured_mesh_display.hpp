@@ -39,37 +39,37 @@
 */
 #pragma once
 
-#include <QObject>
-
 #ifndef Q_MOC_RUN
+#  include <QObject>
+#  include <Ogre.h>
+
 #  include <mutex>
-#  include <OgreRenderTargetListener.h>
-#  include <OgreRenderQueueListener.h>
-#  include <OgreRoot.h>
-#  include <OgreSceneNode.h>
-#  include <OgreManualObject.h>
+
+#  include <message_filters/subscriber.h>
 #  include <message_filters/synchronizer.h>
 #  include <message_filters/sync_policies/approximate_time.h>
-#  include <message_filters/subscriber.h>
 #  include <image_transport/image_transport.hpp>
 #  include <image_transport/subscriber_filter.hpp>
+
 #  include <rviz_common/display.hpp>
 #  include <rviz_common/properties/enum_property.hpp>
 #  include <rviz_common/properties/ros_topic_property.hpp>
-//#  include <rviz_common/frame_manager.h>
-//#  include <rviz_common/image/image_display_base.h>
 #  include <rviz_default_plugins/displays/image/ros_image_texture.hpp>
 #  include <aist_msgs/msg/textured_mesh_stamped.hpp>
+
 #endif  // Q_MOC_RUN
+
+#include <QMap>
+#include <QString>
 
 namespace aist_visualization
 {
 /************************************************************************
 *  class TexturedMeshDisplay						*
 ************************************************************************/
-class TexturedMeshDisplay: public rviz_common::Display,
-			   public Ogre::RenderTargetListener,
-			   public Ogre::RenderQueueListener
+class TexturedMeshDisplay: public rviz_common::Display
+			   // public Ogre::RenderTargetListener,
+			   // public Ogre::RenderQueueListener
 {
     Q_OBJECT
   private:
@@ -98,14 +98,17 @@ class TexturedMeshDisplay: public rviz_common::Display,
 			 const QString& datatype)		override;
 
   protected:
+  // Overrides from Display
     void	onEnable()					override;
     void	onDisable()					override;
+    void	fixedFrameChanged()				override;
+
     void	subscribe()						;
     void	unsubscribe()						;
 
   private:
-    void	processMessagesCB(msg_cp<image_t> image,
-				  msg_cp<mesh_t> mesh)			;
+    void	processMessages(msg_cp<image_t> image,
+				msg_cp<mesh_t> mesh)			;
 
     void	createTexture()						;
     void	createMesh()						;
@@ -113,8 +116,8 @@ class TexturedMeshDisplay: public rviz_common::Display,
     void	updateMeshProperties()					;
     void	updateCamera()						;
 
-  private Q_SLOTS:
-    void	updateTopics()						;
+  protected Q_SLOTS:
+    void	updateTopic()						;
 
   private:
     std::unique_ptr<enum_prop_t>	image_transport_property_;
