@@ -10,6 +10,7 @@
 #include <urdf/model.h>
 #include <std_msgs/msg/string.hpp>
 #include <aist_msgs/srv/get_links.hpp>
+#include <aist_msgs/msg/link_geometry.hpp>
 #include <fstream>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
@@ -51,6 +52,7 @@ class RobotDescriptionProvider : public rclcpp::Node
     using link_cp		= urdf::LinkConstSharedPtr;
     using Link			= aist_msgs::msg::Link;
     using Links			= std::vector<Link>;
+    using LinkGeometry		= aist_msgs::msg::LinkGeometry;
 
   public:
     RobotDescriptionProvider(const rclcpp::NodeOptions& options)	;
@@ -65,6 +67,8 @@ class RobotDescriptionProvider : public rclcpp::Node
 			     const link_cp& current, Links& links) const;
     Link	create_link(const link_cp& parent,
 			    const link_cp& current)		const	;
+    template <class GEOM_CP> LinkGeometry
+		create_link_geometry(const GEOM_CP& geometry)	const	;
 
   private:
     const callback_group_p		_robot_description_cbg;
@@ -174,7 +178,7 @@ RobotDescriptionProvider::Link
 RobotDescriptionProvider::create_link(const link_cp& parent,
 				      const link_cp& current) const
 {
-    using	shape_msgs::msg::SolidPrimitive;
+    using	sp = shape_msgs::msg::SolidPrimitive;
 
   // Set link transform of this primitive.
     Link	link;
@@ -206,11 +210,11 @@ RobotDescriptionProvider::create_link(const link_cp& parent,
 	const auto&	dim = static_cast<const urdf::Box*>(
 				  current->visual->geometry.get())->dim;
 
-	link.primitive.type = SolidPrimitive::BOX;
+	link.primitive.type = sp::BOX;
 	link.primitive.dimensions.resize(3);
-	link.primitive.dimensions[SolidPrimitive::BOX_X] = dim.x;
-	link.primitive.dimensions[SolidPrimitive::BOX_Y] = dim.y;
-	link.primitive.dimensions[SolidPrimitive::BOX_Z] = dim.z;
+	link.primitive.dimensions[sp::BOX_X] = dim.x;
+	link.primitive.dimensions[sp::BOX_Y] = dim.y;
+	link.primitive.dimensions[sp::BOX_Z] = dim.z;
 	break;
       }
       case urdf::Geometry::SPHERE:
@@ -218,9 +222,9 @@ RobotDescriptionProvider::create_link(const link_cp& parent,
 	const auto	radius = static_cast<const urdf::Sphere*>(
 				     current->visual->geometry.get())->radius;
 
-	link.primitive.type = SolidPrimitive::SPHERE;
+	link.primitive.type = sp::SPHERE;
 	link.primitive.dimensions.resize(1);
-	link.primitive.dimensions[SolidPrimitive::SPHERE_RADIUS] = radius;
+	link.primitive.dimensions[sp::SPHERE_RADIUS] = radius;
 	break;
       }
       case urdf::Geometry::CYLINDER:
@@ -228,11 +232,11 @@ RobotDescriptionProvider::create_link(const link_cp& parent,
 	const auto	cylinder = static_cast<const urdf::Cylinder*>(
 					current->visual->geometry.get());
 
-	link.primitive.type = SolidPrimitive::CYLINDER;
+	link.primitive.type = sp::CYLINDER;
 	link.primitive.dimensions.resize(2);
-	link.primitive.dimensions[SolidPrimitive::CYLINDER_HEIGHT]
+	link.primitive.dimensions[sp::CYLINDER_HEIGHT]
 	    = cylinder->length;
-	link.primitive.dimensions[SolidPrimitive::CYLINDER_RADIUS]
+	link.primitive.dimensions[sp::CYLINDER_RADIUS]
 	    = cylinder->radius;
 	break;
       }
@@ -311,6 +315,101 @@ RobotDescriptionProvider::create_link(const link_cp& parent,
 
     return link;
 }
+
+template <class GEOM_CP> RobotDescriptionProvider::LinkGeometry
+RobotDescriptionProvider::create_link_geometry(const GEOM_CP& geometry) const
+{
+    using	sp = shape_msgs::msg::SolidPrimitive;
+
+    LinkGeometry	link_geometry;
+
+  // Set origin of this primitive
+    link_geometry.origin.position.x    = geometry->origin.position.x;
+    link_geometry.origin.position.y    = geometry->origin.position.y;
+    link_geometry.origin.position.z    = geometry->origin.position.z;
+    link_geometry.origin.orientation.x = geometry->origin.rotation.x;
+    link_geometry.origin.orientation.y = geometry->origin.rotation.y;
+    link_geometry.origin.orientation.z = geometry->origin.rotation.z;
+    link_geometry.origin.orientation.w = geometry->origin.rotation.w;
+
+  // Set goemetry of this primitive.
+    switch (geometry->geometry->type)
+    {
+      case urdf::Geometry::BOX:
+      {
+	const auto&	dim = static_cast<const urdf::Box*>(
+				  geometry->geometry.get())->dim;
+
+	link_geometry.primitive.type = sp::BOX;
+	link_geometry.primitive.dimensions.resize(3);
+	link_geometry.primitive.dimensions[sp::BOX_X] = dim.x;
+	link_geometry.primitive.dimensions[sp::BOX_Y] = dim.y;
+	link_geometry.primitive.dimensions[sp::BOX_Z] = dim.z;
+	break;
+      }
+      case urdf::Geometry::SPHERE:
+      {
+	const auto	radius = static_cast<const urdf::Sphere*>(
+				     geometry->geometry.get())->radius;
+
+	link_geometry.primitive.type = sp::SPHERE;
+	link_geometry.primitive.dimensions.resize(1);
+	link_geometry.primitive.dimensions[sp::SPHERE_RADIUS] = radius;
+	break;
+      }
+      case urdf::Geometry::CYLINDER:
+      {
+	const auto	cylinder = static_cast<const urdf::Cylinder*>(
+					geometry->geometry.get());
+
+	link_geometry.primitive.type = sp::CYLINDER;
+	link_geometry.primitive.dimensions.resize(2);
+	link_geometry.primitive.dimensions[sp::CYLINDER_HEIGHT]
+	    = cylinder->length;
+	link_geometry.primitive.dimensions[sp::CYLINDER_RADIUS]
+	    = cylinder->radius;
+	break;
+      }
+      case urdf::Geometry::MESH:
+      {
+	const auto	mesh = static_cast<const urdf::Mesh*>(
+					geometry->geometry.get());
+
+	link_geometry.primitive.type = 0;
+	link_geometry.primitive.dimensions.resize(3);
+	link_geometry.primitive.dimensions[0] = mesh->scale.x;
+	link_geometry.primitive.dimensions[1] = mesh->scale.y;
+	link_geometry.primitive.dimensions[2] = mesh->scale.z;
+
+      // Extract mesh file path from filename specified in URDF.
+	const auto	path = aist_utility::filepath_from_url(mesh->filename);
+	RCLCPP_DEBUG_STREAM(get_logger(), "create_link: path=" << path);
+
+      // Load mesh data from file.
+	std::ifstream	fin(path, std::ios_base::in | std::ios_base::binary);
+	if (!fin)
+	    throw std::runtime_error("createLink: cannot open mesh file["
+				     + path + ']');
+	fin.seekg(0, std::ios_base::end);
+	const auto	fsize = fin.tellg();
+	fin.seekg(0);
+	link_geometry.data.resize(fsize);
+	fin.read(reinterpret_cast<char*>(link_geometry.data.data()), fsize);
+	RCLCPP_DEBUG_STREAM(get_logger(), "create_link: mesh data size="
+			    << link_geometry.data.size());
+
+	break;
+      }
+      default:
+	throw std::runtime_error("Unknown geometry type["
+				 + std::to_string(geometry->geometry->type)
+				 + ']');
+    }
+
+    return link_geometry;
+}
+
+
 }        // namespace aist_visualization
 
 #include <rclcpp_components/register_node_macro.hpp>
