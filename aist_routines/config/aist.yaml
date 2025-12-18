@@ -1,3 +1,6 @@
+#############
+#  cameras  #
+#############
 a_bot_camera:
   ros__parameters:
     serial_no:       "636203005853"
@@ -137,3 +140,43 @@ a_motioncam:
     exposure:           100
     autofocus:          false
     focus:              -1
+
+##############################
+#  collision_object_manager  #
+##############################
+collision_object_manager:
+  ros__parameters:
+    namespace:   ""
+    synchronous: false
+    object_properties_urls:
+      - package://aist_fastening_tools/config/fastening_tools_properties.yaml
+      - package://aist_description/parts/config/parts_properties.yaml
+    touch_links_urls:
+      - package://aist_routines/config/inc/touch_links.yaml
+
+################################
+#  robot_description_provider  #
+################################
+robot_description_provider:
+  ros__parameters:
+    robot_frame: world
+
+####################
+#  mesh_generator  #
+####################
+mesh_generator:
+  ros__parameters:
+    screen_frame:      virtual_screen
+    refenrece_frame:   world
+    nsteps_u:          10
+    nsteps_v:          10
+
+################
+#  nep_bridge  #
+################
+nep_bridge:
+  ros__parameters:
+    nep_ip:      10.66.171.39
+#    nep_ip:      192.168.1.10
+    period:      0.1    # polling period of incoming NEP messages in seconds
+    config_file: package://aist_routines/config/inc/nep_bridge_assembly.yaml

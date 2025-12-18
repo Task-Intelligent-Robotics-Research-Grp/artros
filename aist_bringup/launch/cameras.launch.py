@@ -9,9 +9,11 @@ from aist_bringup.launch_common import (declare_launch_arguments,
 
 launch_arguments = [
     {
-        'name':        'config',
-        'default':     'aist',
-        'description': 'name of the hardware configuration'
+        'name':        'param_file',
+        'default':     PathJoinSubstitution([
+                           FindPackageShare('aist_brignup'), 'config',
+                           'cameras.yaml']),
+        'description': 'abolute path to YAML file for configuring cameras'
     },
     {
         'name':        'container',
@@ -53,7 +55,6 @@ def launch_setup(context):
                 camera_props['launch_file'],
                 launch_arguments=[
                     ('camera_name',        camera_name),
-                    ('param_file',         camera_param_file),
                     ('external_container', 'true'),
                     ('container',          LaunchConfiguration('container'))
                 ]))

@@ -13,6 +13,13 @@ launch_arguments = [
         'description': 'Name of the hardware configuration'
     },
     {
+        'name':        'param_file',
+        'default':     PathJoinSubstitution([
+                           FindPackageShare('aist_routines'), 'config',
+                           [LaunchConfiguration('config'), '.yaml']]),
+        'description': 'abolute path to YAML file for configuring cameras'
+    },
+    {
         'name':        'log_level',
         'default':     'info',
         'description': 'debug log level',
@@ -35,19 +42,14 @@ def launch_setup(context):
         IncludeLaunchDescription(
             PathJoinSubstitution(
                 [FindPackageShare('aist_visualization'), 'launch',
-                 'mesh_generator.launch.py'])),
-        IncludeLaunchDescription(
-            PathJoinSubstitution(
-                [FindPackageShare('aist_visualization'), 'launch',
                  'robot_description_provider.launch.py'])),
         IncludeLaunchDescription(
             PathJoinSubstitution(
-                [FindPackageShare('nep_bridge'), 'launch', 'launch.py']),
-            launch_arguments=[
-                ('param_file', PathJoinSubstitution(
-                                   [FindPackageShare('aist_routines'),
-                                    'config', 'nep_bridge.yaml']))
-            ]),
+                [FindPackageShare('aist_visualization'), 'launch',
+                 'mesh_generator.launch.py'])),
+        IncludeLaunchDescription(
+            PathJoinSubstitution(
+                [FindPackageShare('nep_bridge'), 'launch', 'launch.py'])),
     ]
 
 def generate_launch_description():

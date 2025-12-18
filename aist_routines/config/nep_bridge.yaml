@@ -1,5 +1,0 @@
-nep_bridge:
-  ros__parameters:
-    nep_ip:      10.66.171.39
-    period:      0.100
-    config_file: package://aist_routines/config/nep_bridge_assembly.yaml
