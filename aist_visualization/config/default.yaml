@@ -8,3 +8,10 @@ mesh_generator:
 robot_description_provider:
   ros__parameters:
     robot_frame: world
+
+nep_bridge:
+  ros__parameters:
+#    nep_ip:      10.66.171.39
+    nep_ip:      192.168.1.11
+    period:      0.1    # polling period of incoming NEP messages in seconds
+    config_file: package://nep_bridge/config/sample_config.yaml
