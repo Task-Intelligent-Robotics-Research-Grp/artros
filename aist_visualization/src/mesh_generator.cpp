@@ -142,7 +142,9 @@ MeshGenerator::MeshGenerator(const rclcpp::NodeOptions& options)
 	    _mesh.v[idx] = double(j) / double(_nsteps_v);
 	}
 
-    RCLCPP_INFO_STREAM(get_logger(), "mesh_generator started");
+    RCLCPP_INFO_STREAM(get_logger(),
+		       "Initialized: screen_frame=" << _Tsc.header.frame_id
+		       << ", reference_frame=" << _Trc.header.frame_id);
 }
 
 void

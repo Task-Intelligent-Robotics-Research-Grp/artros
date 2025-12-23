@@ -37,19 +37,7 @@ def launch_setup(context):
     return [
         IncludeLaunchDescription(
             PathJoinSubstitution(
-                [FindPackageShare('aist_routines'), 'launch',
-                 'assembly.launch.py'])),
-        IncludeLaunchDescription(
-            PathJoinSubstitution(
-                [FindPackageShare('aist_visualization'), 'launch',
-                 'robot_description_provider.launch.py'])),
-        IncludeLaunchDescription(
-            PathJoinSubstitution(
-                [FindPackageShare('aist_visualization'), 'launch',
-                 'mesh_generator.launch.py'])),
-        # IncludeLaunchDescription(
-        #     PathJoinSubstitution(
-        #         [FindPackageShare('nep_bridge'), 'launch', 'launch.py'])),
+                [FindPackageShare('nep_bridge'), 'launch', 'launch.py'])),
     ]
 
 def generate_launch_description():

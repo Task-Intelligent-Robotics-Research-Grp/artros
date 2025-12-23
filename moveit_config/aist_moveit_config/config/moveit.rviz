@@ -2374,12 +2374,11 @@ Visualization Manager:
       Enabled: true
       Name: b_bot
     - Class: aist_visualization/TexturedMesh
-      Enabled: true
+      Enabled: false
       Image Topic: /live_camera/image_raw
-      Image Transport Hint: raw
       Mesh Topic: /mesh_generator/mesh
       Name: TexturedMesh
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48

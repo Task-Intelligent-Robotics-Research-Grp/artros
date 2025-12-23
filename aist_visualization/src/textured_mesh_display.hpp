@@ -45,9 +45,6 @@
 
 #  include <mutex>
 
-#  include <message_filters/subscriber.h>
-#  include <message_filters/synchronizer.h>
-#  include <message_filters/sync_policies/approximate_time.h>
 #  include <image_transport/image_transport.hpp>
 #  include <image_transport/subscriber_filter.hpp>
 
@@ -68,23 +65,16 @@ namespace aist_visualization
 *  class TexturedMeshDisplay						*
 ************************************************************************/
 class TexturedMeshDisplay: public rviz_common::Display
-			   // public Ogre::RenderTargetListener,
-			   // public Ogre::RenderQueueListener
 {
     Q_OBJECT
   private:
     template <class MSG>
     using msg_cp	= typename MSG::ConstSharedPtr;
-
-    using topic_prop_t	= rviz_common::properties::RosTopicProperty;
-    using enum_prop_t	= rviz_common::properties::EnumProperty;
-    using texture_t	= rviz_default_plugins::displays::ROSImageTexture;
-
     using image_t	= sensor_msgs::msg::Image;
     using mesh_t	= aist_msgs::msg::TexturedMeshStamped;
-    using sync_policy_t	= message_filters::sync_policies::ApproximateTime<
-			      image_t, mesh_t>;
-    using sync_t	= message_filters::Synchronizer<sync_policy_t>;
+
+    using topic_prop_t	= rviz_common::properties::RosTopicProperty;
+    using texture_t	= rviz_default_plugins::displays::ROSImageTexture;
 
   public:
 		TexturedMeshDisplay()					;
@@ -94,8 +84,6 @@ class TexturedMeshDisplay: public rviz_common::Display
     void	onInitialize()					override;
     void	update(float wall_dt, float ros_dt)		override;
     void	reset()						override;
-    void	setTopic(const QString& topic,
-			 const QString& datatype)		override;
 
   protected:
   // Overrides from Display
@@ -107,8 +95,8 @@ class TexturedMeshDisplay: public rviz_common::Display
     void	unsubscribe()						;
 
   private:
-    void	processMessages(msg_cp<image_t> image,
-				msg_cp<mesh_t> mesh)			;
+    void	imageCB(const msg_cp<image_t>& image)			;
+    void	meshCB(msg_cp<mesh_t> mesh)				;
 
     void	createTexture()						;
     void	createMesh()						;
@@ -120,23 +108,21 @@ class TexturedMeshDisplay: public rviz_common::Display
     void	updateTopic()						;
 
   private:
-    std::unique_ptr<enum_prop_t>	image_transport_property_;
-    std::unique_ptr<topic_prop_t>	image_topic_property_;
-    std::unique_ptr<topic_prop_t>	mesh_topic_property_;
+    std::unique_ptr<topic_prop_t>			image_topic_property_;
+    std::unique_ptr<topic_prop_t>			mesh_topic_property_;
+    std::unique_ptr<image_transport::ImageTransport>	it_;
+    image_transport::Subscriber				image_sub_;
+    rclcpp::Subscription<mesh_t>::SharedPtr		mesh_sub_;
 
-    std::unique_ptr<image_transport::ImageTransport>		it_;
-    std::shared_ptr<image_transport::SubscriberFilter>		image_sub_;
-    std::shared_ptr<message_filters::Subscriber<mesh_t> >	mesh_sub_;
-    std::shared_ptr<sync_t>					sync_;
+    msg_cp<image_t>					cur_image_;
+    msg_cp<mesh_t>					cur_mesh_;
+    std::mutex						image_mtx_;
+    std::mutex						mesh_mtx_;
 
-    msg_cp<image_t>			cur_image_;
-    msg_cp<mesh_t>			cur_mesh_;
-    std::mutex				msg_mtx_;
-
-    std::unique_ptr<texture_t>		texture_;
-    std::unique_ptr<Ogre::SceneNode>	mesh_node_;
-    std::unique_ptr<Ogre::ManualObject>	manual_object_;
-    Ogre::MaterialPtr			mesh_material_;
+    std::unique_ptr<texture_t>				texture_;
+    std::unique_ptr<Ogre::SceneNode>			mesh_node_;
+    std::unique_ptr<Ogre::ManualObject>			manual_object_;
+    Ogre::MaterialPtr					mesh_material_;
 };
 
 }  // namespace aist_visualization

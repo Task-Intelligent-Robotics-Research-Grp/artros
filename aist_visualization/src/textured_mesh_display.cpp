@@ -64,9 +64,6 @@ fromMsg(const geometry_msgs::msg::Point& p)
  */
 TexturedMeshDisplay::TexturedMeshDisplay()
     :rviz_common::Display(),
-     image_transport_property_(new enum_prop_t("Image Transport Hint", "raw",
-					       "Preferred method of sending images.",
-					       this, SLOT(updateTopic()))),
      image_topic_property_(new topic_prop_t("Image Topic", "",
 					    "sensor_msgs/msg/Image",
 					    "Image topic to subscribe to.",
@@ -75,15 +72,14 @@ TexturedMeshDisplay::TexturedMeshDisplay()
 					   "aist_msgs/msg/TexturedMeshStamped",
 					   "Mesh topic to subscribe to.",
 					   this, SLOT(updateTopic()))),
-
      it_(),
      image_sub_(),
      mesh_sub_(),
-     sync_(),
 
      cur_image_(),
      cur_mesh_(),
-     msg_mtx_(),
+     image_mtx_(),
+     mesh_mtx_(),
 
      texture_(new texture_t()),
      mesh_node_(),
@@ -104,13 +100,12 @@ TexturedMeshDisplay::~TexturedMeshDisplay()
 void
 TexturedMeshDisplay::onInitialize()
 {
-    const auto	ros_node = context_->getRosNodeAbstraction().lock();
+    Display::onInitialize();
 
+    const auto	ros_node = context_->getRosNodeAbstraction().lock();
     image_topic_property_->initialize(ros_node);
     mesh_topic_property_ ->initialize(ros_node);
-
     it_.reset(new image_transport::ImageTransport(ros_node->get_raw_node()));
-    Display::onInitialize();
 }
 
 void
@@ -118,14 +113,13 @@ TexturedMeshDisplay::update(float wall_dt, float ros_dt)
 {
     try
     {
-	if (cur_mesh_ && cur_image_)
+	if (cur_image_ && cur_mesh_)
 	{
 	    createTexture();		// Create texture_ from cur_image_
 	    createMesh();		// Create mesh_node_ from cur_mesh_
 	    updateMeshProperties();
 
-	    if (texture_ &&
-		!image_topic_property_->getTopicStd().empty() &&
+	    if (!image_topic_property_->getTopicStd().empty() &&
 		!mesh_topic_property_->getTopicStd().empty())
 	    {
 		texture_->update();
@@ -151,22 +145,6 @@ TexturedMeshDisplay::reset()
     context_->queueRender();
     setStatus(rviz_common::properties::StatusProperty::Warn,
 	      "Image", "No Image received");
-}
-
-void
-TexturedMeshDisplay::setTopic(const QString& topic, const QString& datatype)
-{
-    if (datatype == "sensor_msgs::msgs::Image")
-    {
-	image_transport_property_->setStdString("raw");
-	image_topic_property_->setString(topic);
-    }
-    else
-    {
-	setStatus(rviz_common::properties::StatusProperty::Warn,
-		  "Message",
-		  "Expected topic type of 'sensor_msgs/msg/Image', saw topic type '" + datatype + "'");
-    }
 }
 
 /*
@@ -198,27 +176,18 @@ TexturedMeshDisplay::subscribe()
 
     try
     {
-	const auto	ros_node = context_->getRosNodeAbstraction().lock();
-
-	image_sub_.reset(new image_transport::SubscriberFilter());
-	mesh_sub_ .reset(new message_filters::Subscriber<mesh_t>(
-			     ros_node->get_raw_node(),
-			     mesh_topic_property_->getTopicStd()));
-	sync_.reset(new sync_t(sync_policy_t(3), *image_sub_, *mesh_sub_));
-
-	if (!image_transport_property_->getStdString().empty()	&&
-	    !image_topic_property_->getTopicStd().empty()	&&
+	if (!image_topic_property_->getTopicStd().empty() &&
 	    !mesh_topic_property_ ->getTopicStd().empty())
 	{
-	    image_sub_->subscribe(ros_node->get_raw_node().get(),
-				  image_topic_property_->getTopicStd(),
-				  image_transport_property_->getStdString(),
-				  rmw_qos_profile_sensor_data);
-	    mesh_sub_ ->subscribe(ros_node->get_raw_node(),
-				  mesh_topic_property_->getTopicStd(),
-				  rmw_qos_profile_default);
-	    sync_->registerCallback(&TexturedMeshDisplay::processMessages,
-				    this);
+	    const auto	ros_node = context_->getRosNodeAbstraction().lock();
+
+	    image_sub_ = it_->subscribe(image_topic_property_->getTopicStd(),
+					4,
+					&TexturedMeshDisplay::imageCB, this);
+	    mesh_sub_ = ros_node->get_raw_node()->create_subscription<mesh_t>(
+			    mesh_topic_property_->getTopicStd(), 4,
+			    std::bind(&TexturedMeshDisplay::meshCB, this,
+				      std::placeholders::_1));
 
 	    setStatus(rviz_common::properties::StatusProperty::Ok,
 		      "Image and Mesh topics", "ok");
@@ -235,37 +204,37 @@ TexturedMeshDisplay::subscribe()
 void
 TexturedMeshDisplay::unsubscribe()
 {
-    sync_.reset();
     mesh_sub_.reset();
-    image_sub_.reset();
+    image_sub_.shutdown();
 }
 
 /*
  *  private member functions
  */
 void
-TexturedMeshDisplay::processMessages(msg_cp<image_t> image,
-				     msg_cp<mesh_t>  mesh)
+TexturedMeshDisplay::imageCB(const msg_cp<image_t>& image)
 {
-    std::lock_guard<std::mutex>	lock(msg_mtx_);
+    std::lock_guard<std::mutex>	lock(image_mtx_);
 
     cur_image_ = image;
+}
+
+void
+TexturedMeshDisplay::meshCB(msg_cp<mesh_t>  mesh)
+{
+    std::lock_guard<std::mutex>	lock(mesh_mtx_);
+
     cur_mesh_  = mesh;
 }
 
 void
 TexturedMeshDisplay::createTexture()
 {
-    std::lock_guard<std::mutex>	lock(msg_mtx_);
+    std::lock_guard<std::mutex>	lock(image_mtx_);
 
     const auto	img = cv_bridge::toCvCopy(*cur_image_,
 					  sensor_msgs::image_encodings::RGBA8);
     texture_->addMessage(img->toImageMsg());
-
-    const auto	ros_node = context_->getRosNodeAbstraction().lock();
-    RCLCPP_INFO_STREAM(ros_node->get_raw_node()->get_logger(),
-		       "### image_size: "
-		       << cur_image_->width << 'x' << cur_image_->height);
 }
 
 void
@@ -279,19 +248,17 @@ TexturedMeshDisplay::createMesh()
 				     ->createManualObject("MeshObject"));
 	mesh_node_->attachObject(manual_object_.get());
 
-	const Ogre::String resource_group_name = "MeshNode";
+      // Create resource group named "rviz_rendering" if not existing.
+	const Ogre::String resource_group_name = "rviz_rendering";
 	auto&&		   rg_mgr = Ogre::ResourceGroupManager::getSingleton();
 	if (!rg_mgr.resourceGroupExists(resource_group_name))
-	{
 	    rg_mgr.createResourceGroup(resource_group_name);
-
-	    mesh_material_ = Ogre::MaterialManager::getSingleton().create(
-				resource_group_name + "MeshMaterial",
-				resource_group_name);
-	}
+	
+	mesh_material_ = Ogre::MaterialManager::getSingleton().create(
+			     "MeshMaterial", resource_group_name);
     }
 
-    std::lock_guard<std::mutex>	lock(msg_mtx_);
+    std::lock_guard<std::mutex>	lock(mesh_mtx_);
 
   // Get a transform from mesh frame to RViz display frame.
     Ogre::Vector3	position;
@@ -333,7 +300,8 @@ TexturedMeshDisplay::createMesh()
 	manual_object_->clear();
 	manual_object_->estimateVertexCount(cur_mesh_->mesh.vertices.size());
 	manual_object_->begin(mesh_material_->getName(),
-			      Ogre::RenderOperation::OT_TRIANGLE_LIST);
+			      Ogre::RenderOperation::OT_TRIANGLE_LIST,
+			      "rviz_rendering");
     }
 
     for (size_t i = 0; i < cur_mesh_->mesh.vertices.size(); ++i)
@@ -377,10 +345,11 @@ TexturedMeshDisplay::updateCamera()
     pass->setDepthBias(1);
 
     const auto	tex_state = pass->createTextureUnitState();
-    tex_state->setTextureName(texture_->getTexture()->getName());
+    tex_state->setTextureName(texture_->getName());
     tex_state->setTextureAddressingMode(Ogre::TextureUnitState::TAM_CLAMP);
-    tex_state->setTextureFiltering(Ogre::FO_POINT, Ogre::FO_LINEAR,
-				   Ogre::FO_NONE);
+    // tex_state->setTextureFiltering(Ogre::FO_POINT, Ogre::FO_LINEAR,
+    // 				   Ogre::FO_NONE);
+    tex_state->setTextureFiltering(Ogre::TFO_NONE);
     tex_state->setColourOperation(Ogre::LBO_REPLACE);  // don't accept addition
 }
 
