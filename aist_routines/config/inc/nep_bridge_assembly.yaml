@@ -1,5 +1,3 @@
-nep_ip: 10.66.171.39
-rate:   10.0
 ros_to_nep:
   - from: /tf
     to:   Kitting/transforms
@@ -11,11 +9,20 @@ ros_to_nep:
     to:   Kitting/request_help
   - from: /collision_object_manager/collision_marker
     to:   Kitting/collision_marker
+  - from: /a_bot_cartesian_compliance_controller/current_pose
+    to:   Kitting/actual_robot_pose
+  - from: /a_bot_camera/color/image_raw
+    to:   Kitting/monitor_image
+  - from: /a_bot_force_torque_sensor_broadcaster/wrench
+    to:   Kitting/wrench
 
 nep_to_ros:
   - from: Kitting/pointing
     to:   /pointing
-    type: aist_msgs/Pointing
+#    type: aist_msgs/Pointing
+  - from: Kitting/desired_robot_pose
+    to:   /a_bot_cartesian_compliance_controller/target_frame
+#    type: geometry_msgs/PoseStamped
 
 services:
   - name:     /robot_description_provider/get_links
@@ -24,3 +31,6 @@ services:
   - name:     /collision_object_manager/get_mesh_resource
     request:  Kitting/get_mesh_resource
     response: Kitting/mesh_resource
+  - name:     /controller_manager/switch_controller
+    request:  Kitting/switch_controller
+    response: Kitting/switch_controller_ok

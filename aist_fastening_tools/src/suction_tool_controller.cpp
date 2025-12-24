@@ -166,6 +166,8 @@ SuctionToolController::SuctionToolController(
      _joint_state_pub(_joint_name == "" ? nullptr :
 		      create_publisher<joint_state_t>("/joint_states", 1)),
      _suctioned_pub(create_publisher<bool_t>("~/suctioned", 1)),
+     _set_io_cbg(create_callback_group(
+		     rclcpp::CallbackGroupType::MutuallyExclusive)),
      _set_io_clnt(create_client<set_io_t>(_driver_ns + "/set_io",
 					  rclcpp::ServicesQoS(), _set_io_cbg)),
      _command_srv(rclcpp_action::create_server<suction_tool_command_t>(

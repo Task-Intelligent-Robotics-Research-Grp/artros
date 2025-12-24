@@ -1,0 +1,9 @@
+<library path="aist_visualization_plugins">
+  <class name="aist_visualization/TexturedMesh"
+         type="aist_visualization::TexturedMeshDisplay"
+         base_class_type="rviz_common::Display">
+    <description>
+      Display plugin for textured meshes
+    </description>
+  </class>
+</library>

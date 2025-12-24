@@ -3,5 +3,5 @@ interactive:
     reference_frame: workspace_center
     moveit_eef_step: 0.002
     setting_urls:
-      - package://aist_routines/config/assembly.yaml
-      - package://aist_routines/config/kitting.yaml
+      - package://aist_routines/config/inc/assembly.yaml
+      - package://aist_routines/config/inc/kitting.yaml

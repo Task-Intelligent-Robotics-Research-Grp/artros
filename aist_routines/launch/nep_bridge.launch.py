@@ -37,12 +37,7 @@ def launch_setup(context):
     return [
         IncludeLaunchDescription(
             PathJoinSubstitution(
-                [FindPackageShare('aist_bringup'), 'launch',
-                 'cameras.launch.py'])),
-        IncludeLaunchDescription(
-            PathJoinSubstitution(
-                [FindPackageShare('aist_collision_object_manager'),
-                 'launch', 'launch.py'])),
+                [FindPackageShare('nep_bridge'), 'launch', 'launch.py'])),
     ]
 
 def generate_launch_description():

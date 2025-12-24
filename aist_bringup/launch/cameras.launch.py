@@ -11,7 +11,14 @@ launch_arguments = [
     {
         'name':        'config',
         'default':     'aist',
-        'description': 'name of the hardware configuration'
+        'description': 'Name of the hardware configuration'
+    },
+    {
+        'name':        'param_file',
+        'default':     PathJoinSubstitution([
+                           FindPackageShare('aist_bringup'), 'config',
+                           'cameras.yaml']),
+        'description': 'abolute path to YAML file for configuring cameras'
     },
     {
         'name':        'container',
@@ -35,9 +42,6 @@ launch_arguments = [
 
 def launch_setup(context):
     config = load_config(context)
-    camera_param_file = PathJoinSubstitution([
-                            FindPackageShare('aist_bringup'), 'config',
-                            'cameras.yaml'])
     actions = [
         Node(name=LaunchConfiguration('container'),
              package='rclcpp_components',
@@ -53,7 +57,6 @@ def launch_setup(context):
                 camera_props['launch_file'],
                 launch_arguments=[
                     ('camera_name',        camera_name),
-                    ('param_file',         camera_param_file),
                     ('external_container', 'true'),
                     ('container',          LaunchConfiguration('container'))
                 ]))

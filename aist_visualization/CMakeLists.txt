@@ -17,18 +17,31 @@ endif()
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
+find_package(Qt5 REQUIRED COMPONENTS Widgets)
+
+set(CMAKE_AUTOMOC ON)
+
 #########################################
 #  component: libaist_visualization.so  #
 #########################################
 ament_auto_add_library(
   ${PROJECT_NAME} SHARED
     src/mesh_generator.cpp
+    src/robot_description_provider.cpp
 )
 
 rclcpp_components_register_nodes(
   ${PROJECT_NAME}
     ${PROJECT_NAME}::MeshGenerator
+    ${PROJECT_NAME}::RobotDescriptionProvider
 )
+
+ament_auto_add_library(
+  ${PROJECT_NAME}_plugins SHARED
+    src/textured_mesh_display.cpp
+)
+
+pluginlib_export_plugin_description_file(rviz_common plugins_description.xml)
 
 ##########
 #  test  #
@@ -47,4 +60,4 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-ament_auto_package(INSTALL_TO_SHARE launch config)
+ament_auto_package(INSTALL_TO_SHARE launch config urdf)
