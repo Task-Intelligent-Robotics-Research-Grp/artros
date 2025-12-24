@@ -159,7 +159,7 @@ collision_object_manager:
 ################################
 robot_description_provider:
   ros__parameters:
-    robot_frame: world
+    root_frame: world
 
 ####################
 #  mesh_generator  #
@@ -167,7 +167,7 @@ robot_description_provider:
 mesh_generator:
   ros__parameters:
     screen_frame:      virtual_screen
-    refenrece_frame:   world
+    reference_frame:   world
     nsteps_u:          10
     nsteps_v:          10
 
