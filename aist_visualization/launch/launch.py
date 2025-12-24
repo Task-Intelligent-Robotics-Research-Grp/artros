@@ -6,9 +6,20 @@ from launch.conditions          import UnlessCondition
 from launch_ros.actions         import Node, LoadComposableNodes
 from launch_ros.substitutions   import FindPackageShare
 from launch_ros.descriptions    import ComposableNode
-from aist_bringup.launch_common import declare_launch_arguments
+from aist_bringup.launch_common import (declare_launch_arguments,
+                                        get_camera_props)
 
 launch_arguments = [
+    {
+        'name':        'camera_name',
+        'default':     'live_camera',
+        'description': 'name of the camera'
+    },
+    {
+        'name':        'camera_type',
+        'default':     'USBCamera',
+        'description': 'type of the camera'
+    },
     {
         'name':        'param_file',
         'default':     PathJoinSubstitution([
@@ -24,7 +35,7 @@ launch_arguments = [
     },
     {
         'name':        'container',
-        'default':     'container',
+        'default':     'cameras_container',
         'description': 'name of the component container'
     },
     {
@@ -43,6 +54,8 @@ launch_arguments = [
 
 
 def launch_setup(context):
+    camera_props = get_camera_props(LaunchConfiguration('camera_type') \
+                                    .perform(context))
     return [
         Node(name=LaunchConfiguration('container'),
              package='rclcpp_components',
@@ -60,6 +73,16 @@ def launch_setup(context):
                     package='aist_visualization',
                     plugin='aist_visualization::RobotDescriptionProvider',
                     parameters=[LaunchConfiguration('param_file')],
+                    extra_arguments=[{'use_intra_process_comms': True}]),
+                ComposableNode(
+                    name='mesh_generator',
+                    package='aist_visualization',
+                    plugin='aist_visualization::MeshGenerator',
+                    parameters=[LaunchConfiguration('param_file')],
+                    remappings=[
+                        ('camera_info',
+                         [LaunchConfiguration('camera_name'), '/',
+                          camera_props['cinfo_topic']])],
                     extra_arguments=[{'use_intra_process_comms': True}])
             ]),
     ]

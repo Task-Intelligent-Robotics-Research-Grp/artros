@@ -42,7 +42,7 @@ def launch_setup(context):
         IncludeLaunchDescription(
             PathJoinSubstitution(
                 [FindPackageShare('aist_visualization'), 'launch',
-                 'robot_description_provider.launch.py'])),
+                 'launch.py'])),
         IncludeLaunchDescription(
             PathJoinSubstitution(
                 [FindPackageShare('nep_bridge'), 'launch', 'launch.py'])),
