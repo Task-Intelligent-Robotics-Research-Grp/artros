@@ -145,7 +145,8 @@ class CollisionObjectManager(Node):
                                   ['primitives', 'primitive_poses',
                                    'visual_mesh_urls', 'visual_mesh_poses',
                                    'visual_mesh_scales', 'visual_mesh_colors',
-                                   'collision_meshes', 'collision_mesh_poses',
+                                   'collision_mesh_urls', 'collision_meshes',
+                                   'collision_mesh_poses',
                                    'collision_mesh_scales',
                                    'subframe_names', 'subframe_poses'])
     class InstanceProperties(object):
@@ -185,10 +186,10 @@ class CollisionObjectManager(Node):
                                self.declare_parameter('object_properties_urls',
                                                       ['']).value).items():
             obj_props = CollisionObjectManager.ObjectProperties(
-                            [], [],
-                            [], [], [], [],
-                            [], [], [],
-                            ['base_link'],
+                            [], [],          # collision primitives
+                            [], [], [], [],  # visual mesh properties
+                            [], [], [], [],  # collision mesh properties
+                            ['base_link'],   # subframe names
                             [Pose(position=Point(x=0.0, y=0.0, z=0.0),
                                   orientation=Quaternion(x=0.0, y=0.0,
                                                          z=0.0, w=1.0))])
@@ -215,6 +216,7 @@ class CollisionObjectManager(Node):
                     _color_from_rgba(mesh['color']))
 
             for mesh in props.get('collision_meshes', []):
+                obj_props.collision_mesh_urls.append(mesh['url'])
                 obj_props.collision_meshes.append(
                     self._load_mesh(mesh['url'], mesh['scale']))
                 obj_props.collision_mesh_poses.append(
@@ -334,7 +336,8 @@ class CollisionObjectManager(Node):
         """
         res.mesh_resource = req.mesh_resource
         for obj_props in self._obj_props_dict.values():
-            if req.mesh_resource in obj_props.visual_mesh_urls:
+            if req.mesh_resource in obj_props.visual_mesh_urls or \
+               req.mesh_resource in obj_props.collision_mesh_urls:
                 with open(filepath_from_url(req.mesh_resource), 'rb') as f:
                     res.data = f.read()
                 self.get_logger().info('Send response to GetMeshResource request for the mesh_url[%s]' % req.mesh_resource)
