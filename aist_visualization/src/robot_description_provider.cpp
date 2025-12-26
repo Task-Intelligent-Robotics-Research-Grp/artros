@@ -50,9 +50,11 @@ class RobotDescriptionProvider : public rclcpp::Node
     using string_t		= std_msgs::msg::String;
     using get_links_t		= aist_msgs::srv::GetLinks;
     using link_cp		= urdf::LinkConstSharedPtr;
+    using material_cp		= urdf::MaterialConstSharedPtr;
     using Link			= aist_msgs::msg::Link;
     using Links			= std::vector<Link>;
     using LinkGeometry		= aist_msgs::msg::LinkGeometry;
+    using LinkMaterial		= aist_msgs::msg::Material;
 
   public:
     RobotDescriptionProvider(const rclcpp::NodeOptions& options)	;
@@ -69,6 +71,8 @@ class RobotDescriptionProvider : public rclcpp::Node
 			    const link_cp& current)		const	;
     template <class GEOM_CP> LinkGeometry
 		create_link_geometry(const GEOM_CP& geometry)	const	;
+    LinkMaterial
+		create_link_material(const material_cp& material) const	;
 
   private:
     const callback_group_p		_robot_description_cbg;
@@ -189,40 +193,8 @@ RobotDescriptionProvider::create_link(const link_cp& parent,
     link.collision = create_link_geometry(current->collision);
 
   // Set material of the visual primitive.
-    if (current->visual && current->visual->material)
-    {
-	auto&	material = link.material;
-
-	material.name	 = current->visual->material->name;
-	material.color.r = current->visual->material->color.r;
-	material.color.g = current->visual->material->color.g;
-	material.color.b = current->visual->material->color.b;
-	material.color.a = current->visual->material->color.a;
-
-	if (!current->visual->material->texture_filename.empty())
-	{
-	    const auto	path = aist_utility::filepath_from_url(
-				 current->visual->material->texture_filename);
-	    const auto	texture = cv::imread(path, cv::IMREAD_COLOR);
-	    if (texture.data == nullptr)
-		throw std::runtime_error("Failed to load texture["
-					 + path + ']');
-
-	    material.texture_height = texture.rows;
-	    material.texture_width  = texture.cols;
-	    material.texture_data.resize(material.texture_height *
-					 material.texture_width  *
-					 sizeof(cv::Vec3b));
-	    cv::Mat	proxy(material.texture_height, material.texture_width,
-			      CV_8UC3, material.texture_data.data());
-	    cv::cvtColor(texture, proxy, cv::COLOR_BGR2RGB);
-	}
-	else
-	{
-	    material.texture_height = 0;
-	    material.texture_width  = 0;
-	}
-    }
+    if (current->visual)
+	link.material = create_link_material(current->visual->material);
 
     return link;
 }
@@ -326,7 +298,47 @@ RobotDescriptionProvider::create_link_geometry(const GEOM_CP& geometry) const
     return link_geometry;
 }
 
+RobotDescriptionProvider::LinkMaterial
+RobotDescriptionProvider::create_link_material(
+    const material_cp& material) const
+{
+    LinkMaterial	link_material;
 
+    if (!material)
+	return link_material;
+
+    link_material.name	  = material->name;
+    link_material.color.r = material->color.r;
+    link_material.color.g = material->color.g;
+    link_material.color.b = material->color.b;
+    link_material.color.a = material->color.a;
+
+    if (!material->texture_filename.empty())
+    {
+	const auto	path = aist_utility::filepath_from_url(
+				   material->texture_filename);
+	const auto	texture = cv::imread(path, cv::IMREAD_COLOR);
+	if (texture.data == nullptr)
+	    throw std::runtime_error("Failed to load texture[" + path + ']');
+
+	link_material.texture_height = texture.rows;
+	link_material.texture_width  = texture.cols;
+	link_material.texture_data.resize(link_material.texture_height *
+					  link_material.texture_width  *
+					  sizeof(cv::Vec3b));
+	cv::Mat	proxy(link_material.texture_height,
+		      link_material.texture_width,
+		      CV_8UC3, link_material.texture_data.data());
+	cv::cvtColor(texture, proxy, cv::COLOR_BGR2RGB);
+    }
+    else
+    {
+	link_material.texture_height = 0;
+	link_material.texture_width  = 0;
+    }
+
+    return link_material;
+}
 }        // namespace aist_visualization
 
 #include <rclcpp_components/register_node_macro.hpp>

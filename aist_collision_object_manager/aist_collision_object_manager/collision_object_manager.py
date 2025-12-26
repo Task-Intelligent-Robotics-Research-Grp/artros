@@ -145,9 +145,9 @@ class CollisionObjectManager(Node):
                                   ['primitives', 'primitive_poses',
                                    'visual_mesh_urls', 'visual_mesh_poses',
                                    'visual_mesh_scales', 'visual_mesh_colors',
-                                   'collision_mesh_urls', 'collision_meshes',
+                                   'collision_mesh_urls',
                                    'collision_mesh_poses',
-                                   'collision_mesh_scales',
+                                   'collision_mesh_scales', 'collision_meshes',
                                    'subframe_names', 'subframe_poses'])
     class InstanceProperties(object):
         def __init__(self, type):
@@ -217,12 +217,12 @@ class CollisionObjectManager(Node):
 
             for mesh in props.get('collision_meshes', []):
                 obj_props.collision_mesh_urls.append(mesh['url'])
-                obj_props.collision_meshes.append(
-                    self._load_mesh(mesh['url'], mesh['scale']))
                 obj_props.collision_mesh_poses.append(
                     _pose_from_xyzrpy(mesh['pose']))
                 obj_props.collision_mesh_scales.append(
                     _vector3_from_xyz(mesh['scale']))
+                obj_props.collision_meshes.append(
+                    self._load_mesh(mesh['url'], mesh['scale']))
 
             self._obj_props_dict[type] = obj_props
             self.get_logger().info('loaded properties of type[%s]' % type)
@@ -418,7 +418,7 @@ class CollisionObjectManager(Node):
         """
         obj_props = self._obj_props_dict.get(object_type)
         if obj_props is None:
-            raise RuntimeError('unknown object type[%s]' % req.object_type)
+            raise RuntimeError('unknown object type[%s]' % object_type)
 
         # Setup a new collision object.
         co = CollisionObject()
