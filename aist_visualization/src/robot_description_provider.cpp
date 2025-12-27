@@ -188,13 +188,14 @@ RobotDescriptionProvider::create_link(const link_cp& parent,
 						 tf2::TimePointZero,
 						 tf2::durationFromSec(1.0));
 
-  // Set visual and collision primitives of this link.
-    link.visual	   = create_link_geometry(current->visual);
-    link.collision = create_link_geometry(current->collision);
-
-  // Set material of the visual primitive.
-    if (current->visual)
-	link.material = create_link_material(current->visual->material);
+  // Set visual, material and collision primitives of this link.
+    for (const auto& visual : current->visual_array)
+    {
+	link.visual_array.push_back(create_link_geometry(visual));
+	link.material_array.push_back(create_link_material(visual->material));
+    }
+    for (const auto& collision : current->collision_array)
+	link.collision_array.push_back(create_link_geometry(collision));
 
     return link;
 }
