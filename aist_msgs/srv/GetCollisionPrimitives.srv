@@ -1,4 +1,0 @@
-string                   object_id  # object ID
----
-string                   object_id  # echo back of the requested object ID
-aist_msgs/LinkGeometry[] collision_primitives

@@ -484,6 +484,7 @@ class CollisionObjectManager(Node):
             marker.lifetime        = Duration(seconds=0).to_msg()
             marker.frame_locked    = False
             marker.mesh_resource   = mesh_url
+            marker.text            = object_type
             instance_props.markers.append(marker)
 
         # Store object info.
