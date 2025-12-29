@@ -56,7 +56,7 @@ from geometry_msgs.msg             import (Point, Vector3, Quaternion, Pose,
                                            PoseStamped)
 from shape_msgs.msg                import (Mesh, MeshTriangle, Plane,
                                            SolidPrimitive)
-from visualization_msgs.msg        import Marker
+from visualization_msgs.msg        import Marker, MarkerArray
 from aist_msgs.srv                 import (ManageCollisionObject,
                                            GetMeshResource)
 from aist_msgs.msg                 import CollisionObjectInfo
@@ -250,7 +250,8 @@ class CollisionObjectManager(Node):
         self._marker_id_min         = 0
         self._marker_id_lists       = {}
         self._marker_pub            = self.create_publisher(
-                                          Marker, '~/collision_marker', 10)
+                                          MarkerArray, '~/collision_marker',
+                                          10)
         self._tf2_buffer            = Buffer()
         self._tf2_listener          = TransformListener(self._tf2_buffer, self)
         self._broadcaster           = TransformBroadcaster(self)
@@ -325,8 +326,8 @@ class CollisionObjectManager(Node):
                     subframe_transform.header.stamp \
                         = self.get_clock().now().to_msg()
                     self._broadcaster.sendTransform(subframe_transform)
-                for marker in instance_props.markers:
-                    self._marker_pub.publish(marker)
+                self._marker_pub.publish(
+                    MarkerArray(markers=instance_props.markers))
 
     def _get_mesh_resource_cb(self, req, res):
         """Service callback for GetMeshResource
