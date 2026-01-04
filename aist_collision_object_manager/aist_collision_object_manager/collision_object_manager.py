@@ -58,7 +58,7 @@ from shape_msgs.msg                import (Mesh, MeshTriangle, Plane,
                                            SolidPrimitive)
 from visualization_msgs.msg        import Marker, MarkerArray
 from aist_msgs.srv                 import (ManageCollisionObject,
-                                           GetMeshResource)
+                                           GetCollisionObject)
 from aist_msgs.msg                 import CollisionObjectInfo
 from moveit_msgs.msg               import (CollisionObject,
                                            AttachedCollisionObject,
@@ -165,7 +165,7 @@ class CollisionObjectManager(Node):
         - Load object properties from parameter '~object_properties'
           for each type
         - Setup marker publisher '~collision_marker' as well as services
-          '~get_mesh_resource' and '~manage_collision_object'
+          '~get_collision_object' and '~manage_collision_object'
         """
         super().__init__(name)
 
@@ -260,10 +260,9 @@ class CollisionObjectManager(Node):
         self._timer                 = self.create_timer(
                                           0.1, self._subframes_and_markers_cb,
                                           self._timer_cbg)
-        self._get_mesh_resource_cbg = MutuallyExclusiveCallbackGroup()
-        self._get_mesh_resource \
-            = self.create_service(GetMeshResource, '~/get_mesh_resource',
-                                  self._get_mesh_resource_cb)
+        self._get_collision_object \
+            = self.create_service(GetCollisionObject, '~/get_collision_object',
+                                  self._get_collision_object_cb)
         self._manage_collision_object_cbg = MutuallyExclusiveCallbackGroup()
         self._manage_collision_object \
             = self.create_service(
@@ -329,22 +328,25 @@ class CollisionObjectManager(Node):
                 self._marker_pub.publish(
                     MarkerArray(markers=instance_props.markers))
 
-    def _get_mesh_resource_cb(self, req, res):
-        """Service callback for GetMeshResource
+    def _get_collision_object_cb(self, req, res):
+        """Service callback for GetCollisionObject
 
         Send response with binary mesh data according to the requested URL
         of mesh resource
         """
-        res.mesh_resource = req.mesh_resource
+        obj_props = self._obj_props_dict.get(req.object_type)
+        if not obj_props:
+            return
+        res.visual_array = self._create_link_geometry(obj_props.
         for obj_props in self._obj_props_dict.values():
             if req.mesh_resource in obj_props.visual_mesh_urls or \
                req.mesh_resource in obj_props.collision_mesh_urls:
                 with open(filepath_from_url(req.mesh_resource), 'rb') as f:
                     res.data = f.read()
-                self.get_logger().info('Send response to GetMeshResource request for the mesh_url[%s]' % req.mesh_resource)
+                self.get_logger().info('Send response to GetCollisionObject request for the mesh_url[%s]' % req.mesh_resource)
                 break
         else:
-            self.get_logger().error('Received GetMeshResource request with unknown mesh_url[%s]' % req.mesh_resource)
+            self.get_logger().error('Received GetCollisionObject request with unknown mesh_url[%s]' % req.mesh_resource)
         return res
 
     def _manage_collision_object_cb(self, req, res):
@@ -817,9 +819,9 @@ class CollisionObjectManager(Node):
         if instance_props is None:
             self.get_logger().error('unknown object[%s]' % object_id)
             return
-        for marker in instance_props.markers:
-            marker.action = Marker.DELETE
-            self._marker_pub.publish(marker)
+        self._marker_pub.publish(
+            MarkerArray(markers=[Marker(id=marker.id, action=Marker.DELETE)
+                                 for marker in instance_props.markers]))
         with self._lock:
             del self._instance_props_dict[object_id]
         self.get_logger().info("removed '%s'" % object_id)
