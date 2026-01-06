@@ -336,8 +336,34 @@ class CollisionObjectManager(Node):
         """
         obj_props = self._obj_props_dict.get(req.object_type)
         if not obj_props:
+            self.get_logger().error('Unknown obejct type[%s]'
+                                    % req.object_type)
             return
-        res.visual_array = self._create_link_geometry(obj_props.
+
+        res.visual_array = [self._create_link_geometry(mesh_url, mesh_pose,
+                                                       mesh_scale)
+                            for mesh_url, mesh_pose, mesh_scale \
+                                in zip(obj_props.visual_mesh_urls,
+                                       obj_props.visual_mesh_poses,
+                                       obj_props.visual_mesh_scales)]
+        if not obj_props.primitives:
+            res.collision_array = [self._create_link_geometry(mesh_url,
+                                                              mesh_pose,
+                                                              mesh_scale)
+                                   for mesh_url, mesh_pose, mesh_scale \
+                                       in zip(obj_props.collision_mesh_urls,
+                                              obj_props.collision_mesh_poses,
+                                              obj_props.collision_mesh_scales)]
+        else:
+            res.collision_array = [self._create_link_primitive(primitive,
+                                                               primitive_pose)
+                                   for primitive, primitive_pose \
+                                       in zip(obj_props.primitives,
+                                              obj_props.primitive_poses)]
+        res.material_array = [self._create_material(mesh_color)
+                              for mesh_color in obj_props.visual_mesh_colors]
+
+
         for obj_props in self._obj_props_dict.values():
             if req.mesh_resource in obj_props.visual_mesh_urls or \
                req.mesh_resource in obj_props.collision_mesh_urls:
@@ -687,6 +713,12 @@ class CollisionObjectManager(Node):
     #
     # Utilities
     #
+    def _create_link_geometry(self, mesh_url, mesh_pose, mesh_scale):
+        link_geometry = LinkGeometry()
+        link_geometry.origin = mesh_pose
+        link_geometry.primitive.type = 0  # Mesh
+        link_geometry.dimensions = [mesh_scale.x, mesh_scale.y, mesh_scale.z]
+
     def _rotate_tree(self, co, leaf_id):
         def _inverse_transform(transform):
             return TransformStamped(
