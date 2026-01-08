@@ -50,9 +50,11 @@ class RobotDescriptionProvider : public rclcpp::Node
     using string_t		= std_msgs::msg::String;
     using get_links_t		= aist_msgs::srv::GetLinks;
     using link_cp		= urdf::LinkConstSharedPtr;
+    using material_cp		= urdf::MaterialConstSharedPtr;
     using Link			= aist_msgs::msg::Link;
     using Links			= std::vector<Link>;
     using LinkGeometry		= aist_msgs::msg::LinkGeometry;
+    using LinkMaterial		= aist_msgs::msg::Material;
 
   public:
     RobotDescriptionProvider(const rclcpp::NodeOptions& options)	;
@@ -69,6 +71,8 @@ class RobotDescriptionProvider : public rclcpp::Node
 			    const link_cp& current)		const	;
     template <class GEOM_CP> LinkGeometry
 		create_link_geometry(const GEOM_CP& geometry)	const	;
+    LinkMaterial
+		create_link_material(const material_cp& material) const	;
 
   private:
     const callback_group_p		_robot_description_cbg;
@@ -178,140 +182,20 @@ RobotDescriptionProvider::Link
 RobotDescriptionProvider::create_link(const link_cp& parent,
 				      const link_cp& current) const
 {
-    using	sp = shape_msgs::msg::SolidPrimitive;
-
-  // Set link transform of this primitive.
+  // Set transform of this link.
     Link	link;
     link.transform = _tf2_buffer.lookupTransform(parent->name, current->name,
 						 tf2::TimePointZero,
 						 tf2::durationFromSec(1.0));
 
-  // If no geometry is available, return a link with null primitive.
-    if (!current->visual || !current->visual->geometry)
+  // Set visual, material and collision primitives of this link.
+    for (const auto& visual : current->visual_array)
     {
-	link.primitive.type = 255;	// null primitive
-	return link;
+	link.visual_array.push_back(create_link_geometry(visual));
+	link.material_array.push_back(create_link_material(visual->material));
     }
-
-  // Set origin of this primitive
-    link.origin.position.x    = current->visual->origin.position.x;
-    link.origin.position.y    = current->visual->origin.position.y;
-    link.origin.position.z    = current->visual->origin.position.z;
-    link.origin.orientation.x = current->visual->origin.rotation.x;
-    link.origin.orientation.y = current->visual->origin.rotation.y;
-    link.origin.orientation.z = current->visual->origin.rotation.z;
-    link.origin.orientation.w = current->visual->origin.rotation.w;
-
-  // Set goemetry of this primitive.
-    switch (current->visual->geometry->type)
-    {
-      case urdf::Geometry::BOX:
-      {
-	const auto&	dim = static_cast<const urdf::Box*>(
-				  current->visual->geometry.get())->dim;
-
-	link.primitive.type = sp::BOX;
-	link.primitive.dimensions.resize(3);
-	link.primitive.dimensions[sp::BOX_X] = dim.x;
-	link.primitive.dimensions[sp::BOX_Y] = dim.y;
-	link.primitive.dimensions[sp::BOX_Z] = dim.z;
-	break;
-      }
-      case urdf::Geometry::SPHERE:
-      {
-	const auto	radius = static_cast<const urdf::Sphere*>(
-				     current->visual->geometry.get())->radius;
-
-	link.primitive.type = sp::SPHERE;
-	link.primitive.dimensions.resize(1);
-	link.primitive.dimensions[sp::SPHERE_RADIUS] = radius;
-	break;
-      }
-      case urdf::Geometry::CYLINDER:
-      {
-	const auto	cylinder = static_cast<const urdf::Cylinder*>(
-					current->visual->geometry.get());
-
-	link.primitive.type = sp::CYLINDER;
-	link.primitive.dimensions.resize(2);
-	link.primitive.dimensions[sp::CYLINDER_HEIGHT]
-	    = cylinder->length;
-	link.primitive.dimensions[sp::CYLINDER_RADIUS]
-	    = cylinder->radius;
-	break;
-      }
-      case urdf::Geometry::MESH:
-      {
-	const auto	mesh = static_cast<const urdf::Mesh*>(
-					current->visual->geometry.get());
-
-	link.primitive.type = 0;
-	link.primitive.dimensions.resize(3);
-	link.primitive.dimensions[0] = mesh->scale.x;
-	link.primitive.dimensions[1] = mesh->scale.y;
-	link.primitive.dimensions[2] = mesh->scale.z;
-
-      // Extract mesh file path from filename specified in URDF.
-	const auto	path = aist_utility::filepath_from_url(mesh->filename);
-	RCLCPP_DEBUG_STREAM(get_logger(), "create_link: path=" << path);
-
-      // Load mesh data from file.
-	std::ifstream	fin(path, std::ios_base::in | std::ios_base::binary);
-	if (!fin)
-	    throw std::runtime_error("createLink: cannot open mesh file["
-				     + path + ']');
-	fin.seekg(0, std::ios_base::end);
-	const auto	fsize = fin.tellg();
-	fin.seekg(0);
-	link.data.resize(fsize);
-	fin.read(reinterpret_cast<char*>(link.data.data()), fsize);
-	RCLCPP_DEBUG_STREAM(get_logger(), "create_link: mesh data size="
-			    << link.data.size());
-
-	break;
-      }
-      default:
-	throw std::runtime_error("Unknown geometry type["
-				 + std::to_string(
-				     current->visual->geometry->type)
-				 + ']');
-    }
-
-  // Set material of the primitive.
-    if (current->visual->material)
-    {
-	auto&	material = link.material;
-
-	material.name	 = current->visual->material->name;
-	material.color.r = current->visual->material->color.r;
-	material.color.g = current->visual->material->color.g;
-	material.color.b = current->visual->material->color.b;
-	material.color.a = current->visual->material->color.a;
-
-	if (!current->visual->material->texture_filename.empty())
-	{
-	    const auto	path = aist_utility::filepath_from_url(
-				 current->visual->material->texture_filename);
-	    const auto	texture = cv::imread(path, cv::IMREAD_COLOR);
-	    if (texture.data == nullptr)
-		throw std::runtime_error("Failed to load texture["
-					 + path + ']');
-
-	    material.texture_height = texture.rows;
-	    material.texture_width  = texture.cols;
-	    material.texture_data.resize(material.texture_height *
-					 material.texture_width  *
-					 sizeof(cv::Vec3b));
-	    cv::Mat	proxy(material.texture_height, material.texture_width,
-			      CV_8UC3, material.texture_data.data());
-	    cv::cvtColor(texture, proxy, cv::COLOR_BGR2RGB);
-	}
-	else
-	{
-	    material.texture_height = 0;
-	    material.texture_width  = 0;
-	}
-    }
+    for (const auto& collision : current->collision_array)
+	link.collision_array.push_back(create_link_geometry(collision));
 
     return link;
 }
@@ -322,6 +206,12 @@ RobotDescriptionProvider::create_link_geometry(const GEOM_CP& geometry) const
     using	sp = shape_msgs::msg::SolidPrimitive;
 
     LinkGeometry	link_geometry;
+
+    if (!geometry || !geometry->geometry)
+    {
+	link_geometry.primitive.type = 255;	// null primitive
+	return link_geometry;
+    }
 
   // Set origin of this primitive
     link_geometry.origin.position.x    = geometry->origin.position.x;
@@ -409,7 +299,47 @@ RobotDescriptionProvider::create_link_geometry(const GEOM_CP& geometry) const
     return link_geometry;
 }
 
+RobotDescriptionProvider::LinkMaterial
+RobotDescriptionProvider::create_link_material(
+    const material_cp& material) const
+{
+    LinkMaterial	link_material;
 
+    if (!material)
+	return link_material;
+
+    link_material.name	  = material->name;
+    link_material.color.r = material->color.r;
+    link_material.color.g = material->color.g;
+    link_material.color.b = material->color.b;
+    link_material.color.a = material->color.a;
+
+    if (!material->texture_filename.empty())
+    {
+	const auto	path = aist_utility::filepath_from_url(
+				   material->texture_filename);
+	const auto	texture = cv::imread(path, cv::IMREAD_COLOR);
+	if (texture.data == nullptr)
+	    throw std::runtime_error("Failed to load texture[" + path + ']');
+
+	link_material.texture_height = texture.rows;
+	link_material.texture_width  = texture.cols;
+	link_material.texture_data.resize(link_material.texture_height *
+					  link_material.texture_width  *
+					  sizeof(cv::Vec3b));
+	cv::Mat	proxy(link_material.texture_height,
+		      link_material.texture_width,
+		      CV_8UC3, link_material.texture_data.data());
+	cv::cvtColor(texture, proxy, cv::COLOR_BGR2RGB);
+    }
+    else
+    {
+	link_material.texture_height = 0;
+	link_material.texture_width  = 0;
+    }
+
+    return link_material;
+}
 }        // namespace aist_visualization
 
 #include <rclcpp_components/register_node_macro.hpp>

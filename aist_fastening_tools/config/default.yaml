@@ -35,7 +35,7 @@ base_fixture_controller:
 ###############################################
 screw_tools_driver:
   ros__parameters:
-    usb_port:               /dev/ttyUSB0
+    usb_port:               /dev/ttyUSB1
     dxl_baud_rate:          1000000
     dxl_read_period:        0.010
     dxl_write_period:       0.010
@@ -75,7 +75,7 @@ screw_tool_m4_fastening_controller:
 ###################################################
 precision_tools_driver:
   ros__parameters:
-    usb_port:               /dev/ttyUSB1
+    usb_port:               /dev/ttyUSB0
     dxl_baud_rate:          57600
     dxl_read_period:        0.010
     dxl_write_period:       0.010

@@ -1,4 +1,0 @@
-string  mesh_resource  # URL of mesh data
----
-string  mesh_resource  # echo back of the requested mesh resource
-uint8[] data           # mesh data

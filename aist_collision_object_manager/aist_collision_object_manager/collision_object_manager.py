@@ -56,10 +56,11 @@ from geometry_msgs.msg             import (Point, Vector3, Quaternion, Pose,
                                            PoseStamped)
 from shape_msgs.msg                import (Mesh, MeshTriangle, Plane,
                                            SolidPrimitive)
-from visualization_msgs.msg        import Marker
+from visualization_msgs.msg        import Marker, MarkerArray
 from aist_msgs.srv                 import (ManageCollisionObject,
-                                           GetMeshResource)
-from aist_msgs.msg                 import CollisionObjectInfo
+                                           GetCollisionObject)
+from aist_msgs.msg                 import (CollisionObjectInfo, LinkGeometry,
+                                           Material)
 from moveit_msgs.msg               import (CollisionObject,
                                            AttachedCollisionObject,
                                            PlanningSceneComponents,
@@ -145,8 +146,9 @@ class CollisionObjectManager(Node):
                                   ['primitives', 'primitive_poses',
                                    'visual_mesh_urls', 'visual_mesh_poses',
                                    'visual_mesh_scales', 'visual_mesh_colors',
-                                   'collision_meshes', 'collision_mesh_poses',
-                                   'collision_mesh_scales',
+                                   'collision_mesh_urls',
+                                   'collision_mesh_poses',
+                                   'collision_mesh_scales', 'collision_meshes',
                                    'subframe_names', 'subframe_poses'])
     class InstanceProperties(object):
         def __init__(self, type):
@@ -164,7 +166,7 @@ class CollisionObjectManager(Node):
         - Load object properties from parameter '~object_properties'
           for each type
         - Setup marker publisher '~collision_marker' as well as services
-          '~get_mesh_resource' and '~manage_collision_object'
+          '~get_collision_object' and '~manage_collision_object'
         """
         super().__init__(name)
 
@@ -185,10 +187,10 @@ class CollisionObjectManager(Node):
                                self.declare_parameter('object_properties_urls',
                                                       ['']).value).items():
             obj_props = CollisionObjectManager.ObjectProperties(
-                            [], [],
-                            [], [], [], [],
-                            [], [], [],
-                            ['base_link'],
+                            [], [],          # collision primitives
+                            [], [], [], [],  # visual mesh properties
+                            [], [], [], [],  # collision mesh properties
+                            ['base_link'],   # subframe names
                             [Pose(position=Point(x=0.0, y=0.0, z=0.0),
                                   orientation=Quaternion(x=0.0, y=0.0,
                                                          z=0.0, w=1.0))])
@@ -215,12 +217,13 @@ class CollisionObjectManager(Node):
                     _color_from_rgba(mesh['color']))
 
             for mesh in props.get('collision_meshes', []):
-                obj_props.collision_meshes.append(
-                    self._load_mesh(mesh['url'], mesh['scale']))
+                obj_props.collision_mesh_urls.append(mesh['url'])
                 obj_props.collision_mesh_poses.append(
                     _pose_from_xyzrpy(mesh['pose']))
                 obj_props.collision_mesh_scales.append(
                     _vector3_from_xyz(mesh['scale']))
+                obj_props.collision_meshes.append(
+                    self._load_mesh(mesh['url'], mesh['scale']))
 
             self._obj_props_dict[type] = obj_props
             self.get_logger().info('loaded properties of type[%s]' % type)
@@ -248,7 +251,8 @@ class CollisionObjectManager(Node):
         self._marker_id_min         = 0
         self._marker_id_lists       = {}
         self._marker_pub            = self.create_publisher(
-                                          Marker, '~/collision_marker', 10)
+                                          MarkerArray, '~/collision_marker',
+                                          10)
         self._tf2_buffer            = Buffer()
         self._tf2_listener          = TransformListener(self._tf2_buffer, self)
         self._broadcaster           = TransformBroadcaster(self)
@@ -257,10 +261,9 @@ class CollisionObjectManager(Node):
         self._timer                 = self.create_timer(
                                           0.1, self._subframes_and_markers_cb,
                                           self._timer_cbg)
-        self._get_mesh_resource_cbg = MutuallyExclusiveCallbackGroup()
-        self._get_mesh_resource \
-            = self.create_service(GetMeshResource, '~/get_mesh_resource',
-                                  self._get_mesh_resource_cb)
+        self._get_collision_object \
+            = self.create_service(GetCollisionObject, '~/get_collision_object',
+                                  self._get_collision_object_cb)
         self._manage_collision_object_cbg = MutuallyExclusiveCallbackGroup()
         self._manage_collision_object \
             = self.create_service(
@@ -323,24 +326,56 @@ class CollisionObjectManager(Node):
                     subframe_transform.header.stamp \
                         = self.get_clock().now().to_msg()
                     self._broadcaster.sendTransform(subframe_transform)
-                for marker in instance_props.markers:
-                    self._marker_pub.publish(marker)
+                self._marker_pub.publish(
+                    MarkerArray(markers=instance_props.markers))
 
-    def _get_mesh_resource_cb(self, req, res):
-        """Service callback for GetMeshResource
+    def _get_collision_object_cb(self, req, res):
+        """Service callback for GetCollisionObject
 
         Send response with binary mesh data according to the requested URL
         of mesh resource
         """
-        res.mesh_resource = req.mesh_resource
-        for obj_props in self._obj_props_dict.values():
-            if req.mesh_resource in obj_props.visual_mesh_urls:
-                with open(filepath_from_url(req.mesh_resource), 'rb') as f:
-                    res.data = f.read()
-                self.get_logger().info('Send response to GetMeshResource request for the mesh_url[%s]' % req.mesh_resource)
-                break
-        else:
-            self.get_logger().error('Received GetMeshResource request with unknown mesh_url[%s]' % req.mesh_resource)
+        self.get_logger().info(
+            'received GetCollisionObject service request[object_type=%s]'
+            % req.object_type)
+
+        obj_props = self._obj_props_dict.get(req.object_type)
+        if not obj_props:
+            self.get_logger().error('Unknown obejct type[%s]'
+                                    % req.object_type)
+            return
+
+        try:
+            res.visual_array = [self._create_link_geometry(mesh_url, mesh_pose,
+                                                           mesh_scale)
+                                for mesh_url, mesh_pose, mesh_scale
+                                in zip(obj_props.visual_mesh_urls,
+                                       obj_props.visual_mesh_poses,
+                                       obj_props.visual_mesh_scales)]
+            if not obj_props.primitives:
+                res.collision_array = [self._create_link_geometry(mesh_url,
+                                                                  mesh_pose,
+                                                                  mesh_scale)
+                                       for mesh_url, mesh_pose, mesh_scale
+                                       in zip(obj_props.collision_mesh_urls,
+                                              obj_props.collision_mesh_poses,
+                                              obj_props.collision_mesh_scales)]
+            else:
+                res.collision_array = [self._create_link_primitive(
+                                           primitive, primitive_pose)
+                                       for primitive, primitive_pose
+                                       in zip(obj_props.primitives,
+                                              obj_props.primitive_poses)]
+            res.material_array = [self._create_material(mesh_color)
+                                  for mesh_color
+                                  in obj_props.visual_mesh_colors]
+        except Exception as e:
+            self.get_logger().error('_get_collision_object_cb(): %s' % e)
+
+        self.get_logger().info(
+            'returned GetCollisionObject service response[object_type=%s]'
+            % req.object_type)
+
         return res
 
     def _manage_collision_object_cb(self, req, res):
@@ -348,7 +383,8 @@ class CollisionObjectManager(Node):
 
         Execute various operations on collision objects requested by clients
         """
-        self.get_logger().info('received service request[op=%d]' % req.op)
+        self.get_logger().info(
+            'received ManageCollisionObject service request[op=%d]' % req.op)
 
         res.success = True
 
@@ -391,7 +427,8 @@ class CollisionObjectManager(Node):
             self.get_logger().error('%s' % e)
             res.success = False
 
-        self.get_logger().info('return service response[op=%d]' % req.op)
+        self.get_logger().info(
+            'returned ManageCollisionObject service response[op=%d]' % req.op)
 
         return res
 
@@ -415,7 +452,7 @@ class CollisionObjectManager(Node):
         """
         obj_props = self._obj_props_dict.get(object_type)
         if obj_props is None:
-            raise RuntimeError('unknown object type[%s]' % req.object_type)
+            raise RuntimeError('unknown object type[%s]' % object_type)
 
         # Setup a new collision object.
         co = CollisionObject()
@@ -481,6 +518,7 @@ class CollisionObjectManager(Node):
             marker.lifetime        = Duration(seconds=0).to_msg()
             marker.frame_locked    = False
             marker.mesh_resource   = mesh_url
+            marker.text            = object_type
             instance_props.markers.append(marker)
 
         # Store object info.
@@ -617,14 +655,17 @@ class CollisionObjectManager(Node):
                       list(set(aco.touch_links) -
                            set(self._get_touch_links(link)))
         self._psi.attach_object(aco, touch_links=touch_links)
-        self.get_logger().info("protect '%s' attached to '%s' with touch links%s" % (aco.object.id, aco.link_name, aco.touch_links))
+        self.get_logger().info(
+            "protect '%s' attached to '%s' with touch links%s"
+            % (aco.object.id, aco.link_name, aco.touch_links))
 
     def _reset_touch_links(self):
         for aco in self._psi.get_attached_objects().values():
             self._psi.attach_object(aco,
                                     touch_links=self._get_parent_touch_links(
                                                     aco.object.id))
-        self.get_logger().info('reset touch links for all attached collision objects')
+        self.get_logger().info(
+            'reset touch links for all attached collision objects')
 
     def _get_object_info(self, object_id):
         info = CollisionObjectInfo()
@@ -680,6 +721,22 @@ class CollisionObjectManager(Node):
     #
     # Utilities
     #
+    def _create_link_geometry(self, mesh_url, mesh_pose, mesh_scale):
+        link_geometry = LinkGeometry()
+        link_geometry.origin = mesh_pose
+        link_geometry.primitive.type = 0  # Mesh
+        link_geometry.primitive.dimensions = [mesh_scale.x, mesh_scale.y,
+                                              mesh_scale.z]
+        with open(filepath_from_url(mesh_url), 'rb') as f:
+            link_geometry.data = f.read()
+        return link_geometry
+
+    def _create_link_primitive(self, primitive, primitive_pose):
+        return LinkGeometry(origin=primitive_pose, primitive=primitive)
+
+    def _create_material(self, color):
+        return Material(color=color, texture_height=0, texture_width=0)
+
     def _rotate_tree(self, co, leaf_id):
         def _inverse_transform(transform):
             return TransformStamped(
@@ -812,9 +869,9 @@ class CollisionObjectManager(Node):
         if instance_props is None:
             self.get_logger().error('unknown object[%s]' % object_id)
             return
-        for marker in instance_props.markers:
-            marker.action = Marker.DELETE
-            self._marker_pub.publish(marker)
+        self._marker_pub.publish(
+            MarkerArray(markers=[Marker(id=marker.id, action=Marker.DELETE)
+                                 for marker in instance_props.markers]))
         with self._lock:
             del self._instance_props_dict[object_id]
         self.get_logger().info("removed '%s'" % object_id)
