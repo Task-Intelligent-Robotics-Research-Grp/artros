@@ -10,7 +10,7 @@ arms:
       - a_bot_force_torque_sensor_broadcaster
       - a_bot_io_and_status_controller
       - a_bot_speed_scaling_state_broadcaster
-#      - a_bot_tcp_pose_broadcaster
+      - a_bot_tcp_pose_broadcaster
       - a_bot_ur_configuration_controller
     inactive_controllers:
       - a_bot_joint_trajectory_controller
@@ -35,7 +35,7 @@ arms:
       - b_bot_force_torque_sensor_broadcaster
       - b_bot_io_and_status_controller
       - b_bot_speed_scaling_state_broadcaster
-#      - b_bot_tcp_pose_broadcaster
+      - b_bot_tcp_pose_broadcaster
       - b_bot_ur_configuration_controller
     inactive_controllers:
       - b_bot_joint_trajectory_controller

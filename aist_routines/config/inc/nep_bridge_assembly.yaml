@@ -28,9 +28,9 @@ services:
   - name:     /robot_description_provider/get_links
     request:  Kitting/get_links
     response: Kitting/links
-  - name:     /collision_object_manager/get_mesh_resource
-    request:  Kitting/get_mesh_resource
-    response: Kitting/mesh_resource
+  - name:     /collision_object_manager/get_collision_object
+    request:  Kitting/get_collision_object
+    response: Kitting/collision_object
   - name:     /controller_manager/switch_controller
     request:  Kitting/switch_controller
     response: Kitting/switch_controller_ok

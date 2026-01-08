@@ -31,7 +31,6 @@ def launch_setup(context):
                     [FindPackageShare('aist_bringup'), 'config',
                      'templates', 'clock_bridge.yaml']).perform(context),
                 bridge_config_file)
-    append = False
     for camera_name, camera_config in config.get('cameras', {}).items():
         camera_props = get_camera_props(camera_config['type'])
         SetLaunchConfiguration('camera_name', camera_name).execute(context)
@@ -48,8 +47,7 @@ def launch_setup(context):
             SetLaunchConfiguration('color_topic', camera_props['color_topic'])\
                 .execute(context)
         instantiate_file(context, camera_props['gz_bridge_template'],
-                         bridge_config_file, append)
-        append = True
+                         bridge_config_file, True)
 
     return [
         Node(name=LaunchConfiguration('container'),
