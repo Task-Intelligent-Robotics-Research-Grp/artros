@@ -55,9 +55,9 @@ def launch_setup(context):
              executable='component_container_mt',
              output='screen'),
         Node(package='ros_gz_bridge',
-                 executable='parameter_bridge',
-                 parameters=[{'config_file': bridge_config_file}],
-                 output='screen')
+             executable='parameter_bridge',
+             parameters=[{'config_file': bridge_config_file}],
+             output='screen')
     ]
 
 def generate_launch_description():

@@ -3,11 +3,11 @@ arms:
     type:               URe
     robot_ip:           "10.66.171.40"
     default_gripper:    a_bot_gripper
-    initial_controller: scaled_joint_trajectory_controller
-    consistent_controllers:
+    active_controllers:
       - joint_state_broadcaster
+      - scaled_joint_trajectory_controller
       - motion_control_handle
-    # extra_consistent_controllers:
+    # extra_active_controllers:
     #   - force_torque_sensor_broadcaster
     #   - io_and_status_controller
     #   - speed_scaling_state_broadcaster
@@ -29,11 +29,11 @@ arms:
     type:               URe
     robot_ip:           "10.66.171.41"
     default_gripper:    b_bot_gripper
-    initial_controller: scaled_joint_trajectory_controller
-    consistent_controllers:
+    active_controllers:
       - joint_state_broadcaster
+      - scaled_joint_trajectory_controller
       - motion_control_handle
-    # extra_consistent_controllers:
+    # extra_active_controllers:
     #   - force_torque_sensor_broadcaster
     #   - io_and_status_controller
     #   - speed_scaling_state_broadcaster

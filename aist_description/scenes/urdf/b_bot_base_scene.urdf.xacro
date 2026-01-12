@@ -222,11 +222,21 @@
     <gazebo reference="world">
     </gazebo>
     <gazebo>
-      <!-- Simulate arms and grippers -->
-      <!-- <plugin filename="gz_ros2_control-system" -->
-      <!-- 	      name="gz_ros2_control::GazeboSimROS2ControlPlugin"> -->
-      <!-- 	<parameters>/tmp/b_bot_gripper_controllers.yaml</parameters> -->
-      <!-- </plugin> -->
+      <!-- Simulate arms -->
+      <plugin filename="gz_ros2_control-system"
+	      name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+	<parameters>/tmp/b_bot_controllers.yaml</parameters>
+	<ros>
+	  <namespace>b_bot</namespace>
+	  <remapping>robot_description:=/robot_description</remapping>
+	</ros>
+      </plugin>
+
+      <!-- Simulate grippers -->
+      <plugin filename="gz_ros2_control-system"
+	      name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+	<parameters>/tmp/b_bot_gripper_controllers.yaml</parameters>
+      </plugin>
 
       <!-- Simulate cameras -->
       <plugin filename="gz-sim-sensors-system"
