@@ -309,6 +309,10 @@ class RobotiqGripper(GenericGripper):
         super().__init__(node, name, None, None,
                          self._min_gap, self._max_gap, max_effort)
 
+    @staticmethod
+    def simulated(node, name, max_effort, velocity):
+        return GripperClient(node, name, None, None)
+
     def set_velocity(self, velocity):
         self._set_velocity.call(SetVelocity.Request(velocity=velocity)).success
 

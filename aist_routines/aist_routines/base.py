@@ -102,8 +102,6 @@ class AISTBaseRoutines(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        print('### namespace=%s' % self.get_namespace())
-        print('### name=%s' % self.get_name())
         moveit_commander.roscpp_initialize(sys.argv)
 
         # Create TransformListener
@@ -111,17 +109,6 @@ class AISTBaseRoutines(Node):
         self._tf2_listener = TransformListener(self._tf2_buffer, self)
 
         time.sleep(1.0)        # Necessary for listner spinning up
-
-        # Controller services
-        self._service_cbg       = MutuallyExclusiveCallbackGroup()
-        self._list_controllers  = self.create_client(
-                                      ListControllers,
-                                      'controller_manager/list_controllers',
-                                      callback_group=self._service_cbg)
-        self._switch_controller = self.create_client(
-                                      SwitchController,
-                                      'controller_manager/switch_controller',
-                                      callback_group=self._service_cbg)
 
         # MoveIt planning parameters
         self._eef_step        = self.declare_parameter('moveit_eef_step',
@@ -143,6 +130,7 @@ class AISTBaseRoutines(Node):
             % (self.planning_frame, self.reference_frame, self.eef_step))
 
         # MoveIt GetPositionIK service client
+        self._service_cbg = MutuallyExclusiveCallbackGroup()
         self._compute_ik = self.create_client(GetPositionIK, '/compute_ik',
                                               callback_group=self._service_cbg)
 
@@ -150,6 +138,21 @@ class AISTBaseRoutines(Node):
         with open(self.declare_parameter('config_file', name + '.yaml').value,
                   'r') as f:
             config = yaml.safe_load(f)
+
+        # Arms' controller_manager services
+        self._list_controllers_srvs \
+            = {name: self.create_client(
+                         ListControllers,
+                         name + '/controller_manager/list_controllers',
+                         callback_group=self._service_cbg)
+               for name in config['arms']}
+
+        self._switch_controller_srvs \
+            = {name: self.create_client(
+                         SwitchController,
+                         name + '/controller_manager/switch_controller',
+                         callback_group=self._service_cbg)
+               for name in config['arms']}
 
         # Grippers
         self._grippers = {name: GripperClient.create(self, name, props['type'],
@@ -620,10 +623,10 @@ class AISTBaseRoutines(Node):
 
     # Controller stuffs
     def list_controllers(self, robot_name):
-        return list(filter(lambda x: x.type in AISTBaseRoutines.ControllerTypes
-                           and re.search('^' + robot_name, x.name),
-                           self._list_controllers.call(
-                               ListControllers.Request()).controller))
+        return list(filter(
+                        lambda x: x.type in AISTBaseRoutines.ControllerTypes,
+                        self._list_controllers_srvs[robot_name].call(
+                            ListControllers.Request()).controller))
 
     def current_controller(self, robot_name):
         for controller in self.list_controllers(robot_name):
@@ -651,7 +654,7 @@ class AISTBaseRoutines(Node):
                     req.strictness             = SwitchController.Request.STRICT
                     req.activate_asap          = True
                     req.timeout                = Duration(seconds=1).to_msg()
-                    res = self._switch_controller.call(req)
+                    res = self._switch_controller_srvs[robot_name].call(req)
                     time.sleep(0.5)
                     if res.ok:
                         self.get_logger().info(
