@@ -235,12 +235,25 @@ class AISTBaseRoutines(Node):
         return self._cmd.get_group_names()
 
     @property
+    def arm_names(self):
+        return self._list_controllers_srvs.keys()
+
+    @property
+    def gripper_names(self):
+        return self._grippers.keys()
+
+    @property
+    def camera_names(self):
+        return self._cameras.keys()
+
+    @property
     def com(self):
         return self._com
 
     @property
     def settings(self):
         return self._settings
+
 
     # Interactive stuffs
     def print_help_messages(self):
@@ -299,8 +312,11 @@ class AISTBaseRoutines(Node):
         elif key == 'robot':
             print('  current: %s' % robot_name)
             new_robot_name = input('  robot name? ')
-            if new_robot_name != '':
+            if new_robot_name in self.arm_names:
                 robot_name = new_robot_name
+            else:
+                self.get_logger().error('Unknown robot name[%s]'
+                                        % new_robot_name)
         elif key == '?' or key == 'help':
             self.print_help_messages()
             print('')
@@ -373,7 +389,8 @@ class AISTBaseRoutines(Node):
             try:
                 self.go_to_named_pose(robot_name, pose_name, speed=speed)
             except rclpy.ROSException as e:
-                self.get_logger().error('Unknown pose: %s' % e)
+                self.get_logger().error('Failed to go to pose[%s]: %s'
+                                        % (pose_name, e))
         elif key == 'frame':
             frame    = input('  frame? ')
             offset   = _get_offset()
@@ -382,7 +399,8 @@ class AISTBaseRoutines(Node):
                 self.go_to_frame(robot_name, frame, offset, speed=speed,
                                  end_effector_link=eef_link)
             except Exception as e:
-                self.get_logger().error('Unknown frame: %s' % frame)
+                self.get_logger().error('Failed to go to frame[%s]: %s'
+                                        % (frame, e))
         elif key == 'clip':
             self.clip_wrist_joint_value(robot_name)
         elif key == 'speed':
@@ -399,9 +417,12 @@ class AISTBaseRoutines(Node):
                     print('   *%2d. %s' % (n, controller.name))
                 else:
                     print('    %2d. %s' % (n, controller.name))
-            n = int(input('  controller #? '))
-            if n < len(controllers):
-                self.switch_controller(robot_name, controllers[n].name)
+            try:
+                self.switch_controller(
+                    robot_name,
+                    controllers[int(input('  controller #? '))].name)
+            except:
+                self.get_logger().error('Invalid index!')
         elif key == 'toggle':
             self.toggle_control_handle(robot_name)
         elif key == 'ftreset':
@@ -410,12 +431,10 @@ class AISTBaseRoutines(Node):
         # Gripper stuffs
         elif key == 'gripper':
             print('  current: %s' % self.gripper(robot_name).name)
-            gripper_name = input('  gripper name? ')
-            if gripper_name != '':
-                try:
-                    self.set_gripper(robot_name, gripper_name)
-                except KeyError as e:
-                    self.get_logger().error('Unknown gripper: %s' % e)
+            try:
+                self.set_gripper(robot_name, input('  gripper name? '))
+            except Exception as e:
+                self.get_logger().error('Failed to set gripper: %s' % e)
         elif key == 'pregrasp':
             self.pregrasp(robot_name)
         elif key == 'grasp':
@@ -428,8 +447,8 @@ class AISTBaseRoutines(Node):
             position = float(input('  position? '))
             self.set_gripper_position(robot_name, position)
         elif key == 'gvel':
-            position = float(input('  velocity? '))
-            self.set_gripper_velocity(robot_name, position)
+            velocity = float(input('  velocity? '))
+            self.set_gripper_velocity(robot_name, velocity)
         elif key == 'tighten':
             self.tighten(robot_name, Duration(seconds=-1))
         elif key == 'loosen':
@@ -437,7 +456,7 @@ class AISTBaseRoutines(Node):
         elif key == 'gcancel':
             self.gripper_cancel(robot_name)
 
-        # Gripper stuffs
+        # Collision objects stuffs
         elif key == 'r':
             object_id   = input('  object_id? ')
             attach_link = input('  attach_link? ') if object_id == '' else ''
