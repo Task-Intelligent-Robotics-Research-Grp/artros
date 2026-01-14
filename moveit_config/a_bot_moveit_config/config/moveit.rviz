@@ -6,8 +6,9 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /a_bot1
       Splitter Ratio: 0.5
-    Tree Height: 340
+    Tree Height: 408
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -91,31 +92,11 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          a_bot_camera_color_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           a_bot_camera_color_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
           a_bot_camera_connector_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          a_bot_camera_depth_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          a_bot_camera_depth_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          a_bot_camera_left_ir_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          a_bot_camera_left_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -129,11 +110,7 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          a_bot_camera_right_ir_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          a_bot_camera_right_ir_optical_frame:
+          a_bot_camera_mount_flange:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -318,10 +295,6 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          a_motioncam_reference:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           a_motioncam_sensor:
             Alpha: 1
             Show Axes: false
@@ -699,31 +672,11 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          a_bot_camera_color_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           a_bot_camera_color_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
           a_bot_camera_connector_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          a_bot_camera_depth_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          a_bot_camera_depth_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          a_bot_camera_left_ir_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          a_bot_camera_left_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -737,11 +690,7 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          a_bot_camera_right_ir_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          a_bot_camera_right_ir_optical_frame:
+          a_bot_camera_mount_flange:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -926,10 +875,6 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          a_motioncam_reference:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           a_motioncam_sensor:
             Alpha: 1
             Show Axes: false
@@ -1266,27 +1211,15 @@ Visualization Manager:
           Value: true
         a_bot_base_link_inertia:
           Value: true
-        a_bot_camera_color_frame:
-          Value: true
         a_bot_camera_color_optical_frame:
           Value: true
         a_bot_camera_connector_link:
-          Value: true
-        a_bot_camera_depth_frame:
-          Value: true
-        a_bot_camera_depth_optical_frame:
-          Value: true
-        a_bot_camera_left_ir_frame:
-          Value: true
-        a_bot_camera_left_ir_optical_frame:
           Value: true
         a_bot_camera_link:
           Value: true
         a_bot_camera_mount:
           Value: true
-        a_bot_camera_right_ir_frame:
-          Value: true
-        a_bot_camera_right_ir_optical_frame:
+        a_bot_camera_mount_flange:
           Value: true
         a_bot_flange:
           Value: true
@@ -1304,6 +1237,8 @@ Visualization Manager:
           Value: true
         a_bot_gripper_left_inner_finger_pad:
           Value: true
+        a_bot_gripper_left_inner_knuckle:
+          Value: true
         a_bot_gripper_left_outer_finger:
           Value: true
         a_bot_gripper_left_outer_knuckle:
@@ -1311,6 +1246,8 @@ Visualization Manager:
         a_bot_gripper_right_inner_finger:
           Value: true
         a_bot_gripper_right_inner_finger_pad:
+          Value: true
+        a_bot_gripper_right_inner_knuckle:
           Value: true
         a_bot_gripper_right_outer_finger:
           Value: true
@@ -1361,8 +1298,6 @@ Visualization Manager:
         a_bot_wrist_3_link:
           Value: true
         a_motioncam_link:
-          Value: true
-        a_motioncam_reference:
           Value: true
         a_motioncam_sensor:
           Value: true
@@ -1543,25 +1478,29 @@ Visualization Manager:
                                       a_bot_tool0:
                                         a_bot_gripper_coupling_base_link:
                                           a_bot_gripper_coupling_flange_link:
+                                            a_bot_camera_mount:
+                                              a_bot_camera_mount_flange:
+                                                a_bot_camera_connector_link:
+                                                  a_bot_camera_link:
+                                                    {}
                                             a_bot_gripper_base_link:
-                                              a_bot_camera_connector_link:
-                                                a_bot_camera_link:
-                                                  a_bot_camera_depth_frame:
-                                                    a_bot_camera_color_frame:
-                                                      a_bot_camera_color_optical_frame:
-                                                        {}
-                                                    a_bot_camera_depth_optical_frame:
-                                                      {}
-                                                    a_bot_camera_left_ir_frame:
-                                                      a_bot_camera_left_ir_optical_frame:
-                                                        {}
-                                                    a_bot_camera_right_ir_frame:
-                                                      a_bot_camera_right_ir_optical_frame:
-                                                        {}
-                                              a_bot_camera_mount:
+                                              a_bot_camera_color_optical_frame:
                                                 {}
                                               a_bot_gripper_robotiq_arg2f_base_link:
-                                                {}
+                                                a_bot_gripper_left_inner_knuckle:
+                                                  {}
+                                                a_bot_gripper_left_outer_knuckle:
+                                                  a_bot_gripper_left_outer_finger:
+                                                    a_bot_gripper_left_inner_finger:
+                                                      a_bot_gripper_left_inner_finger_pad:
+                                                        {}
+                                                a_bot_gripper_right_inner_knuckle:
+                                                  {}
+                                                a_bot_gripper_right_outer_knuckle:
+                                                  a_bot_gripper_right_outer_finger:
+                                                    a_bot_gripper_right_inner_finger:
+                                                      a_bot_gripper_right_inner_finger_pad:
+                                                        {}
                                               a_bot_gripper_tip_link:
                                                 {}
                                     a_bot_ft_frame:
@@ -1632,6 +1571,11 @@ Visualization Manager:
                       workbench_table_top:
                         workbench_table_top_origin:
                           base_fixture_base_link:
+                            base_fixture_piston:
+                              base_fixture_piston_head:
+                                base_fixture_head_base_link:
+                                  base_fixture_head_tip_link:
+                                    {}
                             base_fixture_tip_link:
                               {}
                           workbench_front_border:
@@ -1654,9 +1598,9 @@ Visualization Manager:
                 {}
             workspace_center:
               a_motioncam_link:
-                a_motioncam_reference:
-                  a_motioncam_sensor:
-                    {}
+                {}
+              a_motioncam_sensor:
+                {}
             workspace_table_base_link:
               workspace_table_leg1:
                 {}
@@ -1742,20 +1686,43 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: false
-    - Class: rviz_default_plugins/Image
-      Enabled: false
-      Max Value: 1
-      Median window: 5
-      Min Value: 0
-      Name: Image
-      Normalize Range: true
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /a_bot_camera/color/image_raw
-      Value: false
+    - Class: rviz_common/Group
+      Displays:
+        - Accept NaN Values: false
+          Alpha: 1
+          Arrow Width: 0.5
+          Class: rviz_default_plugins/Wrench
+          Enabled: false
+          Force Arrow Scale: 2
+          Force Color: 204; 51; 51
+          History Length: 1
+          Name: a_bot_wrench
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /a_bot/force_torque_sensor_broadcaster/wrench
+          Torque Arrow Scale: 2
+          Torque Color: 204; 204; 51
+          Value: false
+        - Class: rviz_default_plugins/Image
+          Enabled: true
+          Max Value: 1
+          Median window: 5
+          Min Value: 0
+          Name: a_bot_camera
+          Normalize Range: true
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /a_bot_camera/color/image_raw
+          Value: true
+      Enabled: true
+      Name: a_bot
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -1828,13 +1795,11 @@ Window Geometry:
   Height: 1157
   Hide Left Dock: false
   Hide Right Dock: true
-  Image:
-    collapsed: false
   MotionPlanning:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000400000000000001ee000003e3fc020000000cfb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005d00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003f00000194000000cc00fffffffc000001c50000025d0000000000fffffffaffffffff0100000001fb0000000a0049006d0061006700650000000000ffffffff0000005e00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb000000280020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004400fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e006701000001d9000002490000019600ffffff000000010000010f000002b0fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000002b0000000a900fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000004b00000003efc0100000002fb0000000800540069006d00650100000000000004b00000026f00fffffffb0000000800540069006d00650100000000000004500000000000000000000002bc000003e300000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000001ee000003e3fc020000000bfb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005d00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afc0000003f000001f7000001b50100001efa000000000100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001ee00fffffffb000000100044006900730070006c0061007900730100000000000001ee0000015600fffffffc0000023c000001e60000001700fffffffa000000000100000001fb000000180061005f0062006f0074005f00630061006d0065007200610100000000ffffffff0000009400fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb000000280020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004400ffffff000000010000010f000002b0fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000002b0000000a900fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000005fa0000003efc0100000002fb0000000800540069006d00650100000000000005fa0000026f00fffffffb0000000800540069006d0065010000000000000450000000000000000000000406000003e300000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -1843,6 +1808,8 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: true
-  Width: 1200
+  Width: 1530
   X: 888
   Y: 169
+  a_bot_camera:
+    collapsed: false

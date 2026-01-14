@@ -9,7 +9,9 @@ from launch.substitutions              import (Command, FindExecutable,
                                                LaunchConfiguration,
                                                PathJoinSubstitution,
                                                IfElseSubstitution)
-from launch.event_handlers             import OnProcessStart
+from launch.event_handlers             import (OnProcessStart,
+                                               OnExecutionComplete,
+                                               OnProcessExit)
 from launch_ros.actions                import Node, PushROSNamespace
 from launch_ros.substitutions          import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue, ParameterFile
@@ -48,14 +50,6 @@ def launch_setup(context):
         SetLaunchConfiguration('update_rate',
                                str(arm_props['update_rate'])).execute(context)
         SetLaunchConfiguration('tf_prefix', arm_name + '_').execute(context)
-        SetLaunchConfiguration('speed_scaling_interface_name',
-                               IfElseSubstitution(
-                                   LaunchConfiguration('sim'),
-                                   '""',
-                                   '/' + arm_name + '/speed_scaling/speed_scaling_factor')
-                               ).execute(context)
-        # SetLaunchConfiguration('speed_scaling_interface_name',
-        #                        '""').execute(context)
         instantiate_file(context, arm_props['controllers_template'],
                          '/tmp/' + arm_name + '_controllers.yaml')
 
@@ -126,18 +120,12 @@ def launch_setup(context):
             inactive_controllers \
                 += arm_config.get('extra_inactive_controllers', [])
 
-        print(active_controllers)
         arm_props     = get_arm_props(arm_config['type'])
         group_actions = [
             PushROSNamespace(arm_name),
             SetLaunchConfiguration('update_rate',
                                    str(arm_props['update_rate'])),
             SetLaunchConfiguration('tf_prefix', arm_name + '_'),
-            SetLaunchConfiguration('speed_scaling_interface_name',
-                                   IfElseSubstitution(
-                                       LaunchConfiguration('sim'),
-                                       '""',
-                                       'speed_scaling/speed_scaling_factor')),
             Node(package='controller_manager',
                  executable='ros2_control_node',
                  parameters=[
@@ -145,25 +133,23 @@ def launch_setup(context):
                                    allow_substs=True)
                  ],
                  remappings=[
-                     ('~/robot_description', '/robot_description')
+                     ('robot_description', '/robot_description')
                  ],
                  output='screen',
                  condition=UnlessCondition(LaunchConfiguration('sim'))),
+            Node(name='active_controllers_spawner',
+                 package='controller_manager',
+                 executable='spawner',
+                 arguments=[
+                     '-c', 'controller_manager',
+                     '--switch-timeout', '30'
+                 ] + active_controllers,
+                 output='screen'),
         ]
 
-        if len(active_controllers) > 0:
-            group_actions.append(
-                Node(name='controllers_spawner',
-                     package='controller_manager',
-                     executable='spawner',
-                     arguments=[
-                         '-c', 'controller_manager',
-                         '--switch-timeout', '30',
-                     ] + active_controllers,
-                     output='screen'))
         if len(inactive_controllers) > 0:
             group_actions.append(
-                Node(name='stopped_controllers_spawner',
+                Node(name='inactive_controllers_spawner',
                      package='controller_manager',
                      executable='spawner',
                      arguments=[
@@ -188,12 +174,12 @@ def launch_setup(context):
                              '/tmp/' + gripper_name + '_controllers.yaml')
             gripper_controllers.append(gripper_name + '_controller')
 
-    # if (len(gripper_controllers) > 0):
-    #     actions.append(
-    #         Node(name='gripper_controllers_spawner',
-    #              package='controller_manager',
-    #              executable='spawner',
-    #              arguments= ['joint_state_broadcaster'] + gripper_controllers))
+    if (len(gripper_controllers) > 0):
+        actions.append(
+            Node(name='gripper_controllers_spawner',
+                 package='controller_manager',
+                 executable='spawner',
+                 arguments= ['joint_state_broadcaster'] + gripper_controllers))
 
     return actions
 

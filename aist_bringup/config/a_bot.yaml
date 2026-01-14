@@ -14,13 +14,13 @@ arms:
       - tcp_pose_broadcaster
       - ur_configuration_controller
     inactive_controllers:
-      - joint_trajectory_controller
       - forward_velocity_controller
       - forward_position_controller
       - cartesian_compliance_controller
       - cartesian_force_controller
       - cartesian_motion_controller
     extra_inactive_controllers:
+      - joint_trajectory_controller
       - force_mode_controller
       - passthrough_trajectory_controller
       - freedrive_mode_controller
