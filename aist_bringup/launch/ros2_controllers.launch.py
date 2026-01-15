@@ -1,17 +1,11 @@
 from launch                            import LaunchDescription
 from launch.actions                    import (SetLaunchConfiguration,
                                                IncludeLaunchDescription,
-                                               OpaqueFunction,
-                                               GroupAction,
-                                               RegisterEventHandler)
+                                               OpaqueFunction, GroupAction)
 from launch.conditions                 import IfCondition, UnlessCondition
 from launch.substitutions              import (Command, FindExecutable,
                                                LaunchConfiguration,
-                                               PathJoinSubstitution,
-                                               IfElseSubstitution)
-from launch.event_handlers             import (OnProcessStart,
-                                               OnExecutionComplete,
-                                               OnProcessExit)
+                                               PathJoinSubstitution)
 from launch_ros.actions                import Node, PushROSNamespace
 from launch_ros.substitutions          import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue, ParameterFile
@@ -45,13 +39,18 @@ def launch_setup(context):
     sim    = LaunchConfiguration('sim').perform(context) in ('true', 'True')
 
     # Instatiate parameter files for arm controllers from template.
-    for arm_name, arm_config in config['arms'].items():
-        arm_props = get_arm_props(arm_config['type'])
-        SetLaunchConfiguration('update_rate',
-                               str(arm_props['update_rate'])).execute(context)
-        SetLaunchConfiguration('tf_prefix', arm_name + '_').execute(context)
-        instantiate_file(context, arm_props['controllers_template'],
-                         '/tmp/' + arm_name + '_controllers.yaml')
+    if sim:
+        for arm_name, arm_config in config['arms'].items():
+            arm_props = get_arm_props(arm_config['type'])
+            SetLaunchConfiguration('update_rate',
+                                   str(arm_props['update_rate'])) \
+                                   .execute(context)
+            SetLaunchConfiguration('tf_prefix', arm_name + '_') \
+                .execute(context)
+            SetLaunchConfiguration('speed_scaling_interface_name', '""') \
+                .execute(context)
+            instantiate_file(context, arm_props['controllers_template'],
+                             '/tmp/' + arm_name + '_controllers.yaml')
 
     # Create an action for launching robot_state_publisher from loaded URDF.
     robot_description = ParameterValue(
@@ -65,13 +64,6 @@ def launch_setup(context):
                                      ' scene:=', LaunchConfiguration('scene'),
                                      ' sim:=',   LaunchConfiguration('sim')]),
                             value_type=str)
-    rsp_node = Node(package='robot_state_publisher',
-                    executable='robot_state_publisher',
-                    parameters=[
-                        {'use_sim_time':      LaunchConfiguration('sim'),
-                         'robot_description': robot_description}
-                    ],
-                    output='screen')
 
     # Setup actions for launching nodes,
     actions = [
@@ -84,28 +76,31 @@ def launch_setup(context):
                                    for robot_name in config['arms']]}
              ],
              output='screen'),
-        rsp_node,
-        RegisterEventHandler(
-            OnProcessStart(
-                target_action=rsp_node,
-                on_start=[
-                    Node(package='ros_gz_sim',
-                         executable='create',
-                         arguments=[
-                             '-nmae', LaunchConfiguration('config'),
-                             '-topic', 'robot_description'
-                         ],
-                         output='screen'),
-                    IncludeLaunchDescription(
-                        PathJoinSubstitution(
-                            [FindPackageShare('ros_gz_sim'),
-                             'launch', 'gz_sim.launch.py']),
-                        launch_arguments=[
-                            ('gz_args',
-                             [' -r -v 4 empty.sdf', ' --physics-engine',
-                              ' gz-physics-bullet-featherstone-plugin'])
-                        ])
-                ]),
+        Node(package='robot_state_publisher',
+                    executable='robot_state_publisher',
+                    parameters=[
+                        {'use_sim_time':      LaunchConfiguration('sim'),
+                         'robot_description': robot_description}
+                    ],
+             output='screen'),
+        GroupAction(
+            actions=[
+                Node(package='ros_gz_sim',
+                     executable='create',
+                     arguments=[
+                         '-nmae', LaunchConfiguration('config'),
+                         '-topic', 'robot_description'
+                     ],
+                     output='screen'),
+                IncludeLaunchDescription(
+                    PathJoinSubstitution([FindPackageShare('ros_gz_sim'),
+                                          'launch', 'gz_sim.launch.py']),
+                    launch_arguments=[
+                        ('gz_args',
+                         [' -r -v 4 empty.sdf', ' --physics-engine',
+                          ' gz-physics-bullet-featherstone-plugin'])
+                    ])
+            ],
             condition=IfCondition(LaunchConfiguration('sim'))),
     ]
 
@@ -120,46 +115,41 @@ def launch_setup(context):
             inactive_controllers \
                 += arm_config.get('extra_inactive_controllers', [])
 
-        arm_props     = get_arm_props(arm_config['type'])
-        group_actions = [
-            PushROSNamespace(arm_name),
-            SetLaunchConfiguration('update_rate',
-                                   str(arm_props['update_rate'])),
-            SetLaunchConfiguration('tf_prefix', arm_name + '_'),
-            Node(package='controller_manager',
-                 executable='ros2_control_node',
-                 parameters=[
-                     ParameterFile(arm_props['controllers_template'],
-                                   allow_substs=True)
-                 ],
-                 remappings=[
-                     ('robot_description', '/robot_description')
-                 ],
-                 output='screen',
-                 condition=UnlessCondition(LaunchConfiguration('sim'))),
-            Node(name='active_controllers_spawner',
-                 package='controller_manager',
-                 executable='spawner',
-                 arguments=[
-                     '-c', 'controller_manager',
-                     '--switch-timeout', '30'
-                 ] + active_controllers,
-                 output='screen'),
-        ]
-
-        if len(inactive_controllers) > 0:
-            group_actions.append(
-                Node(name='inactive_controllers_spawner',
-                     package='controller_manager',
-                     executable='spawner',
-                     arguments=[
-                         '-c', 'controller_manager',
-                         '--switch-timeout', '30',
-                         '--inactive'
-                     ] + inactive_controllers,
-                     output='screen'))
-
-        actions.append(GroupAction(actions=group_actions))
+        arm_props = get_arm_props(arm_config['type'])
+        actions.append(
+            GroupAction(
+                actions=[
+                    PushROSNamespace(arm_name),
+                    SetLaunchConfiguration('update_rate',
+                                           str(arm_props['update_rate'])),
+                    SetLaunchConfiguration('tf_prefix', arm_name + '_'),
+                    SetLaunchConfiguration('speed_scaling_interface_name',
+                                           [LaunchConfiguration('tf_prefix'),
+                                            'spped_scaling/speed_scaling_factor']),
+                    Node(package='controller_manager',
+                         executable='ros2_control_node',
+                         parameters=[
+                             ParameterFile(arm_props['controllers_template'],
+                                           allow_substs=True)
+                         ],
+                         remappings=[
+                             ('robot_description', '/robot_description')
+                         ],
+                         output='screen',
+                         condition=UnlessCondition(
+                                       LaunchConfiguration('sim'))),
+                    Node(name='active_controllers_spawner',
+                         package='controller_manager',
+                         executable='spawner',
+                         arguments=active_controllers,
+                         output='screen'),
+                ] + [
+                    Node(name='inactive_controllers_spawner',
+                         package='controller_manager',
+                         executable='spawner',
+                         arguments=['--inactive'] + inactive_controllers,
+                         output='screen')
+                ] if len(inactive_controllers) else []))
 
     # Instantiate controller configuration files for each gripper.
     gripper_controllers = []
@@ -174,12 +164,12 @@ def launch_setup(context):
                              '/tmp/' + gripper_name + '_controllers.yaml')
             gripper_controllers.append(gripper_name + '_controller')
 
-    if (len(gripper_controllers) > 0):
-        actions.append(
-            Node(name='gripper_controllers_spawner',
-                 package='controller_manager',
-                 executable='spawner',
-                 arguments= ['joint_state_broadcaster'] + gripper_controllers))
+    # if (len(gripper_controllers) > 0):
+    #     actions.append(
+    #         Node(name='gripper_controllers_spawner',
+    #              package='controller_manager',
+    #              executable='spawner',
+    #              arguments=['joint_state_broadcaster'] + gripper_controllers))
 
     return actions
 

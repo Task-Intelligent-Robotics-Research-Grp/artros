@@ -134,8 +134,8 @@ def get_camera_props(camera_type):
 
 def instantiate_file(context, template_file, instantiated_file, append=False):
     # We must extend lifetime of the ParameterFile object by keeping it
-    # in a variable or the temporary file created by evaluating it
-    # will be immediately erased by the destructor of ParameterFile.
+    # in a variable. Otherwise, the temporary file created by evaluating it
+    # would be immediately erased by the destructor of ParameterFile.
     parameter_file = ParameterFile(template_file, allow_substs=True)
     if append:
         with open(parameter_file.evaluate(context)) as fin:
@@ -145,7 +145,7 @@ def instantiate_file(context, template_file, instantiated_file, append=False):
     else:
         # Rename the created file to prevent from being erased.
         os.rename(parameter_file.evaluate(context), instantiated_file)
-    parameter_file
+    parameter_file  # Extend lifetime
     return instantiated_file
 
 def load_config(context):
