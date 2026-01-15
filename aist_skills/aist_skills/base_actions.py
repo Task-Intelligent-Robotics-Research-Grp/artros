@@ -31,7 +31,9 @@
 #
 #  Author: Toshio Ueshiba (t.ueshiba@aist.go.jp)
 #
-import queue
+from enum                  import Enum, auto
+from typing                import TypeVar, Generic
+from collection            import queue
 from rclpy.node            import Node
 from rclpy.callback_groups import (MutuallyExclusiveCallbackGroup,
                                    ReentrantCallbackGroup)
@@ -41,51 +43,141 @@ from rclpy.action.server   import (ActionServer, ServerGoalHandle,
                                    GoalResponse, CancelResponse)
 from rclpy.action.client   import ActionClient, ClientGoalHandle
 
+class GoalProcessingPolicy(Enum):
+    SINGLE = auto()
+    QUEUED = auto()
+    MULTI  = auto()
 
-class BaseAction(object):
-    class ServerGoalHandleBuffer(object):
-        def __init__():
-            super().__init__()
-            self._goal_handle = None
+class ServerGoalHandleBuffer(object):
+    def __init__(self, action_name, logger):
+        super().__init__()
+        self._action_name = action_name
+        self._logger      = logger
+        self._lock        = threading.Lock()
+        self._goal_handle = None
 
-        def push(self, goal_handle):
+    def append(self, goal_handle):
+        with self._lock:
             if self._goal_handle is not None:
                 self._goal_handle.abort()
+                self._logger.warn('current goal[%d@%s] ABORTED'
+                                  % (self._goal_handle.goal_id,
+                                     self._action_name))
+            goal_handle.execute()
+            self._logger.info('new goal[%d@%s] started'
+                              % (goal_handle.goal_id, self._action_name))
             self._goal_handle = goal_handle
 
-        def pop(self):
+    def remove(self, goal_handle):
+        self._logger.info('current goal[%d@%s] finished'
+                          % (goal_handle.goal_id, self._action_name))
+        with self._lock:
             self._goal_handle = None
 
-        def peek(self):
-            return self._goal_handle
+class ServerGoalHandleQueue(object):
+    def __init__(self, action_name, logger):
+        super().__init__()
+        self._action_name = action_name
+        self._logger      = logger
+        self._lock        = threading.Lock()
+        self._deque       = deque()
 
-    class ServerGoalHandleQueue(object):
-        def __init__():
-            super().__init__()
-            self._queue = deque()
+    def append(self, goal_handle):
+        with self._lock:
+            if len(self._deque) == 0:
+                goal_handle.execute()
+                self._logger.info('new goal[%d@%s] started'
+                                  % (goal_handle.goal_id, self._action_name))
+            else:
+                self._logger.info('new goal[%d@%s] enqueued'
+                                  % (goal_handle.goal_id, self._action_name))
+            self._deque.append(goal_handle)
 
-        def push(self, goal_handle):
-            self._queue.append(goal_handle)
+    def remove(self, goal_handle):
+        self._logger.info('current goal[%d@%s] finished'
+                          % (goal_handle.goal_id, self._action_name))
+        with self._lock:
+            self._deque.remove(goal_handle)
+            if len(self._deque) > 0:
+                self._deque[0].execute()
+                self._logger.info('suspended goal[%d@%s] started'
+                                  % (self._deque[0].goal_id,
+                                     self._action_name))
 
-        def pop(self):
-            self._queue.popleft()
+class ServerGoalHandlePassthrough(object):
+    def __init__(self, action_name, logger):
+        super().__init__()
+        self._action_name = action_name
+        self._logger      = logger
 
-        def peek(self):
-            return self._queue[0]
+    def append(self. goal_handle):
+        goal_handle.execute()
+        self._logger.info('new goal[%d@%s] started'
+                          % (goal_handle.goal_id, self._action_name))
 
-    def __init__(self, node, action_type, action_name, concurrent=False):
+    def remove(self, goal_handle):
+        self._logger.info('current goal[%d@%s] finished'
+                          % (goal_handle.goal_id, self._action_name))
+
+
+T = TypeVar('T')
+
+class ServerGaolHandlesDict(Generic[T]):
+    def __init__(self, action_name, logger):
+        self._action_name = action_name
+        self._logger      = logger
+        self._dict        = dict[str, T]()
+
+    def append(self, goal_handle):
+        group_name = goal_handle.request.group_name
+        if not group_name in self._dict:
+            self._dict[group_name] = T(self._action_name, self._logger)
+            self._dict[group_name].append(goal_handle)
+
+    def remove(self, goal_handle):
+        group_name = goal_handle.request.group_name
+        self._dict[group_name].remove(goal_handle)
+
+
+class ActionServerBase(object):
+    def __init__(self, node, action_type, action_name, user_execute_callback,
+                 goal_processing_policy=GoalProcessingPolicy.SINGLE,
+                 grouping=False)
         super().__init__()
 
         self._node = node
-        self._lock = threading.Lock()
-        self._cbg  = ReentrantCallbackGroup() if concurrent else \
-                     MutuallyExclusiveCallbackGroup()
-        self._srv  = ActionServer(node, action_type, action_name,
-                                  callback_group=self._cbg,
-                                  execute_callback=self._execute_callback,
-                                  goal_callback=self._goal_callback,
-                                  handle_accepted_callback=self._handle_accepted_callback,
-                                  cancel_callback=self._cancel_callback)
+
+        # Server settings
+        if goal_processing_policy == GoalProcessingPolicy.SINGLE:
+            if grouping:
+                self._server_goal_handles \
+                    = ServerGoalHandlesDict[ServerGoalHandleBuffer](
+                        action_name, self.logger)
+            else:
+                self._server_goal_handles = ServerGoalHandleBuffer(action_name,
+                                                                   self.logger)
+        elif goal_processing_policy == GoalProcessingPolicy.QUEUED:
+            if grouping:
+                self._server_goal_handles \
+                    = ServerGoalHandlesDict[ServerGoalHandleQueue](action_name,
+                                                                   self.logger)
+            else:
+                self._server_goal_handles = ServerGoalHandleQueue(action_name,
+                                                                   self.logger)
+        else:
+            self._server_goal_handles \
+                = ServerGoalHandlePassthrough(action_name, self.logger)
+
+        self._user_execute_callback = user_execute_callback
+        self._cbg = ReentrantCallbackGroup()
+        self._srv = ActionServer(node, action_type, action_name,
+                                 callback_group=self._cbg,
+                                 execute_callback=self._execute_callback,
+                                 goal_callback=self._goal_callback,
+                                 handle_accepted_callback=self._handle_accepted_callback,
+                                 cancel_callback=self._cancel_callback)
+
+        self.logger.info('Action server[%s] started' % action_name)
 
     @property
     def node(self):
@@ -95,23 +187,37 @@ class BaseAction(object):
     def logger(self):
         return self._node.get_logger()
 
-    # Server stuffs
     def _goal_callback(self, qoal_request):
-        self.logger.info('goal request received')
+        self.logger.info('new goal received')
         return GoalResponse.ACCEPT
 
     def _handle_accepted_callback(self, goal_handle):
-        with self._lock:
-            self._goal_handle_buffer.push(goal_handle)
-            self._goal_handle_bugger.peek().execute()
+        self._goal_handle_buffer.append(goal_handle)
+
+    def _cancel_callback(self, goal_handle):
+        self.logger.warn('Received cancel request')
+        return CancelResponse.ACCEPT
 
     def _execute_callback(self, goal_handle):
         try:
-            pass
+            self._user_execute_callback(goal_handle)
         finally:
-            try:
-                with self._lock:
-                    self._goal_handle_buffer.pop()
-                    self._goal_handle_buffer.peek().execute()
-            except:
-                pass
+            self._goal_handle_buffer.remove(goal_handle)
+
+
+class ActionClientBase(object):
+    def __init__(self, node action_type, action_name):
+        super().__init__()
+
+        self._node = node
+
+        # Client settings
+        self._cbg  = MutuallyExclusiveCallbackGroup()
+        self._clnt = ActionClient(node, action_type, action_name,
+                                  callback_group=self._cbg)
+        self._clnt.wait_for_server()
+
+        self.logger.info('Action clinet[%s] started' % action_name)
+
+    def send_goal(self, goal):
+        pass
