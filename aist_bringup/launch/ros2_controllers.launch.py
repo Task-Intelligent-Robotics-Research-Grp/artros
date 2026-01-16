@@ -52,7 +52,7 @@ def launch_setup(context):
             instantiate_file(context, arm_props['controllers_template'],
                              '/tmp/' + arm_name + '_controllers.yaml')
 
-    # Create an action for launching robot_state_publisher from loaded URDF.
+    # Create robot description from URDF.
     robot_description = ParameterValue(
                             Command([FindExecutable(name='xacro'),
                                      ' ',
@@ -70,18 +70,18 @@ def launch_setup(context):
         Node(package='joint_state_publisher',
              executable='joint_state_publisher',
              parameters=[
-                 {'rate':         LaunchConfiguration('update_rate'),
+                 {'rate':         50, #LaunchConfiguration('update_rate'),
                   'use_sim_time': LaunchConfiguration('sim'),
                   'source_list':  [robot_name + '/joint_states' \
                                    for robot_name in config['arms']]}
              ],
              output='screen'),
         Node(package='robot_state_publisher',
-                    executable='robot_state_publisher',
-                    parameters=[
-                        {'use_sim_time':      LaunchConfiguration('sim'),
-                         'robot_description': robot_description}
-                    ],
+             executable='robot_state_publisher',
+             parameters=[
+                 {'use_sim_time':      LaunchConfiguration('sim'),
+                  'robot_description': robot_description}
+             ],
              output='screen'),
         GroupAction(
             actions=[
@@ -125,7 +125,7 @@ def launch_setup(context):
                     SetLaunchConfiguration('tf_prefix', arm_name + '_'),
                     SetLaunchConfiguration('speed_scaling_interface_name',
                                            [LaunchConfiguration('tf_prefix'),
-                                            'spped_scaling/speed_scaling_factor']),
+                                            'speed_scaling/speed_scaling_factor']),
                     Node(package='controller_manager',
                          executable='ros2_control_node',
                          parameters=[
@@ -164,12 +164,12 @@ def launch_setup(context):
                              '/tmp/' + gripper_name + '_controllers.yaml')
             gripper_controllers.append(gripper_name + '_controller')
 
-    # if (len(gripper_controllers) > 0):
-    #     actions.append(
-    #         Node(name='gripper_controllers_spawner',
-    #              package='controller_manager',
-    #              executable='spawner',
-    #              arguments=['joint_state_broadcaster'] + gripper_controllers))
+    if len(gripper_controllers) > 0:
+        actions.append(
+            Node(name='gripper_controllers_spawner',
+                 package='controller_manager',
+                 executable='spawner',
+                 arguments=['joint_state_broadcaster'] + gripper_controllers))
 
     return actions
 
