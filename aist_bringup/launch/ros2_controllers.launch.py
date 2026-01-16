@@ -114,6 +114,15 @@ def launch_setup(context):
                 += arm_config.get('extra_consistent_controllers', [])
             inactive_controllers \
                 += arm_config.get('extra_inactive_controllers', [])
+            robot_description \
+                = ParameterValue(
+                    Command([FindExecutable(name='xacro'),
+                             ' ',
+                             PathJoinSubstitution(
+                                 [FindPackageShare('aist_bringup'),
+                                  'urdf', 'ur.urdf.xacro']),
+                             ' name:=', arm_name]),
+                    value_type=str)
 
         arm_props = get_arm_props(arm_config['type'])
         actions.append(
@@ -126,15 +135,24 @@ def launch_setup(context):
                     SetLaunchConfiguration('speed_scaling_interface_name',
                                            [LaunchConfiguration('tf_prefix'),
                                             'speed_scaling/speed_scaling_factor']),
+                    Node(package='robot_state_publisher',
+                         executable='robot_state_publisher',
+                         parameters=[
+                             {'robot_description': robot_description}
+                         ],
+                         output='screen',
+                         condition=UnlessCondition(
+                                       LaunchConfiguration('sim'))),
                     Node(package='controller_manager',
                          executable='ros2_control_node',
-                         parameters=[
-                             ParameterFile(arm_props['controllers_template'],
-                                           allow_substs=True)
-                         ],
-                         remappings=[
-                             ('robot_description', '/robot_description')
-                         ],
+                         # parameters=[
+                         #     ParameterFile(arm_props['controllers_template'],
+                         #                   allow_substs=True),
+                         #     {'robot_description': robot_description}
+                         # ],
+                         # remappings=[
+                         #     ('robot_description', '/robot_description')
+                         # ],
                          output='screen',
                          condition=UnlessCondition(
                                        LaunchConfiguration('sim'))),
