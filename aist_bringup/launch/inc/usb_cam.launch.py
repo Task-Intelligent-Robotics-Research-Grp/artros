@@ -18,7 +18,7 @@ launch_arguments = [
         'name':        'param_file',
         'default':     PathJoinSubstitution([
                            FindPackageShare('aist_bringup'), 'config',
-                           'cameras.yaml']),
+                           'devices', 'cameras.yaml']),
         'description': 'path to YAML file for configuring camera'
     },
     {

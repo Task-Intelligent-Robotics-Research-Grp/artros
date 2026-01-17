@@ -12,23 +12,23 @@
 			   )/urdf/inc/ur_transmissions.xacro" />
 
   <!-- Load hardware configuration parameters from YAML -->
+  <xacro:property name ="name"
+		  value="$(arg name)"/>
   <xacro:property name ="config_file"
-		  value="$(find aist_bringup
-			 )/config/hardware/$(arg name).yaml"/>
+		  value="$(find aist_bringup)/config/devices/arms.yaml"/>
   <xacro:property name ="config"
-		  value="${xacro.load_yaml(config_file)}"/>
+		  value="${xacro.load_yaml(config_file)[name]}"/>
 
   <!-- parameters -->
   <xacro:property name ="ur_type"
 		  value="${config.get('ur_type', 'ur5e')}"/>
   <xacro:property name ="tf_prefix"
-		  value="$(arg name)_"/>
+		  value="${name}_"/>
   <xacro:property name="joint_limit_params"
 		  value="$(find ur_description
 			 )/config/${ur_type}/joint_limits.yaml"/>
   <xacro:property name ="kinematics_params"
-		  value="$(find aist_description
-			 )/scenes/calib/$(arg name).yaml"/>
+		  value="$(find aist_description)/scenes/calib/${name}.yaml"/>
   <xacro:property name ="physical_params"
 		  value="$(find ur_description
 			 )/config/${ur_type}/physical_parameters.yaml"/>
@@ -41,6 +41,8 @@
 		  value="${str(config.get('safety_limits', 0.15))}"/>
   <xacro:property name ="safety_k_position"
 		  value="${str(config.get('safety_k_position', 20))}"/>
+  <xacro:property name ="force_abs_paths"
+		  value="${config.get('force_abs_paths', 'false')}"/>
   <xacro:property name ="transmission_hw_interface"
 		  value="${config.get('transmission_hw_interface',
 			 'hw_interface/PositionJointInterface')}"/>
@@ -116,7 +118,7 @@
   <link name="world" />
 
   <xacro:ur_robot
-    name="$(arg name)"
+    name="${name}"
     tf_prefix="${tf_prefix}"
     parent="world"
     joint_limits_parameters_file="${joint_limit_params}"
@@ -125,14 +127,13 @@
     visual_parameters_file="${visual_params}"
     safety_limits="${safety_limits}"
     safety_pos_margin="${safety_pos_margin}"
-    safety_k_position="${safety_k_position}"
-    >
-     <origin xyz="0 0 0" rpy="0 0 0" />          <!-- position robot in the world -->
+    safety_k_position="${safety_k_position}">
+    <origin xyz="0 0 0" rpy="0 0 0" />	<!-- position robot in the world -->
   </xacro:ur_robot>
 
   <!-- ros2 control instance -->
- <xacro:ur_ros2_control
-    name="$(arg name)"
+  <xacro:ur_ros2_control
+    name="${name}"
     tf_prefix="${tf_prefix}"
     kinematics_parameters_file="${kinematics_params}"
     transmission_hw_interface="${transmission_hw_interface}"

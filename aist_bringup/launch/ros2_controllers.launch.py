@@ -182,12 +182,12 @@ def launch_setup(context):
                              '/tmp/' + gripper_name + '_controllers.yaml')
             gripper_controllers.append(gripper_name + '_controller')
 
-    if len(gripper_controllers) > 0:
-        actions.append(
-            Node(name='gripper_controllers_spawner',
-                 package='controller_manager',
-                 executable='spawner',
-                 arguments=['joint_state_broadcaster'] + gripper_controllers))
+    # if len(gripper_controllers) > 0:
+    #     actions.append(
+    #         Node(name='gripper_controllers_spawner',
+    #              package='controller_manager',
+    #              executable='spawner',
+    #              arguments=['joint_state_broadcaster'] + gripper_controllers))
 
     return actions
 

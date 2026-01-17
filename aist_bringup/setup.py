@@ -13,7 +13,7 @@ setup(
         ("share/" + package_name + "/config", glob("config/*.yaml")),
         ("share/" + package_name + "/config", glob("config/*.rviz")),
         ("share/" + package_name + "/config/templates", glob("config/templates/*.yaml")),
-        ("share/" + package_name + "/config/hardware", glob("config/hardware/*.yaml")),
+        ("share/" + package_name + "/config/devices", glob("config/devices/*.yaml")),
         ("share/" + package_name + "/launch", glob("launch/*.py")),
         ("share/" + package_name + "/launch/inc", glob("launch/inc/*.py")),
         ("share/" + package_name + "/urdf", glob("urdf/*.xacro")),

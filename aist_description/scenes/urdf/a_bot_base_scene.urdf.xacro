@@ -3,30 +3,8 @@
 
   <xacro:arg name="scene"	default=""/>
   <xacro:arg name="sim"		default="false"/>
-  <xacro:arg name="transmission_hw_interface"
-	     default="hw_interface/PositionJointInterface"/>
-  <!-- or "hw_intercae/VelocityJointInterface" -->
 
-  <!-- ur_robot_driver -->
-  <xacro:property name="a_bot_ip"	value="10.66.171.40"/>
-  <xacro:property name="script_filename"
-		  value="$(find ur_client_library
-			 )/resources/external_control.urscript"/>
-  <xacro:property name="output_recipe_filename"
-		  value="$(find ur_robot_driver
-			 )/resources/rtde_output_recipe.txt"/>
-  <xacro:property name="input_recipe_filename"
-		  value="$(find ur_robot_driver
-			 )/resources/rtde_input_recipe.txt"/>
-  <xacro:property name="initial_positions"
-		  value="${dict(shoulder_pan_joint=1.5708,
-			        shoulder_lift_joint=-2.1,
-				elbow_joint=1.4,
-				wrist_1_joint=-0.85,
-				wrist_2_joint=-1.5708,
-				wrist_3_joint=0.0)}"/>
-
-
+  <!-- location of robot arms -->
   <xacro:property name="a_bot_x"	value="0"/>
   <xacro:property name="a_bot_y"	value="-0.4875"/>
   <xacro:property name="a_bot_z"	value="0.766"/>
@@ -115,26 +93,12 @@
     <origin xyz="0 ${suction_tool_holder_y} ${cage_t}" rpy="0 0 0"/>
   </xacro:suction_tool_holder>
 
-  <!-- robot arms -->
+  <!-- Spawn robot arms -->
   <xacro:include filename="$(find aist_description
 			   )/devices/urdf/ur_robot.urdf.xacro"/>
   <xacro:ur_robot sim="$(arg sim)"
 		  name="a_bot"
-		  ur_type="ur5e"
-		  parent="a_bot_table_top_center"
-		  transmission_hw_interface="$(arg transmission_hw_interface)"
-		  initial_positions="${initial_positions}"
-		  safety_limits="true"
-		  safety_pos_margin="0.15"
-		  script_filename="${script_filename}"
-		  input_recipe_filename="${input_recipe_filename}"
-		  output_recipe_filename="${output_recipe_filename}"
-		  robot_ip="${a_bot_ip}"
-		  reverse_port="50001"
-		  script_sender_port="50002"
-		  reverse_ip="0.0.0.0"
-		  script_command_port="50004"
-		  trajectory_port="50003">
+		  parent="a_bot_table_top_center">
     <origin xyz="0 0 0 " rpy="0 0 0"/>
   </xacro:ur_robot>
 
@@ -221,10 +185,10 @@
 			     scene).urdf.xacro"/>
   </xacro:if>
 
-  <!-- Import gz plugins -->
+  <!-- Settings for gazebo simulation -->
   <xacro:if value="$(arg sim)">
     <gazebo>
-      <!-- Simulate arms -->
+      <!-- Launch controller managers for arms -->
       <plugin filename="gz_ros2_control-system"
 	      name="gz_ros2_control::GazeboSimROS2ControlPlugin">
 	<parameters>/tmp/a_bot_controllers.yaml</parameters>
@@ -234,7 +198,7 @@
 	</ros>
       </plugin>
 
-      <!-- Simulate grippers -->
+      <!-- Launch controller manager for grippers -->
       <!-- <plugin filename="gz_ros2_control-system" -->
       <!-- 	      name="gz_ros2_control::GazeboSimROS2ControlPlugin"> -->
       <!-- 	<parameters>/tmp/a_bot_gripper_controllers.yaml</parameters> -->
