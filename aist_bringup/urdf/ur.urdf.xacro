@@ -3,51 +3,30 @@
   <!-- robot name parameter -->
   <xacro:arg name="name" default="ur"/>
 
-  <xacro:include filename="$(find ur_description)/urdf/ur_macro.xacro"/>
-
-  <!-- ros2 control include -->
-  <xacro:include filename="$(find ur_robot_driver
-			   )/urdf/ur.ros2_control.xacro" />
-  <xacro:include filename="$(find ur_description
-			   )/urdf/inc/ur_transmissions.xacro" />
-
-  <!-- Load hardware configuration parameters from YAML -->
   <xacro:property name ="name"
 		  value="$(arg name)"/>
+
+  <!-- Load hardware configuration parameters from YAML -->
   <xacro:property name ="config_file"
 		  value="$(find aist_bringup)/config/devices/arms.yaml"/>
   <xacro:property name ="config"
 		  value="${xacro.load_yaml(config_file)[name]}"/>
 
-  <!-- parameters -->
-  <xacro:property name ="ur_type"
-		  value="${config.get('ur_type', 'ur5e')}"/>
-  <xacro:property name ="tf_prefix"
-		  value="${name}_"/>
-  <xacro:property name="joint_limit_params"
-		  value="$(find ur_description
-			 )/config/${ur_type}/joint_limits.yaml"/>
+  <!-- geometry of the arm -->
+  <xacro:property name ="parent"
+		  value="${config.get('parent', 'world')}"/>
+  <link name="${parent}"/>
+  <xacro:include filename="$(find aist_description
+			   )/devices/urdf/ur_robot.urdf.xacro"/>
+  <xacro:ur_robot sim="false" name="${name}"/>
+
+  <!-- ros2_control related parameters -->
   <xacro:property name ="kinematics_params"
-		  value="$(find aist_description)/scenes/calib/${name}.yaml"/>
-  <xacro:property name ="physical_params"
-		  value="$(find ur_description
-			 )/config/${ur_type}/physical_parameters.yaml"/>
-  <xacro:property name ="visual_params"
-		  value="$(find ur_description
-			 )/config/${ur_type}/visual_parameters.yaml"/>
-  <xacro:property name ="safety_limits"
-		  value="${config.get('safety_limits', 'false')}"/>
-  <xacro:property name ="safety_pos_margin"
-		  value="${str(config.get('safety_limits', 0.15))}"/>
-  <xacro:property name ="safety_k_position"
-		  value="${str(config.get('safety_k_position', 20))}"/>
-  <xacro:property name ="force_abs_paths"
-		  value="${config.get('force_abs_paths', 'false')}"/>
+		  value="$(find aist_description
+			 )/scenes/calib/${name}.yaml"/>
   <xacro:property name ="transmission_hw_interface"
 		  value="${config.get('transmission_hw_interface',
 			 'hw_interface/PositionJointInterface')}"/>
-
-  <!-- ros2_control related parameters -->
   <xacro:property name ="headless_mode"
 		  value="${config.get('headless_mode', 'false')}" />
   <xacro:property name ="robot_ip"
@@ -61,7 +40,6 @@
   <xacro:property name ="input_recipe_filename"
 		  value="$(find ur_robot_driver
 			 )/resources/rtde_input_recipe.txt"/>
-
   <xacro:property name ="reverse_ip"
 		  value="${config.get('reverse_ip', '0.0.0.0')}"/>
   <xacro:property name ="script_command_port"
@@ -73,7 +51,7 @@
   <xacro:property name ="trajectory_port"
 		  value="${str(config.get('trajectory_port', 50003))}"/>
 
-  <!--   tool communication related parameters-->
+  <!-- tool communication related parameters -->
   <xacro:property name ="use_tool_communication"
 		  value="${config.get('use_tool_communication', 'false')}"/>
   <xacro:property name ="tool_voltage"
@@ -93,48 +71,33 @@
   <xacro:property name ="tool_tcp_port"
 		  value="${str(config.get('tool_tcp_port', 54321))}"/>
 
-  <!-- Simulation parameters -->
+  <!-- simulation parameters -->
   <xacro:property name ="use_mock_hardware"
 		  value="${config.get('use_mock_hardware', 'false')}"/>
   <xacro:property name ="mock_sensor_commands"
 		  value="${config.get('mock_sensor_commands', 'false')}"/>
-  <xacro:property name ="simulation_controllers"
-		  value="${config.get('simulation_controllers', '')}"/>
 
-  <!-- initial position for simulations (Mock Hardware, Gazebo, Ignition) -->
-  <xacro:property name ="initial_positions_array"
+  <!-- initial positions -->
+  <xacro:property name ="initial_position_coordinates"
 		  value="${config.get('initial_positions',
 			 [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])}"/>
   <xacro:property name ="initial_positions"
 		  value="${dict(
-			 shoulder_pan_joint=initial_positions_array[0],
-			 shoulder_lift_joint=initial_positions_array[1],
-			 elbow_joint=initial_positions_array[2],
-			 wrist_1_joint=initial_positions_array[3],
-			 wrist_2_joint=initial_positions_array[4],
-			 wrist_3_joint=initial_positions_array[5])}"/>
-
-  <!-- create link fixed to the "world" -->
-  <link name="world" />
-
-  <xacro:ur_robot
-    name="${name}"
-    tf_prefix="${tf_prefix}"
-    parent="world"
-    joint_limits_parameters_file="${joint_limit_params}"
-    kinematics_parameters_file="${kinematics_params}"
-    physical_parameters_file="${physical_params}"
-    visual_parameters_file="${visual_params}"
-    safety_limits="${safety_limits}"
-    safety_pos_margin="${safety_pos_margin}"
-    safety_k_position="${safety_k_position}">
-    <origin xyz="0 0 0" rpy="0 0 0" />	<!-- position robot in the world -->
-  </xacro:ur_robot>
+			 shoulder_pan_joint=initial_position_coordinates[0],
+			 shoulder_lift_joint=initial_position_coordinates[1],
+			 elbow_joint=initial_position_coordinates[2],
+			 wrist_1_joint=initial_position_coordinates[3],
+			 wrist_2_joint=initial_position_coordinates[4],
+			 wrist_3_joint=initial_position_coordinates[5])}"/>
 
   <!-- ros2 control instance -->
+  <xacro:include filename="$(find ur_robot_driver
+			   )/urdf/ur.ros2_control.xacro" />
+  <!-- <xacro:include filename="$(find ur_description -->
+  <!-- 			   )/urdf/inc/ur_transmissions.xacro" /> -->
   <xacro:ur_ros2_control
     name="${name}"
-    tf_prefix="${tf_prefix}"
+    tf_prefix="${name}_"
     kinematics_parameters_file="${kinematics_params}"
     transmission_hw_interface="${transmission_hw_interface}"
     use_mock_hardware="${use_mock_hardware}"

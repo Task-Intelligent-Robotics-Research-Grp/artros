@@ -1,8 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro">
 
-  <xacro:macro name="ur_robot"
-	       params="sim name parent *origin">
+  <xacro:macro name="ur_robot" params="sim name">
 
     <!-- Load hardware configuration parameters from YAML -->
     <xacro:property name ="config_file"
@@ -40,17 +39,24 @@
 			   'hw_interface/PositionJointInterface')}"/>
 
     <!-- initial position for simulations (Mock Hardware, Gazebo, Ignition) -->
-    <xacro:property name ="initial_positions_array"
+    <xacro:property name ="initial_position_coordinates"
 		    value="${config.get('initial_positions',
 			   [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])}"/>
     <xacro:property name ="initial_positions"
 		    value="${dict(
-			   shoulder_pan_joint=initial_positions_array[0],
-			   shoulder_lift_joint=initial_positions_array[1],
-			   elbow_joint=initial_positions_array[2],
-			   wrist_1_joint=initial_positions_array[3],
-			   wrist_2_joint=initial_positions_array[4],
-			   wrist_3_joint=initial_positions_array[5])}"/>
+			   shoulder_pan_joint=initial_position_coordinates[0],
+			   shoulder_lift_joint=initial_position_coordinates[1],
+			   elbow_joint=initial_position_coordinates[2],
+			   wrist_1_joint=initial_position_coordinates[3],
+			   wrist_2_joint=initial_position_coordinates[4],
+			   wrist_3_joint=initial_position_coordinates[5])}"/>
+
+    <!-- Pose of robots -->
+    <xacro:property name ="parent"
+		    value="${config.get('parent', 'world')}"/>
+    <xacro:property name ="origin"
+		    value="${config.get('origin',
+			   [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])}"/>
 
     <xacro:include filename="$(find ur_description)/urdf/ur_macro.xacro"/>
     <xacro:ur_robot
@@ -69,7 +75,10 @@
 	safety_pos_margin="${safety_pos_margin}"
 	safety_k_position="${safety_k_position}"
 	force_abs_paths="${force_abs_paths}">
-      <xacro:insert_block name="origin"/>
+      <origin xyz="${origin[0]} ${origin[1]} ${origin[2]}"
+	      rpy="${radians(origin[3])}
+		   ${radians(origin[4])}
+		   ${radians(origin[5])}"/>
     </xacro:ur_robot>
 
     <!-- ros2_control settings for gazebo -->

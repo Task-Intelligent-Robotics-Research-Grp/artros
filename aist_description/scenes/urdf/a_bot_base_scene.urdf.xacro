@@ -96,11 +96,7 @@
   <!-- Spawn robot arms -->
   <xacro:include filename="$(find aist_description
 			   )/devices/urdf/ur_robot.urdf.xacro"/>
-  <xacro:ur_robot sim="$(arg sim)"
-		  name="a_bot"
-		  parent="a_bot_table_top_center">
-    <origin xyz="0 0 0 " rpy="0 0 0"/>
-  </xacro:ur_robot>
+  <xacro:ur_robot sim="$(arg sim)" name="a_bot"/>
 
   <!-- Set gazebo plugin for FT-sensors -->
   <!-- <xacro:include filename="$(find aist_description -->

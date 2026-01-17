@@ -1,5 +1,7 @@
 a_bot:
   ur_type:             ur5e
+  parent:              a_bot_table_top_center
+  origin:              [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
   robot_ip:            "10.66.171.40"
   safety_limits:       true
   safety_pos_margin:   0.15
@@ -12,6 +14,8 @@ a_bot:
 
 b_bot:
   ur_type:             ur5e
+  parent:              b_bot_table_top_center
+  origin:              [0.0, 0.0, 0.0, 0.0, 0.0, 180.0]
   robot_ip:            "10.66.171.41"
   safety_limits:       true
   safety_pos_margin:   0.15
