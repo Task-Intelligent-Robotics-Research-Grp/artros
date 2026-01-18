@@ -27,7 +27,7 @@ def launch_setup(context):
     return [
         PushROSNamespace(LaunchConfiguration('arm_name')),
         Node(package='aist_bringup',
-             executable='xml_adder',
+             executable='robot_description_appender',
              parameters=[
                  {'extra_description':
                   ParameterValue(

@@ -40,26 +40,36 @@ import rclpy
 import xml.etree.ElementTree as ET
 
 from rclpy.node   import Node
+from rclpy.qos    import QoSProfile, DurabilityPolicy, ReliabilityPolicy
 from std_msgs.msg import String
 
 #########################################################################
-#  class XmlAdder                                                       #
+#  class RobotDescriptionAppender                                       #
 #########################################################################
-class XmlAdder(Node):
+class RobotDescriptionAppender(Node):
     def __init__(self, name):
         super().__init__(name)
+
+        sub_profile = QoSProfile(depth=1,
+                                 durability=DurabilityPolicy.TRANSIENT_LOCAL,
+                                 reliability=ReliabilityPolicy.RELIABLE)
+        pub_profile = QoSProfile(depth=1,
+                                 durability=DurabilityPolicy.TRANSIENT_LOCAL)
 
         self._ed  = ET.fromstring(self.declare_parameter('extra_description',
                                                          '').value)
         self._sub = self.create_subscription(String, 'robot_description_in',
-                                             self._robot_description_cb, 4)
-        self._pub = self.create_publisher(String, 'robot_description', 4)
+                                             self._robot_description_cb,
+                                             sub_profile)
+        self._pub = self.create_publisher(String, 'robot_description',
+                                          pub_profile)
 
         self.get_logger().info('initialized')
 
     def _robot_description_cb(self, rd_msg):
         rd = ET.fromstring(rd_msg.data)
-        rd.append(self._ed[0])
+        for i in range(len(self._ed)):
+            rd.append(self._ed[i])
         self._pub.publish(String(data=ET.tostring(rd)))
 
 
@@ -70,7 +80,7 @@ def main():
     try:
         rclpy.init(args=sys.argv)
 
-        node = XmlAdder('xml_adder')
+        node = RobotDescriptionAppender('robot_description_appender')
         rclpy.spin(node)
     except Exception as e:
         print('*** Terminate the node due to exception: %s' % e)

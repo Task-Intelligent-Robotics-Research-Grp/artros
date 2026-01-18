@@ -27,7 +27,7 @@ setup(
     tests_require=["pytest"],
     entry_points={
         'console_scripts': [
-            'xml_adder = ' + package_name + '.xml_adder:main'
+            'robot_description_appender = ' + package_name + '.robot_description_appender:main'
         ]
     },
 )
