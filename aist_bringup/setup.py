@@ -25,5 +25,9 @@ setup(
     description="Package with bringup scripts/config for various robots",
     license="BSD",
     tests_require=["pytest"],
-    entry_points={},
+    entry_points={
+        'console_scripts': [
+            'xml_adder = ' + package_name + '.xml_adder:main'
+        ]
+    },
 )

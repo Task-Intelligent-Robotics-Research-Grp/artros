@@ -1,0 +1,119 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="$(arg name)">
+  <!-- robot name parameter -->
+  <xacro:arg name="name" default="ur"/>
+
+  <xacro:property name ="name"
+		  value="$(arg name)"/>
+
+  <!-- Load hardware configuration parameters from YAML -->
+  <xacro:property name ="config_file"
+		  value="$(find aist_bringup)/config/devices/arms.yaml"/>
+  <xacro:property name ="config"
+		  value="${xacro.load_yaml(config_file)[name]}"/>
+
+  <!-- ros2_control related parameters -->
+  <xacro:property name ="kinematics_params"
+		  value="$(find aist_description
+			 )/scenes/calib/${name}.yaml"/>
+  <xacro:property name ="transmission_hw_interface"
+		  value="${config.get('transmission_hw_interface',
+			 'hw_interface/PositionJointInterface')}"/>
+  <xacro:property name ="headless_mode"
+		  value="${config.get('headless_mode', 'false')}" />
+  <xacro:property name ="robot_ip"
+		  value="${config.get('robot_ip', '0.0.0.0')}" />
+  <xacro:property name ="script_filename"
+		  value="$(find ur_client_library
+			 )/resources/external_control.urscript"/>
+  <xacro:property name ="output_recipe_filename"
+		  value="$(find ur_robot_driver
+			 )/resources/rtde_output_recipe.txt"/>
+  <xacro:property name ="input_recipe_filename"
+		  value="$(find ur_robot_driver
+			 )/resources/rtde_input_recipe.txt"/>
+  <xacro:property name ="reverse_ip"
+		  value="${config.get('reverse_ip', '0.0.0.0')}"/>
+  <xacro:property name ="script_command_port"
+		  value="${str(config.get('script_command_port', 50004))}"/>
+  <xacro:property name ="reverse_port"
+		  value="${str(config.get('reverse_port', 50001))}"/>
+  <xacro:property name ="script_sender_port"
+		  value="${str(config.get('script_sender_port', 50002))}"/>
+  <xacro:property name ="trajectory_port"
+		  value="${str(config.get('trajectory_port', 50003))}"/>
+
+  <!-- tool communication related parameters -->
+  <xacro:property name ="use_tool_communication"
+		  value="${config.get('use_tool_communication', 'false')}"/>
+  <xacro:property name ="tool_voltage"
+		  value="${str(config.get('tool_voltage', 0))}"/>
+  <xacro:property name ="tool_parity"
+		  value="${str(config.get('tool_parity', 0))}"/>
+  <xacro:property name ="tool_baud_rate"
+		  value="${str(config.get('tool_baud_rate', 115200))}"/>
+  <xacro:property name ="tool_stop_bits"
+		  value="${str(config.get('tool_stop_bits', 1))}"/>
+  <xacro:property name ="tool_rx_idle_chars"
+		  value="${str(config.get('tool_rx_idle_chars', 1.5))}"/>
+  <xacro:property name ="tool_tx_idle_chars"
+		  value="${str(config.get('tool_tx_idle_chars', 3.5))}"/>
+  <xacro:property name ="tool_device_name"
+		  value="${config.get('tool_device_name', '/tmp/ttyUR')}"/>
+  <xacro:property name ="tool_tcp_port"
+		  value="${str(config.get('tool_tcp_port', 54321))}"/>
+
+  <!-- simulation parameters -->
+  <xacro:property name ="use_mock_hardware"
+		  value="${config.get('use_mock_hardware', 'false')}"/>
+  <xacro:property name ="mock_sensor_commands"
+		  value="${config.get('mock_sensor_commands', 'false')}"/>
+
+  <!-- initial positions -->
+  <xacro:property name ="initial_position_coordinates"
+		  value="${config.get('initial_positions',
+			 [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])}"/>
+  <xacro:property name ="initial_positions"
+		  value="${dict(
+			 shoulder_pan_joint=initial_position_coordinates[0],
+			 shoulder_lift_joint=initial_position_coordinates[1],
+			 elbow_joint=initial_position_coordinates[2],
+			 wrist_1_joint=initial_position_coordinates[3],
+			 wrist_2_joint=initial_position_coordinates[4],
+			 wrist_3_joint=initial_position_coordinates[5])}"/>
+
+  <!-- ros2 control instance -->
+  <xacro:include filename="$(find ur_robot_driver
+			   )/urdf/ur.ros2_control.xacro" />
+  <!-- <xacro:include filename="$(find ur_description -->
+  <!-- 			   )/urdf/inc/ur_transmissions.xacro" /> -->
+  <xacro:ur_ros2_control
+    name="${name}"
+    tf_prefix="${name}_"
+    kinematics_parameters_file="${kinematics_params}"
+    transmission_hw_interface="${transmission_hw_interface}"
+    use_mock_hardware="${use_mock_hardware}"
+    mock_sensor_commands="${mock_sensor_commands}"
+    headless_mode="${headless_mode}"
+    initial_positions="${initial_positions}"
+    use_tool_communication="${use_tool_communication}"
+    tool_voltage="${tool_voltage}"
+    tool_parity="${tool_parity}"
+    tool_baud_rate="${tool_baud_rate}"
+    tool_stop_bits="${tool_stop_bits}"
+    tool_rx_idle_chars="${tool_rx_idle_chars}"
+    tool_tx_idle_chars="${tool_tx_idle_chars}"
+    tool_device_name="${tool_device_name}"
+    tool_tcp_port="${tool_tcp_port}"
+    robot_ip="${robot_ip}"
+    script_filename="${script_filename}"
+    output_recipe_filename="${output_recipe_filename}"
+    input_recipe_filename="${input_recipe_filename}"
+    reverse_ip="${reverse_ip}"
+    script_command_port="${script_command_port}"
+    reverse_port="${reverse_port}"
+    script_sender_port="${script_sender_port}"
+    trajectory_port="${trajectory_port}"
+  />
+
+</robot>

@@ -17,7 +17,11 @@ ARM_PROPS = {
         'extra_drivers_launch_file': PathJoinSubstitution(
                                          [FindPackageShare('aist_bringup'),
                                           'launch', 'inc',
-                                          'ur_extra_drivers.launch.py'])
+                                          'ur_extra_drivers.launch.py']),
+        'ros2_control_file':         PathJoinSubstitution(
+                                         [FindPackageShare('aist_bringup'),
+                                          'urdf',
+                                          'ur.ros2_control.urdf.xacro']),
     },
     'URe':
     {
@@ -29,7 +33,11 @@ ARM_PROPS = {
         'extra_drivers_launch_file': PathJoinSubstitution(
                                          [FindPackageShare('aist_bringup'),
                                           'launch', 'inc',
-                                          'ur_extra_drivers.launch.py'])
+                                          'ur_extra_drivers.launch.py']),
+        'ros2_control_file':         PathJoinSubstitution(
+                                         [FindPackageShare('aist_bringup'),
+                                          'urdf',
+                                          'ur.ros2_control.urdf.xacro']),
     },
 }
 
