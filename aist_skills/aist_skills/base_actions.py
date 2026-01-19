@@ -43,6 +43,9 @@ from rclpy.action.server   import (ActionServer, ServerGoalHandle,
                                    GoalResponse, CancelResponse)
 from rclpy.action.client   import ActionClient, ClientGoalHandle
 
+#########################################################################
+#  class ActionServerBase and related stuffs                            #
+#########################################################################
 class GoalProcessingPolicy(Enum):
     SINGLE = auto()
     QUEUED = auto()
@@ -122,7 +125,7 @@ class ServerGoalHandlePassthrough(object):
 
 T = TypeVar('T')
 
-class ServerGaolHandlesDict(Generic[T]):
+class ServerGoalHandlesDict(Generic[T]):
     def __init__(self, action_name, logger):
         self._action_name = action_name
         self._logger      = logger
@@ -138,7 +141,9 @@ class ServerGaolHandlesDict(Generic[T]):
         group_name = goal_handle.request.group_name
         self._dict[group_name].remove(goal_handle)
 
-
+#
+#  class ActionServerBase
+#
 class ActionServerBase(object):
     def __init__(self, node, action_type, action_name, user_execute_callback,
                  goal_processing_policy=GoalProcessingPolicy.SINGLE,
@@ -163,7 +168,7 @@ class ActionServerBase(object):
                                                                    self.logger)
             else:
                 self._server_goal_handles = ServerGoalHandleQueue(action_name,
-                                                                   self.logger)
+                                                                  self.logger)
         else:
             self._server_goal_handles \
                 = ServerGoalHandlePassthrough(action_name, self.logger)
@@ -192,7 +197,7 @@ class ActionServerBase(object):
         return GoalResponse.ACCEPT
 
     def _handle_accepted_callback(self, goal_handle):
-        self._goal_handle_buffer.append(goal_handle)
+        self._server_goal_handles.append(goal_handle)
 
     def _cancel_callback(self, goal_handle):
         self.logger.warn('Received cancel request')
@@ -202,9 +207,12 @@ class ActionServerBase(object):
         try:
             self._user_execute_callback(goal_handle)
         finally:
-            self._goal_handle_buffer.remove(goal_handle)
+            self._server_goal_handles.remove(goal_handle)
 
 
+#########################################################################
+#  class ActionClientBase and related stuffs                            #
+#########################################################################
 class ActionClientBase(object):
     def __init__(self, node action_type, action_name):
         super().__init__()
