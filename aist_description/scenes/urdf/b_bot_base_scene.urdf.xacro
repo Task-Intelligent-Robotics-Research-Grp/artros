@@ -91,7 +91,9 @@
   <!-- robot arms -->
   <xacro:include filename="$(find aist_description
 			   )/devices/urdf/ur_robot.urdf.xacro"/>
-  <xacro:ur_robot sim="$(arg sim)" name="b_bot"/>
+  <xacro:ur_robot name="b_bot" parent="b_bot_table_top_center">
+    <origin xyz="0 0 0" rpy="0 0 ${b_bot_theta}"/>
+  </xacro:ur_robot>
 
   <!-- Spawn and attach gripper -->
   <xacro:include filename="$(find aist_robotiq
@@ -184,7 +186,7 @@
 	<parameters>/tmp/b_bot_controllers.yaml</parameters>
 	<ros>
 	  <namespace>b_bot</namespace>
-	  <remapping>robot_description:=/robot_description</remapping>
+	  <!-- <remapping>robot_description:=/robot_description</remapping> -->
 	</ros>
       </plugin>
 

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://wiki.ros.org/xacro" name="$(arg name)">
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="ur_ros2_control">
   <!-- robot name parameter -->
-  <xacro:arg name="name" default="ur"/>
+  <xacro:arg name="name" default="a_bot"/>
 
   <xacro:property name ="name"
 		  value="$(arg name)"/>
@@ -85,8 +85,6 @@
   <!-- ros2 control instance -->
   <xacro:include filename="$(find ur_robot_driver
 			   )/urdf/ur.ros2_control.xacro" />
-  <!-- <xacro:include filename="$(find ur_description -->
-  <!-- 			   )/urdf/inc/ur_transmissions.xacro" /> -->
   <xacro:ur_ros2_control
     name="${name}"
     tf_prefix="${name}_"

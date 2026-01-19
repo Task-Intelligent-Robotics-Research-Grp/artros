@@ -114,15 +114,6 @@ def launch_setup(context):
                 += arm_config.get('extra_consistent_controllers', [])
             inactive_controllers \
                 += arm_config.get('extra_inactive_controllers', [])
-            robot_description \
-                = ParameterValue(
-                    Command([FindExecutable(name='xacro'),
-                             ' ',
-                             PathJoinSubstitution(
-                                 [FindPackageShare('aist_bringup'),
-                                  'urdf', 'ur.urdf.xacro']),
-                             ' name:=', arm_name]),
-                    value_type=str)
 
         arm_props = get_arm_props(arm_config['type'])
         actions.append(
@@ -135,39 +126,43 @@ def launch_setup(context):
                     SetLaunchConfiguration('speed_scaling_interface_name',
                                            [LaunchConfiguration('tf_prefix'),
                                             'speed_scaling/speed_scaling_factor']),
-                    Node(package='robot_state_publisher',
-                         executable='robot_state_publisher',
+                    Node(package='aist_bringup',
+                         executable='robot_description_appender',
                          parameters=[
-                             {'robot_description': robot_description}
+                             {'extra_description':
+                              ParameterValue(
+                                  Command([
+                                      FindExecutable(name='xacro'), ' ',
+                                      arm_props['gz_ros2_control_file' if sim
+                                                else 'ros2_control_file'],
+                                      ' name:=', arm_name
+                                  ]),
+                                  value_type=str)}
+                         ],
+                         remappings=[
+                             ('robot_description_in', '/robot_description')],
+                         output='screen'),
+                    Node(package='controller_manager',
+                         executable='ros2_control_node',
+                         parameters=[
+                             ParameterFile(arm_props['controllers_template'],
+                                           allow_substs=True),
                          ],
                          output='screen',
                          condition=UnlessCondition(
-                                       LaunchConfiguration('sim'))),
-                    Node(package='controller_manager',
-                         executable='ros2_control_node',
-                         # parameters=[
-                         #     ParameterFile(arm_props['controllers_template'],
-                         #                   allow_substs=True),
-                         #     {'robot_description': robot_description}
-                         # ],
-                         # remappings=[
-                         #     ('robot_description', '/robot_description')
-                         # ],
-                         output='screen',
-                         condition=UnlessCondition(
-                                       LaunchConfiguration('sim'))),
+                             LaunchConfiguration('sim'))),
                     Node(name='active_controllers_spawner',
                          package='controller_manager',
                          executable='spawner',
                          arguments=active_controllers,
                          output='screen'),
-                ] + [
+                ] + ([
                     Node(name='inactive_controllers_spawner',
                          package='controller_manager',
                          executable='spawner',
                          arguments=['--inactive'] + inactive_controllers,
                          output='screen')
-                ] if len(inactive_controllers) else []))
+                ] if len(inactive_controllers) > 0 else [])))
 
     # Instantiate controller configuration files for each gripper.
     gripper_controllers = []
@@ -182,12 +177,12 @@ def launch_setup(context):
                              '/tmp/' + gripper_name + '_controllers.yaml')
             gripper_controllers.append(gripper_name + '_controller')
 
-    # if len(gripper_controllers) > 0:
-    #     actions.append(
-    #         Node(name='gripper_controllers_spawner',
-    #              package='controller_manager',
-    #              executable='spawner',
-    #              arguments=['joint_state_broadcaster'] + gripper_controllers))
+    if len(gripper_controllers) > 0:
+        actions.append(
+            Node(name='gripper_controllers_spawner',
+                 package='controller_manager',
+                 executable='spawner',
+                 arguments=['joint_state_broadcaster'] + gripper_controllers))
 
     return actions
 

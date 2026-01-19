@@ -22,6 +22,10 @@ ARM_PROPS = {
                                          [FindPackageShare('aist_bringup'),
                                           'urdf',
                                           'ur.ros2_control.urdf.xacro']),
+        'gz_ros2_control_file':      PathJoinSubstitution(
+                                         [FindPackageShare('aist_bringup'),
+                                          'urdf',
+                                          'ur_gz.ros2_control.urdf.xacro']),
     },
     'URe':
     {
@@ -38,6 +42,10 @@ ARM_PROPS = {
                                          [FindPackageShare('aist_bringup'),
                                           'urdf',
                                           'ur.ros2_control.urdf.xacro']),
+        'gz_ros2_control_file':      PathJoinSubstitution(
+                                         [FindPackageShare('aist_bringup'),
+                                          'urdf',
+                                          'ur_gz.ros2_control.urdf.xacro']),
     },
 }
 
