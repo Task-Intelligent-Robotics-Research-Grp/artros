@@ -28,18 +28,18 @@ def launch_setup(context):
     headless_mode = arm_config.get('headless_mode', False)
 
     return [
-        # Node(package='ur_robot_driver',
-        #      executable='dashboard_client',
-        #      name='dashboard_client',
-        #      output='screen',
-        #      emulate_tty=True,
-        #      parameters=[{'robot_ip': robot_ip}]),
-        # Node(package='ur_robot_driver',
-        #      executable='robot_state_helper',
-        #      name='ur_robot_state_helper',
-        #      output='screen',
-        #      parameters=[{'headless_mode': headless_mode,
-        #                   'robot_ip':      robot_ip}]),
+        Node(package='ur_robot_driver',
+             executable='dashboard_client',
+             name='dashboard_client',
+             output='screen',
+             emulate_tty=True,
+             parameters=[{'robot_ip': robot_ip}]),
+        Node(package='ur_robot_driver',
+             executable='robot_state_helper',
+             name='ur_robot_state_helper',
+             output='screen',
+             parameters=[{'headless_mode': headless_mode,
+                          'robot_ip':      robot_ip}]),
         Node(condition=IfCondition(arm_config.get('use_tool_communication',
                                                   'false')),
              package='ur_robot_driver',
@@ -56,18 +56,18 @@ def launch_setup(context):
              name='ur_script_interface',
              parameters=[{'robot_ip': robot_ip}],
              output='screen'),
-        # Node(package='ur_robot_driver',
-        #      executable='controller_stopper_node',
-        #      name='controller_stopper_node',
-        #      output='screen',
-        #      emulate_tty=True,
-        #      parameters=[
-        #          {'headless_mode': headless_mode,
-        #           'joint_controller_active':
-        #           arm_config.get('joint_controller_active', True),
-        #           'consistent_controllers':
-        #           arm_config.get('consistent_controllers', []) + \
-        #           arm_config.get('extra_consistent_controllers', [])}])
+        Node(package='ur_robot_driver',
+             executable='controller_stopper_node',
+             name='controller_stopper_node',
+             output='screen',
+             emulate_tty=True,
+             parameters=[
+                 {'headless_mode': headless_mode,
+                  'joint_controller_active':
+                  arm_config.get('joint_controller_active', True),
+                  'consistent_controllers':
+                  arm_config.get('consistent_controllers', []) + \
+                  arm_config.get('extra_consistent_controllers', [])}])
     ]
 
 def generate_launch_description():

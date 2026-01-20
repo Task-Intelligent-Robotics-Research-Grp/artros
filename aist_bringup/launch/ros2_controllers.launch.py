@@ -88,7 +88,7 @@ def launch_setup(context):
                 Node(package='ros_gz_sim',
                      executable='create',
                      arguments=[
-                         '-nmae', LaunchConfiguration('config'),
+                         '-name',  LaunchConfiguration('config'),
                          '-topic', 'robot_description'
                      ],
                      output='screen'),
@@ -140,13 +140,20 @@ def launch_setup(context):
                                   value_type=str)}
                          ],
                          remappings=[
-                             ('robot_description_in', '/robot_description')],
+                             ('robot_description_in', '/robot_description')
+                         ],
                          output='screen'),
                     Node(package='controller_manager',
                          executable='ros2_control_node',
                          parameters=[
                              ParameterFile(arm_props['controllers_template'],
                                            allow_substs=True),
+                         ],
+                         remappings=[
+                             ('cartesian_force_controller/ft_sensor_wrench',
+                              'force_torque_sensor_broadcaster/wrench'),
+                             ('cartesian_compliance_controller/ft_sensor_wrench',
+                              'force_torque_sensor_broadcaster/wrench'),
                          ],
                          output='screen',
                          condition=UnlessCondition(

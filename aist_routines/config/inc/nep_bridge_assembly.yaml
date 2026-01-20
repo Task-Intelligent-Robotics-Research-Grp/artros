@@ -9,11 +9,11 @@ ros_to_nep:
     to:   Kitting/request_help
   - from: /collision_object_manager/collision_marker
     to:   Kitting/collision_marker
-  - from: /a_bot_cartesian_compliance_controller/current_pose
+  - from: /a_bot/cartesian_compliance_controller/current_pose
     to:   Kitting/actual_robot_pose
   - from: /a_bot_camera/color/image_raw
     to:   Kitting/monitor_image
-  - from: /a_bot_force_torque_sensor_broadcaster/wrench
+  - from: /a_bot/force_torque_sensor_broadcaster/wrench
     to:   Kitting/wrench
 
 nep_to_ros:
@@ -21,7 +21,7 @@ nep_to_ros:
     to:   /pointing
 #    type: aist_msgs/Pointing
   - from: Kitting/desired_robot_pose
-    to:   /a_bot_cartesian_compliance_controller/target_frame
+    to:   /a_bot/cartesian_compliance_controller/target_frame
 #    type: geometry_msgs/PoseStamped
 
 services:
@@ -31,6 +31,6 @@ services:
   - name:     /collision_object_manager/get_collision_object
     request:  Kitting/get_collision_object
     response: Kitting/collision_object
-  - name:     /controller_manager/switch_controller
+  - name:     /a_bot/controller_manager/switch_controller
     request:  Kitting/switch_controller
     response: Kitting/switch_controller_ok
