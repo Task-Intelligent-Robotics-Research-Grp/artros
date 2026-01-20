@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>aist_skills</name>
+  <version>0.0.0</version>
+  <description>The aist_skills package</description>
+
+  <maintainer email="t.ueshiba@aist.go.jp">Toshio UESHIBA</maintainer>
+
+  <license>BSD</license>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>moveit</exec_depend>
+  <exec_depend>moveit_py</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>visualization_msgs</exec_depend>
+  <exec_depend>aist_msgs</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+
+</package>
