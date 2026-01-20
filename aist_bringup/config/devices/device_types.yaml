@@ -1,0 +1,67 @@
+##########
+#  Arms  #
+##########
+UR:
+  update_rate:               125
+  controllers_template:      package://aist_bringup/config/templates/ur_controllers.yaml
+  extra_drivers_launch_file: package://aist_bringup/launch/inc/ur_extra_drivers.launch.py
+  ros2_control_file:         package://aist_bringup/urdf/ur.ros2_control.urdf.xacro
+  gz_ros2_control_file:      package://aist_bringup/urdf/ur_gz.ros2_control.urdf.xacro
+
+URe:
+  update_rate:               500
+  controllers_template:      package://aist_bringup/config/templates/ur_controllers.yaml
+  extra_drivers_launch_file: package://aist_bringup/launch/inc/ur_extra_drivers.launch.py
+  ros2_control_file:         package://aist_bringup/urdf/ur.ros2_control.urdf.xacro
+  gz_ros2_control_file:      package://aist_bringup/urdf/ur_gz.ros2_control.urdf.xacro
+
+##############
+#  Grippers  #
+##############
+RobotiqGripper:
+  gz_controllers_template:   package://aist_bringup/config/templates/gripper_controllers.yaml
+  extra_drivers_launch_file: package://aist_bringup/launch/inc/robotiq_drivers.launch.py
+
+DynamixelDevices:
+  extra_drivers_launch_file: package://aist_bringup/launch/inc/dynamixel_devices.launch.py
+
+URioDevices:
+  extra_drivers_launch_file: package://aist_bringup/launch/inc/ur_io_devices.launch.py
+
+#############
+#  Cameras  #
+#############
+PhoXiCamera:
+  launch_file:        package://aist_phoxi_camera/launch/launch.py
+  key_of_id:          id
+  cloud_topic:        pointcloud
+  depth_topic:        depth_map
+  cinfo_topic:        camera_info
+  color_topic:        texture
+  normal_topic:       normal_map
+  gz_bridge_template: package://aist_bringup/config/templates/rgbd_camera_bridge.yaml
+
+RealsenseCamera:
+  launch_file:        package://realsense2_camera/launch/launch.py
+  key_of_id:          serial_no
+  cloud_topic:        depth/color/points
+  depth_topic:        aligned_depth_to_color/image_raw
+  cinfo_topic:        aligned_depth_to_color/camera_info
+  color_topic:        color/image_raw
+  gz_bridge_template: package://aist_bringup/config/templates/rgbd_camera_bridge.yaml
+
+CodedLightRealsenseCamera:
+  launch_file:        package://realsense2_camera/launch/launch.py
+  key_of_id:          serial_no
+  cloud_topic:        depth/color/points
+  depth_topic:        aligned_depth_to_color/image_raw
+  cinfo_topic:        aligned_depth_to_color/camera_info
+  color_topic:        color/image_raw
+  gz_bridge_template: package://aist_bringup/config/templates/rgbd_camera_bridge.yaml
+
+USBCamera:
+  launch_file:        package://aist_bringup/launch/inc/usb_cam.launch.py
+  key_of_id:          video_device
+  cinfo_topic:        camera_info
+  color_topic:        image_raw
+  gz_bridge_template: package://aist_bringup/config/templates/area_camera_bridge.yaml
