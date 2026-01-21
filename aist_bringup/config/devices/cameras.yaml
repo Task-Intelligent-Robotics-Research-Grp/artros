@@ -116,7 +116,7 @@ a_motioncam:
 
 /live_camera/usb_cam:
   ros__parameters:
-    video_device:       /dev/video8
+    video_device:       /dev/video-livecam
     framerate:          5.0
     io_method:          mmap
     frame_id:           live_camera_optical_frame
