@@ -1,0 +1,102 @@
+##########
+#  Arms  #
+##########
+a_bot:
+  a_bot:
+    type:               URe
+    default_gripper:    a_bot_gripper
+    active_controller:  scaled_joint_trajectory_controller
+    consistent_controllers:
+      - joint_state_broadcaster
+    extra_consistent_controllers:
+      - force_torque_sensor_broadcaster
+      - io_and_status_controller
+      - speed_scaling_state_broadcaster
+      - tcp_pose_broadcaster
+      - ur_configuration_controller
+    inactive_controllers:
+      - forward_velocity_controller
+      - forward_position_controller
+      - cartesian_compliance_controller
+      - cartesian_force_controller
+      - cartesian_motion_controller
+      - motion_control_handle
+    extra_inactive_controllers:
+      - joint_trajectory_controller
+      - force_mode_controller
+      - passthrough_trajectory_controller
+      - freedrive_mode_controller
+      - tool_contact_controller
+
+b_bot:
+  b_bot:
+    type:               URe
+    default_gripper:    b_bot_gripper
+    active_controller:  scaled_joint_trajectory_controller
+    consistent_controllers:
+      - joint_state_broadcaster
+    extra_consistent_controllers:
+      - force_torque_sensor_broadcaster
+      - io_and_status_controller
+      - speed_scaling_state_broadcaster
+      - tcp_pose_broadcaster
+      - ur_configuration_controller
+    inactive_controllers:
+      - forward_velocity_controller
+      - forward_position_controller
+      - cartesian_compliance_controller
+      - cartesian_force_controller
+      - cartesian_motion_controller
+      - motion_control_handle
+    extra_inactive_controllers:
+      - joint_trajectory_controller
+      - force_mode_controller
+      - passthrough_trajectory_controller
+      - freedrive_mode_controller
+      - tool_contact_controller
+
+##############
+#  Grippers  #
+##############
+a_bot:
+  a_bot_gripper:
+    type:          RobotiqGripper
+b_bot:
+  b_bot_gripper:
+    type:          RobotiqGripper
+
+precision_tools:
+  type:            DynamixelDevices
+  tools:
+    precision_tool:
+      type:        PrecisionTool
+screw_tools:
+  type:            DynamixelDevices
+  tools:
+    screw_tool_m3_fastening:
+      type:        ScrewTool
+    screw_tool_m4_fastening:
+      type:        ScrewTool
+suction_tools:
+  type:            URioDevices
+  grippers:
+    screw_tool_m3:
+      type:        SuctionTool
+    screw_tool_m4:
+      type:        SuctionTool
+    suction_tool:
+      type:        SuctionTool
+    base_fixture:
+      type:        SuctionTool
+
+#############
+#  Cameras  #
+#############
+a_motioncam:
+  type: PhoXiCamera
+a_bot_camera:
+  type: CodedLightRealsenseCamera
+b_bot_camera:
+  type: CodedLightRealsenseCamera
+live_camera:
+  type: USBCamera

@@ -173,6 +173,14 @@ def load_config(context):
         config = yaml.safe_load(f)
     return config
 
+def load_device_props(context):
+    props_file = PathJoinSubstitution([FindPackageShare('aist_bringup'),
+                                       'config', 'devices',
+                                       'device_props.yaml'])
+    with open(props_file.perform(context), 'r') as f:
+        device_props = yaml.safe_load(f)
+    return device_props
+
 def declare_launch_arguments(args):
     return [DeclareLaunchArgument(arg['name'],
                                   default_value=arg.get('default'),

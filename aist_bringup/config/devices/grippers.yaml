@@ -18,7 +18,7 @@ b_bot_gripper:
 
 precision_tools:
   param_file:   package://aist_fastening_tools/config/default.yaml
-  grippers:
+  tools:
     - precision_tool
 
 precision_tool:
@@ -28,7 +28,7 @@ precision_tool:
 
 screw_tools:
   param_file:   package://aist_fastening_tools/config/default.yaml
-  grippers:
+  tools:
     - screw_tool_m3_fastening
     - screw_tool_m4_fastening
 

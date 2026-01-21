@@ -150,10 +150,14 @@ def launch_setup(context):
                                            allow_substs=True),
                          ],
                          remappings=[
-                             ('cartesian_force_controller/ft_sensor_wrench',
-                              'force_torque_sensor_broadcaster/wrench'),
+                             ('motion_control_handle/target_frame',
+                              'target_frame'),
                              ('cartesian_compliance_controller/ft_sensor_wrench',
                               'force_torque_sensor_broadcaster/wrench'),
+                             ('cartesian_compliance_controller/target_wrench',
+                              'target_wrench'),
+                             ('cartesian_compliance_controller/target_frame',
+                              'target_frame'),
                          ],
                          output='screen',
                          condition=UnlessCondition(

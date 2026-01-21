@@ -265,12 +265,12 @@
         # rot_x: 20.0
         # rot_y: 20.0
         # rot_z: 20.0
-        trans_x: 4000.0
-        trans_y: 4000.0
-        trans_z:  500.0
-        rot_x:    150.0
-        rot_y:    150.0
-        rot_z:    150.0
+        trans_x: 400.0
+        trans_y: 400.0
+        trans_z:  50.0
+        rot_x:    15.0
+        rot_y:    15.0
+        rot_z:    15.0
 
       solver:
         error_scale: 0.5
@@ -286,12 +286,12 @@
         # rot_x: {p: 1.5}
         # rot_y: {p: 1.5}
         # rot_z: {p: 1.5}
-        trans_x: {p: 0.05, d: 0.02}
-        trans_y: {p: 0.05, d: 0.02}
-        trans_z: {p: 0.05, d: 0.02}
-        rot_x:   {p: 0.5}
-        rot_y:   {p: 0.5}
-        rot_z:   {p: 0.5}
+        trans_x: {p: 0.01, d: 0.02}
+        trans_y: {p: 0.01, d: 0.02}
+        trans_z: {p: 0.01, d: 0.02}
+        rot_x:   {p: 0.1}
+        rot_y:   {p: 0.1}
+        rot_z:   {p: 0.1}
 
   cartesian_force_controller:
     ros__parameters:
