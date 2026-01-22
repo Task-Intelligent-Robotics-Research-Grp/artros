@@ -1,0 +1,1035 @@
+Panels:
+  - Class: rviz_common/Displays
+    Help Height: 70
+    Name: Displays
+    Property Tree Widget:
+      Expanded:
+        - /MotionPlanning1
+        - /TF1
+      Splitter Ratio: 0.5
+    Tree Height: 569
+  - Class: rviz_common/Help
+    Name: Help
+  - Class: rviz_common/Views
+    Expanded:
+      - /Current View1
+    Name: Views
+    Splitter Ratio: 0.5
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Alpha: 0.5
+      Cell Size: 1
+      Class: rviz_default_plugins/Grid
+      Color: 160; 160; 164
+      Enabled: true
+      Line Style:
+        Line Width: 0.029999999329447746
+        Value: Lines
+      Name: Grid
+      Normal Cell Count: 0
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Plane: XY
+      Plane Cell Count: 10
+      Reference Frame: <Fixed Frame>
+      Value: true
+    - Acceleration_Scaling_Factor: 1
+      Class: moveit_rviz_plugin/MotionPlanning
+      Enabled: true
+      Move Group Namespace: ""
+      MoveIt_Allow_Approximate_IK: false
+      MoveIt_Allow_External_Program: false
+      MoveIt_Allow_Replanning: false
+      MoveIt_Allow_Sensor_Positioning: false
+      MoveIt_Planning_Attempts: 10
+      MoveIt_Planning_Time: 5
+      MoveIt_Use_Cartesian_Path: false
+      MoveIt_Use_Constraint_Aware_IK: false
+      MoveIt_Workspace:
+        Center:
+          X: 0
+          Y: 0
+          Z: 0
+        Size:
+          X: 2
+          Y: 2
+          Z: 2
+      Name: MotionPlanning
+      Planned Path:
+        Color Enabled: false
+        Interrupt Display: false
+        Links:
+          All Links Enabled: true
+          Expand Joint Details: false
+          Expand Link Details: false
+          Expand Tree: false
+          Link Tree Style: Links in Alphabetic Order
+          ground:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          left_lbr_link_0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_link_1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_link_2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_link_3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_link_4:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_link_5:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_link_6:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_link_7:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_link_ee:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          left_mounter_back_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_base_back_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_base_front_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_base_left_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_base_leg0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_base_leg1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_base_leg2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_base_leg3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          left_mounter_base_right_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_front_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_left_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_leg0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_leg1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_leg2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_leg3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_prop0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_prop1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_prop2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_prop3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_right_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_top_origin:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          right_lbr_link_0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_link_1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_link_2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_link_3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_link_4:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_link_5:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_link_6:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_link_7:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_link_ee:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          right_mounter_back_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_base_back_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_base_front_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_base_left_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_base_leg0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_base_leg1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_base_leg2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_base_leg3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          right_mounter_base_right_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_front_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_left_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_leg0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_leg1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_leg2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_leg3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_prop0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_prop1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_prop2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_prop3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_right_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_top_origin:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          world:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+        Loop Animation: false
+        Robot Alpha: 0.5
+        Robot Color: 150; 50; 150
+        Show Robot Collision: false
+        Show Robot Visual: true
+        Show Trail: false
+        State Display Time: 0.05 s
+        Trail Step Size: 1
+        Trajectory Topic: display_planned_path
+        Use Sim Time: false
+      Planning Metrics:
+        Payload: 1
+        Show Joint Torques: false
+        Show Manipulability: false
+        Show Manipulability Index: false
+        Show Weight Limit: false
+        TextHeight: 0.07999999821186066
+      Planning Request:
+        Colliding Link Color: 255; 0; 0
+        Goal State Alpha: 1
+        Goal State Color: 250; 128; 0
+        Interactive Marker Size: 0
+        Joint Violation Color: 255; 0; 255
+        Planning Group: left_lbr
+        Query Goal State: true
+        Query Start State: false
+        Show Workspace: false
+        Start State Alpha: 1
+        Start State Color: 0; 255; 0
+      Planning Scene Topic: monitored_planning_scene
+      Robot Description: robot_description
+      Scene Geometry:
+        Scene Alpha: 1
+        Scene Color: 50; 230; 50
+        Scene Display Time: 0.009999999776482582
+        Show Scene Geometry: true
+        Voxel Coloring: Z-Axis
+        Voxel Rendering: Occupied Voxels
+      Scene Robot:
+        Attached Body Color: 150; 50; 150
+        Links:
+          All Links Enabled: true
+          Expand Joint Details: false
+          Expand Link Details: false
+          Expand Tree: false
+          Link Tree Style: Links in Alphabetic Order
+          ground:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          left_lbr_link_0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_link_1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_link_2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_link_3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_link_4:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_link_5:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_link_6:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_link_7:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_link_ee:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          left_mounter_back_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_base_back_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_base_front_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_base_left_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_base_leg0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_base_leg1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_base_leg2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_base_leg3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          left_mounter_base_right_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_front_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_left_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_leg0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_leg1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_leg2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_leg3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_prop0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_prop1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_prop2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_prop3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_right_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_mounter_top_origin:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          right_lbr_link_0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_link_1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_link_2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_link_3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_link_4:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_link_5:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_link_6:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_link_7:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_link_ee:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          right_mounter_back_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_base_back_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_base_front_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_base_left_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_base_leg0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_base_leg1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_base_leg2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_base_leg3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          right_mounter_base_right_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_front_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_left_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_leg0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_leg1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_leg2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_leg3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_prop0:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_prop1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_prop2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_prop3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_right_bar:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_mounter_top_origin:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          world:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+        Robot Alpha: 0.5
+        Show Robot Collision: false
+        Show Robot Visual: true
+      Value: true
+      Velocity_Scaling_Factor: 1
+    - Class: rviz_default_plugins/TF
+      Enabled: true
+      Filter (blacklist): ""
+      Filter (whitelist): ""
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+        ground:
+          Value: true
+        left_lbr_link_0:
+          Value: true
+        left_lbr_link_1:
+          Value: true
+        left_lbr_link_2:
+          Value: true
+        left_lbr_link_3:
+          Value: true
+        left_lbr_link_4:
+          Value: true
+        left_lbr_link_5:
+          Value: true
+        left_lbr_link_6:
+          Value: true
+        left_lbr_link_7:
+          Value: true
+        left_lbr_link_ee:
+          Value: true
+        left_mounter_back_bar:
+          Value: true
+        left_mounter_base_back_bar:
+          Value: true
+        left_mounter_base_front_bar:
+          Value: true
+        left_mounter_base_left_bar:
+          Value: true
+        left_mounter_base_leg0:
+          Value: true
+        left_mounter_base_leg1:
+          Value: true
+        left_mounter_base_leg2:
+          Value: true
+        left_mounter_base_leg3:
+          Value: true
+        left_mounter_base_link:
+          Value: true
+        left_mounter_base_right_bar:
+          Value: true
+        left_mounter_front_bar:
+          Value: true
+        left_mounter_left_bar:
+          Value: true
+        left_mounter_leg0:
+          Value: true
+        left_mounter_leg1:
+          Value: true
+        left_mounter_leg2:
+          Value: true
+        left_mounter_leg3:
+          Value: true
+        left_mounter_prop0:
+          Value: true
+        left_mounter_prop1:
+          Value: true
+        left_mounter_prop2:
+          Value: true
+        left_mounter_prop3:
+          Value: true
+        left_mounter_right_bar:
+          Value: true
+        left_mounter_top_origin:
+          Value: true
+        right_lbr_link_0:
+          Value: true
+        right_lbr_link_1:
+          Value: true
+        right_lbr_link_2:
+          Value: true
+        right_lbr_link_3:
+          Value: true
+        right_lbr_link_4:
+          Value: true
+        right_lbr_link_5:
+          Value: true
+        right_lbr_link_6:
+          Value: true
+        right_lbr_link_7:
+          Value: true
+        right_lbr_link_ee:
+          Value: true
+        right_mounter_back_bar:
+          Value: true
+        right_mounter_base_back_bar:
+          Value: true
+        right_mounter_base_front_bar:
+          Value: true
+        right_mounter_base_left_bar:
+          Value: true
+        right_mounter_base_leg0:
+          Value: true
+        right_mounter_base_leg1:
+          Value: true
+        right_mounter_base_leg2:
+          Value: true
+        right_mounter_base_leg3:
+          Value: true
+        right_mounter_base_link:
+          Value: true
+        right_mounter_base_right_bar:
+          Value: true
+        right_mounter_front_bar:
+          Value: true
+        right_mounter_left_bar:
+          Value: true
+        right_mounter_leg0:
+          Value: true
+        right_mounter_leg1:
+          Value: true
+        right_mounter_leg2:
+          Value: true
+        right_mounter_leg3:
+          Value: true
+        right_mounter_prop0:
+          Value: true
+        right_mounter_prop1:
+          Value: true
+        right_mounter_prop2:
+          Value: true
+        right_mounter_prop3:
+          Value: true
+        right_mounter_right_bar:
+          Value: true
+        right_mounter_top_origin:
+          Value: true
+        world:
+          Value: true
+      Marker Scale: 0.5
+      Name: TF
+      Show Arrows: false
+      Show Axes: true
+      Show Names: true
+      Tree:
+        world:
+          ground:
+            left_mounter_base_link:
+              left_mounter_base_back_bar:
+                {}
+              left_mounter_base_front_bar:
+                left_mounter_leg0:
+                  left_mounter_leg1:
+                    {}
+                  left_mounter_leg2:
+                    {}
+                  left_mounter_leg3:
+                    {}
+              left_mounter_base_left_bar:
+                {}
+              left_mounter_base_leg0:
+                left_mounter_base_leg1:
+                  left_mounter_prop1:
+                    {}
+                left_mounter_base_leg2:
+                  left_mounter_prop2:
+                    {}
+                left_mounter_base_leg3:
+                  left_mounter_prop3:
+                    {}
+                left_mounter_prop0:
+                  {}
+              left_mounter_base_right_bar:
+                {}
+              left_mounter_front_bar:
+                left_mounter_back_bar:
+                  {}
+                left_mounter_left_bar:
+                  {}
+                left_mounter_right_bar:
+                  {}
+              left_mounter_top_origin:
+                left_lbr_link_0:
+                  left_lbr_link_1:
+                    left_lbr_link_2:
+                      left_lbr_link_3:
+                        left_lbr_link_4:
+                          left_lbr_link_5:
+                            left_lbr_link_6:
+                              left_lbr_link_7:
+                                left_lbr_link_ee:
+                                  {}
+            right_mounter_base_link:
+              right_mounter_base_back_bar:
+                {}
+              right_mounter_base_front_bar:
+                right_mounter_leg0:
+                  right_mounter_leg1:
+                    {}
+                  right_mounter_leg2:
+                    {}
+                  right_mounter_leg3:
+                    {}
+              right_mounter_base_left_bar:
+                {}
+              right_mounter_base_leg0:
+                right_mounter_base_leg1:
+                  right_mounter_prop1:
+                    {}
+                right_mounter_base_leg2:
+                  right_mounter_prop2:
+                    {}
+                right_mounter_base_leg3:
+                  right_mounter_prop3:
+                    {}
+                right_mounter_prop0:
+                  {}
+              right_mounter_base_right_bar:
+                {}
+              right_mounter_front_bar:
+                right_mounter_back_bar:
+                  {}
+                right_mounter_left_bar:
+                  {}
+                right_mounter_right_bar:
+                  {}
+              right_mounter_top_origin:
+                right_lbr_link_0:
+                  right_lbr_link_1:
+                    right_lbr_link_2:
+                      right_lbr_link_3:
+                        right_lbr_link_4:
+                          right_lbr_link_5:
+                            right_lbr_link_6:
+                              right_lbr_link_7:
+                                right_lbr_link_ee:
+                                  {}
+      Update Interval: 0
+      Value: true
+  Enabled: true
+  Global Options:
+    Background Color: 48; 48; 48
+    Fixed Frame: world
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz_default_plugins/Interact
+      Hide Inactive Objects: true
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+  Transformation:
+    Current:
+      Class: rviz_default_plugins/TF
+  Value: true
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Distance: 4.42136287689209
+      Enable Stereo Rendering:
+        Stereo Eye Separation: 0.05999999865889549
+        Stereo Focal Distance: 1
+        Swap Stereo Eyes: false
+        Value: false
+      Focal Point:
+        X: -0.38611873984336853
+        Y: 0.21135903894901276
+        Z: 0.6811259388923645
+      Focal Shape Fixed Size: true
+      Focal Shape Size: 0.05000000074505806
+      Invert Z Axis: false
+      Name: Current View
+      Near Clip Distance: 0.009999999776482582
+      Pitch: 0.550000011920929
+      Target Frame: world
+      Value: Orbit (rviz_default_plugins)
+      Yaw: 0.7620016932487488
+    Saved: ~
+Window Geometry:
+  Displays:
+    collapsed: false
+  Height: 1278
+  Help:
+    collapsed: false
+  Hide Left Dock: false
+  Hide Right Dock: false
+  MotionPlanning:
+    collapsed: false
+  MotionPlanning - Trajectory Slider:
+    collapsed: false
+  QMainWindow State: 000000ff00000000fd0000000100000000000002b4000004a4fc0200000004fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004100fffffffc0000003d000002d90000019a0100001cfa000000000100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001ee00fffffffb000000100044006900730070006c0061007900730100000000000002b40000015600fffffffb0000000800480065006c0070000000029a0000006e0000006e00fffffffb0000000a00560069006500770073010000031c000001c5000000a400ffffff0000052a000004a400000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  Views:
+    collapsed: false
+  Width: 2020
+  X: 883
+  Y: 273

@@ -194,19 +194,21 @@
     <xacro:aist_box name="${prefix}prop2"
 		    width="${thickness}"
 		    length="${prop_length}"
-		    height="${-thickness}"
+		    height="${thickness}"
 		    parent="${prefix}base_leg2"
 		    rgba="${rgba}">
-      <origin xyz="0 0 ${base_leg_height}" rpy="${radians(135)} 0 0"/>
+      <origin xyz="${thickness} 0 ${base_leg_height}"
+	      rpy="${radians(45)} 0 ${radians(180)}"/>
     </xacro:aist_box>
 
     <xacro:aist_box name="${prefix}prop3"
 		    width="${thickness}"
 		    length="${prop_length}"
-		    height="${-thickness}"
+		    height="${thickness}"
 		    parent="${prefix}base_leg3"
 		    rgba="${rgba}">
-      <origin xyz="0 0 ${base_leg_height}" rpy="${radians(135)} 0 0"/>
+      <origin xyz="${thickness} 0 ${base_leg_height}"
+	      rpy="${radians(45)} 0 ${radians(180)}"/>
     </xacro:aist_box>
 
     <xacro:macro name="auxiliary_frame" params="parent child *origin">

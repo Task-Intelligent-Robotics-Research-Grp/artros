@@ -115,11 +115,6 @@ def launch_setup(context):
             inactive_controllers \
                 += arm_config.get('extra_inactive_controllers', [])
 
-        print('### active_controllers')
-        print(active_controllers)
-        print('### inactive_controllers')
-        print(inactive_controllers)
-
         arm_props = get_arm_props(arm_config['type'])
         actions.append(
             GroupAction(

@@ -1,0 +1,17 @@
+# Default initial positions for dual_lbr_base_scene's ros2_control fake system
+
+initial_positions:
+  left_lbr_A1: 0
+  left_lbr_A2: 0
+  left_lbr_A3: 0
+  left_lbr_A4: 0
+  left_lbr_A5: 0
+  left_lbr_A6: 0
+  left_lbr_A7: 0
+  right_lbr_A1: 0
+  right_lbr_A2: 0
+  right_lbr_A3: 0
+  right_lbr_A4: 0
+  right_lbr_A5: 0
+  right_lbr_A6: 0
+  right_lbr_A7: 0
