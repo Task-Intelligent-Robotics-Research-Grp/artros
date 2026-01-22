@@ -45,7 +45,7 @@ def launch_setup(context):
             SetLaunchConfiguration('update_rate',
                                    str(arm_props['update_rate'])) \
                                    .execute(context)
-            SetLaunchConfiguration('tf_prefix', arm_name + '_') \
+            SetLaunchConfiguration('arm_name', arm_name) \
                 .execute(context)
             SetLaunchConfiguration('speed_scaling_interface_name', '""') \
                 .execute(context)
@@ -115,6 +115,11 @@ def launch_setup(context):
             inactive_controllers \
                 += arm_config.get('extra_inactive_controllers', [])
 
+        print('### active_controllers')
+        print(active_controllers)
+        print('### inactive_controllers')
+        print(inactive_controllers)
+
         arm_props = get_arm_props(arm_config['type'])
         actions.append(
             GroupAction(
@@ -122,10 +127,10 @@ def launch_setup(context):
                     PushROSNamespace(arm_name),
                     SetLaunchConfiguration('update_rate',
                                            str(arm_props['update_rate'])),
-                    SetLaunchConfiguration('tf_prefix', arm_name + '_'),
+                    SetLaunchConfiguration('arm_name', arm_name),
                     SetLaunchConfiguration('speed_scaling_interface_name',
-                                           [LaunchConfiguration('tf_prefix'),
-                                            'speed_scaling/speed_scaling_factor']),
+                                           [LaunchConfiguration('arm_name'),
+                                            '_speed_scaling/speed_scaling_factor']),
                     Node(package='aist_bringup',
                          executable='robot_description_appender',
                          parameters=[
@@ -133,9 +138,9 @@ def launch_setup(context):
                               ParameterValue(
                                   Command([
                                       FindExecutable(name='xacro'), ' ',
-                                      arm_props['gz_ros2_control_file' if sim
-                                                else 'ros2_control_file'],
-                                      ' name:=', arm_name
+                                      arm_props['ros2_control_file'],
+                                      ' name:=', arm_name,
+                                      ' sim:=',  LaunchConfiguration('sim'),
                                   ]),
                                   value_type=str)}
                          ],
@@ -177,13 +182,13 @@ def launch_setup(context):
 
     # Instantiate controller configuration files for each gripper.
     gripper_controllers = []
-    for gripper_name, gripper_config in config['grippers'].items():
+    for gripper_name, gripper_config in config.get('grippers', {}).items():
         gripper_props = get_gripper_props(gripper_config['type'])
         template = gripper_props.get('gz_controllers_template') if sim else \
                    gripper_props.get('controllers_template')
         if template is not None:
-            SetLaunchConfiguration('tf_prefix',
-                                   gripper_name + '_').execute(context)
+            SetLaunchConfiguration('gripper_name',
+                                   gripper_name).execute(context)
             instantiate_file(context, template,
                              '/tmp/' + gripper_name + '_controllers.yaml')
             gripper_controllers.append(gripper_name + '_controller')

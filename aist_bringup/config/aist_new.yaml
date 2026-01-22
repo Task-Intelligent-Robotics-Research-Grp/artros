@@ -28,6 +28,9 @@ a_bot:
       - freedrive_mode_controller
       - tool_contact_controller
 
+  a_bot_gripper:
+    type:          RobotiqGripper
+
 b_bot:
   b_bot:
     type:               URe
@@ -55,16 +58,12 @@ b_bot:
       - freedrive_mode_controller
       - tool_contact_controller
 
-##############
-#  Grippers  #
-##############
-a_bot:
-  a_bot_gripper:
-    type:          RobotiqGripper
-b_bot:
   b_bot_gripper:
     type:          RobotiqGripper
 
+##############
+#  Grippers  #
+##############
 precision_tools:
   type:            DynamixelDevices
   tools:

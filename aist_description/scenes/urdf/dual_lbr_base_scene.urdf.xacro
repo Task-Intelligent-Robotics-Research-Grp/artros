@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="dual_lbr_base_scene" >
+
+  <xacro:arg name="scene"	default=""/>
+  <xacro:arg name="sim"		default="false"/>
+  <xacro:arg name="joint_limits_path"
+	     default="$(find lbr_description)/urdf/iiwa14/joint_limits.yaml"/>
+
+  <!-- location of robot arms -->
+  <xacro:property name="left_lbr_x"	 value="-0.5"/>
+  <xacro:property name="left_lbr_y"	 value="0.0"/>
+  <xacro:property name="left_lbr_theta"	 value="${radians(90)}"/>
+  <xacro:property name="right_lbr_x"	 value="0.5"/>
+  <xacro:property name="right_lbr_y"	 value="0.0"/>
+  <xacro:property name="right_lbr_theta" value="${radians(90)}"/>
+
+  <!-- ground -->
+  <link name="ground"/>
+
+  <!-- arm mounters -->
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/lbr_mounter.urdf.xacro"/>
+
+  <xacro:lbr_mounter prefix="left_mounter_" parent="ground">
+    <origin xyz="${left_lbr_x} ${left_lbr_y} 0" rpy="0 0 0"/>
+  </xacro:lbr_mounter>
+  <xacro:lbr_mounter prefix="right_mounter_" parent="ground">
+    <origin xyz="${right_lbr_x} ${right_lbr_y} 0" rpy="0 0 0"/>
+  </xacro:lbr_mounter>
+
+  <!-- left arm -->
+  <xacro:include filename="$(find lbr_description
+			   )/urdf/iiwa14/iiwa14.urdf.xacro"/>
+  <joint name="left_lbr_link_0_joint" type="fixed">
+    <parent link = "left_mounter_top_origin"/>
+    <child  link = "left_lbr_link_0"/>
+    <origin xyz="0 0 0" rpy="0 0 ${left_lbr_theta}"/>
+  </joint>
+  <xacro:iiwa14 robot_name="left_lbr"
+		joint_limits_path="$(arg joint_limits_path)"/>
+
+  <!-- right arm -->
+  <joint name="right_lbr_link_0_joint" type="fixed">
+    <parent link = "right_mounter_top_origin"/>
+    <child  link = "right_lbr_link_0"/>
+    <origin xyz="0 0 0" rpy="0 0 ${right_lbr_theta}"/>
+  </joint>
+  <xacro:iiwa14 robot_name="right_lbr"
+		joint_limits_path="$(arg joint_limits_path)"/>
+
+  <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
+  <link name="world"/>
+  <joint name="ground_joint" type="fixed">
+    <parent link="world"/>
+    <child  link="ground"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Import indivisual scene -->
+  <xacro:if value="${'$(arg scene)' != ''}">
+    <xacro:include filename="$(find aist_description)/scenes/urdf/$(arg
+			     scene).urdf.xacro"/>
+  </xacro:if>
+
+  <!-- Settings for gazebo simulation -->
+  <xacro:if value="$(arg sim)">
+    <xacro:include filename="$(find aist_bringup)/urdf/lbr_gazebo.xacro"/>
+    <xacro:lbr_gazebo robot_name="left_lbr"/>
+    <xacro:lbr_gazebo robot_name="right_lbr"/>
+  </xacro:if>
+
+</robot>

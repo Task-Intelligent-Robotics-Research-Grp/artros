@@ -2,6 +2,7 @@
 <robot xmlns:xacro="http://wiki.ros.org/xacro" name="ur_ros2_control">
   <!-- robot name parameter -->
   <xacro:arg name="name" default="a_bot"/>
+  <xacro:arg name="sim"  default="false"/>
 
   <xacro:property name ="name"
 		  value="$(arg name)"/>
@@ -83,35 +84,45 @@
 			 wrist_3_joint=initial_position_coordinates[5])}"/>
 
   <!-- ros2 control instance -->
-  <xacro:include filename="$(find ur_robot_driver
-			   )/urdf/ur.ros2_control.xacro" />
-  <xacro:ur_ros2_control
-    name="${name}"
-    tf_prefix="${name}_"
-    kinematics_parameters_file="${kinematics_params}"
-    transmission_hw_interface="${transmission_hw_interface}"
-    use_mock_hardware="${use_mock_hardware}"
-    mock_sensor_commands="${mock_sensor_commands}"
-    headless_mode="${headless_mode}"
-    initial_positions="${initial_positions}"
-    use_tool_communication="${use_tool_communication}"
-    tool_voltage="${tool_voltage}"
-    tool_parity="${tool_parity}"
-    tool_baud_rate="${tool_baud_rate}"
-    tool_stop_bits="${tool_stop_bits}"
-    tool_rx_idle_chars="${tool_rx_idle_chars}"
-    tool_tx_idle_chars="${tool_tx_idle_chars}"
-    tool_device_name="${tool_device_name}"
-    tool_tcp_port="${tool_tcp_port}"
-    robot_ip="${robot_ip}"
-    script_filename="${script_filename}"
-    output_recipe_filename="${output_recipe_filename}"
-    input_recipe_filename="${input_recipe_filename}"
-    reverse_ip="${reverse_ip}"
-    script_command_port="${script_command_port}"
-    reverse_port="${reverse_port}"
-    script_sender_port="${script_sender_port}"
-    trajectory_port="${trajectory_port}"
-  />
+  <xacro:unless value="$(arg sim)">
+    <xacro:include filename="$(find ur_robot_driver
+			     )/urdf/ur.ros2_control.xacro" />
+    <xacro:ur_ros2_control
+	name="${name}"
+	tf_prefix="${name}_"
+	kinematics_parameters_file="${kinematics_params}"
+	transmission_hw_interface="${transmission_hw_interface}"
+	use_mock_hardware="${use_mock_hardware}"
+	mock_sensor_commands="${mock_sensor_commands}"
+	headless_mode="${headless_mode}"
+	initial_positions="${initial_positions}"
+	use_tool_communication="${use_tool_communication}"
+	tool_voltage="${tool_voltage}"
+	tool_parity="${tool_parity}"
+	tool_baud_rate="${tool_baud_rate}"
+	tool_stop_bits="${tool_stop_bits}"
+	tool_rx_idle_chars="${tool_rx_idle_chars}"
+	tool_tx_idle_chars="${tool_tx_idle_chars}"
+	tool_device_name="${tool_device_name}"
+	tool_tcp_port="${tool_tcp_port}"
+	robot_ip="${robot_ip}"
+	script_filename="${script_filename}"
+	output_recipe_filename="${output_recipe_filename}"
+	input_recipe_filename="${input_recipe_filename}"
+	reverse_ip="${reverse_ip}"
+	script_command_port="${script_command_port}"
+	reverse_port="${reverse_port}"
+	script_sender_port="${script_sender_port}"
+	trajectory_port="${trajectory_port}"/>
+  </xacro:unless>
+  <xacro:if value="$(arg sim)">
+    <xacro:include filename="$(find ur_simulation_gz
+			     )/urdf/ur_gz.ros2_control.xacro"/>
+    <xacro:ur_ros2_control
+	name="${name}"
+	tf_prefix="${name}_"
+	transmission_hw_interface="${transmission_hw_interface}"
+	initial_positions="${initial_positions}"/>
+  </xacro:if>
 
 </robot>

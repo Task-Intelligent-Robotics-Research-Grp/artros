@@ -1,0 +1,227 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="lbr_mounter">
+
+  <xacro:macro name="lbr_mounter"
+	       params="prefix width:=0.700 length=0.204 height:=0.730
+		       thickness:=0.050 base_length:=1.500
+		       base_leg_height:=0.100 base_leg_tread:=0.934
+		       parent rgba:='0.7 0.7 0.7 1' *origin">
+
+    <xacro:include filename="$(find aist_description
+			     )/objects/urdf/aist_box.urdf.xacro"/>
+
+    <link name="${prefix}base_link"/>
+    <joint name="${prefix}base_link_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child  link="${prefix}base_link"/>
+      <xacro:insert_block name="origin"/>
+    </joint>
+
+    <xacro:aist_box name="${prefix}base_leg0"
+		    width="${thickness}"
+		    length="${thickness}"
+		    height="${base_leg_height}"
+		    parent="${prefix}base_link"
+		    rgba="${rgba}">
+      <origin xyz="${-0.5*width} ${-0.5*base_leg_tread} 0" rpy="0 0 0"/>
+    </xacro:aist_box>
+
+    <xacro:aist_box name="${prefix}base_leg1"
+		    width="${thickness}"
+		    length="${thickness}"
+		    height="${base_leg_height}"
+		    parent="${prefix}base_leg0"
+		    rgba="${rgba}">
+      <origin xyz="${width - thickness} 0 0" rpy="0 0 0"/>
+    </xacro:aist_box>
+
+    <xacro:aist_box name="${prefix}base_leg2"
+		    width="${thickness}"
+		    length="${thickness}"
+		    height="${base_leg_height}"
+		    parent="${prefix}base_leg0"
+		    rgba="${rgba}">
+      <origin xyz="0 ${base_leg_tread - thickness} 0" rpy="0 0 0"/>
+    </xacro:aist_box>
+
+    <xacro:aist_box name="${prefix}base_leg3"
+		    width="${thickness}"
+		    length="${thickness}"
+		    height="${base_leg_height}"
+		    parent="${prefix}base_leg0"
+		    rgba="${rgba}">
+      <origin xyz="${width - thickness} ${base_leg_tread - thickness} 0"
+	      rpy="0 0 0"/>
+    </xacro:aist_box>
+
+    <xacro:aist_box name="${prefix}base_front_bar"
+		    width="${width - 2*thickness}"
+		    length="${thickness}"
+		    height="${thickness}"
+		    parent="${prefix}base_link"
+		    rgba="${rgba}">
+      <origin xyz="${-0.5*width + thickness} ${-0.5*length} ${base_leg_height}"
+	      rpy="0 0 0"/>
+    </xacro:aist_box>
+
+    <xacro:aist_box name="${prefix}base_back_bar"
+		    width="${width - 2*thickness}"
+		    length="${thickness}"
+		    height="${thickness}"
+		    parent="${prefix}base_link"
+		    rgba="${rgba}">
+      <origin xyz="${-0.5*width + thickness}
+		   ${0.5*length - thickness} ${base_leg_height}"
+	      rpy="0 0 0"/>
+    </xacro:aist_box>
+
+    <xacro:aist_box name="${prefix}base_left_bar"
+		    width="${thickness}"
+		    length="${base_length}"
+		    height="${thickness}"
+		    parent="${prefix}base_link"
+		    rgba="${rgba}">
+      <origin xyz="${-0.5*width} ${-0.5*base_length} ${base_leg_height}"
+	      rpy="0 0 0"/>
+    </xacro:aist_box>
+
+    <xacro:aist_box name="${prefix}base_right_bar"
+		    width="${thickness}"
+		    length="${base_length}"
+		    height="${thickness}"
+		    parent="${prefix}base_link"
+		    rgba="${rgba}">
+      <origin xyz="${0.5*width - thickness} ${-0.5*base_length} ${base_leg_height}"
+	      rpy="0 0 0"/>
+    </xacro:aist_box>
+
+    <xacro:aist_box name="${prefix}leg0"
+		    width="${thickness}"
+		    length="${thickness}"
+		    height="${height - base_leg_height - 2*thickness}"
+		    parent="${prefix}base_front_bar"
+		    rgba="${rgba}">
+      <origin xyz="${-thickness} 0 ${thickness}" rpy="0 0 0"/>
+    </xacro:aist_box>
+
+    <xacro:aist_box name="${prefix}leg1"
+		    width="${thickness}"
+		    length="${thickness}"
+		    height="${height - base_leg_height - 2*thickness}"
+		    parent="${prefix}leg0"
+		    rgba="${rgba}">
+      <origin xyz="${width - thickness} 0 0" rpy="0 0 0"/>
+    </xacro:aist_box>
+
+    <xacro:aist_box name="${prefix}leg2"
+		    width="${thickness}"
+		    length="${thickness}"
+		    height="${height - base_leg_height - 2*thickness}"
+		    parent="${prefix}leg0"
+		    rgba="${rgba}">
+      <origin xyz="0 ${length - thickness} 0" rpy="0 0 0"/>
+    </xacro:aist_box>
+
+    <xacro:aist_box name="${prefix}leg3"
+		    width="${thickness}"
+		    length="${thickness}"
+		    height="${height - base_leg_height - 2*thickness}"
+		    parent="${prefix}leg0"
+		    rgba="${rgba}">
+      <origin xyz="${width - thickness} ${length - thickness} 0" rpy="0 0 0"/>
+    </xacro:aist_box>
+
+    <xacro:aist_box name="${prefix}front_bar"
+		    width="${width}"
+		    length="${thickness}"
+		    height="${thickness}"
+		    parent="${prefix}base_link"
+		    rgba="${rgba}">
+      <origin xyz="${-0.5*width} ${-0.5*length} ${height - thickness}"
+	      rpy="0 0 0"/>
+    </xacro:aist_box>
+
+    <xacro:aist_box name="${prefix}back_bar"
+		    width="${width}"
+		    length="${thickness}"
+		    height="${thickness}"
+		    parent="${prefix}front_bar"
+		    rgba="${rgba}">
+      <origin xyz="0 ${length - thickness} 0" rpy="0 0 0"/>
+    </xacro:aist_box>
+
+    <xacro:aist_box name="${prefix}left_bar"
+		    width="${thickness}"
+		    length="${length - 2*thickness}"
+		    height="${thickness}"
+		    parent="${prefix}front_bar"
+		    rgba="${rgba}">
+      <origin xyz="0 ${thickness} 0" rpy="0 0 0"/>
+    </xacro:aist_box>
+
+    <xacro:aist_box name="${prefix}right_bar"
+		    width="${thickness}"
+		    length="${length - 2*thickness}"
+		    height="${thickness}"
+		    parent="${prefix}front_bar"
+		    rgba="${rgba}">
+      <origin xyz="${width - thickness} ${thickness} 0" rpy="0 0 0"/>
+    </xacro:aist_box>
+
+    <xacro:property name="prop_length"
+		    value="${0.5*1.4142*(base_leg_tread - length)}"/>
+
+    <xacro:aist_box name="${prefix}prop0"
+		    width="${thickness}"
+		    length="${prop_length}"
+		    height="${thickness}"
+		    parent="${prefix}base_leg0"
+		    rgba="${rgba}">
+      <origin xyz="0 ${thickness} ${base_leg_height}"
+	      rpy="${radians(45)} 0 0"/>
+    </xacro:aist_box>
+
+    <xacro:aist_box name="${prefix}prop1"
+		    width="${thickness}"
+		    length="${prop_length}"
+		    height="${thickness}"
+		    parent="${prefix}base_leg1"
+		    rgba="${rgba}">
+      <origin xyz="0 ${thickness} ${base_leg_height}"
+	      rpy="${radians(45)} 0 0"/>
+    </xacro:aist_box>
+
+    <xacro:aist_box name="${prefix}prop2"
+		    width="${thickness}"
+		    length="${prop_length}"
+		    height="${-thickness}"
+		    parent="${prefix}base_leg2"
+		    rgba="${rgba}">
+      <origin xyz="0 0 ${base_leg_height}" rpy="${radians(135)} 0 0"/>
+    </xacro:aist_box>
+
+    <xacro:aist_box name="${prefix}prop3"
+		    width="${thickness}"
+		    length="${prop_length}"
+		    height="${-thickness}"
+		    parent="${prefix}base_leg3"
+		    rgba="${rgba}">
+      <origin xyz="0 0 ${base_leg_height}" rpy="${radians(135)} 0 0"/>
+    </xacro:aist_box>
+
+    <xacro:macro name="auxiliary_frame" params="parent child *origin">
+      <joint name="${child}_joint" type="fixed">
+	<parent link="${parent}" />
+	<child  link="${child}"/>
+	<xacro:insert_block name="origin"/>
+      </joint>
+      <link name="${child}"/>
+    </xacro:macro>
+
+    <xacro:auxiliary_frame parent="${prefix}base_link"
+			   child="${prefix}top_origin">
+      <origin xyz="0 0 ${height}" rpy="0 0 0"/>
+    </xacro:auxiliary_frame>
+
+  </xacro:macro>
+</robot>

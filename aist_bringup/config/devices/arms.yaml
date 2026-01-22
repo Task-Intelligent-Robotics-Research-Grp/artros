@@ -21,3 +21,17 @@ b_bot:
   script_command_port: 50008
   trajectory_port:     50007
   initial_positions:   [1.5708, -2.1, 1.4, -0.85, -1.5708, 0.0]
+
+left_lbr:
+  mode:             hardware
+  sys_cfg_pkg:      aist_bringup
+  sys_cfg:          config/devices/left_lbr_system.config.yaml
+  init_jnt_pos_pkg: aist_bringup
+  init_jnt_pos:     config/devices/left_lbr_initial_joint_positions.yaml
+
+right_lbr:
+  mode:             hardware
+  sys_cfg_pkg:      aist_bringup
+  sys_cfg:          config/devices/right_lbr_system.config.yaml
+  init_jnt_pos_pkg: aist_bringup
+  init_jnt_pos:     config/devices/right_lbr_initial_joint_positions.yaml

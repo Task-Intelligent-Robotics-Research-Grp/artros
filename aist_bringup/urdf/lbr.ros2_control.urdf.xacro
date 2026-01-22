@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="lbr_ros2_control">
+  <!-- robot name parameter -->
+  <xacro:arg name="name" default="left_lbr"/>
+  <xacro:arg name="sim"  default="false"/>
+
+  <xacro:property name ="name"
+		  value="$(arg name)"/>
+
+  <!-- Load hardware configuration parameters from YAML -->
+  <xacro:property name ="config_file"
+		  value="$(find aist_bringup)/config/devices/arms.yaml"/>
+  <xacro:property name ="config"
+		  value="${xacro.load_yaml(config_file)[name]}"/>
+
+  <!-- ros2_control related parameters -->
+  <xacro:property name ="mode"
+		  value="${config.get('mode', 'hardware')}"/>
+  <xacro:property name ="sys_cfg_pkg"
+		  value="${config.get('sys_cfg_pkg', 'lbr_description')}"/>
+  <xacro:property name ="sys_cfg"
+		  value="${config.get('sys_cfg',
+			 'ros2_control/lbr_system_config.yaml')}"/>
+  <xacro:property name ="system_config_path"
+		  value="$(find ${sys_cfg_pkg})/${sys_cfg}"/>
+  <xacro:property name ="init_jnt_pos_pkg"
+		  value="${config.get('init_jnt_pos_pkg',
+			 'lbr_description')}"/>
+  <xacro:property name ="init_jnt_pos"
+		  value="${config.get('init_jnt_pos',
+			 'ros2_control/initial_joint_positions.yaml')}"/>
+  <xacro:property name ="initial_joint_positions_path"
+		  value="$(find ${init_jnt_pos_pkg})/${init_jnt_pos}"/>
+
+  <!-- ros2 control instance -->
+  <xacro:include filename="$(find lbr_description
+			   )/ros2_control/lbr_system_interface.xacro"/>
+  <xacro:if value="$(arg sim)">
+    <xacro:lbr_system_interface
+	robot_name="${name}"
+	mode="gazebo"
+	system_config_path="${system_config_path}"
+	initial_joint_positions_path="${initial_joint_positions_path}">
+    </xacro:lbr_system_interface>
+  </xacro:if>
+  <xacro:unless value="$(arg sim)">
+    <xacro:lbr_system_interface
+	robot_name="${name}"
+	mode="${mode}"
+	system_config_path="${system_config_path}"
+	initial_joint_positions_path="${initial_joint_positions_path}">
+    </xacro:lbr_system_interface>
+  </xacro:unless>
+
+</robot>

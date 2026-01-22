@@ -22,10 +22,6 @@ ARM_PROPS = {
                                          [FindPackageShare('aist_bringup'),
                                           'urdf',
                                           'ur.ros2_control.urdf.xacro']),
-        'gz_ros2_control_file':      PathJoinSubstitution(
-                                         [FindPackageShare('aist_bringup'),
-                                          'urdf',
-                                          'ur_gz.ros2_control.urdf.xacro']),
     },
     'URe':
     {
@@ -42,11 +38,19 @@ ARM_PROPS = {
                                          [FindPackageShare('aist_bringup'),
                                           'urdf',
                                           'ur.ros2_control.urdf.xacro']),
-        'gz_ros2_control_file':      PathJoinSubstitution(
+    },
+    'LBR':
+    {
+        'update_rate':               100,
+        'controllers_template':      PathJoinSubstitution(
+                                         [FindPackageShare('aist_bringup'),
+                                          'config', 'templates',
+                                          'lbr_controllers.yaml']),
+        'ros2_control_file':         PathJoinSubstitution(
                                          [FindPackageShare('aist_bringup'),
                                           'urdf',
-                                          'ur_gz.ros2_control.urdf.xacro']),
-    },
+                                          'lbr.ros2_control.urdf.xacro']),
+    }
 }
 
 GRIPPER_PROPS = {

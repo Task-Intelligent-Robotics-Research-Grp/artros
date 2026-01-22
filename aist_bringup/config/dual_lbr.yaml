@@ -1,0 +1,26 @@
+arms:
+  left_lbr:
+    type:              LBR
+    default_gripper:   left_lbr_gripper
+    active_controller: joint_trajectory_controller
+    consistent_controllers:
+      - joint_state_broadcaster
+    extra_consistent_controllers:
+      - force_torque_broadcaster
+      - estimated_wrench_interface
+      - lbr_state_broadcaster
+    inactive_controllers:
+      - forward_position_controller
+
+  right_lbr:
+    type:              LBR
+    default_gripper:   right_lbr_gripper
+    active_controller: joint_trajectory_controller
+    consistent_controllers:
+      - joint_state_broadcaster
+    extra_consistent_controllers:
+      - force_torque_broadcaster
+      - estimated_wrench_interface
+      - lbr_state_broadcaster
+    inactive_controllers:
+      - forward_position_controller
