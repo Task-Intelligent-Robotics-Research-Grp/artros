@@ -127,9 +127,9 @@ def launch_setup(context):
                                            [LaunchConfiguration('arm_name'),
                                             '_speed_scaling/speed_scaling_factor']),
                     Node(package='aist_bringup',
-                         executable='robot_description_appender',
+                         executable='append_ros2_control',
                          parameters=[
-                             {'extra_description':
+                             {'ros2_control_description':
                               ParameterValue(
                                   Command([
                                       FindExecutable(name='xacro'), ' ',

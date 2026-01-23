@@ -44,16 +44,16 @@ from rclpy.qos    import QoSProfile, DurabilityPolicy
 from std_msgs.msg import String
 
 #########################################################################
-#  class RobotDescriptionAppender                                       #
+#  class Ros2ControlAppender                                            #
 #########################################################################
-class RobotDescriptionAppender(Node):
+class Ros2ControlAppender(Node):
     def __init__(self, name):
         super().__init__(name)
 
         qos = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL)
 
-        self._ed  = ET.fromstring(self.declare_parameter('extra_description',
-                                                         '').value)
+        self._ed  = ET.fromstring(self.declare_parameter(
+                                      'ros2_control_description', '').value)
         self._sub = self.create_subscription(String, 'robot_description_in',
                                              self._robot_description_cb, qos)
         self._pub = self.create_publisher(String, 'robot_description', qos)
@@ -75,7 +75,7 @@ def main():
     try:
         rclpy.init(args=sys.argv)
 
-        node = RobotDescriptionAppender('robot_description_appender')
+        node = Ros2ControlAppender('append_ros2_control')
         rclpy.spin(node)
     except Exception as e:
         print('*** Terminate the node due to exception: %s' % e)

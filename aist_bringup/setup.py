@@ -27,7 +27,7 @@ setup(
     tests_require=["pytest"],
     entry_points={
         'console_scripts': [
-            'robot_description_appender = ' + package_name + '.robot_description_appender:main'
+            'append_ros2_control = ' + package_name + '.append_ros2_control:main'
         ]
     },
 )
