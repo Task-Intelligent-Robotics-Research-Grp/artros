@@ -1,8 +1,10 @@
 from launch                            import LaunchDescription
 from launch.actions                    import (SetLaunchConfiguration,
                                                IncludeLaunchDescription,
-                                               OpaqueFunction, GroupAction)
+                                               OpaqueFunction, GroupAction,
+                                               RegisterEventHandler)
 from launch.conditions                 import IfCondition, UnlessCondition
+from launch.event_handlers             import OnProcessExit
 from launch.substitutions              import (Command, FindExecutable,
                                                LaunchConfiguration,
                                                PathJoinSubstitution)
@@ -52,20 +54,7 @@ def launch_setup(context):
             instantiate_file(context, arm_props['controllers_template'],
                              '/tmp/' + arm_name + '_controllers.yaml')
 
-    # Create robot description from URDF.
-    robot_description = ParameterValue(
-                            Command([FindExecutable(name='xacro'),
-                                     ' ',
-                                     PathJoinSubstitution(
-                                         [FindPackageShare('aist_description'),
-                                          'scenes', 'urdf',
-                                          [LaunchConfiguration('config'),
-                                           '_base_scene.urdf.xacro']]),
-                                     ' scene:=', LaunchConfiguration('scene'),
-                                     ' sim:=',   LaunchConfiguration('sim')]),
-                            value_type=str)
-
-    # Setup actions for launching nodes,
+    # Setup actions executed after robot_description topic being available.
     actions = [
         Node(package='joint_state_publisher',
              executable='joint_state_publisher',
@@ -74,13 +63,6 @@ def launch_setup(context):
                   'use_sim_time': LaunchConfiguration('sim'),
                   'source_list':  [robot_name + '/joint_states' \
                                    for robot_name in config['arms']]}
-             ],
-             output='screen'),
-        Node(package='robot_state_publisher',
-             executable='robot_state_publisher',
-             parameters=[
-                 {'use_sim_time':      LaunchConfiguration('sim'),
-                  'robot_description': robot_description}
              ],
              output='screen'),
         GroupAction(
@@ -134,7 +116,7 @@ def launch_setup(context):
                                   Command([
                                       FindExecutable(name='xacro'), ' ',
                                       arm_props['ros2_control_file'],
-                                      ' name:=', arm_name,
+                                      ' name:=', LaunchConfiguration('arm_name'),
                                       ' sim:=',  LaunchConfiguration('sim'),
                                   ]),
                                   value_type=str)}
@@ -195,7 +177,34 @@ def launch_setup(context):
                  executable='spawner',
                  arguments=['joint_state_broadcaster'] + gripper_controllers))
 
-    return actions
+    # Create robot description from URDF.
+    robot_description = ParameterValue(
+                            Command([FindExecutable(name='xacro'),
+                                     ' ',
+                                     PathJoinSubstitution(
+                                         [FindPackageShare('aist_description'),
+                                          'scenes', 'urdf',
+                                          [LaunchConfiguration('config'),
+                                           '_base_scene.urdf.xacro']]),
+                                     ' scene:=', LaunchConfiguration('scene'),
+                                     ' sim:=',   LaunchConfiguration('sim')]),
+                            value_type=str)
+    wait_for_robot_description = Node(package='aist_bringup',
+                                      executable='wait_for_robot_description',
+                                      output='screen')
+    return [
+        Node(package='robot_state_publisher',
+             executable='robot_state_publisher',
+             parameters=[
+                 {'use_sim_time':      LaunchConfiguration('sim'),
+                  'robot_description': robot_description}
+             ],
+             output='screen'),
+        wait_for_robot_description,
+        RegisterEventHandler(
+            OnProcessExit(target_action=wait_for_robot_description,
+                          on_exit=actions)),
+    ]
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \

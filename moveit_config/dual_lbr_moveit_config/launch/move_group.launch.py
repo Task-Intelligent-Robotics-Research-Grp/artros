@@ -59,43 +59,50 @@ def launch_setup(context):
                     #                             / 'dual_lbr_base_scene.srdf',
                     #                             {'name': 'dual_lbr_base_scene'}) \
                     # .to_moveit_configs()
-    # wait_robot_description = Node(package='ur_robot_driver',
-    #                               executable='wait_for_robot_description',
-    #                               output='screen')
+    wait_robot_description = Node(package='aist_bringup',
+                                  executable='wait_for_robot_description',
+                                  output='screen')
     servo_yaml = load_yaml(PathJoinSubstitution(
                                [FindPackageShare('dual_lbr_moveit_config'),
                                 'config', 'lbr_servo.yaml']).perform(context))
     return [
-        Node(package='moveit_ros_move_group',
-             executable='move_group',
-             output='screen',
-             parameters=[
-                 moveit_configs.to_dict(),
-                 {
-                     'warehouse_plugin':
-                     'warehouse_ros_sqlite::DatabaseConnection',
-                     'warehouse_host':
-                     LaunchConfiguration('warehouse_sqlite_path'),
-                     'use_sim_time': LaunchConfiguration('sim'),
-                     'publish_robot_description_semantic':
-                     LaunchConfiguration(
-                         'publish_robot_description_semantic'),
-                 }
-             ]),
-        Node(condition=IfCondition(LaunchConfiguration('launch_servo')),
-             package='moveit_servo',
-             executable='servo_node',
-             parameters=[
-                 moveit_configs.to_dict(),
-                 {'moveit_servo': servo_yaml}
-             ],
-             output='screen'),
-        IncludeLaunchDescription(
-            PathJoinSubstitution(
-                [FindPackageShare('dual_lbr_moveit_config'),
-                 'launch', 'moveit_rviz.launch.py']),
-            condition=IfCondition(LaunchConfiguration('vis'))),
-    ]
+        wait_robot_description,
+        RegisterEventHandler(
+            OnProcessExit(
+                target_action=wait_robot_description,
+                on_exit=[
+                    Node(package='moveit_ros_move_group',
+                         executable='move_group',
+                         output='screen',
+                         parameters=[
+                             moveit_configs.to_dict(),
+                             {
+                                 'warehouse_plugin':
+                                 'warehouse_ros_sqlite::DatabaseConnection',
+                                 'warehouse_host':
+                                 LaunchConfiguration('warehouse_sqlite_path'),
+                                 'use_sim_time': LaunchConfiguration('sim'),
+                                 'publish_robot_description_semantic':
+                                 LaunchConfiguration(
+                                     'publish_robot_description_semantic'),
+                             }
+                         ]),
+                    Node(condition=IfCondition(
+                                       LaunchConfiguration('launch_servo')),
+                         package='moveit_servo',
+                         executable='servo_node',
+                         parameters=[
+                             moveit_configs.to_dict(),
+                             {'moveit_servo': servo_yaml}
+                         ],
+                         output='screen'),
+                    IncludeLaunchDescription(
+                        PathJoinSubstitution(
+                            [FindPackageShare('dual_lbr_moveit_config'),
+                             'launch', 'moveit_rviz.launch.py']),
+                        condition=IfCondition(LaunchConfiguration('vis'))),
+                ]))
+        ]
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \

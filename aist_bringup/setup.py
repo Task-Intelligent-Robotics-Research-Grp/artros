@@ -27,7 +27,8 @@ setup(
     tests_require=["pytest"],
     entry_points={
         'console_scripts': [
-            'append_ros2_control = ' + package_name + '.append_ros2_control:main'
+            'append_ros2_control = ' + package_name + '.append_ros2_control:main',
+            'wait_for_robot_description = ' + package_name + '.wait_for_robot_description:main',
         ]
     },
 )

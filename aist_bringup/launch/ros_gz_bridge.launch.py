@@ -24,7 +24,7 @@ launch_arguments = [
 
 
 def launch_setup(context):
-    bridge_config_file = '/tmp/camera_bridge.yaml'
+    bridge_config_file = '/tmp/ros_gz_bridge.yaml'
 
     config = load_config(context)
     shutil.copy(PathJoinSubstitution(

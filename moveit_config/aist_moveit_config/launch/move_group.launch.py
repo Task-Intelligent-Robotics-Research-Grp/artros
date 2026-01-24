@@ -59,7 +59,7 @@ def launch_setup(context):
                     #                             / 'aist_base_scene.srdf',
                     #                             {'name': 'aist_base_scene'}) \
                     # .to_moveit_configs()
-    wait_robot_description = Node(package='ur_robot_driver',
+    wait_robot_description = Node(package='aist_bringup',
                                   executable='wait_for_robot_description',
                                   output='screen')
     servo_yaml = load_yaml(PathJoinSubstitution(
