@@ -1,13 +1,14 @@
 arms:
   b_bot:
-    type:               URe
-    robot_ip:           "10.66.171.41"
-    default_gripper:    b_bot_gripper
-    active_controller:  scaled_joint_trajectory_controller
+    type:            URe
+    robot_ip:        "10.66.171.41"
+    default_gripper: b_bot_gripper
+    active_controllers:
+      - scaled_joint_trajectory_controller
+      - motion_control_handle
     consistent_controllers:
       - joint_state_broadcaster
-      - motion_control_handle
-    extra_consistent_controllers:
+    real_consistent_controllers:
       - force_torque_sensor_broadcaster
       - io_and_status_controller
       - speed_scaling_state_broadcaster
@@ -19,7 +20,7 @@ arms:
       - cartesian_compliance_controller
       - cartesian_force_controller
       - cartesian_motion_controller
-    extra_inactive_controllers:
+    real_inactive_controllers:
       - joint_trajectory_controller
       - force_mode_controller
       - passthrough_trajectory_controller

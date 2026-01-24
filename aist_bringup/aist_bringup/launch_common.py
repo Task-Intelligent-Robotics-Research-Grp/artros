@@ -9,75 +9,75 @@ from launch_ros.parameter_descriptions import ParameterFile
 ARM_PROPS = {
     'UR':
     {
-        'update_rate':               125,
-        'controllers_template':      PathJoinSubstitution(
+        'update_rate':              125,
+        'controllers_template':     PathJoinSubstitution(
                                          [FindPackageShare('aist_bringup'),
                                           'config', 'templates',
                                           'ur_controllers.yaml']),
-        'extra_drivers_launch_file': PathJoinSubstitution(
-                                         [FindPackageShare('aist_bringup'),
-                                          'launch', 'inc',
-                                          'ur_extra_drivers.launch.py']),
-        'ros2_control_file':         PathJoinSubstitution(
-                                         [FindPackageShare('aist_bringup'),
-                                          'urdf',
-                                          'ur.ros2_control.urdf.xacro']),
+        'real_drivers_launch_file': PathJoinSubstitution(
+                                        [FindPackageShare('aist_bringup'),
+                                         'launch', 'inc',
+                                         'ur_real_drivers.launch.py']),
+        'ros2_control_file':        PathJoinSubstitution(
+                                        [FindPackageShare('aist_bringup'),
+                                         'urdf',
+                                         'ur.ros2_control.urdf.xacro']),
     },
     'URe':
     {
-        'update_rate':               500,
-        'controllers_template':      PathJoinSubstitution(
-                                         [FindPackageShare('aist_bringup'),
-                                          'config', 'templates',
-                                          'ur_controllers.yaml']),
-        'extra_drivers_launch_file': PathJoinSubstitution(
-                                         [FindPackageShare('aist_bringup'),
-                                          'launch', 'inc',
-                                          'ur_extra_drivers.launch.py']),
-        'ros2_control_file':         PathJoinSubstitution(
-                                         [FindPackageShare('aist_bringup'),
-                                          'urdf',
-                                          'ur.ros2_control.urdf.xacro']),
+        'update_rate':              500,
+        'controllers_template':     PathJoinSubstitution(
+                                        [FindPackageShare('aist_bringup'),
+                                         'config', 'templates',
+                                         'ur_controllers.yaml']),
+        'real_drivers_launch_file': PathJoinSubstitution(
+                                        [FindPackageShare('aist_bringup'),
+                                         'launch', 'inc',
+                                         'ur_real_drivers.launch.py']),
+        'ros2_control_file':        PathJoinSubstitution(
+                                        [FindPackageShare('aist_bringup'),
+                                         'urdf',
+                                         'ur.ros2_control.urdf.xacro']),
     },
     'LBR':
     {
-        'update_rate':               100,
-        'controllers_template':      PathJoinSubstitution(
-                                         [FindPackageShare('aist_bringup'),
-                                          'config', 'templates',
-                                          'lbr_controllers.yaml']),
-        'ros2_control_file':         PathJoinSubstitution(
-                                         [FindPackageShare('aist_bringup'),
-                                          'urdf',
-                                          'lbr.ros2_control.urdf.xacro']),
+        'update_rate':              100,
+        'controllers_template':     PathJoinSubstitution(
+                                        [FindPackageShare('aist_bringup'),
+                                         'config', 'templates',
+                                         'lbr_controllers.yaml']),
+        'ros2_control_file':        PathJoinSubstitution(
+                                        [FindPackageShare('aist_bringup'),
+                                         'urdf',
+                                         'lbr.ros2_control.urdf.xacro']),
     }
 }
 
 GRIPPER_PROPS = {
     'RobotiqGripper':
     {
-        'gz_controllers_template':   PathJoinSubstitution(
-                                         [FindPackageShare('aist_bringup'),
-                                          'config', 'templates',
-                                          'gripper_controllers.yaml']),
-        'extra_drivers_launch_file': PathJoinSubstitution(
-                                         [FindPackageShare('aist_bringup'),
-                                          'launch', 'inc',
-                                          'robotiq_drivers.launch.py'])
+        'gz_controllers_template':  PathJoinSubstitution(
+                                        [FindPackageShare('aist_bringup'),
+                                         'config', 'templates',
+                                         'gripper_controllers.yaml']),
+        'real_drivers_launch_file': PathJoinSubstitution(
+                                        [FindPackageShare('aist_bringup'),
+                                         'launch', 'inc',
+                                         'robotiq_drivers.launch.py'])
     },
     'DynamixelDevices':
     {
-        'extra_drivers_launch_file': PathJoinSubstitution(
-                                         [FindPackageShare('aist_bringup'),
-                                          'launch', 'inc',
-                                          'dynamixel_devices.launch.py'])
+        'real_drivers_launch_file': PathJoinSubstitution(
+                                        [FindPackageShare('aist_bringup'),
+                                         'launch', 'inc',
+                                         'dynamixel_devices.launch.py'])
     },
     'URioDevices':
     {
-        'extra_drivers_launch_file': PathJoinSubstitution(
-                                         [FindPackageShare('aist_bringup'),
-                                          'launch', 'inc',
-                                          'ur_io_devices.launch.py'])
+        'real_drivers_launch_file': PathJoinSubstitution(
+                                        [FindPackageShare('aist_bringup'),
+                                         'launch', 'inc',
+                                         'ur_io_devices.launch.py'])
     },
 }
 

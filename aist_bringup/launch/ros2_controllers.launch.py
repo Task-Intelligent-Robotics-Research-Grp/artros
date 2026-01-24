@@ -88,14 +88,14 @@ def launch_setup(context):
 
     # Instantiate controller configuration files for each arm.
     for arm_name, arm_config in config['arms'].items():
-        active_controllers   = [arm_config['active_controller']] \
+        active_controllers   = arm_config['active_controllers'] \
                              + arm_config.get('consistent_controllers', [])
         inactive_controllers = arm_config.get('inactive_controllers', [])
         if not sim:
             active_controllers \
-                += arm_config.get('extra_consistent_controllers', [])
+                += arm_config.get('real_consistent_controllers', [])
             inactive_controllers \
-                += arm_config.get('extra_inactive_controllers', [])
+                += arm_config.get('real_inactive_controllers', [])
 
         arm_props = get_arm_props(arm_config['type'])
         actions.append(

@@ -3,12 +3,14 @@
 ##########
 a_bot:
   a_bot:
-    type:               URe
-    default_gripper:    a_bot_gripper
-    active_controller:  scaled_joint_trajectory_controller
+    type:            URe
+    default_gripper: a_bot_gripper
+    active_controllers:
+      - scaled_joint_trajectory_controller
+      - motion_control_handle
     consistent_controllers:
       - joint_state_broadcaster
-    extra_consistent_controllers:
+    real_consistent_controllers:
       - force_torque_sensor_broadcaster
       - io_and_status_controller
       - speed_scaling_state_broadcaster
@@ -20,8 +22,7 @@ a_bot:
       - cartesian_compliance_controller
       - cartesian_force_controller
       - cartesian_motion_controller
-      - motion_control_handle
-    extra_inactive_controllers:
+    real_inactive_controllers:
       - joint_trajectory_controller
       - force_mode_controller
       - passthrough_trajectory_controller
@@ -33,12 +34,14 @@ a_bot:
 
 b_bot:
   b_bot:
-    type:               URe
-    default_gripper:    b_bot_gripper
-    active_controller:  scaled_joint_trajectory_controller
+    type:            URe
+    default_gripper: b_bot_gripper
+    active_controllers:
+      - scaled_joint_trajectory_controller
+      - motion_control_handle
     consistent_controllers:
       - joint_state_broadcaster
-    extra_consistent_controllers:
+    real_consistent_controllers:
       - force_torque_sensor_broadcaster
       - io_and_status_controller
       - speed_scaling_state_broadcaster
@@ -50,8 +53,7 @@ b_bot:
       - cartesian_compliance_controller
       - cartesian_force_controller
       - cartesian_motion_controller
-      - motion_control_handle
-    extra_inactive_controllers:
+    real_inactive_controllers:
       - joint_trajectory_controller
       - force_mode_controller
       - passthrough_trajectory_controller
@@ -69,6 +71,7 @@ precision_tools:
   tools:
     precision_tool:
       type:        PrecisionTool
+
 screw_tools:
   type:            DynamixelDevices
   tools:
@@ -76,6 +79,7 @@ screw_tools:
       type:        ScrewTool
     screw_tool_m4_fastening:
       type:        ScrewTool
+
 suction_tools:
   type:            URioDevices
   grippers:
@@ -93,9 +97,12 @@ suction_tools:
 #############
 a_motioncam:
   type: PhoXiCamera
+
 a_bot_camera:
   type: CodedLightRealsenseCamera
+
 b_bot_camera:
   type: CodedLightRealsenseCamera
+
 live_camera:
   type: USBCamera

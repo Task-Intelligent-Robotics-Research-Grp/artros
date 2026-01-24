@@ -49,7 +49,7 @@ def launch_setup(context):
             condition=IfCondition(LaunchConfiguration('sim'))),
         IncludeLaunchDescription(
             PathJoinSubstitution([FindPackageShare('aist_bringup'), 'launch',
-                                  'extra_drivers.launch.py']),
+                                  'real_drivers.launch.py']),
             condition=UnlessCondition(LaunchConfiguration('sim'))),
         IncludeLaunchDescription(
             PathJoinSubstitution(

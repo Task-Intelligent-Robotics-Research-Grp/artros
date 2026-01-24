@@ -67,7 +67,7 @@ def launch_setup(context):
                   arm_config.get('joint_controller_active', True),
                   'consistent_controllers':
                   arm_config.get('consistent_controllers', []) + \
-                  arm_config.get('extra_consistent_controllers', [])}])
+                  arm_config.get('real_consistent_controllers', [])}])
     ]
 
 def generate_launch_description():
