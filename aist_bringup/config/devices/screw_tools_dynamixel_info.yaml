@@ -1,0 +1,7 @@
+screw_tool_m3_fastening:
+  ID:           2
+  Control_Mode: 1    # 1: velocity control mode, 3: position control mode
+
+screw_tool_m4_fastening:
+  ID:           3
+  Control_Mode: 1    # 1: velocity control mode, 3: position control mode

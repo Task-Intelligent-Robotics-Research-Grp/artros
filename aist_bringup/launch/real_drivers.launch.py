@@ -3,8 +3,8 @@ from launch.actions             import (IncludeLaunchDescription,
                                         OpaqueFunction, GroupAction)
 from launch.substitutions       import LaunchConfiguration
 from launch_ros.actions         import PushROSNamespace
-from aist_bringup.launch_common import (declare_launch_arguments, load_config,
-                                        get_arm_props, get_gripper_props)
+from aist_bringup.launch_common import (declare_launch_arguments,
+                                        load_config, get_device_props)
 
 
 launch_arguments = [
@@ -20,7 +20,7 @@ def launch_setup(context):
     config  = load_config(context)
     actions = []
     for arm_name, arm_config in config.get('arms', {}).items():
-        arm_props = get_arm_props(arm_config['type'])
+        arm_props = get_device_props(arm_config['type'])
         real_drivers_launch_file = arm_props.get('real_drivers_launch_file')
         if real_drivers_launch_file is not None:
             actions.append(
@@ -35,7 +35,7 @@ def launch_setup(context):
                             ])
                     ]))
     for gripper_name, gripper_config in config.get('grippers', {}).items():
-        gripper_props = get_gripper_props(gripper_config['type'])
+        gripper_props = get_device_props(gripper_config['type'])
         real_drivers_launch_file = gripper_props.get(
                                        'real_drivers_launch_file')
         if real_drivers_launch_file is not None:

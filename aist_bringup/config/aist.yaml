@@ -1,7 +1,6 @@
 arms:
   a_bot:
     type:            URe
-    robot_ip:        "10.66.171.40"
     default_gripper: a_bot_gripper
     active_controllers:
       - scaled_joint_trajectory_controller
@@ -28,7 +27,6 @@ arms:
       - tool_contact_controller
   b_bot:
     type:            URe
-    robot_ip:        "10.66.171.41"
     default_gripper: b_bot_gripper
     active_controllers:
       - scaled_joint_trajectory_controller
@@ -56,67 +54,46 @@ arms:
 
 grippers:
   a_bot_gripper:
-    type:            RobotiqGripper
-    device:          robotiq_140
-    driver:          urcap
-    ip_or_dev:       "10.66.171.40"
-    slave_id:        9
-    client_args:
-      max_effort:    5.0
-      velocity:      0.1
+    type:          RobotiqGripper
+    max_effort:    5.0
+    velocity:      0.1
   b_bot_gripper:
-    type:            RobotiqGripper
-    device:          robotiq_85
-    driver:          urcap
-    ip_or_dev:       "10.66.171.41"
-    slave_id:        9
-    client_args:
-      max_effort:    5.0
-      velocity:      0.1
+    type:          RobotiqGripper
+    max_effort:    5.0
+    velocity:      0.1
   precision_tools:
-    type:            DynamixelDevices
-    param_file:      package://aist_fastening_tools/config/default.yaml
-    grippers:
+    type:          DynamixelDevices
+    tools:
       precision_tool:
-        type:        PrecisionTool
-        client_args:
-          base_link: precision_tool/base_link
-          tip_link:  precision_tool/tip_link
+        type:      PrecisionTool
+        base_link: precision_tool/base_link
+        tip_link:  precision_tool/tip_link
   screw_tools:
-    type:            DynamixelDevices
-    param_file:      package://aist_fastening_tools/config/default.yaml
-    grippers:
+    type:          DynamixelDevices
+    tools:
       screw_tool_m3_fastening:
-        type:        ScrewTool
-        motor_id:    2
+        type:      ScrewTool
       screw_tool_m4_fastening:
-        type:        ScrewTool
-        motor_id:    3
+        type:      ScrewTool
   suction_tools:
-    type:            URioDevices
-    driver_ns:       b_bot_io_and_status_controller
-    param_file:      package://aist_fastening_tools/config/default.yaml
-    grippers:
+    type:          URioDevices
+    tools:
       screw_tool_m3:
-        type:        SuctionTool
-        client_args:
-          base_link: screw_tool_m3/base_link
-          tip_link:  screw_tool_m3/tip_link
+        type:      SuctionTool
+	base_link: screw_tool_m3/base_link
+	tip_link:  screw_tool_m3/tip_link
       screw_tool_m4:
-        type:        SuctionTool
-        client_args:
-          base_link: screw_tool_m4/base_link
-          tip_link:  screw_tool_m4/tip_link
+        type:      SuctionTool
+	base_link: screw_tool_m4/base_link
+	tip_link:  screw_tool_m4/tip_link
       suction_tool:
-        type:        SuctionTool
-        client_args:
-          base_link: suction_tool/base_link
-          tip_link:  suction_tool/tip_link
+        type:      SuctionTool
+	base_link: suction_tool/base_link
+	tip_link:  suction_tool/tip_link
       base_fixture:
-        type:        SuctionTool
-        client_args:
-          base_link: base_fixture_base_link
-          tip_link:  workbench_holder_link
+        type:      SuctionTool
+	base_link: base_fixture_base_link
+	tip_link:  base_fixture_tip_link
 
 cameras:
   a_motioncam:

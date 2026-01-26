@@ -5,7 +5,7 @@ from launch.substitutions       import (LaunchConfiguration,
 from launch_ros.actions         import Node
 from launch_ros.substitutions   import FindPackageShare
 from aist_bringup.launch_common import (declare_launch_arguments,
-                                        load_config, get_camera_props)
+                                        load_config, get_device_props)
 
 launch_arguments = [
     {
@@ -41,7 +41,7 @@ launch_arguments = [
 
 
 def launch_setup(context):
-    config = load_config(context)
+    config  = load_config(context)
     actions = [
         Node(name=LaunchConfiguration('container'),
              package='rclcpp_components',
@@ -51,7 +51,7 @@ def launch_setup(context):
                         LaunchConfiguration('log_level')]),
     ]
     for camera_name, camera_config in config['cameras'].items():
-        camera_props = get_camera_props(camera_config['type'])
+        camera_props = get_device_props(camera_config['type'])
         actions.append(
             IncludeLaunchDescription(
                 camera_props['launch_file'],

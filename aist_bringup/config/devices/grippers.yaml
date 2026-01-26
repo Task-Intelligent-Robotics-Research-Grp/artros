@@ -3,38 +3,9 @@ a_bot_gripper:
   driver:       urcap
   ip_or_dev:    "10.66.171.40"
   slave_id:     9
-  client_args:
-    max_effort: 5.0
-    velocity:   0.1
 
 b_bot_gripper:
   device:       robotiq_85
   driver:       urcap
   ip_or_dev:    "10.66.171.41"
   slave_id:     9
-  client_args:
-    max_effort: 5.0
-    velocity:   0.1
-
-precision_tools:
-  param_file:   package://aist_fastening_tools/config/default.yaml
-  tools:
-    - precision_tool
-
-precision_tool:
-  client_args:
-    base_link:  precision_tool/base_link
-    tip_link:   precision_tool/tip_link
-
-screw_tools:
-  param_file:   package://aist_fastening_tools/config/default.yaml
-  tools:
-    - screw_tool_m3_fastening
-    - screw_tool_m4_fastening
-
-screw_tool_m3_fastening:
-  motor_id:    2
-
-screw_tool_m4_fastening:
-  type:        ScrewTool
-  motor_id:    3

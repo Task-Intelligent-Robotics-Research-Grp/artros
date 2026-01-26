@@ -3,15 +3,11 @@ from launch.actions             import OpaqueFunction
 from launch.conditions          import IfCondition
 from launch.substitutions       import LaunchConfiguration
 from launch_ros.actions         import Node
-from aist_bringup.launch_common import declare_launch_arguments, load_config
+from aist_bringup.launch_common import (declare_launch_arguments,
+                                        load_arm_config)
 
 
 launch_arguments = [
-    {
-        'name':        'config',
-        'default':     'aist',
-        'description': 'Name of the hardware configuration'
-    },
     {
         'name':        'name',
         'default':     'a_bot',
@@ -21,12 +17,10 @@ launch_arguments = [
 
 
 def launch_setup(context):
-    config        = load_config(context)
-    arm_config    = config['arms'][LaunchConfiguration('name') \
-                                   .perform(context)]
+    arm_name      = LaunchConfiguration('name').perform(context)
+    arm_config    = load_arm_config(arm_name)
     robot_ip      = arm_config['robot_ip']
-    headless_mode = arm_config.get('headless_mode', False)
-
+    headless_mode = arm_config.get('headless_mode', 'false')
     return [
         Node(package='ur_robot_driver',
              executable='dashboard_client',

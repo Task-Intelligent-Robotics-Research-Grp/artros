@@ -12,8 +12,7 @@ from launch_ros.actions                import Node, PushROSNamespace
 from launch_ros.substitutions          import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue, ParameterFile
 from aist_bringup.launch_common        import (declare_launch_arguments,
-                                               load_config, get_arm_props,
-                                               get_gripper_props,
+                                               load_config, get_device_props,
                                                instantiate_file)
 
 launch_arguments = [
@@ -42,8 +41,8 @@ def launch_setup(context):
 
     # Instatiate parameter files for arm controllers from template.
     if sim:
-        for arm_name, arm_config in config['arms'].items():
-            arm_props = get_arm_props(arm_config['type'])
+        for arm_name, arm_config in config.get('arms', {}).items():
+            arm_props = get_device_props(arm_config['type'])
             SetLaunchConfiguration('update_rate',
                                    str(arm_props['update_rate'])) \
                                    .execute(context)
@@ -97,7 +96,7 @@ def launch_setup(context):
             inactive_controllers \
                 += arm_config.get('real_inactive_controllers', [])
 
-        arm_props = get_arm_props(arm_config['type'])
+        arm_props = get_device_props(arm_config['type'])
         actions.append(
             GroupAction(
                 actions=[
@@ -160,7 +159,7 @@ def launch_setup(context):
     # Instantiate controller configuration files for each gripper.
     gripper_controllers = []
     for gripper_name, gripper_config in config.get('grippers', {}).items():
-        gripper_props = get_gripper_props(gripper_config['type'])
+        gripper_props = get_device_props(gripper_config['type'])
         template = gripper_props.get('gz_controllers_template') if sim else \
                    gripper_props.get('controllers_template')
         if template is not None:

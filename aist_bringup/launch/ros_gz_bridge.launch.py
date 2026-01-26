@@ -6,7 +6,7 @@ from launch.substitutions       import (LaunchConfiguration,
 from launch_ros.actions         import Node
 from launch_ros.substitutions   import FindPackageShare
 from aist_bringup.launch_common import (declare_launch_arguments,
-                                        load_config, get_camera_props,
+                                        load_config, get_device_props,
                                         instantiate_file)
 
 launch_arguments = [
@@ -32,7 +32,7 @@ def launch_setup(context):
                      'templates', 'clock_bridge.yaml']).perform(context),
                 bridge_config_file)
     for camera_name, camera_config in config.get('cameras', {}).items():
-        camera_props = get_camera_props(camera_config['type'])
+        camera_props = get_device_props(camera_config['type'])
         SetLaunchConfiguration('camera_name', camera_name).execute(context)
         if 'cloud_topic' in camera_props:
             SetLaunchConfiguration('cloud_topic', camera_props['cloud_topic'])\

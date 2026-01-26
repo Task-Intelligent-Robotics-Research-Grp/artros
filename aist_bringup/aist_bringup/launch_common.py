@@ -4,9 +4,10 @@ from launch.substitutions              import (LaunchConfiguration,
                                                PathJoinSubstitution)
 from launch_ros.substitutions          import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterFile
+from aist_utility.fileio               import filepath_from_url
 
 
-ARM_PROPS = {
+DEVICE_PROPS = {
     'UR':
     {
         'update_rate':              125,
@@ -50,10 +51,8 @@ ARM_PROPS = {
                                         [FindPackageShare('aist_bringup'),
                                          'urdf',
                                          'lbr.ros2_control.urdf.xacro']),
-    }
-}
+    },
 
-GRIPPER_PROPS = {
     'RobotiqGripper':
     {
         'gz_controllers_template':  PathJoinSubstitution(
@@ -79,9 +78,7 @@ GRIPPER_PROPS = {
                                          'launch', 'inc',
                                          'ur_io_devices.launch.py'])
     },
-}
 
-CAMERA_PROPS = {
     'PhoXiCamera':
     {
         'launch_file':        PathJoinSubstitution(
@@ -143,14 +140,8 @@ CAMERA_PROPS = {
     },
 }
 
-def get_arm_props(arm_type):
-    return ARM_PROPS[arm_type]
-
-def get_gripper_props(gripper_type):
-    return GRIPPER_PROPS[gripper_type]
-
-def get_camera_props(camera_type):
-    return CAMERA_PROPS[camera_type]
+def get_device_props(device_type):
+    return DEVICE_PROPS[device_type]
 
 def instantiate_file(context, template_file, instantiated_file, append=False):
     # We must extend lifetime of the ParameterFile object by keeping it
@@ -174,16 +165,17 @@ def load_config(context):
                                         [LaunchConfiguration('config'),
                                          '.yaml']])
     with open(config_file.perform(context), 'r') as f:
-        config = yaml.safe_load(f)
-    return config
+        return yaml.safe_load(f)
 
-def load_device_props(context):
-    props_file = PathJoinSubstitution([FindPackageShare('aist_bringup'),
-                                       'config', 'devices',
-                                       'device_props.yaml'])
-    with open(props_file.perform(context), 'r') as f:
-        device_props = yaml.safe_load(f)
-    return device_props
+def load_arm_config(arm_name):
+    with open(filepath_from_url(
+                  'package://aist_bringup/config/devices/arms.yaml')) as f:
+        return yaml.safe_load(f)[arm_name]
+
+def load_gripper_config(gripper_name):
+    with open(filepath_from_url(
+                  'package://aist_bringup/config/devices/grippers.yaml')) as f:
+        return yaml.safe_load(f)[gripper_name]
 
 def declare_launch_arguments(args):
     return [DeclareLaunchArgument(arg['name'],
@@ -191,6 +183,3 @@ def declare_launch_arguments(args):
                                   description=arg.get('description'),
                                   choices=arg.get('choices')) \
             for arg in args]
-
-def set_configurable_parameters(args):
-    return {arg['name']: LaunchConfiguration(arg['name']) for arg in args}
