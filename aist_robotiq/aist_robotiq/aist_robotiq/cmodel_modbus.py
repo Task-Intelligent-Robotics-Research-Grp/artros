@@ -43,8 +43,8 @@ from pymodbus.client.sync     import ModbusTcpClient, ModbusSerialClient
 #  class CModelModbusBase                                               #
 #########################################################################
 class CModelModbusBase(CModelBase):
-    def __init__(self, name, slave_id):
-        super().__init__(name, slave_id)
+    def __init__(self, name):
+        super().__init__(name)
 
     def disconnect(self):
         if self._client:          # (self._client is defined in derived class)
@@ -64,14 +64,15 @@ class CModelModbusBase(CModelBase):
         self.data.append(command.r_pr)                                 # Byte3
         self.data.append(command.r_sp)                                 # Byte4
         self.data.append(command.r_fr)                                 # Byte5
-        self._put_command(self.data)
+        self._put_command(self.data, command.r_sid)
 
-    def get_status(self):
+    def get_status(self, slave_id):
         # Acquire status from the Gripper
-        data = self._get_status(6)
+        data = self._get_status(6, slave_id)
 
         # Assign the values to their respective variables
         status = CModelStatus()
+        status.g_sid = slave_id
         status.g_act =  data[0]       & 0x01
         status.g_mod = (data[0] >> 1) & 0x03
         status.g_gto = (data[0] >> 3) & 0x01
@@ -84,7 +85,7 @@ class CModelModbusBase(CModelBase):
         status.g_cou =  data[5]
         return status
 
-    def _put_command(self, data):
+    def _put_command(self, data, slave_id):
         # Make sure data has an even number of elements
         if len(data) % 2 == 1:
             data.append(0)
@@ -93,11 +94,12 @@ class CModelModbusBase(CModelBase):
         message = []
         for i in range(0, len(data), 2):
             message.append((data[i] << 8) + data[i+1])
-        self._write_registers(message)            # (defined in derived class)
+        self._write_registers(message, slave_id)  # (defined in derived class)
 
-    def _get_status(self, nbytes):
+    def _get_status(self, nbytes, slave_id):
         nregs    = 2*((nbytes - 1)/2)
-        response = self._read_registers(nregs)    # (defined in derived class)
+        response = self._read_registers(nregs,
+                                        slave_id) # (defined in derived class)
 
         if isinstance(response, ModbusIOException):
             raise RuntimeError(response)
@@ -113,41 +115,40 @@ class CModelModbusBase(CModelBase):
 #  class CModelModbusTCP                                                #
 #########################################################################
 class CModelModbusTCP(CModelModbusBase):
-    def __init__(self, name, ip_address, slave_id=9):
-        super().__init__(name, slave_id)
+    def __init__(self, name):
+        super().__init__(name)
+        ip = self.declare_parameter('ip', '10.66.171.40').value
         self._lock   = threading.Lock()
-        self._client = ModbusTcpClient(ip_address)
+        self._client = ModbusTcpClient(ip)
         self._client.connect()
-        self.get_logger().info('started[ip_address=%s, slave_id=%d]'
-                               % (ip_address, slave_id))
+        self.get_logger().info('started[ip=%s]' % ip)
 
-    def _write_registers(self, message):
+    def _write_registers(self, message, slave_id):
         with self._lock:
-            self._client.write_registers(0, message)
+            self._client.write_registers(0, message, slave_id)
 
-    def _read_registers(self, nregs):
+    def _read_registers(self, nregs, slave_id):
         with self._lock:
-            return self._client.read_input_registers(0, nregs)
+            return self._client.read_input_registers(0, nregs, slave_id)
 
 #########################################################################
 #  class CModelModbusRTU                                                #
 #########################################################################
 class CModelModbusRTU(CModelModbusBase):
-    def __init__(self, name, port, slave_id=9):
-        super().__init__(name, slave_id)
+    def __init__(self, name):
+        super().__init__(name)
+        dev = self.declare_parameter('dev', '/dev/ttyUSB0').value
         self._lock   = threading.Lock()
-        self._client = ModbusSerialClient(method='rtu', port=port,
+        self._client = ModbusSerialClient(method='rtu', port=dev,
                                           stopbits=1, bytesize=8, parity='N',
                                           baudrate=115200, timeout=0.2)
         self._client.connect()
-        self.get_logger().info('started[port=%d, slave_id=%d]'
-                               % (port, slave_id))
+        self.get_logger().info('started[dev=%d]' % dev)
 
-    def _write_registers(self, message):
+    def _write_registers(self, message, slave_id):
         with self._lock:
-            self._client.write_registers(0x03E8, message, unit=self._slave_id)
+            self._client.write_registers(0x03E8, message, slave_id)
 
-    def _read_registers(self, nregs):
+    def _read_registers(self, nregs, slave_id):
         with self._lock:
-            return self._client.read_input_registers(0x07D0, nregs,
-                                                     unit=self._slave_id)
+            return self._client.read_input_registers(0x07D0, nregs, slave_id)

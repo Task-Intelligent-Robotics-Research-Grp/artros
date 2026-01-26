@@ -20,22 +20,22 @@ launch_arguments = [
 ]
 
 def launch_setup(context):
-    config       = load_config(context)
-    tools_config = config['grippers'][LaunchConfiguration('name')
-                                      .perform(context)]
-    tool_names   = [tool_name for tool_name in tools_config.get('tools', {})]
-
+    config         = load_config(context)
+    devices_config = config['grippers'][LaunchConfiguration('name')
+                                        .perform(context)]
+    device_names   = [device_name
+                      for device_name in devices_config.get('devices', {})]
     return [
         IncludeLaunchDescription(
             PathJoinSubstitution([FindPackageShare('aist_fastening_tools'),
                                   'launch', 'ur_io_devices.launch.py']),
             launch_arguments=[
-                ('param_file', PathJoinSubstitution([
-                                   FindPackageShare('aist_bringup'), 'config',
-                                   'devices', 'fastening_tools.yaml'])),
-                ('tool_names', ','.join(tool_names)),
-                ('container',  [LaunchConfiguration('name'), '_container']),
-                ('driver_ns',  tools_config['driver_ns'])])]
+                ('param_file',   PathJoinSubstitution([
+                                     FindPackageShare('aist_bringup'),
+                                     'config', 'devices', 'grippers.yaml'])),
+                ('device_names', ','.join(device_names)),
+                ('container',    [LaunchConfiguration('name'), '_container']),
+                ('driver_ns',    devices_config['driver_ns'])])]
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \

@@ -10,9 +10,9 @@ class ScrewToolTest(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        tool_name = self.declare_parameter('tool_name',
-                                           'screw_tool_m3_fastening').value
-        self._screw_tool = ScrewTool(self, tool_name)
+        device_name = self.declare_parameter('device_name',
+                                             'screw_tool_m3_fastening').value
+        self._screw_tool = ScrewTool(self, device_name)
         self.get_logger().info('started')
 
         cli_thread = threading.Thread(target=self.interactive)

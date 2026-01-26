@@ -7,9 +7,9 @@ from aist_bringup.launch_common import declare_launch_arguments
 
 launch_arguments = [
     {
-        'name':        'tool_name',
+        'name':        'device_name',
         'default':     'suction_tool',
-        'description': 'name of the tool'
+        'description': 'device name of the tool'
     }
 ]
 
@@ -19,15 +19,12 @@ def launch_setup(context):
             PathJoinSubstitution([ThisLaunchFileDir(),
                                   'ur_io_devices.launch.py']),
             launch_arguments=[
-                ('tool_names', LaunchConfiguration('tool_name')),
-                ('tool_types', 'SuctionTool'),
-                ('container',  'suction_tools_container'),
-                ('driver_ns',  'screw_tools_driver'),
+                ('device_names', LaunchConfiguration('device_name')),
             ]),
         Node(name='suction_tool_test',
              package='aist_fastening_tools',
              executable='suction_tool_test.py',
-             parameters=[{'tool_name': LaunchConfiguration('tool_name')}],
+             parameters=[{'device_name': LaunchConfiguration('device_name')}],
              prefix=['xterm -fn 7x14 -e'],
              output='screen')
     ]

@@ -53,7 +53,7 @@ DEVICE_PROPS = {
                                          'lbr.ros2_control.urdf.xacro']),
     },
 
-    'RobotiqGripper':
+    'RobotiqDevices':
     {
         'gz_controllers_template':  PathJoinSubstitution(
                                         [FindPackageShare('aist_bringup'),

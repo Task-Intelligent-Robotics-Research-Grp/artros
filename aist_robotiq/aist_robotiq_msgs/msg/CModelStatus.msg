@@ -1,3 +1,4 @@
+uint8 g_sid  # slave ID of the device
 uint8 g_act  # activation status (0: gripper reset, 1: gripper activation)
 uint8 g_mod  # EPick gripper mode (0: auto mode, 1: advanced mode)
 uint8 g_gto  # action status (0: stopped, 1: go to position request)

@@ -17,13 +17,13 @@ launch_arguments = [
         'description': 'absolute path to configuration file'
     },
     {
-        'name':        'tool_names',
+        'name':        'device_names',
         'default':     'screw_tool_m3,screw_tool_m4,suction_tool,base_fixture',
         'description': 'list of tool names'
     },
     {
         'name':        'container',
-        'default':     'screw_tools_container',
+        'default':     'suction_tools_container',
         'description': 'name of the component container'
     },
     {
@@ -47,11 +47,11 @@ launch_arguments = [
 
 def launch_setup(context):
     composable_nodes = []
-    for tool_name \
-            in LaunchConfiguration('tool_names').perform(context).split(','):
+    for device_name \
+            in LaunchConfiguration('device_names').perform(context).split(','):
         composable_nodes.append(
             ComposableNode(
-                name=tool_name + '_controller',
+                name=device_name + '_controller',
                 package='aist_fastening_tools',
                 plugin='aist_fastening_tools::SuctionToolController',
                 parameters=[
@@ -59,7 +59,6 @@ def launch_setup(context):
                     ParameterFile(LaunchConfiguration('param_file'))
                 ],
                 extra_arguments=[{'use_intra_process_comms': True}]))
-
     return [
         Node(name=LaunchConfiguration('container'),
              package='rclcpp_components',

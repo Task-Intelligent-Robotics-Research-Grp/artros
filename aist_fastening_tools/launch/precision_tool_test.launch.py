@@ -7,9 +7,9 @@ from aist_bringup.launch_common import declare_launch_arguments
 
 launch_arguments = [
     {
-        'name':        'tool_name',
+        'name':        'device_name',
         'default':     'precision_tool',
-        'description': 'name of the tool'
+        'description': 'device name of the tool'
     }
 ]
 
@@ -19,16 +19,18 @@ def launch_setup(context):
             PathJoinSubstitution([ThisLaunchFileDir(),
                                   'dynamixel_devices.launch.py']),
             launch_arguments=[
-                ('tool_names', LaunchConfiguration('tool_name')),
-                ('tool_types', 'PrecisionTool'),
-                ('container',  'precision_tools_container'),
-                ('driver_ns',  'precision_tools_driver'),
+                ('device_names', LaunchConfiguration('device_name')),
+                ('device_types', 'PrecisionTool'),
+                ('container',    'precision_tools_container'),
+                ('driver_ns',    'precision_tools_driver'),
             ]),
         Node(name='precision_tool_test',
              package='aist_fastening_tools',
              executable='precision_tool_test.py',
-             parameters=[{'controller_ns':
-                          [LaunchConfiguration('tool_name'), '_controller']}],
+             parameters=[
+                 {'controller_ns':
+                  [LaunchConfiguration('device_name'), '_controller']}
+             ],
              prefix=['xterm -fn 7x14 -e'],
              output='screen')
     ]

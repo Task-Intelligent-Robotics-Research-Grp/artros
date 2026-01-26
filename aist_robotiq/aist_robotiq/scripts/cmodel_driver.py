@@ -35,27 +35,34 @@
 #
 # Author: Toshio Ueshiba
 #
-import rclpy, sys, socket
-from aist_robotiq.cmodel_modbus import CModelModbusTCP
-from pymodbus.exceptions        import ModbusException
+import sys, rclpy
+from aist_robotiq.cmodel_urcap  import CModelURCap
+from aist_robotiq.cmodel_modbus import CModelModbusTCP, CModeModbusRTU
 from rclpy.executors            import ExternalShutdownException
 
-if __name__ == '__main__':
+def main():
     try:
-        rclpy.init()
+        rclpy.init(args=sys.argv)
 
-        ip_addess = sys.argv[1]
-        slave_id  = 9 if len(sys.argv) < 3 else int(sys.argv[2])
-        cmodel    = CModelModbusTCP('cmodel_tcp_driver', ip_address, slave_id)
-
+        driver = sys.argv[1]
+        if driver == 'tcp':
+            cmodel = CModelModbusTCP('cmodel_tcp_driver')
+        elif driver == 'rtu':
+            cmodel = CModelModbusRTU('cmodel_rtu_driver')
+        else:
+            cmodel = CModelURCap('cmodel_urcap_driver')
         rclpy.spin(cmodel)
-
         cmodel.destroy_node()
-    except socket.error as err:
-        rclpy.get_logger().fatal('socket error: %s' % err)
-    except ModbusException as err:
-        rclpy.get_logger().fatal(err)
+
     except (KeyboardInterrupt, ExternalShutdownException):
         pass
+    except Exception as e:
+        rclpy.get_logger().error('Terminate the node due to exception: %s' % e)
     finally:
         rclpy.shutdown()
+
+#########################################################################
+#  Entry point                                                          #
+#########################################################################
+if __name__ == '__main__':
+    main()

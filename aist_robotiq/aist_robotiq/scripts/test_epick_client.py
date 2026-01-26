@@ -46,8 +46,8 @@ class TestEPickClient(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        prefix             = self.declare_parameter('prefix',
-                                                    'a_bot_gripper_').value
+        device_name        = self.declare_parameter('device_name',
+                                                    'a_bot_gripper').value
         advanced_mode      = self.declare_parameter('advanced_mode',
                                                     False).value
         grasp_pressure     = self.declare_parameter('grasp_pressure',
@@ -58,8 +58,9 @@ class TestEPickClient(Node):
                                                     0.0).value
         timeout            = self.declare_parameter('timeout', 1.0).value
 
-        gripper = EPickGripper(self, prefix, advanced_mode, grasp_pressure,
-                               detection_pressure, release_pressure)
+        gripper = EPickGripper(self, device_name + '_', advanced_mode,
+                               grasp_pressure, detection_pressure,
+                               release_pressure)
         self.get_logger().info('started')
 
         cli_thread = threading.Thread(target=self.interactive)

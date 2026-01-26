@@ -12,34 +12,38 @@ from launch_ros.parameter_descriptions import ParameterFile
 
 launch_arguments = [
     {
-        'name':        'prefix',
-        'default':     'a_bot_gripper_',
-        'description': 'prefix of controller'
+        'name':        'param_file',
+        'default':     PathJoinSubstitution([FindPackageShare('aist_robotiq'),
+                                             'config', 'default.yaml']),
+        'description': 'absolute path to configuration file'
     },
     {
-        'name':        'device',
-        'default':     'robotiq_140',
-        'description': 'device type',
-        'choices':     ['robotiq_85', 'robotiq_140', 'robotiq_hande',
-                        'robotiq_epick']
+        'name':        'device_names',
+        'default':     'robotiq_85',
+        'description': 'comma-separated list of device names'
     },
     {
-        'name':        'driver',
+        'name':        'device_types',
+        'default':     'RobotiqGripper',        # RobotiqGripper/RobotiqEPick
+        'description': 'comma-separated list of device types'
+    },
+    {
+        'name':        'driver_ns',
+        'default':     'robotiq_85_driver',
+        'description': 'name of the driver for Robotiq devices'
+    },
+    {
+        'name':        'driver_type',
         'default':     'urcap',
         'description': 'driver type',
         'choices':     ['urcap', 'tcp', 'rtu']
     },
-    {
-        'name':        'ip_or_dev',
-        'default':     '10.66.171.40',
-        'description': 'IP address or device file'
+   {
+        'name':        'container',
+        'default':     'robotiq_grippers_container',
+        'description': 'name of the component container'
     },
-    {
-        'name':        'slave_id',
-        'default':     '9',
-        'description': 'slave ID'
-    },
-    {
+     {
         'name':        'log_level',
         'default':     'info',
         'description': 'debug log level',
@@ -53,6 +57,11 @@ launch_arguments = [
     }
 ]
 
+PLUGINS = {
+    'RobotiqGripper': 'aist_robotiq::CModelController',
+    'RobotiqEPick':   'aist_robotiq::EPickController',
+}
+
 def declare_launch_arguments(args):
     return [DeclareLaunchArgument(arg['name'],
                                   default_value=arg.get('default'),
@@ -61,40 +70,49 @@ def declare_launch_arguments(args):
             for arg in args]
 
 def launch_setup(context):
-    prefix     = LaunchConfiguration('prefix')
-    param_file = ParameterFile(PathJoinSubstitution(
-                                 [FindPackageShare('aist_robotiq'), 'config',
-                                  [LaunchConfiguration('device'), '.yaml']]),
-                               allow_substs=True)
-    controller = IfElseSubstitution(
-                     EqualsSubstitution(
-                         LaunchConfiguration('device'), 'robotiq_epick'),
-                         'epick_controller.py', 'cmodel_controller.py')
+
+    composable_nodes = []
+    for device_name, device_type \
+          in zip(LaunchConfiguration('device_names').perform(context)
+                 .split(','),
+                 LaunchConfiguration('device_types').perform(context)
+                 .split(',')):
+        composable_nodes.append(
+            ComposableNode(name=device_name + '_controller',
+                           package='aist_robotiq',
+                           plugin=PLUGINS[device_type],
+                           parameters=[
+                               LaunchConfiguration('param_file'),
+                           ],
+                           remappings=[
+                               ('status',  [LaunchConfiguration('driver_ns'),
+                                            '/status']),
+                               ('command', [LaunchConfiguration('driver_ns'),
+                                            '/command'])
+                           ],
+                           extra_arguments=[
+                               {'use_intra_process_comms': True}
+                           ]))
     return [
-        Node(name=[prefix, 'driver'],
+        Node(name=LaunchConfiguration('driver_ns'),
              package='aist_robotiq',
-             executable=['cmodel_', LaunchConfiguration('driver'),
-                         '_driver.py'],
-             remappings=[('/status',  [prefix, 'controller/status']),
-                         ('/command', [prefix, 'controller/command'])],
-             output=LaunchConfiguration('output'),
-             arguments=[LaunchConfiguration('ip_or_dev'),
-                        LaunchConfiguration('slave_id')]),
-        Node(name=[prefix, 'container'],
+             executable='cmodel_driver.py',
+             parameters=[
+                 LaunchConfiguration('param_file')
+             ],
+             arguments=[
+                 LaunchConfiguration('driver_type')
+             ],
+             output=LaunchConfiguration('output')),
+        Node(name=LaunchConfiguration('container'),
              package='rclcpp_components',
              executable='component_container_mt',
              output=LaunchConfiguration('output'),
-             arguments=['--ros-args', '--log-level',
-                        LaunchConfiguration('log_level')]),
-        LoadComposableNodes(
-            target_container=[prefix, 'container'],
-            composable_node_descriptions=[
-                ComposableNode(
-                    name=[prefix, 'controller'],
-                    package='aist_robotiq',
-                    plugin='aist_robotiq::CModelController',
-                    parameters=[param_file],
-                    extra_arguments=[{'use_intra_process_comms': True}])])
+             arguments=[
+                 '--ros-args', '--log-level', LaunchConfiguration('log_level')
+             ]),
+        LoadComposableNodes(target_container=LaunchConfiguration('container'),
+                            composable_node_descriptions=composable_nodes),
     ]
 
 def generate_launch_description():

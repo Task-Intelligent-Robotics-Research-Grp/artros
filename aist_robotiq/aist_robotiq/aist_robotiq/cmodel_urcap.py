@@ -36,16 +36,16 @@ class CModelURCap(CModelBase):
 
     ENCODING = 'UTF-8'  # ASCII and UTF-8 both seem to work
 
-    def __init__(self, name, address, slave_id=9):
+    def __init__(self, name, address):
         """
         Constructor
         """
-        super().__init__(name, slave_id)
+        super().__init__(name)
+        ip = self.declare_parameter('ip', '10.66.171.40').value
         self._lock   = threading.Lock()
-        self._socket = self.connect(address)
+        self._socket = self.connect(ip)
         #self.activate()
-        self.get_logger().info('started[address=%s, slave_id=%d]'
-                               % (address, slave_id))
+        self.get_logger().info('started[ip=%s]' % ip)
 
     def connect(self, hostname, port=63352, socket_timeout=2.0):
         """
@@ -79,7 +79,7 @@ class CModelURCap(CModelBase):
         command  = self._clip_command(command)
         # Do not set variable 'ACT' because setting zero value will cause
         # the device reset.
-        var_dict = dict([(self.SID, self._slave_id),
+        var_dict = dict([(self.SID, command.r_sid),
                          (self.MOD, command.r_mod),
                          (self.GTO, command.r_gto),
                          (self.ATR, command.r_atr),
@@ -89,9 +89,10 @@ class CModelURCap(CModelBase):
                          (self.FOR, command.r_fr)])
         self._set_vars(var_dict)
 
-    def get_status(self):
+    def get_status(self, slave_id):
         status = CModelStatus()
         # Assign values to their respective variables
+        status.g_sid = self._get_var(self.SID)
         status.g_act = self._get_var(self.ACT)
         status.g_mod = self._get_var(self.MOD)
         status.g_gto = self._get_var(self.GTO)

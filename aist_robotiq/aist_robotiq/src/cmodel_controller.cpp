@@ -128,6 +128,7 @@ class CModelController : public rclcpp::Node
 
   private:
   // Read-only parameters
+    const int                           _slave_id;
     const double			_min_position;
     const double			_max_position;
     const double			_min_velocity;
@@ -165,6 +166,8 @@ class CModelController : public rclcpp::Node
 
 CModelController::CModelController(const rclcpp::NodeOptions& options)
     :rclcpp::Node("cmodel_controller", options),
+     _slave_id(ddynamic_reconfigure2::declare_read_only_parameter(
+                   this, "slave_id", 9)),
      _min_position(ddynamic_reconfigure2::declare_read_only_parameter(
 		       this, "min_position", 0.810)),
      _max_position(ddynamic_reconfigure2::declare_read_only_parameter(
@@ -281,6 +284,10 @@ void
 CModelController::cmodel_status_cb(const cmodel_status_cp& status)
 {
     using namespace	std::chrono_literals;
+
+  // Reject if slave ID of the input status is not a one of this
+    if (status->g_sid != _slave_id)
+        return;
 
   // Keep the latest status for aborting previous goal.
     _cmodel_status = status;
@@ -411,6 +418,7 @@ void
 CModelController::send_raw_move_command(int pos, int vel, int eff) const
 {
     auto	cmodel_command = std::make_unique<cmodel_command_t>();
+    cmodel_command->r_sid = _slave_id;
     cmodel_command->r_act = 1;
     cmodel_command->r_gto = 1;
     cmodel_command->r_pr  = pos;

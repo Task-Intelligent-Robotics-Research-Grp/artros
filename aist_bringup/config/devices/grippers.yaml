@@ -1,11 +1,155 @@
-a_bot_gripper:
-  device:       robotiq_140
-  driver:       urcap
-  ip_or_dev:    "10.66.171.40"
-  slave_id:     9
+#################################
+#  robotiq gripper controllers  #
+#################################
+a_bot_grippers_driver:
+  ros__parameters:
+    ip:        10.66.171.40  # Used for tcp/urcap drivers
+    slave_ids: [9]           # list of slave IDs of Modbus devices
 
-b_bot_gripper:
-  device:       robotiq_85
-  driver:       urcap
-  ip_or_dev:    "10.66.171.41"
-  slave_id:     9
+a_bot_gripper_controller:
+  ros__parameters:
+    slave_id:   9
+    joint_name: a_bot_gripper_finger_joint
+
+    # Gap width between fingers in meters [0.000, 0.140]
+    min_gap: 0.000
+    max_gap: 0.140
+
+    # Gripper position in radians [0.69, 0,00]
+    min_position: 0.69
+    max_position: 0.00
+
+    # Gripper velocity in m/s [0.030, 0.250]
+    min_velocity: 0.030
+    max_velocity: 0.250
+
+    # Gripper effort in N. [0.0, 125.0]
+    min_effort:   0.0
+    max_effort: 125.0
+
+b_bot_gripper_driver:
+  ros__parameters:
+    ip:        10.66.171.41  # Used for tcp/urcap drivers
+    slave_ids: [9]           # list of slave IDs of Modbus devices
+
+b_bot_gripper_controller:
+  ros__parameters:
+    slave_id:   9
+    joint_name: b_bot_gripper_finger_joint
+
+    # Gap width between fingers in meters [0.000, 0.085]
+    min_gap: 0.000
+    max_gap: 0.085
+
+    # Gripper position in radians [0.81, 0,00]
+    min_position: 0.81
+    max_position: 0.00
+
+    # Gripper velocity in m/s [0.020, 0.150]
+    min_velocity: 0.020
+    max_velocity: 0.150
+
+    # Gripper effort in N. [0.0, 235.0]
+    min_effort:   0.0
+    max_effort: 235.0
+
+#########################
+#  suction controllers  #
+#########################
+screw_tool_m3_controller:
+  ros__parameters:
+    driver_name:           /b_bot/io_and_status_controller
+    digital_in_port:       0
+    digital_out_port_suck: 0
+    digital_out_port_blow: 1
+
+screw_tool_m4_controller:
+  ros__parameters:
+    driver_name:           /b_bot/io_and_status_controller
+    digital_in_port:       1
+    digital_out_port_suck: 2
+    digital_out_port_blow: 3
+
+suction_tool_controller:
+  ros__parameters:
+    driver_name:           /b_bot/io_and_status_controller
+    digital_in_port:       2
+    digital_out_port_suck: 4
+    digital_out_port_blow: 5
+
+base_fixture_controller:
+  ros__parameters:
+    driver_name:           /b_bot/io_and_status_controller
+    joint_name:            base_fixture_piston_joint
+    digital_out_port_suck: 6
+    min_position:          0.000
+    max_position:          0.015
+
+###############################################
+#  screw tools fastening drivers/controllers  #
+###############################################
+screw_tools_driver:
+  ros__parameters:
+    usb_port:               /dev/screw_tools
+    dxl_baud_rate:          1000000
+    dxl_read_period:        0.010
+    dxl_write_period:       0.010
+    dynamixel_info:         package://aist_bringup/config/devices/screw_tools_dynamixel_info.yaml
+    use_joint_states_topic: false
+    use_moveit:             false
+    mobile_robot_config:
+      separation_between_wheels: 0.000
+      radius_of_wheel:           0.000
+
+screw_tool_m3_fastening_controller:
+  ros__parameters:
+    driver_name:          screw_tools_driver
+    motor_id:             2
+    control_period:       0.010
+    control_parameters:
+      loosen_period:      1.0
+      max_stall_speed:    0.01
+      min_stall_period:   0.5
+      max_noload_current: 0.03
+      min_noload_period:  0.5
+
+screw_tool_m4_fastening_controller:
+  ros__parameters:
+    driver_name:          screw_tools_driver
+    motor_id:             3
+    control_period:       0.010
+    control_parameters:
+      loosen_period:      1.0
+      max_stall_speed:    0.01
+      min_stall_period:   0.5
+      max_noload_current: 0.03
+      min_noload_period:  0.5
+
+###################################################
+#  precision tools fastening drivers/controllers  #
+###################################################
+precision_tools_driver:
+  ros__parameters:
+    usb_port:               /dev/precision_tools
+    dxl_baud_rate:          57600
+    dxl_read_period:        0.010
+    dxl_write_period:       0.010
+    dynamixel_info:         package://aist_bringup/config/devices/precision_tools_dynamixel_info.yaml
+    use_joint_states_topic: false
+    use_moveit:             false
+    mobile_robot_config:
+      separation_between_wheels: 0.000
+      radius_of_wheel:           0.000
+
+precision_tool_controller:
+  ros__parameters:
+    driver_name:        precision_tools_driver
+    motor_id:           1
+    min_position:       0.000
+    max_position:       0.010
+    max_effort:         0.5
+    min_position_count: 2300
+    max_position_count: 2050
+    min_effort_count:   7
+    max_effort_count:   13
+    stall_timeout:      1.0

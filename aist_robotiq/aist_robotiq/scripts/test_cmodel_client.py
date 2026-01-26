@@ -46,8 +46,9 @@ class TestCModelClient(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        prefix = self.declare_parameter('prefix', 'a_bot_gripper_').value
-        self._gripper = RobotiqGripper(self, prefix)
+        device_name = self.declare_parameter('device_name',
+                                             'a_bot_gripper').value
+        self._gripper = RobotiqGripper(self, device_name + '_')
         self.get_logger().info('started')
 
         cli_thread = threading.Thread(target=self.interactive)

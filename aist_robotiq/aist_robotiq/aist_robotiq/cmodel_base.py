@@ -41,22 +41,24 @@ from aist_robotiq_msgs.msg import CModelStatus, CModelCommand
 #  class CModelBase                                                     #
 #########################################################################
 class CModelBase(Node):
-    def __init__(self, name, slave_id):
+    def __init__(self, name):
         super().__init__(name)
-        self._slave_id = slave_id
-        self._pub      = self.create_publisher(CModelStatus, '/status', 3)
-        self._sub      = self.create_subscription(CModelCommand, '/command',
-                                                  self.put_command, 3)
-        self._timer    = self.create_timer(0.05, self._timer_cb)
+        self._slave_ids = self.declare_parameter('slave_ids', [9]).value
+        self._pub       = self.create_publisher(CModelStatus, 'status', 3)
+        self._sub       = self.create_subscription(CModelCommand, 'command',
+                                                   self.put_command, 3)
+        self._timer     = self.create_timer(0.05, self._timer_cb)
 
     def __del__(self):
         self.disconnect()           # (defined in derived class)
 
     def _timer_cb(self):
-        status = self.get_status()  # (defined in derived class)
-        self._pub.publish(status)   # Forward device status to controller
+        for slave_id in self._slave_ids:
+            status = self.get_status(slave_id)  # (defined in derived class)
+            self._pub.publish(status)   # Forward device status to controller
 
     def _clip_command(self, command):
+        command.r_sid = clip(command.r_sid, 1, 254)
         command.r_act = clip(command.r_act, 0, 1)
         command.r_mod = clip(command.r_mod, 0, 3)
         command.r_gto = clip(command.r_gto, 0, 1)

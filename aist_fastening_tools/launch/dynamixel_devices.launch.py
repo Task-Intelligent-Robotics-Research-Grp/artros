@@ -17,24 +17,24 @@ launch_arguments = [
         'description': 'absolute path to configuration file'
     },
     {
-        'name':        'tool_names',
+        'name':        'device_names',
         'default':     'screw_tool_m3_fastening,screw_tool_m4_fastening',
-        'description': 'list of tool names'
+        'description': 'list of device names'
     },
     {
-        'name':        'tool_types',
+        'name':        'device_types',
         'default':     'ScrewTool,ScrewTool',
-        'description': 'list of tool names'
-    },
-    {
-        'name':        'container',
-        'default':     'screw_tools_container',
-        'description': 'name of the component container'
+        'description': 'list of device names'
     },
     {
         'name':        'driver_ns',
         'default':     'screw_tools_driver',
         'description': 'name of the Dynamixel driver'
+    },
+    {
+        'name':        'container',
+        'default':     'screw_tools_container',
+        'description': 'name of the component container'
     },
     {
         'name':        'log_level',
@@ -65,26 +65,30 @@ def launch_setup(context):
             extra_arguments=[{'use_intra_process_comms': True}])
     ]
 
-    for tool_name, tool_type \
-          in zip(LaunchConfiguration('tool_names').perform(context).split(','),
-                 LaunchConfiguration('tool_types').perform(context).split(',')):
+    for device_name, device_type \
+          in zip(LaunchConfiguration('device_names').perform(context)
+                 .split(','),
+                 LaunchConfiguration('device_types').perform(context)
+                 .split(',')):
         composable_nodes.append(
             ComposableNode(
-                name=tool_name + '_controller',
+                name=device_name + '_controller',
                 package='aist_fastening_tools',
-                plugin=PLUGINS[tool_type],
+                plugin=PLUGINS[device_type],
                 parameters=[ParameterFile(LaunchConfiguration('param_file'))],
                 extra_arguments=[{'use_intra_process_comms': True}]))
 
-    return [Node(name=LaunchConfiguration('container'),
-                 package='rclcpp_components',
-                 executable='component_container_mt',
-                 output=LaunchConfiguration('output'),
-                 arguments=['--ros-args', '--log-level',
-                            LaunchConfiguration('log_level')]),
-            LoadComposableNodes(
-                target_container=LaunchConfiguration('container'),
-                composable_node_descriptions=composable_nodes)]
+    return [
+        Node(name=LaunchConfiguration('container'),
+             package='rclcpp_components',
+             executable='component_container_mt',
+             output=LaunchConfiguration('output'),
+             arguments=['--ros-args', '--log-level',
+                        LaunchConfiguration('log_level')]),
+        LoadComposableNodes(
+            target_container=LaunchConfiguration('container'),
+            composable_node_descriptions=composable_nodes)
+    ]
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \

@@ -10,8 +10,9 @@ class SuctionToolTest(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        tool_name = self.declare_parameter('tool_name', 'suction_tool').value
-        self._suction_tool = SuctionTool(self, tool_name)
+        device_name = self.declare_parameter('device_name',
+                                             'suction_tool').value
+        self._suction_tool = SuctionTool(self, device_name)
         self.get_logger().info('started')
 
         cli_thread = threading.Thread(target=self.interactive)

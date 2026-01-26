@@ -1,3 +1,4 @@
+uint8 r_sid  # slace ID
 uint8 r_act  # activate (0: deactivate, 1: activate)
 uint8 r_mod  # EPick gripper mode (0: auto mode, 1: advanced mode)
 uint8 r_gto  # go-to (0: stop, 1: move with values set in rPR, rSP and rFR)

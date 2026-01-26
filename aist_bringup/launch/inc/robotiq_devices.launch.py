@@ -1,10 +1,10 @@
 from launch                     import LaunchDescription
-from launch.actions             import (IncludeLaunchDescription,
-                                        OpaqueFunction)
+from launch.actions             import IncludeLaunchDescription, OpaqueFunction
 from launch.substitutions       import (LaunchConfiguration,
                                         PathJoinSubstitution)
 from launch_ros.substitutions   import FindPackageShare
-from aist_bringup.launch_common import declare_launch_arguments, load_config
+from aist_bringup.launch_common import (declare_launch_arguments,
+                                        load_gripper_config)
 
 
 launch_arguments = [
@@ -15,10 +15,11 @@ launch_arguments = [
     },
     {
         'name':        'name',
-        'default':     'screw_tools',
-        'description': 'Name of the Dynamixel device group'
+        'default':     'a_bot_grippers',
+        'description': 'Name of the set of Robotiq grippers'
     },
 ]
+
 
 def launch_setup(context):
     config         = load_config(context)
@@ -31,9 +32,8 @@ def launch_setup(context):
                       .values()]
     return [
         IncludeLaunchDescription(
-            PathJoinSubstitution([
-                FindPackageShare('aist_fastening_tools'), 'launch',
-                'dynamixel_devices.launch.py']),
+            PathJoinSubstitution([FindPackageShare('aist_robotiq'), 'launch',
+                                  'launch.py']),
             launch_arguments=[
                 ('param_file',   PathJoinSubstitution([
                                      FindPackageShare('aist_bringup'),
