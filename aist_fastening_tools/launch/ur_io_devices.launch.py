@@ -27,11 +27,6 @@ launch_arguments = [
         'description': 'name of the component container'
     },
     {
-        'name':        'driver_ns',
-        'default':     'b_bot_io_and_status_controller',
-        'description': 'namespace of the IO controller of the UR arm'
-    },
-    {
         'name':        'log_level',
         'default':     'info',
         'description': 'debug log level',
@@ -55,7 +50,6 @@ def launch_setup(context):
                 package='aist_fastening_tools',
                 plugin='aist_fastening_tools::SuctionToolController',
                 parameters=[
-                    {'driver_ns': LaunchConfiguration('driver_ns')},
                     ParameterFile(LaunchConfiguration('param_file'))
                 ],
                 extra_arguments=[{'use_intra_process_comms': True}]))

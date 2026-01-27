@@ -37,7 +37,7 @@ import threading
 from aist_robotiq.cmodel_base import CModelBase
 from aist_robotiq_msgs.msg    import CModelStatus
 from pymodbus.exceptions      import ModbusIOException
-from pymodbus.client.sync     import ModbusTcpClient, ModbusSerialClient
+from pymodbus.client          import ModbusTcpClient, ModbusSerialClient
 
 #########################################################################
 #  class CModelModbusBase                                               #

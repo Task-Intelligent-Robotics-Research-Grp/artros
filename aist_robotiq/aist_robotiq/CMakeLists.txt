@@ -49,9 +49,7 @@ ament_python_install_package(${PROJECT_NAME})
 
 install(
   PROGRAMS
-    scripts/cmodel_rtu_driver.py
-    scripts/cmodel_tcp_driver.py
-    scripts/cmodel_urcap_driver.py
+    scripts/cmodel_driver.py
     scripts/epick_controller.py
     scripts/test_cmodel_client.py
     scripts/test_epick_client.py

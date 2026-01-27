@@ -197,14 +197,14 @@ CModelController::CModelController(const rclcpp::NodeOptions& options)
 				     std::placeholders::_1,
 				     std::placeholders::_2))),
 
-     _cmodel_command_pub(create_publisher<cmodel_command_t>("~/command", 1)),
+     _cmodel_command_pub(create_publisher<cmodel_command_t>("/command", 1)),
      _goal_r_pr(0),
 
      _cmodel_status(nullptr),
      _cmodel_status_cbg(create_callback_group(
 			    rclcpp::CallbackGroupType::MutuallyExclusive)),
      _cmodel_status_sub(create_subscription<cmodel_status_t>(
-			    "~/status", 1,
+			    "/status", 1,
 			    std::bind(&CModelController::cmodel_status_cb,
 				      this, std::placeholders::_1),
 			    create_subscription_options(_cmodel_status_cbg))),

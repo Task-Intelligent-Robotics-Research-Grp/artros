@@ -62,7 +62,7 @@ DEVICE_PROPS = {
         'real_drivers_launch_file': PathJoinSubstitution(
                                         [FindPackageShare('aist_bringup'),
                                          'launch', 'inc',
-                                         'robotiq_drivers.launch.py'])
+                                         'robotiq_devices.launch.py'])
     },
     'DynamixelDevices':
     {

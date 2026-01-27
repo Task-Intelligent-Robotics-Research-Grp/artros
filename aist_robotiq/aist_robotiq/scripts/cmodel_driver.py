@@ -37,7 +37,7 @@
 #
 import sys, rclpy
 from aist_robotiq.cmodel_urcap  import CModelURCap
-from aist_robotiq.cmodel_modbus import CModelModbusTCP, CModeModbusRTU
+from aist_robotiq.cmodel_modbus import CModelModbusTCP, CModelModbusRTU
 from rclpy.executors            import ExternalShutdownException
 
 def main():

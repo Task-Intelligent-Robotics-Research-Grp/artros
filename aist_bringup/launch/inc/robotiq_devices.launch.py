@@ -3,8 +3,7 @@ from launch.actions             import IncludeLaunchDescription, OpaqueFunction
 from launch.substitutions       import (LaunchConfiguration,
                                         PathJoinSubstitution)
 from launch_ros.substitutions   import FindPackageShare
-from aist_bringup.launch_common import (declare_launch_arguments,
-                                        load_gripper_config)
+from aist_bringup.launch_common import declare_launch_arguments, load_config
 
 
 launch_arguments = [
@@ -26,9 +25,9 @@ def launch_setup(context):
     devices_config = config['grippers'][LaunchConfiguration('name')
                                         .perform(context)]
     device_names   = [device_name
-                      for device_name in devices_config.get('devices', {})]
+                      for device_name in devices_config.get('grippers', {})]
     device_types   = [device_props['type']
-                      for device_props in devices_config.get('devices', {})
+                      for device_props in devices_config.get('grippers', {})
                       .values()]
     return [
         IncludeLaunchDescription(

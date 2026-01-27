@@ -24,7 +24,7 @@ def launch_setup(context):
     devices_config = config['grippers'][LaunchConfiguration('name')
                                         .perform(context)]
     device_names   = [device_name
-                      for device_name in devices_config.get('devices', {})]
+                      for device_name in devices_config.get('grippers', {})]
     return [
         IncludeLaunchDescription(
             PathJoinSubstitution([FindPackageShare('aist_fastening_tools'),
@@ -34,8 +34,9 @@ def launch_setup(context):
                                      FindPackageShare('aist_bringup'),
                                      'config', 'devices', 'grippers.yaml'])),
                 ('device_names', ','.join(device_names)),
-                ('container',    [LaunchConfiguration('name'), '_container']),
-                ('driver_ns',    devices_config['driver_ns'])])]
+                ('container',    [LaunchConfiguration('name'), '_container'])
+            ])
+    ]
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \

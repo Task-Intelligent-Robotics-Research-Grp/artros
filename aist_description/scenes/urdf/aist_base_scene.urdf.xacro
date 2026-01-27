@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro" name="aist_base_scene" >
 
-  <xacro:arg name="scene"	default=""/>
   <xacro:arg name="sim"		default="false"/>
+  <xacro:arg name="scene"	default=""/>
 
   <!-- location of robot arms -->
   <xacro:property name="a_bot_x"	value="0"/>

@@ -55,51 +55,51 @@ arms:
 grippers:
   a_bot_grippers:
     type:           RobotiqDevices
-    devices:
+    grippers:
       a_bot_gripper:
         type:       RobotiqGripper
         max_effort: 5.0
         velocity:   0.1
   b_bot_grippers:
     type:           RobotiqDevices
-    devices:
+    grippers:
       b_bot_gripper:
         type:       RobotiqGripper
         max_effort: 5.0
         velocity:   0.1
   precision_tools:
     type:          DynamixelDevices
-    devices:
+    grippers:
       precision_tool:
         type:      PrecisionTool
         base_link: precision_tool/base_link
         tip_link:  precision_tool/tip_link
   screw_tools:
     type:          DynamixelDevices
-    devices:
+    grippers:
       screw_tool_m3_fastening:
         type:      ScrewTool
       screw_tool_m4_fastening:
         type:      ScrewTool
   suction_tools:
     type:          URioDevices
-    devices:
+    grippers:
       screw_tool_m3:
         type:      SuctionTool
-	base_link: screw_tool_m3/base_link
-	tip_link:  screw_tool_m3/tip_link
+        base_link: screw_tool_m3/base_link
+        tip_link:  screw_tool_m3/tip_link
       screw_tool_m4:
         type:      SuctionTool
-	base_link: screw_tool_m4/base_link
-	tip_link:  screw_tool_m4/tip_link
+        base_link: screw_tool_m4/base_link
+        tip_link:  screw_tool_m4/tip_link
       suction_tool:
         type:      SuctionTool
-	base_link: suction_tool/base_link
-	tip_link:  suction_tool/tip_link
+        base_link: suction_tool/base_link
+        tip_link:  suction_tool/tip_link
       base_fixture:
         type:      SuctionTool
-	base_link: base_fixture_base_link
-	tip_link:  base_fixture_tip_link
+        base_link: base_fixture_base_link
+        tip_link:  base_fixture_tip_link
 
 cameras:
   a_motioncam:

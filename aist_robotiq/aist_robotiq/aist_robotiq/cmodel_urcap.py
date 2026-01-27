@@ -36,7 +36,7 @@ class CModelURCap(CModelBase):
 
     ENCODING = 'UTF-8'  # ASCII and UTF-8 both seem to work
 
-    def __init__(self, name, address):
+    def __init__(self, name):
         """
         Constructor
         """
@@ -162,7 +162,10 @@ class CModelURCap(CModelBase):
         if var_name != variable:
             raise ValueError("Unexpected response " + str(data)
                              + " does not match '" + variable + "'")
-        return int(value_str)
+        try:
+            return int(value_str)
+        except ValueError:
+            return eval(value_str)[0]
 
     @staticmethod
     def _is_ack(data):

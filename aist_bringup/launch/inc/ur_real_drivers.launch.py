@@ -20,7 +20,8 @@ def launch_setup(context):
     arm_name      = LaunchConfiguration('name').perform(context)
     arm_config    = load_arm_config(arm_name)
     robot_ip      = arm_config['robot_ip']
-    headless_mode = arm_config.get('headless_mode', 'false')
+    headless_mode = arm_config.get('headless_mode', 'false') in ('true',
+                                                                 'True')
     return [
         Node(package='ur_robot_driver',
              executable='dashboard_client',
@@ -42,7 +43,7 @@ def launch_setup(context):
              output='screen',
              parameters=[
                  {'robot_ip':    robot_ip,
-                  'tcp_port':    arm_config.get('tool_tcp_port', '54321'),
+                  'tcp_port':    arm_config.get('tool_tcp_port', 54321),
                   'device_name': arm_config.get('tool_device_name',
                                                 '/tmp/ttyUR')}]),
         Node(package='ur_robot_driver',
@@ -58,9 +59,10 @@ def launch_setup(context):
              parameters=[
                  {'headless_mode': headless_mode,
                   'joint_controller_active':
-                  arm_config.get('joint_controller_active', True),
+                  arm_config.get('joint_controller_active',
+                                 'true') in ('true', 'True'),
                   'consistent_controllers':
-                  arm_config.get('consistent_controllers', []) + \
+                  arm_config.get('consistent_controllers', ['']) + \
                   arm_config.get('real_consistent_controllers', [])}])
     ]
 

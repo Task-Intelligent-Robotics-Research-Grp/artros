@@ -44,8 +44,8 @@ class CModelBase(Node):
     def __init__(self, name):
         super().__init__(name)
         self._slave_ids = self.declare_parameter('slave_ids', [9]).value
-        self._pub       = self.create_publisher(CModelStatus, 'status', 3)
-        self._sub       = self.create_subscription(CModelCommand, 'command',
+        self._pub       = self.create_publisher(CModelStatus, '~/status', 3)
+        self._sub       = self.create_subscription(CModelCommand, '~/command',
                                                    self.put_command, 3)
         self._timer     = self.create_timer(0.05, self._timer_cb)
 
@@ -58,7 +58,7 @@ class CModelBase(Node):
             self._pub.publish(status)   # Forward device status to controller
 
     def _clip_command(self, command):
-        command.r_sid = clip(command.r_sid, 1, 254)
+        command.r_sid = clip(command.r_sid, 1, 9)
         command.r_act = clip(command.r_act, 0, 1)
         command.r_mod = clip(command.r_mod, 0, 3)
         command.r_gto = clip(command.r_gto, 0, 1)
