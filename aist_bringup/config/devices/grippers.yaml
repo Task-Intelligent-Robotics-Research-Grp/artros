@@ -1,6 +1,6 @@
-#################################
-#  robotiq gripper controllers  #
-#################################
+#########################################
+#  robotiq gripper drivers/controllers  #
+#########################################
 a_bot_grippers_driver:
   ros__parameters:
     ip:        10.66.171.40  # Used for tcp/urcap drivers

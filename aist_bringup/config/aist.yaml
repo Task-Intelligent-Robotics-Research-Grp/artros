@@ -54,52 +54,59 @@ arms:
 
 grippers:
   a_bot_grippers:
-    type:           RobotiqDevices
+    type:             RobotiqDevices
     grippers:
       a_bot_gripper:
-        type:       RobotiqGripper
-        max_effort: 5.0
-        velocity:   0.1
+        type:         RobotiqGripper
+        client_args:
+          max_effort: 5.0
+          velocity:   0.1
   b_bot_grippers:
-    type:           RobotiqDevices
+    type:             RobotiqDevices
     grippers:
       b_bot_gripper:
-        type:       RobotiqGripper
-        max_effort: 5.0
-        velocity:   0.1
+        type:         RobotiqGripper
+        client_args:
+          max_effort: 5.0
+          velocity:   0.1
   precision_tools:
-    type:          DynamixelDevices
+    type:            DynamixelDevices
     grippers:
       precision_tool:
-        type:      PrecisionTool
-        base_link: precision_tool/base_link
-        tip_link:  precision_tool/tip_link
+        type:        PrecisionTool
+        client_args:
+          base_link: precision_tool/base_link
+          tip_link:  precision_tool/tip_link
   screw_tools:
-    type:          DynamixelDevices
+    type:            DynamixelDevices
     grippers:
       screw_tool_m3_fastening:
-        type:      ScrewTool
+        type:        ScrewTool
       screw_tool_m4_fastening:
-        type:      ScrewTool
+        type:        ScrewTool
   suction_tools:
-    type:          URioDevices
+    type:            URioDevices
     grippers:
       screw_tool_m3:
-        type:      SuctionTool
-        base_link: screw_tool_m3/base_link
-        tip_link:  screw_tool_m3/tip_link
+        type:        SuctionTool
+        client_args:
+          base_link: screw_tool_m3/base_link
+          tip_link:  screw_tool_m3/tip_link
       screw_tool_m4:
-        type:      SuctionTool
-        base_link: screw_tool_m4/base_link
-        tip_link:  screw_tool_m4/tip_link
+        type:        SuctionTool
+        client_args:
+          base_link: screw_tool_m4/base_link
+          tip_link:  screw_tool_m4/tip_link
       suction_tool:
-        type:      SuctionTool
-        base_link: suction_tool/base_link
-        tip_link:  suction_tool/tip_link
+        type:        SuctionTool
+        client_args:
+          base_link: suction_tool/base_link
+          tip_link:  suction_tool/tip_link
       base_fixture:
-        type:      SuctionTool
-        base_link: base_fixture_base_link
-        tip_link:  base_fixture_tip_link
+        type:        SuctionTool
+        client_args:
+          base_link: base_fixture_base_link
+          tip_link:  base_fixture_tip_link
 
 cameras:
   a_motioncam:
