@@ -6,7 +6,7 @@ a_bot_grippers_driver:
     ip:        10.66.171.40  # Used for tcp/urcap drivers
     slave_ids: [9]           # list of slave IDs of Modbus devices
 
-a_bot_grippers_controller:
+a_bot_gripper_controller:
   ros__parameters:
     slave_id:   9
     joint_name: a_bot_gripper_finger_joint
