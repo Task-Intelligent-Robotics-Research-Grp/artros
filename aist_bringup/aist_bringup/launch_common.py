@@ -55,14 +55,17 @@ DEVICE_PROPS = {
 
     'RobotiqDevices':
     {
-        'gz_controllers_template':  PathJoinSubstitution(
-                                        [FindPackageShare('aist_bringup'),
-                                         'config', 'templates',
-                                         'gripper_controllers.yaml']),
         'real_drivers_launch_file': PathJoinSubstitution(
                                         [FindPackageShare('aist_bringup'),
                                          'launch', 'inc',
                                          'robotiq_devices.launch.py'])
+    },
+    'RobotiqGripper':
+    {
+        'gz_controllers_template':  PathJoinSubstitution(
+                                        [FindPackageShare('aist_bringup'),
+                                         'config', 'templates',
+                                         'gripper_controllers.yaml']),
     },
     'DynamixelDevices':
     {
@@ -141,7 +144,7 @@ DEVICE_PROPS = {
 }
 
 def get_device_props(device_type):
-    return DEVICE_PROPS[device_type]
+    return DEVICE_PROPS.get(device_type)
 
 def instantiate_file(context, template_file, instantiated_file, append=False):
     # We must extend lifetime of the ParameterFile object by keeping it

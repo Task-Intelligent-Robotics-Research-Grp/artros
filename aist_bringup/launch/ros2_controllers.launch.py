@@ -35,6 +35,14 @@ launch_arguments = [
 ]
 
 
+def get_grippers(config, name=''):
+    if 'grippers' in config:
+        grippers={}
+        for gripper_name, gripper_config in config['grippers'].items():
+            grippers |= get_grippers(gripper_config, gripper_name)
+        return grippers
+    return {} if name == '' else {name: config}
+
 def launch_setup(context):
     config = load_config(context)
     sim    = LaunchConfiguration('sim').perform(context) in ('true', 'True')
@@ -158,16 +166,17 @@ def launch_setup(context):
 
     # Instantiate controller configuration files for each gripper.
     gripper_controllers = []
-    for gripper_name, gripper_config in config.get('grippers', {}).items():
+    for gripper_name, gripper_config in get_grippers(config).items():
         gripper_props = get_device_props(gripper_config['type'])
-        template = gripper_props.get('gz_controllers_template') if sim else \
-                   gripper_props.get('controllers_template')
-        if template is not None:
-            SetLaunchConfiguration('gripper_name',
-                                   gripper_name).execute(context)
-            instantiate_file(context, template,
-                             '/tmp/' + gripper_name + '_controllers.yaml')
-            gripper_controllers.append(gripper_name + '_controller')
+        if gripper_props is not None:
+            template = gripper_props.get('gz_controllers_template') if sim \
+                       else gripper_props.get('controllers_template')
+            if template is not None:
+                SetLaunchConfiguration('gripper_name',
+                                       gripper_name).execute(context)
+                instantiate_file(context, template,
+                                 '/tmp/' + gripper_name + '_controllers.yaml')
+                gripper_controllers.append(gripper_name + '_controller')
 
     if len(gripper_controllers) > 0:
         actions.append(

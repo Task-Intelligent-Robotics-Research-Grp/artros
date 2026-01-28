@@ -73,7 +73,7 @@ def get_grippers(config, name=''):
         for gripper_name, gripper_config in config['grippers'].items():
             grippers |= get_grippers(gripper_config, gripper_name)
         return grippers
-    return {name: config}
+    return {} if name == '' else {name: config}
 
 def paramtuples(d):
     fields = set()
