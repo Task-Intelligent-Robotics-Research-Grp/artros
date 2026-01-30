@@ -1,12 +1,11 @@
-from launch                            import LaunchDescription
-from launch.actions                    import OpaqueFunction
-from launch.substitutions              import (LaunchConfiguration,
-                                               PathJoinSubstitution)
-from launch_ros.actions                import Node, LoadComposableNodes
-from launch_ros.descriptions           import ComposableNode
-from launch_ros.substitutions          import FindPackageShare
-from launch_ros.parameter_descriptions import ParameterFile
-from aist_bringup.launch_common        import declare_launch_arguments
+from launch                     import LaunchDescription
+from launch.actions             import OpaqueFunction
+from launch.substitutions       import (LaunchConfiguration,
+                                        PathJoinSubstitution)
+from launch_ros.actions         import Node, LoadComposableNodes
+from launch_ros.descriptions    import ComposableNode
+from launch_ros.substitutions   import FindPackageShare
+from aist_bringup.launch_common import declare_launch_arguments
 
 launch_arguments = [
     {
@@ -50,7 +49,7 @@ def launch_setup(context):
                 package='aist_fastening_tools',
                 plugin='aist_fastening_tools::SuctionToolController',
                 parameters=[
-                    ParameterFile(LaunchConfiguration('param_file'))
+                    LaunchConfiguration('param_file')
                 ],
                 extra_arguments=[{'use_intra_process_comms': True}]))
     return [

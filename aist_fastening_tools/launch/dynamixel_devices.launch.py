@@ -1,12 +1,11 @@
-from launch                            import LaunchDescription
-from launch.actions                    import OpaqueFunction
-from launch.substitutions              import (LaunchConfiguration,
-                                               PathJoinSubstitution)
-from launch_ros.actions                import Node, LoadComposableNodes
-from launch_ros.descriptions           import ComposableNode
-from launch_ros.substitutions          import FindPackageShare
-from launch_ros.parameter_descriptions import ParameterFile
-from aist_bringup.launch_common        import declare_launch_arguments
+from launch                     import LaunchDescription
+from launch.actions             import OpaqueFunction
+from launch.substitutions       import (LaunchConfiguration,
+                                        PathJoinSubstitution)
+from launch_ros.actions         import Node, LoadComposableNodes
+from launch_ros.descriptions    import ComposableNode
+from launch_ros.substitutions   import FindPackageShare
+from aist_bringup.launch_common import declare_launch_arguments
 
 launch_arguments = [
     {
@@ -61,7 +60,7 @@ def launch_setup(context):
             name=LaunchConfiguration('driver_ns'),
             package='dynamixel_workbench_controllers',
             plugin='dynamixel_workbench_controllers::DynamixelController',
-            parameters=[ParameterFile(LaunchConfiguration('param_file'))],
+            parameters=[LaunchConfiguration('param_file')],
             extra_arguments=[{'use_intra_process_comms': True}])
     ]
 
@@ -75,7 +74,7 @@ def launch_setup(context):
                 name=device_name + '_controller',
                 package='aist_fastening_tools',
                 plugin=PLUGINS[device_type],
-                parameters=[ParameterFile(LaunchConfiguration('param_file'))],
+                parameters=[LaunchConfiguration('param_file')],
                 extra_arguments=[{'use_intra_process_comms': True}]))
 
     return [

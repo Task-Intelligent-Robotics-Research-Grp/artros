@@ -14,6 +14,7 @@ from launch_ros.parameter_descriptions import ParameterValue, ParameterFile
 from aist_bringup.launch_common        import (declare_launch_arguments,
                                                load_config, get_device_props,
                                                instantiate_file)
+from typing                            import List
 
 launch_arguments = [
     {
@@ -118,7 +119,7 @@ def launch_setup(context):
                     Node(package='aist_bringup',
                          executable='append_ros2_control',
                          parameters=[
-                             {'ros2_control_description':
+                             {'ros2_control_descriptions':
                               ParameterValue(
                                   Command([
                                       FindExecutable(name='xacro'), ' ',
@@ -126,7 +127,8 @@ def launch_setup(context):
                                       ' name:=', LaunchConfiguration('arm_name'),
                                       ' sim:=',  LaunchConfiguration('sim'),
                                   ]),
-                                  value_type=str)}
+                                  value_type=str)
+                              }
                          ],
                          remappings=[
                              ('robot_description_in', '/robot_description')

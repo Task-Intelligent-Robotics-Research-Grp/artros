@@ -8,8 +8,10 @@ a_bot_grippers_driver:
 
 a_bot_gripper_controller:
   ros__parameters:
-    slave_id:   9
-    joint_name: a_bot_gripper_finger_joint
+    type:             robotiq_140
+    slave_id:         9
+    joint_name:       a_bot_gripper_finger_joint
+    initial_position: 0.69
 
     # Gap width between fingers in meters [0.000, 0.140]
     min_gap: 0.000
@@ -34,8 +36,10 @@ b_bot_grippers_driver:
 
 b_bot_gripper_controller:
   ros__parameters:
-    slave_id:   9
-    joint_name: b_bot_gripper_finger_joint
+    type:             robotiq_85
+    slave_id:         9
+    joint_name:       b_bot_gripper_finger_joint
+    initial_position: 0.80
 
     # Gap width between fingers in meters [0.000, 0.085]
     min_gap: 0.000

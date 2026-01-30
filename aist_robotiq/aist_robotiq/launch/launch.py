@@ -8,7 +8,7 @@ from launch.substitutions              import (LaunchConfiguration,
 from launch_ros.actions                import Node, LoadComposableNodes
 from launch_ros.descriptions           import ComposableNode
 from launch_ros.substitutions          import FindPackageShare
-from launch_ros.parameter_descriptions import ParameterFile
+
 
 launch_arguments = [
     {

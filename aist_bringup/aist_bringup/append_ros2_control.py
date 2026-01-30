@@ -35,7 +35,7 @@
 #
 # Author: Toshio Ueshiba (t.ueshiba@aist.go.jp)
 #
-import sys
+import sys, re
 import rclpy
 import xml.etree.ElementTree as ET
 
@@ -50,10 +50,15 @@ class Ros2ControlAppender(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        qos = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL)
+        # Load XML descriptions of ros2_control from parameter and parse them.
+        rds = self.declare_parameter('ros2_control_descriptions', '').value
+        indices = [rd.start() for rd in re.finditer('<\?xml', rds)]
+        indices.append(len(rds))
+        self._eds = [ET.fromstring(rds[indices[i]:indices[i+1]])
+                     for i in range(len(indices) - 1)]
 
-        self._ed  = ET.fromstring(self.declare_parameter(
-                                      'ros2_control_description', '').value)
+        # Create subscriber and publisher.
+        qos = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL)
         self._sub = self.create_subscription(String, 'robot_description_in',
                                              self._robot_description_cb, qos)
         self._pub = self.create_publisher(String, 'robot_description', qos)
@@ -63,8 +68,9 @@ class Ros2ControlAppender(Node):
     def _robot_description_cb(self, rd_msg):
         self.get_logger().info('received robot_description')
         rd = ET.fromstring(rd_msg.data)
-        for i in range(len(self._ed)):
-            rd.append(self._ed[i])
+        for ed in self._eds:
+            for i in range(len(ed)):
+                rd.append(ed[i])
         self._pub.publish(String(data=ET.tostring(rd, encoding='unicode')))
 
 

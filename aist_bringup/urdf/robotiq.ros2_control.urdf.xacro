@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="robotiq_ros2_control">
+  <!-- robot name parameter -->
+  <xacro:arg name="name" default="a_bot_gripper"/>
+  <xacro:arg name="sim"  default="false"/>
+
+  <xacro:property name ="controller_name" value="$(arg name)_controller"/>
+
+  <!-- Load hardware configuration parameters from YAML -->
+  <xacro:property name ="config_file"
+		  value="$(find aist_bringup)/config/devices/grippers.yaml"/>
+  <xacro:property name ="config"
+		  value="${xacro.load_yaml(config_file
+			 )[controller_name]['ros__parameters']}"/>
+
+  <!-- ros2_control related parameters -->
+  <xacro:property name="type"
+		  value="${config.get('type', 'robotiq_85')}"/>
+  <xacro:property name="initial_position"
+		  value="${config.get('initial_position', '0.80')}"/>
+
+  <xacro:if value="$(arg sim)">
+    <xacro:include filename="$(find aist_robotiq
+			     )/urdf/robotiq_gz.ros2_control.xacro"/>
+    <xacro:robotiq_ros2_control
+	name="$(arg name)"
+	type="${type}"
+	initial_position="${initial_position}"/>
+  </xacro:if>
+
+</robot>
