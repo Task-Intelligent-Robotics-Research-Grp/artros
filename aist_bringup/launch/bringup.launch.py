@@ -36,7 +36,8 @@ launch_arguments = [
 ]
 
 def create_node(name, config, sim):
-    props = get_device_props(config['type'])
+    type  = config['type']
+    props = get_device_props(type)
     param_file = props.get('controllers_template')
     if param_file is None and sim:
         param_file = props.get('gz_controllers_template')

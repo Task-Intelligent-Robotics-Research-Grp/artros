@@ -8,6 +8,7 @@ from aist_utility.fileio               import filepath_from_url
 
 
 DEVICE_PROPS = {
+    # Arms
     'UR':
     {
         'update_rate':              125,
@@ -53,6 +54,7 @@ DEVICE_PROPS = {
                                          'lbr.ros2_control.urdf.xacro']),
     },
 
+    # Grippers
     'RobotiqDevices':
     {
         'real_drivers_launch_file': PathJoinSubstitution(
@@ -82,6 +84,7 @@ DEVICE_PROPS = {
                                          'ur_io_devices.launch.py'])
     },
 
+    # Cameras
     'PhoXiCamera':
     {
         'launch_file':        PathJoinSubstitution(
