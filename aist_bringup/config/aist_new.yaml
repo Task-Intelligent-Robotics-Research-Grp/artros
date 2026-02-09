@@ -66,43 +66,43 @@ b_bot:
 ##############
 #  Grippers  #
 ##############
-precision_tools:
-  type:            DynamixelDevices
-  tools:
-    precision_tool:
-      type:        PrecisionTool
+# precision_tools:
+#   type:            DynamixelDevices
+#   tools:
+#     precision_tool:
+#       type:        PrecisionTool
 
-screw_tools:
-  type:            DynamixelDevices
-  tools:
-    screw_tool_m3_fastening:
-      type:        ScrewTool
-    screw_tool_m4_fastening:
-      type:        ScrewTool
+# screw_tools:
+#   type:            DynamixelDevices
+#   tools:
+#     screw_tool_m3_fastening:
+#       type:        ScrewTool
+#     screw_tool_m4_fastening:
+#       type:        ScrewTool
 
-suction_tools:
-  type:            URioDevices
-  grippers:
-    screw_tool_m3:
-      type:        SuctionTool
-    screw_tool_m4:
-      type:        SuctionTool
-    suction_tool:
-      type:        SuctionTool
-    base_fixture:
-      type:        SuctionTool
+# suction_tools:
+#   type:            URioDevices
+#   grippers:
+#     screw_tool_m3:
+#       type:        SuctionTool
+#     screw_tool_m4:
+#       type:        SuctionTool
+#     suction_tool:
+#       type:        SuctionTool
+#     base_fixture:
+#       type:        SuctionTool
 
 #############
 #  Cameras  #
 #############
-a_motioncam:
-  type: PhoXiCamera
+# a_motioncam:
+#   type: PhoXiCamera
 
-a_bot_camera:
-  type: CodedLightRealsenseCamera
+# a_bot_camera:
+#   type: CodedLightRealsenseCamera
 
-b_bot_camera:
-  type: CodedLightRealsenseCamera
+# b_bot_camera:
+#   type: CodedLightRealsenseCamera
 
-live_camera:
-  type: USBCamera
+# live_camera:
+#   type: USBCamera
