@@ -53,12 +53,10 @@ def create_node(name, config, context):
                                    name +
                                    '_speed_scaling/speed_scaling_factor'),
         ]
-        rc2_desc = ParameterValue(
-                       Command([FindExecutable(name='xacro'), ' ',
-                                arm_props['ros2_control_file'],
-                                ' name:=', LaunchConfiguration('arm_name'),
-                                ' sim:=',  LaunchConfiguration('sim')]),
-                       value_type=str)
+        rc2_desc = Command([FindExecutable(name='xacro'), ' ',
+                            props['ros2_control_file'],
+                            ' name:=', LaunchConfiguration('arm_name'),
+                            ' sim:=',  LaunchConfiguration('sim')])
         active_controllers   = config['active_controllers'] \
                              + config.get('consistent_controllers', [])
         inactive_controllers = config.get('inactive_controllers', [])
@@ -79,7 +77,10 @@ def create_node(name, config, context):
             SetLaunchConfiguration('gripper_name', name).execute(context)
             instantiate_file(context, props['gz_controllers_template'],
                              '/tmp/' + name + '_controllers.yaml')
-            rc2_desc = props.get('ros2_control_file')
+            rc2_desc = Command([FindExecutable(name='xacro'), ' ',
+                                props['ros2_control_file'],
+                                ' name:=', LaunchConfiguration('gripper_name'),
+                                ' sim:=',  LaunchConfiguration('sim')])
             active_controllers = [name + '_controller']
 
     print('### name=%s, active_controllers=%s, inactive_controllers=%s'
@@ -117,18 +118,18 @@ def create_actions(ns, config, context):
         namespaces           += ns_list
 
     if rc2_descs:
-        print('### rc2_descs=%s' % rc2_descs)
         actions.append(
             Node(package='aist_bringup',
                  executable='append_ros2_control',
                  parameters=[
                      {'ros2_control_descriptions':
-                      ParameterValue(rc2_descs, value_type=str)}
+                      ParameterValue(rc2_descs, value_type=str)},
                  ],
                  remappings=[
                      ('robot_description_in', '/robot_description')
                  ],
                  output='screen'))
+        print('### rc2_descs=%s' % rc2_descs)
     if param_files:
         actions.append(
             Node(package='controller_manager',
@@ -136,6 +137,7 @@ def create_actions(ns, config, context):
                  parameters=param_files,
                  output='screen',
                  condition=UnlessCondition(LaunchConfiguration('sim'))))
+        print('### param_files=%s' % param_files)
     if active_controllers:
         actions.append(
             Node(name='active_controllers_spawner',
