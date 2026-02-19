@@ -1,16 +1,18 @@
 /**:
   controller_manager:
     ros__parameters:
+      update_rate: $(var update_rate)  # Hz
+
       joint_state_broadcaster:
         type: joint_state_broadcaster/JointStateBroadcaster
 
-      $(var gripper_name)_controller:
+      gripper_controller:
         type: position_controllers/GripperActionController
 
-  $(var gripper_name)_controller:
+  gripper_controller:
     ros__parameters:
       action_monitor_rate:      20.0
-      joint:                    $(var gripper_name)_finger_joint
+      joint:                    $(var name)_finger_joint
       goal_tolerance:           0.01
       max_effort:               100.0
       allow_stalling:           true

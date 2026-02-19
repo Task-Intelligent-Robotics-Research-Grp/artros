@@ -57,6 +57,7 @@ DEVICE_PROPS = {
     # Grippers
     'RobotiqDevices':
     {
+        'update_rate':              50,
         'real_drivers_launch_file': PathJoinSubstitution(
                                         [FindPackageShare('aist_bringup'),
                                          'launch', 'inc',
@@ -64,7 +65,8 @@ DEVICE_PROPS = {
     },
     'RobotiqGripper':
     {
-        'gz_controllers_template':  PathJoinSubstitution(
+        'update_rate':              50,
+        'controllers_template':     PathJoinSubstitution(
                                         [FindPackageShare('aist_bringup'),
                                          'config', 'templates',
                                          'gripper_controllers.yaml']),
