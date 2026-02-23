@@ -14,7 +14,6 @@ from launch_ros.parameter_descriptions import ParameterValue, ParameterFile
 from aist_bringup.launch_common        import (declare_launch_arguments,
                                                load_config, get_device_props,
                                                instantiate_file)
-from typing                            import List
 
 launch_arguments = [
     {
@@ -35,42 +34,98 @@ launch_arguments = [
     },
 ]
 
+def create_node(ns, config, context):
+    sim   = LaunchConfiguration('sim').perform(context) in ('true', 'True')
+    name  = ns.split('/')[-1]
+    props = get_device_props(config['type'])
 
-def get_grippers(config, name=''):
-    if 'grippers' in config:
-        grippers={}
-        for gripper_name, gripper_config in config['grippers'].items():
-            grippers |= get_grippers(gripper_config, gripper_name)
-        return grippers
-    return {} if name == '' else {name: config}
+    active_controllers   = config.get('active_controllers', []) \
+                         + config.get('consistent_controllers', [])
+    inactive_controllers = config.get('inactive_controllers', [])
+    if sim:
+        SetLaunchConfiguration('name', name).execute(context)
+        SetLaunchConfiguration('update_rate',
+                               str(props['update_rate'])).execute(context)
+        SetLaunchConfiguration('speed_scaling_interface_name',
+                               '""').execute(context)
+        instantiate_file(context, props['controllers_template'],
+                         '/tmp/' + name + '_controllers.yaml')
+    else:
+        active_controllers += config.get('real_consistent_controllers', [])
+        inactive_controllers += config.get('real_inactive_controllers', [])
+
+    actions = [
+        PushROSNamespace(name),
+        SetLaunchConfiguration('name', name),
+        SetLaunchConfiguration('update_rate', str(props['update_rate'])),
+        SetLaunchConfiguration('speed_scaling_interface_name',
+                               '' if sim else
+                               name + '_speed_scaling/speed_scaling_factor'),
+        Node(package='aist_bringup',
+             executable='append_ros2_control',
+             parameters=[
+                 {'ros2_control_descriptions':
+                  ParameterValue(
+                      Command([
+                          FindExecutable(name='xacro'), ' ',
+                          props['ros2_control_file'],
+                          ' name:=', LaunchConfiguration('name'),
+                          ' sim:=',  LaunchConfiguration('sim'),
+                      ]),
+                      value_type=str)
+                 }
+             ],
+             remappings=[
+                 ('robot_description_in', '/robot_description')
+             ],
+             output='screen'),
+        Node(package='controller_manager',
+             executable='ros2_control_node',
+             parameters=[
+                 ParameterFile(props['controllers_template'],
+                               allow_substs=True),
+             ],
+             output='screen',
+             condition=UnlessCondition(LaunchConfiguration('sim'))),
+        Node(package='controller_manager',
+             executable='spawner',
+             arguments=['--controller-manager-timeout', '15'] + active_controllers,
+             output='screen'),
+    ] + ([
+        Node(package='controller_manager',
+             executable='spawner',
+             arguments=['--controller-manager-timeout', '15', '--inactive'] + inactive_controllers,
+             output='screen')
+    ] if len(inactive_controllers) > 0 else [])
+    print('### name=%s, active_controllers=%s, inactive_controllers=%s'
+          % (name, active_controllers, inactive_controllers))
+    return GroupAction(actions=actions)
+
+def create_actions(ns, config, context):
+    # 'ns' represents a node.
+    if 'type' in config:
+        return create_node(ns, config, context), [ns]
+
+    # 'ns' represents a namespace.
+    actions = [PushROSNamespace(ns.split('/')[-1])] if ns != '' else []
+    namespaces = []
+    for n, c in config.items():
+        action, ns_list = create_actions(ns + '/' + n, c, context)
+        actions.append(action)
+        namespaces += ns_list
+    return GroupAction(actions=actions), namespaces
 
 def launch_setup(context):
-    config = load_config(context)
-    sim    = LaunchConfiguration('sim').perform(context) in ('true', 'True')
+    action, namespaces = create_actions('', load_config(context), context)
 
-    # Instatiate parameter files for arm controllers from template.
-    if sim:
-        for arm_name, arm_config in config.get('arms', {}).items():
-            arm_props = get_device_props(arm_config['type'])
-            SetLaunchConfiguration('update_rate',
-                                   str(arm_props['update_rate'])) \
-                                   .execute(context)
-            SetLaunchConfiguration('arm_name', arm_name) \
-                .execute(context)
-            SetLaunchConfiguration('speed_scaling_interface_name', '""') \
-                .execute(context)
-            instantiate_file(context, arm_props['controllers_template'],
-                             '/tmp/' + arm_name + '_controllers.yaml')
-
-    # Setup actions executed after robot_description topic being available.
-    actions = [
+    awaited_actions = [
         Node(package='joint_state_publisher',
              executable='joint_state_publisher',
              parameters=[
                  {'rate':         50, #LaunchConfiguration('update_rate'),
                   'use_sim_time': LaunchConfiguration('sim'),
-                  'source_list':  [robot_name + '/joint_states' \
-                                   for robot_name in config['arms']]}
+                  'source_list':  [namespace + '/joint_states' \
+                                   for namespace in namespaces]}
              ],
              output='screen'),
         GroupAction(
@@ -89,119 +144,27 @@ def launch_setup(context):
                         ('gz_args',
                          [' -r -v 4 empty.sdf', ' --physics-engine',
                           ' gz-physics-bullet-featherstone-plugin'])
-                    ])
-            ],
+                    ]),
+                ],
             condition=IfCondition(LaunchConfiguration('sim'))),
     ]
+    awaited_actions.append(action)
 
-    # Instantiate controller configuration files for each arm.
-    for arm_name, arm_config in config['arms'].items():
-        active_controllers   = arm_config['active_controllers'] \
-                             + arm_config.get('consistent_controllers', [])
-        inactive_controllers = arm_config.get('inactive_controllers', [])
-        if not sim:
-            active_controllers \
-                += arm_config.get('real_consistent_controllers', [])
-            inactive_controllers \
-                += arm_config.get('real_inactive_controllers', [])
-
-        arm_props = get_device_props(arm_config['type'])
-        actions.append(
-            GroupAction(
-                actions=[
-                    PushROSNamespace(arm_name),
-                    SetLaunchConfiguration('update_rate',
-                                           str(arm_props['update_rate'])),
-                    SetLaunchConfiguration('arm_name', arm_name),
-                    SetLaunchConfiguration('speed_scaling_interface_name',
-                                           [LaunchConfiguration('arm_name'),
-                                            '_speed_scaling/speed_scaling_factor']),
-                    Node(package='aist_bringup',
-                         executable='append_ros2_control',
-                         parameters=[
-                             {'ros2_control_descriptions':
-                              ParameterValue(
-                                  Command([
-                                      FindExecutable(name='xacro'), ' ',
-                                      arm_props['ros2_control_file'],
-                                      ' name:=', LaunchConfiguration('arm_name'),
-                                      ' sim:=',  LaunchConfiguration('sim'),
-                                  ]),
-                                  value_type=str)
-                              }
-                         ],
-                         remappings=[
-                             ('robot_description_in', '/robot_description')
-                         ],
-                         output='screen'),
-                    Node(package='controller_manager',
-                         executable='ros2_control_node',
-                         parameters=[
-                             ParameterFile(arm_props['controllers_template'],
-                                           allow_substs=True),
-                         ],
-                         remappings=[
-                             ('motion_control_handle/target_frame',
-                              'target_frame'),
-                             ('cartesian_compliance_controller/ft_sensor_wrench',
-                              'force_torque_sensor_broadcaster/wrench'),
-                             ('cartesian_compliance_controller/target_wrench',
-                              'target_wrench'),
-                             ('cartesian_compliance_controller/target_frame',
-                              'target_frame'),
-                         ],
-                         output='screen',
-                         condition=UnlessCondition(
-                             LaunchConfiguration('sim'))),
-                    Node(name='active_controllers_spawner',
-                         package='controller_manager',
-                         executable='spawner',
-                         arguments=active_controllers,
-                         output='screen'),
-                ] + ([
-                    Node(name='inactive_controllers_spawner',
-                         package='controller_manager',
-                         executable='spawner',
-                         arguments=['--inactive'] + inactive_controllers,
-                         output='screen')
-                ] if len(inactive_controllers) > 0 else [])))
-
-    # Instantiate controller configuration files for each gripper.
-    gripper_controllers = []
-    for gripper_name, gripper_config in get_grippers(config).items():
-        gripper_props = get_device_props(gripper_config['type'])
-        if gripper_props is not None:
-            template = gripper_props.get('gz_controllers_template') if sim \
-                       else gripper_props.get('controllers_template')
-            if template is not None:
-                SetLaunchConfiguration('gripper_name',
-                                       gripper_name).execute(context)
-                instantiate_file(context, template,
-                                 '/tmp/' + gripper_name + '_controllers.yaml')
-                gripper_controllers.append(gripper_name + '_controller')
-
-    if len(gripper_controllers) > 0:
-        actions.append(
-            Node(name='gripper_controllers_spawner',
-                 package='controller_manager',
-                 executable='spawner',
-                 arguments=['joint_state_broadcaster'] + gripper_controllers))
-
-    # Create robot description from URDF.
-    robot_description = ParameterValue(
-                            Command([FindExecutable(name='xacro'),
-                                     ' ',
-                                     PathJoinSubstitution(
-                                         [FindPackageShare('aist_description'),
-                                          'scenes', 'urdf',
-                                          [LaunchConfiguration('config'),
-                                           '_base_scene.urdf.xacro']]),
-                                     ' scene:=', LaunchConfiguration('scene'),
-                                     ' sim:=',   LaunchConfiguration('sim')]),
-                            value_type=str)
-    wait_for_robot_description = Node(package='aist_bringup',
-                                      executable='wait_for_robot_description',
-                                      output='screen')
+    robot_description \
+        = ParameterValue(Command([FindExecutable(name='xacro'),
+                                  ' ',
+                                  PathJoinSubstitution(
+                                      [FindPackageShare('aist_description'),
+                                       'scenes', 'urdf',
+                                       [LaunchConfiguration('config'),
+                                          '_base_scene.urdf.xacro']]),
+                                  ' scene:=', LaunchConfiguration('scene'),
+                                  ' sim:=',   LaunchConfiguration('sim')]),
+                         value_type=str)
+    wait_for_robot_description \
+        = Node(package='aist_bringup',
+               executable='wait_for_robot_description',
+               output='screen')
     return [
         Node(package='robot_state_publisher',
              executable='robot_state_publisher',
@@ -213,8 +176,9 @@ def launch_setup(context):
         wait_for_robot_description,
         RegisterEventHandler(
             OnProcessExit(target_action=wait_for_robot_description,
-                          on_exit=actions)),
+                          on_exit=awaited_actions)),
     ]
+
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \

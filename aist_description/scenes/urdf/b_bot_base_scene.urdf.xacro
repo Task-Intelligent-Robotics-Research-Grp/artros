@@ -102,11 +102,10 @@
 				parent="b_bot_tool0">
     <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi/2}"/>
   </xacro:robotiq_arg2f_coupling>
-  <xacro:include filename="$(find aist_description
-			   )/devices/urdf/robotiq_gripper.urdf.xacro"/>
-  <xacro:robotiq_gripper sim="$(arg sim)"
-			 type="robotiq_85"
-			 name="b_bot_gripper"
+  <xacro:include filename="$(find aist_robotiq
+			   )/urdf/robotiq_gripper.urdf.xacro"/>
+  <xacro:robotiq_gripper type="robotiq_85"
+			 prefix="b_bot_gripper_"
 			 parent="b_bot_gripper_coupling_flange_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:robotiq_gripper>
@@ -186,15 +185,14 @@
 	<parameters>/tmp/b_bot_controllers.yaml</parameters>
 	<ros>
 	  <namespace>b_bot</namespace>
-	  <!-- <remapping>robot_description:=/robot_description</remapping> -->
 	</ros>
       </plugin>
 
       <!-- Launch controller manager for grippers -->
-      <!-- <plugin filename="gz_ros2_control-system" -->
-      <!-- 	      name="gz_ros2_control::GazeboSimROS2ControlPlugin"> -->
-      <!-- 	<parameters>/tmp/b_bot_gripper_controllers.yaml</parameters> -->
-      <!-- </plugin> -->
+      <plugin filename="gz_ros2_control-system"
+	      name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+	<parameters>/tmp/b_bot_gripper_controllers.yaml</parameters>
+      </plugin>
 
       <!-- Simulate cameras -->
       <!-- <plugin filename="gz-sim-sensors-system" -->

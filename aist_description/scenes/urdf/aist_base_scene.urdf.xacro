@@ -122,11 +122,10 @@
     <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi/2}"/>
   </xacro:robotiq_arg2f_coupling>
 
-  <xacro:include filename="$(find aist_description
-			   )/devices/urdf/robotiq_gripper.urdf.xacro"/>
-  <xacro:robotiq_gripper sim="$(arg sim)"
-			 type="robotiq_140"
-			 name="a_bot_gripper"
+  <xacro:include filename="$(find aist_robotiq
+			   )/urdf/robotiq_gripper.urdf.xacro"/>
+  <xacro:robotiq_gripper type="robotiq_140"
+			 prefix="a_bot_gripper_"
 			 parent="a_bot_gripper_coupling_flange_link"
 			 short_finger="true">
     <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -137,9 +136,8 @@
     <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi/2}"/>
   </xacro:robotiq_arg2f_coupling>
 
-  <xacro:robotiq_gripper sim="$(arg sim)"
-			 type="robotiq_85"
-			 name="b_bot_gripper"
+  <xacro:robotiq_gripper type="robotiq_85"
+			 prefix="b_bot_gripper_"
 			 parent="b_bot_gripper_coupling_flange_link"
 			 short_finger="true">
     <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -234,7 +232,6 @@
 	<parameters>/tmp/a_bot_controllers.yaml</parameters>
 	<ros>
 	  <namespace>a_bot</namespace>
-	  <!-- <remapping>robot_description:=/robot_description</remapping> -->
 	</ros>
       </plugin>
       <plugin filename="gz_ros2_control-system"
@@ -242,7 +239,6 @@
 	<parameters>/tmp/b_bot_controllers.yaml</parameters>
 	<ros>
 	  <namespace>b_bot</namespace>
-	  <!-- <remapping>robot_description:=/robot_description</remapping> -->
 	</ros>
       </plugin>
 

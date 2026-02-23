@@ -6,7 +6,7 @@ a_bot_grippers_driver:
     ip:        10.66.171.40  # Used for tcp/urcap drivers
     slave_ids: [9]           # list of slave IDs of Modbus devices
 
-a_bot_gripper_controller:
+a_bot_gripper/gripper_controller:
   ros__parameters:
     type:             robotiq_140
     slave_id:         9
@@ -34,7 +34,7 @@ b_bot_grippers_driver:
     ip:        10.66.171.41  # Used for tcp/urcap drivers
     slave_ids: [9]           # list of slave IDs of Modbus devices
 
-b_bot_gripper_controller:
+b_bot_gripper/gripper_controller:
   ros__parameters:
     type:             robotiq_85
     slave_id:         9

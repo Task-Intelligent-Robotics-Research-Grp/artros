@@ -5,7 +5,7 @@ moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControll
 moveit_simple_controller_manager:
   controller_names:
     - a_bot/scaled_joint_trajectory_controller
-    - a_bot_gripper_controller
+    - a_bot_gripper/gripper_controller
 
   a_bot/scaled_joint_trajectory_controller:
     action_ns: follow_joint_trajectory
@@ -18,7 +18,7 @@ moveit_simple_controller_manager:
       - a_bot_wrist_1_joint
       - a_bot_wrist_2_joint
       - a_bot_wrist_3_joint
-  a_bot_gripper_controller:
+  a_bot_gripper/gripper_controller:
     action_ns: gripper_cmd
     type: GripperCommand
     default: True

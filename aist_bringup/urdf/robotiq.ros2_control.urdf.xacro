@@ -4,7 +4,8 @@
   <xacro:arg name="name" default="a_bot_gripper"/>
   <xacro:arg name="sim"  default="false"/>
 
-  <xacro:property name ="controller_name" value="$(arg name)_controller"/>
+  <xacro:property name ="controller_name"
+		  value="$(arg name)/gripper_controller"/>
 
   <!-- Load hardware configuration parameters from YAML -->
   <xacro:property name ="config_file"
