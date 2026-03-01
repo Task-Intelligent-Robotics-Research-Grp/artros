@@ -1,0 +1,32 @@
+<package format="2">
+  <name>aist_filters</name>
+  <version>0.0.1</version>
+  <description>
+    This library provides a standardized interface for processing data as a sequence
+    of filters.  This package contains a base class upon which to build specific implementations
+    as well as an interface which dynamically loads filters based on runtime parameters.
+  </description>
+
+  <maintainer email="t.ueshiba@aist.go.jp">Toshio Ueshiba</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>libboost-dev</depend>
+  <depend>pluginlib</depend>
+  <depend>rclcpp</depend>
+  <depend>filters</depend>
+  <depend>aist_utility</depend>
+
+  <test_depend>ament_cmake_gtest</test_depend>
+  <test_depend>ament_cmake_cppcheck</test_depend>
+  <test_depend>ament_cmake_cpplint</test_depend>
+  <test_depend>ament_cmake_uncrustify</test_depend>
+  <test_depend>ament_cmake_xmllint</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+    <filters plugin="default_plugins.xml"/>
+  </export>
+
+</package>

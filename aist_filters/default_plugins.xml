@@ -1,0 +1,28 @@
+<class_libraries>
+  <library path="butterworth">
+    <class name="filters/ButterworthFilterDouble" type="filters::ButterworthFilter&lt;double&gt;"
+	    base_class_type="filters::FilterBase&lt;double&gt;">
+      <description>
+	This is a butterworth filter which works on a stream of doubles.
+      </description>
+    </class>
+    <class name="filters/ButterworthFilterFloat" type="filters::ButterworthFilter&lt;float&gt;"
+	    base_class_type="filters::FilterBase&lt;float&gt;">
+      <description>
+	This is a butterworth filter which works on a stream of floats.
+      </description>
+    </class>
+    <class name="filters/MultiChannelButterworthFilterDouble" type="filters::MultiChannelButterworthFilter&lt;double&gt;"
+	    base_class_type="filters::MultiChannelFilterBase&lt;double&gt;">
+      <description>
+	This is a butterworth filter which works on a stream of vectors of doubles.
+      </description>
+    </class>
+    <class name="filters/MultiChannelButterworthFilterFloat" type="filters::MultiChannelButterworthFilter&lt;float&gt;"
+	    base_class_type="filters::MultiChannelFilterBase&lt;float&gt;">
+      <description>
+	This is a butterworth filter which works on a stream of vectors of floats.
+      </description>
+    </class>
+  </library>
+</class_libraries>
