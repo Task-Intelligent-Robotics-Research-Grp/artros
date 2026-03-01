@@ -86,7 +86,15 @@ ButterworthFilter<T>::configure()
         return false;
     }
 
-    _lpf.initialize(half_order, T(cutoff));
+    int         update_rate;
+    if (!super::getParam("update_rate", update_rate))
+    {
+        RCLCPP_ERROR_STREAM(this->logging_interface_->get_logger(),
+                            "ButterworthFilter did not find param update_rate");
+        return false;
+    }
+
+    _lpf.initialize(half_order, T(cutoff/update_rate));
     return true;
 }
 
@@ -128,20 +136,31 @@ MultiChannelButterworthFilter<T>::configure()
     size_t      half_order;
     if (!super::getParam("half_order", half_order))
     {
-        RCLCPP_ERROR_STREAM(this->logging_interface_->get_logger(),
-                            "ButterworthFilter did not find param half_order");
+        RCLCPP_ERROR_STREAM(
+            this->logging_interface_->get_logger(),
+            "MultiChannelButterworthFilter did not find param half_order");
         return false;
     }
 
     double      cutoff;
     if (!super::getParam("cutoff", cutoff))
     {
-        RCLCPP_ERROR_STREAM(this->logging_interface_->get_logger(),
-                            "ButterworthFilter did not find param cutoff");
+        RCLCPP_ERROR_STREAM(
+            this->logging_interface_->get_logger(),
+            "MultiChannelButterworthFilter did not find param cutoff");
         return false;
     }
 
-    _lpf.initialize(half_order, T(cutoff));
+    int         update_rate;
+    if (!super::getParam("update_rate", update_rate))
+    {
+        RCLCPP_ERROR_STREAM(
+            this->logging_interface_->get_logger(),
+            "MultiChannelButterworthFilter did not find param update_rate");
+        return false;
+    }
+
+    _lpf.initialize(half_order, T(cutoff/update_rate));
     return true;
 }
 
@@ -149,8 +168,8 @@ template <class T> bool
 MultiChannelButterworthFilter<T>::update(const std::vector<T>& data_in,
                                          std::vector<T>& data_out)
 {
-    using cmap = Eigen::Map<const value_t>;
-    using map  = Eigen::Map<value_t>;
+    using cmap_t = Eigen::Map<const value_t>;
+    using map_t  = Eigen::Map<value_t>;
 
     if (data_in.size()  != this->number_of_channels_ ||
         data_out.size() != this->number_of_channels_)
@@ -162,7 +181,8 @@ MultiChannelButterworthFilter<T>::update(const std::vector<T>& data_in,
         return false;
     }
 
-    map(data_out.data(), 1) = _lpf.filter(cmap(data_in.data(), 1));
+    map_t(data_out.data(), data_out.size())
+        = _lpf.filter(cmap_t(data_in.data(), data_in.size()));
     return true;
 }
 }  // namespace filters
