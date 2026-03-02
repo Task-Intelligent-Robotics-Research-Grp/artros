@@ -23,9 +23,8 @@ if(NOT Boost_headers_FOUND)
 endif()
 
 include_directories(
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-  $<INSTALL_INTERFACE:include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
 )
 
 ##############################################################################
@@ -34,30 +33,48 @@ include_directories(
 # Plugins
 ament_auto_add_library(
   butterworth SHARED
-    src/butterworth.cpp)
-
-ament_target_dependencies(
-  butterworth
-    filters
-    pluginlib
+    src/butterworth.cpp
 )
 
-install(DIRECTORY include/ DESTINATION include/${PROJECT_NAME})
+# target_compile_features(
+#   butterworth PUBLIC cxx_std_17
+# )
+
+
+# target_link_libraries(
+#   butterworth PUBLIC
+#     filters
+#     pluginlib
+# )
+
+pluginlib_export_plugin_description_file(filters plugins_description.xml)
 
 ##############################################################################
 # Install
 ##############################################################################
+install(
+  DIRECTORY include/
+  DESTINATION include/${PROJECT_NAME}
+)
+
+install(
+  TARGETS butterworth
+  EXPORT  export_aist_filters
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
 
 # Export old-style CMake variables for includes
 ament_export_include_directories("include/${PROJECT_NAME}")
 
+ament_export_targets(export_aist_filters HAS_LIBRARY_TARGET)
 ament_export_dependencies(
   Boost
   pluginlib
   rclcpp
+  filters
+  aist_utility
 )
 
-# Install pluginlib xml
-ament_auto_package(
-  USE_SCOPED_HEADER_INSTALL_DIR
-)
+ament_package()

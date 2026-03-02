@@ -94,11 +94,11 @@
       topic_name: ft_data
       sensor_filter_chain:
         filter1:
-	  name butterworth_filter:
-	  type:        aist_filters/MultiChannelButterworthFilterDouble
-	  update_rate: $(var update_rate)
-	  half_order:  2
-	  cutoff:      50.0
+          name:        butterworth_filter
+          type:        aist_filters/MultiChannelButterworthFilterDouble
+          update_rate: $(var update_rate)
+          half_order:  2
+          cutoff:      50.0
 
   joint_trajectory_controller:
     ros__parameters:
