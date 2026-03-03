@@ -11,70 +11,55 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-##############################################################################
-# Find dependencies
-##############################################################################
+#######################
+#  Find dependencies  #
+#######################
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
-find_package(Boost QUIET COMPONENTS headers)
-if(NOT Boost_headers_FOUND)
-  find_package(Boost REQUIRED)
-endif()
-
-include_directories(
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
-)
-
-##############################################################################
-# Build
-##############################################################################
-# Plugins
+###########
+#  Build  #
+###########
 ament_auto_add_library(
   butterworth SHARED
-    src/butterworth.cpp
+    src/butterworth.cpp)
+
+ament_target_dependencies(
+  butterworth
+    filters
+    pluginlib
+    aist_utility
 )
 
-# target_compile_features(
-#   butterworth PUBLIC cxx_std_17
-# )
+##########
+#  Test  #
+##########
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
 
+  ament_add_gtest(
+    butterworth_test
+      test/test_butterworth.cpp
+  )
 
-# target_link_libraries(
-#   butterworth PUBLIC
-#     filters
-#     pluginlib
-# )
+  target_link_libraries(
+    butterworth_test
+      butterworth
+  )
+endif()
 
+#############
+#  Install  #
+#############
 pluginlib_export_plugin_description_file(filters plugins_description.xml)
 
-##############################################################################
-# Install
-##############################################################################
-install(
-  DIRECTORY include/
-  DESTINATION include/${PROJECT_NAME}
-)
-
-install(
-  TARGETS butterworth
-  EXPORT  export_aist_filters
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
-)
-
-# Export old-style CMake variables for includes
-ament_export_include_directories("include/${PROJECT_NAME}")
-
-ament_export_targets(export_aist_filters HAS_LIBRARY_TARGET)
 ament_export_dependencies(
-  Boost
+  filters
   pluginlib
   rclcpp
-  filters
   aist_utility
 )
 
-ament_package()
+ament_auto_package(
+  USE_SCOPED_HEADER_INSTALL_DIR
+)
