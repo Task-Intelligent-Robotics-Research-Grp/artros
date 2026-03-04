@@ -71,7 +71,7 @@ template <class T> bool
 ButterworthFilter<T>::configure()
 {
     size_t      half_order;
-    if (!super::getParam("cutoff", half_order))
+    if (!super::getParam("half_order", half_order))
     {
         RCLCPP_ERROR_STREAM(this->logging_interface_->get_logger(),
                             "ButterworthFilter did not find param half_order");

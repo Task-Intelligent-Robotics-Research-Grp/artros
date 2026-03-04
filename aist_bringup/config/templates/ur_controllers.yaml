@@ -94,11 +94,18 @@
       topic_name: ft_data
       sensor_filter_chain:
         filter1:
-          name:        butterworth_filter
-          type:        aist_filters/MultiChannelButterworthFilterDouble
-          update_rate: $(var update_rate)
-          half_order:  2
-          cutoff:      50.0
+          # name: low_pass_filter
+          # type: control_filters/LowPassFilterWrench
+          # params:
+          #   sampling_frequency: 500.0
+          #   damping_frequency:   50.0
+          #   damping_intensity:    1.0
+          name: butterworth_filter
+          type: aist_filters/ButterworthFilterWrench
+          params:
+            update_rate: $(var update_rate)
+            cutoff:      50.0
+            half_order:  2
 
   joint_trajectory_controller:
     ros__parameters:

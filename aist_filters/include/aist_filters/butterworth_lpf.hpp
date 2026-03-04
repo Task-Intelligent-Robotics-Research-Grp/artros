@@ -42,17 +42,22 @@
 
 #include <cmath>
 #include <vector>
+#include <control_toolbox/filter_traits.hpp>
 
-namespace aist_utility
+namespace aist_filters
 {
 /*!
   Butterworth low-pass filter of even order
   \param S	type of coefficients
   \param T	type of signal to be filtered
 */
-template <class S, class T=S>
+template <class T>
 class ButterworthLPF
 {
+  private:
+    using Traits      = control_toolbox::FilterTraits<T>;
+    using StorageType = typename Traits::StorageType;
+
   public:
     using element_type	= S;	//!< type of coefficients
     using value_type	= T;	//!< type of signal to be filtered
@@ -131,13 +136,13 @@ class ButterworthLPF
 		}
 
   private:
-    element_type			_cutoff;
-    std::vector<element_type>		_A;
-    std::vector<element_type>		_d1;
-    std::vector<element_type>		_d2;
-    mutable std::vector<value_type>	_y0;
-    mutable std::vector<value_type>	_y1;
-    mutable std::vector<value_type>	_y2;
+    element_type	_cutoff;
+    StorageType		_A;
+    StorageType		_d1;
+    StorageType		_d2;
+    mutable StorageType	_y0;
+    mutable StorageType	_y1;
+    mutable StorageType	_y2;
 };
 
 }  // namespace moveit_servo
