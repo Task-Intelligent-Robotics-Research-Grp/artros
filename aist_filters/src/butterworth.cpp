@@ -27,20 +27,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <aist_filters/butterworth.hpp>
+#include <aist_filters/butterworth_filter.hpp>
 #include <pluginlib/class_list_macros.hpp>
-#include <geometry_msgs/msg/wrench_stamped.hpp>
 
 PLUGINLIB_EXPORT_CLASS(aist_filters::ButterworthFilter<double>,
                        filters::FilterBase<double>)
-PLUGINLIB_EXPORT_CLASS(aist_filters::ButterworthFilter<float>,
-                       filters::FilterBase<float>)
+PLUGINLIB_EXPORT_CLASS(aist_filters::ButterworthFilter<std::vector<double> >,
+                       filters::FilterBase<std::vector<double> >)
 PLUGINLIB_EXPORT_CLASS(
     aist_filters::ButterworthFilter<geometry_msgs::msg::WrenchStamped>,
     filters::FilterBase<geometry_msgs::msg::WrenchStamped>)
-PLUGINLIB_EXPORT_CLASS(
-    aist_filters::MultiChannelButterworthFilter<double>,
-    filters::MultiChannelFilterBase<double>)
-PLUGINLIB_EXPORT_CLASS(
-    aist_filters::MultiChannelButterworthFilter<float>,
-    filters::MultiChannelFilterBase<float>)
