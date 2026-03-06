@@ -81,6 +81,13 @@ class ButterworthFilter : public filters::FilterBase<T>
    */
     explicit	ButterworthFilter() :_configured(false)                 {}
 
+
+    bool	configure(const value_type& x)
+		{
+		    for (size_t k = 0; k < _A.size(); ++k)
+			_y1[k] = _y2[k] = (1/(1 - _d1[k] - _d2[k]))*x;
+		}
+
     bool	set_params(size_t half_order, element_type cutoff)
 		{
                     constexpr element_type      pi = element_type(M_PI);
@@ -120,41 +127,35 @@ class ButterworthFilter : public filters::FilterBase<T>
 		    return _cutoff;
 		}
 
-    bool	update(const T& data_in, T& data_out) const
+    bool	update(const T& data_in, T& data_out)
 		{
-                    Traits::assign(data_out, data_in);
+                    Storage     x;
+                    Traits::assign(x, data_in);
 
 		  // 2次フィルタをカスケード接続
 		    for (size_t k = 0; k < _A.size(); ++k)
 		    {
-                        Traits::assign(_y0[k],
-                                       _d1[k]*_y1[k] + _d2[k]*_y2[k] + data_out);
-                        Traits::assign(data_out,
-                                       _A[k]*(_y0[k] + 2*_y1[k] + _y2[k]));
-                        Traits::assign(_y2[k], _y1[k]);
-                        Traits::assign(_y1[k], _y0[k]);
+                        _y0[k] = _d1[k]*_y1[k] + _d2[k]*_y2[k] + x;
+                        x      =  _A[k]*(_y0[k] + 2*_y1[k] + _y2[k]);
+                        _y2[k] = _y1[k];
+                        _y1[k] = _y0[k];
 		    }
 
+                    Traits::assign(data_out, x);
                     Traits::add_metadata(data_out, data_in);
 
 		    return true;
 		}
 
-    void	reset(const value_type& x)
-		{
-		    for (size_t k = 0; k < _A.size(); ++k)
-			_y1[k] = _y2[k] = (1/(1 - _d1[k] - _d2[k]))*x;
-		}
-
   private:
-    bool                _configured;
-    element_type	_cutoff;
-    StorageType		_A;
-    StorageType		_d1;
-    StorageType		_d2;
-    mutable StorageType	_y0;
-    mutable StorageType	_y1;
-    mutable StorageType	_y2;
+    bool                        _configured;
+    element_type                _cutoff;
+    std::vector<element_type>	_A;
+    std::vector<element_type>	_d1;
+    std::vector<element_type>	_d2;
+    std::vector<StorageType>	_y0;
+    std::vector<StorageType>	_y1;
+    std::vector<StorageType>	_y2;
 };
 
 }  // namespace moveit_servo
