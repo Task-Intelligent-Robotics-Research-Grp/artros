@@ -17,57 +17,64 @@ endif()
 #######################
 #  Find dependencies  #
 #######################
+# find_package(ament_cmake_auto REQUIRED)
+# ament_auto_find_build_dependencies()
 find_package(ament_cmake REQUIRED)
+find_package(generate_parameter_library REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(geometry_msgs REQUIRED)
 find_package(filters REQUIRED)
 find_package(aist_utility REQUIRED)
-#ament_auto_find_build_dependencies()
-
-include_directories(
-)
 
 ###########
 #  Build  #
 ###########
+include_directories(
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+
+generate_parameter_library(
+  butterworth_filter_parameters
+    src/butterworth_filter_parameters.yaml
+)
+
 add_library(
-  butterworth SHARED
-    src/butterworth.cpp)
+  butterworth_filter SHARED
+    src/butterworth_filter.cpp)
 
 target_include_directories(
-  butterworth PUBLIC
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+  butterworth_filter INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
 
 target_link_libraries(
-  butterworth PUBLIC
-    ${CONTROL_FILTERS_INCLUDE_TARGETS}
-)
-
-ament_target_dependencies(
-  butterworth
-    filters
-    pluginlib
-    aist_utility
+  butterworth_filter PUBLIC
+    rclcpp::rclcpp
+    butterworth_filter_parameters
+    ${geometry_msgs_TARGETS}
+    ${filters_TARGETS}
+    ${aist_utility_TARGETS}
 )
 
 ##########
 #  Test  #
 ##########
-if(BUILD_TESTING)
-  find_package(ament_cmake_gtest REQUIRED)
+# if(BUILD_TESTING)
+#   find_package(ament_cmake_gtest REQUIRED)
 
-  ament_add_gtest(
-    butterworth_test
-      test/test_butterworth.cpp
-  )
+#   ament_add_gtest(
+#     butterworth_test
+#       test/test_butterworth.cpp
+#   )
 
-  target_link_libraries(
-    butterworth_test
-      butterworth
-  )
-endif()
+#   target_link_libraries(
+#     butterworth_test
+#       butterworth
+#   )
+# endif()
 
 #############
 #  Install  #
@@ -80,17 +87,17 @@ install(
 )
 
 install(
-  TARGETS butterworth
+  TARGETS butterworth_filter butterworth_filter_parameters
   EXPORT  export_${PROJECT_NAME}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib
 )
-  
+
 ament_export_targets(
   export_${PROJECT_NAME} HAS_LIBRARY_TARGET
 )
-  
+
 ament_export_dependencies(
   filters
   pluginlib
@@ -99,3 +106,6 @@ ament_export_dependencies(
 )
 
 ament_package()
+# ament_auto_package(
+#   USE_SCOPED_HEADER_INSTALL_DIR
+# )

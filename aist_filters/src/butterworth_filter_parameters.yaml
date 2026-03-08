@@ -1,0 +1,18 @@
+butterworth_filter:
+  sampling_frequency:
+    type:        double
+    description: "Sampling frequency"
+    validation:
+      gt<>:      [0.0]
+
+  cutoff_frequency:
+    type:        double
+    description: "Cutoff frequency"
+    validation:
+      gt<>:      [0.0]
+
+  half_order:
+    type:        int
+    description: "Half value of filter order"
+    validation:
+      bounds<>:  [1, 4]

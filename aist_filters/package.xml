@@ -13,9 +13,11 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <build_depend>ros2_control_cmake</build_depend>
-  
+
+  <depend>generate_parameter_library</depend>
   <depend>pluginlib</depend>
   <depend>rclcpp</depend>
+  <depend>geometry_msgs</depend>
   <depend>filters</depend>
   <depend>aist_utility</depend>
 
