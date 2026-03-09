@@ -42,7 +42,8 @@
 #include <filters/filter_base.hpp>
 #include <geometry_msgs/msg/wrench_stamped.hpp>
 
-#include <aist_utility/butterworth_lpf.hpp>
+//#include <aist_utility/butterworth_lpf.hpp>
+#include <control_toolbox/filter_traits.hpp>
 #include <aist_filters/butterworth_filter_parameters.hpp>
 
 namespace aist_filters
@@ -69,16 +70,15 @@ class ButterworthFilter : public filters::FilterBase<T>
   private:
     std::shared_ptr<rclcpp::Logger>                     logger_;
     std::shared_ptr<low_pass_filter::ParamListener>     parameter_handler_;
-    low_pass_filter::Params                             parameters_;
-    std::shared_ptr<lpf_t> lpf_;
+    butterworth_filter::Params                          parameters_;
+    std::shared_ptr<lpf_t>                              lpf_;
 };
 
 template <class T> bool
 ButterworthFilter<T>::configure()
 {
-    logger_.reset(new rclcpp::Logger(
-                      this->logging_interface_->get_logger().get_child(
-                          this->filter_name_)));
+    logger_.reset(new rclcpp::Logger(this->logging_interface_->get_logger()
+                                     .get_child(this->filter_name_)));
 
   // Initialize the parameters once
     if (!parameter_handler_)
@@ -105,7 +105,8 @@ ButterworthFilter<T>::configure()
     }
     parameters_ = parameter_handler_->get_params();
     lpf_ = std::make_shared<lpf_t>(
-        parameters_.sampling_frequency, parameters_.damping_frequency, parameters_.damping_intensity);
+               parameters_.cutoff_frequency/parameters_.sampling_frequency,
+               parameters_.half_order);
 
     return lpf_->configure();
 }

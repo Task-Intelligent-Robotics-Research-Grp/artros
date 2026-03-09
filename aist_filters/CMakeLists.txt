@@ -25,6 +25,7 @@ find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(filters REQUIRED)
+find_package(control_toolbox REQUIRED)
 find_package(aist_utility REQUIRED)
 
 ###########
