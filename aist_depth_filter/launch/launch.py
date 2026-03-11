@@ -9,7 +9,7 @@ from launch_ros.substitutions          import FindPackageShare
 from launch_ros.descriptions           import ComposableNode
 from launch_ros.parameter_descriptions import ParameterFile
 from aist_bringup.launch_common        import (declare_launch_arguments,
-                                               get_camera_props)
+                                               get_device_props)
 
 
 launch_arguments = [
@@ -68,7 +68,7 @@ launch_arguments = [
 
 
 def launch_setup(context):
-    camera_props = get_camera_props(LaunchConfiguration('camera_type')\
+    camera_props = get_device_props(LaunchConfiguration('camera_type')\
                                     .perform(context))
     remappings   = [('/camera_info',
                      [LaunchConfiguration('camera_name'), '/',

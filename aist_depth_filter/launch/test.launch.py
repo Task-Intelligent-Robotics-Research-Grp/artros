@@ -5,7 +5,7 @@ from launch.substitutions       import (LaunchConfiguration,
 from launch_ros.actions         import Node
 from launch_ros.substitutions   import FindPackageShare
 from aist_bringup.launch_common import (declare_launch_arguments,
-                                        get_camera_props)
+                                        get_device_props)
 
 CAMERA_TYPES = {
     'realsense': 'RealsenseCamera',
@@ -60,7 +60,7 @@ launch_arguments = [
 def launch_setup(context):
     camera_type  = CAMERA_TYPES[LaunchConfiguration('camera_name')\
                                 .perform(context)]
-    camera_props = get_camera_props(camera_type)
+    camera_props = get_device_props(camera_type)
 
     return [
         IncludeLaunchDescription(

@@ -7,7 +7,7 @@ from launch_ros.actions         import Node, LoadComposableNodes
 from launch_ros.substitutions   import FindPackageShare
 from launch_ros.descriptions    import ComposableNode
 from aist_bringup.launch_common import (declare_launch_arguments,
-                                        get_camera_props)
+                                        get_device_props)
 
 
 launch_arguments = [
@@ -67,7 +67,7 @@ def launch_setup(context):
                                         LaunchConfiguration('camera_type') \
                                         .perform(context).split(',')):
         camera_names.append(camera_name)
-        camera_props = get_camera_props(camera_type)
+        camera_props = get_device_props(camera_type)
         remappings.append((camera_name + '/image',
                            camera_name +  '/' + camera_props['color_topic']))
 

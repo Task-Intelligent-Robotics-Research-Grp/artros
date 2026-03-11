@@ -6,8 +6,7 @@ from launch.substitutions       import (LaunchConfiguration,
 from launch.event_handlers      import OnProcessStart
 from launch_ros.actions         import Node
 from launch_ros.substitutions   import FindPackageShare
-from aist_bringup.launch_common import (declare_launch_arguments,
-                                        get_camera_props)
+from aist_bringup.launch_common import declare_launch_arguments
 
 
 launch_arguments = [

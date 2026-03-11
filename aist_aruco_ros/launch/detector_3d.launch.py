@@ -7,7 +7,7 @@ from launch_ros.actions         import Node, LoadComposableNodes
 from launch_ros.substitutions   import FindPackageShare
 from launch_ros.descriptions    import ComposableNode
 from aist_bringup.launch_common import (declare_launch_arguments,
-                                        get_camera_props)
+                                        get_device_props)
 
 
 launch_arguments = [
@@ -60,7 +60,7 @@ launch_arguments = [
 
 
 def launch_setup(context):
-    camera_props = get_camera_props(LaunchConfiguration('camera_type') \
+    camera_props = get_device_props(LaunchConfiguration('camera_type') \
                                     .perform(context))
     return [
         Node(name=LaunchConfiguration('container'),
