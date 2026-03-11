@@ -68,6 +68,10 @@ DEVICE_PROPS = {
                                         [FindPackageShare('aist_bringup'),
                                          'config', 'templates',
                                          'gripper_controllers.yaml']),
+        'ros2_control_file':        PathJoinSubstitution(
+                                        [FindPackageShare('aist_bringup'),
+                                         'urdf',
+                                         'robotiq.ros2_control.urdf.xacro']),
     },
     'DynamixelDevices':
     {
