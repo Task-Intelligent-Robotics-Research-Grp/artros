@@ -1,5 +1,6 @@
-# Byte 0
 uint8 g_sid  # slave ID of the device
+
+# Byte 0
 uint8 g_act  # activation status (0: gripper reset, 1: gripper activation)
 uint8 g_mod  # mode of EPick      (0: auto, 1: advanced)
              # mode of 3F-gripper (0: basic, 1: pinch, 2: wide, 3: scissor)

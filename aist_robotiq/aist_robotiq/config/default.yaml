@@ -6,6 +6,7 @@ robotiq_140_driver:
     ip:        10.66.171.40  # Used for tcp/urcap drivers
     dev:       /dev/ttyUSB0  # Used for rtu drivers
     slave_ids: [9]           # list of slave IDs of Modbus devices
+    arg3fs:    [False]
 
 robotiq_140_controller:
   ros__parameters:
@@ -36,6 +37,7 @@ robotiq_85_driver:
     ip:        10.66.171.41  # Used for tcp/urcap drivers
     dev:       /dev/ttyUSB0  # Used for rtu drivers
     slave_ids: [9]           # list of slave IDs of Modbus devices
+    arg3fs:    [False]
 
 robotiq_85_controller:
   ros__parameters:
@@ -66,6 +68,7 @@ robotiq_hande_driver:
     ip:        10.66.171.41  # Used for tcp/urcap drivers
     dev:       /dev/ttyUSB0  # Used for rtu drivers
     slave_ids: [9]           # list of slave IDs of Modbus devices
+    arg3fs:    [False]
 
 robotiq_hande_controller:
   ros__parameters:
@@ -96,7 +99,35 @@ robotiq_epick_driver:
     ip:        10.66.171.41  # Used for tcp/urcap drivers
     dev:       /dev/ttyUSB0  # Used for rtu drivers
     slave_ids: [9]           # list of slave IDs of Modbus devices
+    arg3fs:    [False]
 
 robotiq_epick_controller:
   ros__parameters:
     max_pressure: 0.085
+
+################
+#  Robotiq 3F  #
+################
+robotiq_3f_driver:
+  ros__parameters:
+    ip:        10.66.171.41  # Used for tcp/urcap drivers
+    dev:       /dev/ttyUSB0  # Used for rtu drivers
+    slave_ids: [9]           # list of slave IDs of Modbus devices
+    arg3fs:    [True]
+
+robotiq_3f_controller:
+  ros__parameters:
+    slave_id:  9
+    joint_names:
+      - robotiq_3f_finger_1_joint_1
+      - robotiq_3f_finger_1_joint_2
+      - robotiq_3f_finger_1_joint_3
+      - robotiq_3f_finger_2_joint_1
+      - robotiq_3f_finger_2_joint_2
+      - robotiq_3f_finger_2_joint_3
+      - robotiq_3f_finger_middle_joint_1
+      - robotiq_3f_finger_middle_joint_2
+      - robotiq_3f_finger_middle_joint_3
+      - robotiq_3f_palm_finger_1_joint
+      - robotiq_3f_palm_finger_2_joint
+      - robotiq_3f_palm_finger_middle_joint

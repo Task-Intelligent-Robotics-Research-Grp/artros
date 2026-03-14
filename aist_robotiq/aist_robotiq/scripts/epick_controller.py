@@ -163,7 +163,6 @@ class EPickController(Node):
 
     def _send_raw_move_command(self, advanced_mode, max_prs, min_prs, tout):
         command = CModelCommand()
-        command.arg3f = False
         command.r_sid = self._salve_id
         command.r_act = 1
         command.r_mod = 1 if advanced_mode else 0
@@ -176,7 +175,6 @@ class EPickController(Node):
 
     def _stop(self):
         command = CModelCommand()
-        command.arg3f = False
         command.r_sid = self._salve_id
         command.r_act = 1
         command.r_gto = 0

@@ -1,6 +1,6 @@
-# Byte 0
-bool  arg3f  # true if 3-Finger Adaptive Robot Gripper
 uint8 r_sid  # slave ID
+
+# Byte 0
 uint8 r_act  # activate (0: deactivate, 1: activate)
 uint8 r_mod  # mode of EPick      (0: auto,  1: advanced)
              # mode of 3F-gripper (0: basic, 1: pinch, 2: wide, 3: scissor)

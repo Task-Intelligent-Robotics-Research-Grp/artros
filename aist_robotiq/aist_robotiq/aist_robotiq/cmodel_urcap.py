@@ -101,7 +101,7 @@ class CModelURCap(CModelBase):
                 (self.POS, command.r_pr),
                 (self.SPE, command.r_sp),
                 (self.FOR, command.r_fr)]
-        if command.arg3f:
+        if self._is_arg3f[command.r_sid]:
             vars += [(self.PRB, command.r_prb),
                      (self.SPB, command.r_spb),
                      (self.FRB, command.r_frb),
@@ -126,16 +126,16 @@ class CModelURCap(CModelBase):
         status.g_pr  = self._get_var(self.PRE)
         status.g_po  = self._get_var(self.POS)
         status.g_cou = self._get_var(self.COU)
-
-        status.g_prb = self._get_var(self.PRB)
-        status.g_pob = self._get_var(self.POB)
-        status.g_cub = self._get_var(self.CUB)
-        status.g_prc = self._get_var(self.PRC)
-        status.g_poc = self._get_var(self.POC)
-        status.g_cuc = self._get_var(self.CUC)
-        status.g_prs = self._get_var(self.PRS)
-        status.g_pos = self._get_var(self.POS)
-        status.g_cus = self._get_var(self.CUS)
+        if self._is_arg3f[slave_id]:
+            status.g_prb = self._get_var(self.PRB)
+            status.g_pob = self._get_var(self.POB)
+            status.g_cub = self._get_var(self.CUB)
+            status.g_prc = self._get_var(self.PRC)
+            status.g_poc = self._get_var(self.POC)
+            status.g_cuc = self._get_var(self.CUC)
+            status.g_prs = self._get_var(self.PRS)
+            status.g_pos = self._get_var(self.POS)
+            status.g_cus = self._get_var(self.CUS)
         return status
 
     def _set_vars(self, var_dict):

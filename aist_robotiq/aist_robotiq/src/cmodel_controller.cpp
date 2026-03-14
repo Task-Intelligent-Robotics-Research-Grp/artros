@@ -418,7 +418,6 @@ void
 CModelController::send_raw_move_command(int pos, int vel, int eff) const
 {
     auto	cmodel_command = std::make_unique<cmodel_command_t>();
-    cmodel_command->arg3f = false;
     cmodel_command->r_sid = _slave_id;
     cmodel_command->r_act = 1;
     cmodel_command->r_gto = 1;

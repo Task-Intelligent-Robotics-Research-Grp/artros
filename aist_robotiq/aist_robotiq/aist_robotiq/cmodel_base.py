@@ -43,17 +43,20 @@ from aist_robotiq_msgs.msg import CModelStatus, CModelCommand
 class CModelBase(Node):
     def __init__(self, name):
         super().__init__(name)
-        self._slave_ids = self.declare_parameter('slave_ids', [9]).value
-        self._pub       = self.create_publisher(CModelStatus, '~/status', 3)
-        self._sub       = self.create_subscription(CModelCommand, '~/command',
+        slave_ids = self.declare_parameter('slave_ids', [9]).value
+        arg3fs    = self.declare_parameter('arg3fs', [False]).value
+        self._is_arg3f = dict(zip(slave_ids, arg3fs))
+        self._pub      = self.create_publisher(CModelStatus, '~/status', 3)
+        self._sub      = self.create_subscription(CModelCommand, '~/command',
                                                    self.put_command, 3)
-        self._timer     = self.create_timer(0.05, self._timer_cb)
+        self._timer = self.create_timer(0.05, self._timer_cb)
+        self.get_logger().info('slave_id, arg3f: %s' % self._is_arg3f)
 
     def __del__(self):
         self.disconnect()           # (defined in derived class)
 
     def _timer_cb(self):
-        for slave_id in self._slave_ids:
+        for slave_id in self._sid_arg3f.keys():
             status = self.get_status(slave_id)  # (defined in derived class)
             self._pub.publish(status)   # Forward device status to controller
 

@@ -64,7 +64,7 @@ class CModelModbusBase(CModelBase):
         data.append(command.r_pr)                                 # Data3
         data.append(command.r_sp)                                 # Data4
         data.append(command.r_fr)                                 # Data5
-        if command.arg3f:
+        if self._is_arg3f[command.r_sid]:
             data.append(command.r_prb)                            # Data6
             data.append(command.r_spb)                            # Data7
             data.append(command.r_frb)                            # Data8
@@ -78,7 +78,7 @@ class CModelModbusBase(CModelBase):
 
     def get_status(self, slave_id):
         # Acquire status from the Gripper
-        data = self._get_status(16, slave_id)
+        data = self._get_status(6 if self._arg3fs[slave_id] else 15, slave_id)
 
         # Assign the values to their respective variables
         status = CModelStatus()
@@ -93,7 +93,7 @@ class CModelModbusBase(CModelBase):
         status.g_pr  =  data[3]
         status.g_po  =  data[4]
         status.g_cou =  data[5]
-        if len(data) > 6:
+        if self._is_arg3f[slave_id]:
             status.g_prb = data[6]
             status.g_pob = data[7]
             status.g_cub = data[8]
