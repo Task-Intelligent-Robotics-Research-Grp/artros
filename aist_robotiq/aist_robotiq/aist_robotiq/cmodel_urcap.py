@@ -24,9 +24,21 @@ class CModelURCap(CModelBase):
     GTO = 'GTO'  # gto : go to (will perform go to with the actions set in pos, for, spe)
     ATR = 'ATR'  # atr : auto-release (emergency slow move)
     ARD = 'ARD'  # ard : auto-release direction (open(1) or close(0) during auto-release)
+    ICF = 'ICF'  # icf : individual finger control (0: disable, 1: enable)
+    ICS = 'ICS'  # ics : individual scissor control (0: disable, 1: enable)
     POS = 'POS'  # pos : position (0-255), 0 = open
     SPE = 'SPE'  # spe : speed (0-255)
     FOR = 'FOR'  # for : force (0-255)
+    POS = 'PRB'  # prb : position for finger B (0-255), 0 = open
+    SPE = 'SPB'  # spb : speed for finger B (0-255)
+    FOR = 'FRB'  # frb : force for finger B (0-255)
+    POS = 'PRC'  # prc : position for finger C (0-255), 0 = open
+    SPE = 'SPC'  # spc : speed for finger C (0-255)
+    FOR = 'FRC'  # frc : force for finger C (0-255)
+    POS = 'PRS'  # prc : position for scissor (0-255), 0 = open
+    SPE = 'SPS'  # spc : speed for scissor (0-255)
+    FOR = 'FRS'  # frc : force for scissor (0-255)
+
     # READ VARIABLES
     STA = 'STA'  # status (0 = is reset, 1 = activating, 3 = active)
     OBJ = 'OBJ'  # object detection (0 = moving, 1 = outer grip, 2 = inner grip, 3 = no object at rest)
@@ -79,15 +91,27 @@ class CModelURCap(CModelBase):
         command  = self._clip_command(command)
         # Do not set variable 'ACT' because setting zero value will cause
         # the device reset.
-        var_dict = dict([(self.SID, command.r_sid),
-                         (self.MOD, command.r_mod),
-                         (self.GTO, command.r_gto),
-                         (self.ATR, command.r_atr),
-                         (self.ARD, command.r_ard),
-                         (self.POS, command.r_pr),
-                         (self.SPE, command.r_sp),
-                         (self.FOR, command.r_fr)])
-        self._set_vars(var_dict)
+        vars = [(self.SID, command.r_sid),
+                (self.MOD, command.r_mod),
+                (self.GTO, command.r_gto),
+                (self.ATR, command.r_atr),
+                (self.ARD, command.r_ard),
+                (self.ICF, command.r_icf),
+                (self.ICS, command.r_ics),
+                (self.POS, command.r_pr),
+                (self.SPE, command.r_sp),
+                (self.FOR, command.r_fr)]
+        if command.arg3f:
+            vars += [(self.PRB, command.r_prb),
+                     (self.SPB, command.r_spb),
+                     (self.FRB, command.r_frb),
+                     (self.PRC, command.r_prc),
+                     (self.SPC, command.r_spc),
+                     (self.FRC, command.r_frc),
+                     (self.PRS, command.r_prs),
+                     (self.SPS, command.r_sps),
+                     (self.FRS, command.r_frs)]
+        self._set_vars(dict(var_dict))
 
     def get_status(self, slave_id):
         status = CModelStatus()
@@ -102,6 +126,16 @@ class CModelURCap(CModelBase):
         status.g_pr  = self._get_var(self.PRE)
         status.g_po  = self._get_var(self.POS)
         status.g_cou = self._get_var(self.COU)
+
+        status.g_prb = self._get_var(self.PRB)
+        status.g_pob = self._get_var(self.POB)
+        status.g_cub = self._get_var(self.CUB)
+        status.g_prc = self._get_var(self.PRC)
+        status.g_poc = self._get_var(self.POC)
+        status.g_cuc = self._get_var(self.CUC)
+        status.g_prs = self._get_var(self.PRS)
+        status.g_pos = self._get_var(self.POS)
+        status.g_cus = self._get_var(self.CUS)
         return status
 
     def _set_vars(self, var_dict):

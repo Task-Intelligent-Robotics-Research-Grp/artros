@@ -53,6 +53,9 @@ class EPickController(Node):
     def __init__(self, name):
         super().__init__(name)
 
+        # Slave ID of the EPick to be controlled
+        self._salve_id = self.declare_parameter('slave_id', 9).value
+
         # Publisher for command
         self._command_pub = self.create_publisher(CModelCommand,
                                                   '~/command', 1)
@@ -85,6 +88,9 @@ class EPickController(Node):
         super().destroy_node()
 
     def _status_cb(self, status):
+        if status.g_sid != self._slave_id:
+            return
+
         with self._status_condition:
             self._status = status
             self._status_condition.notify_all()
@@ -157,6 +163,8 @@ class EPickController(Node):
 
     def _send_raw_move_command(self, advanced_mode, max_prs, min_prs, tout):
         command = CModelCommand()
+        command.arg3f = False
+        command.r_sid = self._salve_id
         command.r_act = 1
         command.r_mod = 1 if advanced_mode else 0
         command.r_gto = 1
@@ -168,6 +176,8 @@ class EPickController(Node):
 
     def _stop(self):
         command = CModelCommand()
+        command.arg3f = False
+        command.r_sid = self._salve_id
         command.r_act = 1
         command.r_gto = 0
         self._command_pub.publish(command)
