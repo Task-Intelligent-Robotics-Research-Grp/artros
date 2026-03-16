@@ -29,15 +29,15 @@ class CModelURCap(CModelBase):
     POS = 'POS'  # pos : position (0-255), 0 = open
     SPE = 'SPE'  # spe : speed (0-255)
     FOR = 'FOR'  # for : force (0-255)
-    POS = 'PRB'  # prb : position for finger B (0-255), 0 = open
-    SPE = 'SPB'  # spb : speed for finger B (0-255)
-    FOR = 'FRB'  # frb : force for finger B (0-255)
-    POS = 'PRC'  # prc : position for finger C (0-255), 0 = open
-    SPE = 'SPC'  # spc : speed for finger C (0-255)
-    FOR = 'FRC'  # frc : force for finger C (0-255)
-    POS = 'PRS'  # prc : position for scissor (0-255), 0 = open
-    SPE = 'SPS'  # spc : speed for scissor (0-255)
-    FOR = 'FRS'  # frc : force for scissor (0-255)
+    PRB = 'PRB'  # prb : position for finger B (0-255), 0 = open
+    SPB = 'SPB'  # spb : speed for finger B (0-255)
+    FRB = 'FRB'  # frb : force for finger B (0-255)
+    PRC = 'PRC'  # prc : position for finger C (0-255), 0 = open
+    SPC = 'SPC'  # spc : speed for finger C (0-255)
+    FRC = 'FRC'  # frc : force for finger C (0-255)
+    PRS = 'PRS'  # prc : position for scissor (0-255), 0 = open
+    SPS = 'SPS'  # spc : speed for scissor (0-255)
+    FRS = 'FRS'  # frc : force for scissor (0-255)
 
     # READ VARIABLES
     STA = 'STA'  # status (0 = is reset, 1 = activating, 3 = active)
@@ -66,10 +66,10 @@ class CModelURCap(CModelBase):
         :param port: Port.
         :param socket_timeout: Timeout for blocking socket operations.
         """
-        # print("Connecting to: " + str(hostname) + ", port: " + str(port))
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((hostname, port))
         s.settimeout(socket_timeout)
+        self.get_logger().info("connected to %s:%d" % (hostname, port))
         return s
 
     def disconnect(self):
@@ -101,7 +101,7 @@ class CModelURCap(CModelBase):
                 (self.POS, command.r_pr),
                 (self.SPE, command.r_sp),
                 (self.FOR, command.r_fr)]
-        if self._is_arg3f[command.r_sid]:
+        if self._arg3f[command.r_sid]:
             vars += [(self.PRB, command.r_prb),
                      (self.SPB, command.r_spb),
                      (self.FRB, command.r_frb),
@@ -111,7 +111,7 @@ class CModelURCap(CModelBase):
                      (self.PRS, command.r_prs),
                      (self.SPS, command.r_sps),
                      (self.FRS, command.r_frs)]
-        self._set_vars(dict(var_dict))
+        self._set_vars(dict(vars))
 
     def get_status(self, slave_id):
         status = CModelStatus()
@@ -126,7 +126,7 @@ class CModelURCap(CModelBase):
         status.g_pr  = self._get_var(self.PRE)
         status.g_po  = self._get_var(self.POS)
         status.g_cou = self._get_var(self.COU)
-        if self._is_arg3f[slave_id]:
+        if self._arg3f[slave_id]:
             status.g_prb = self._get_var(self.PRB)
             status.g_pob = self._get_var(self.POB)
             status.g_cub = self._get_var(self.CUB)
