@@ -33,6 +33,7 @@
 #
 # Author: Toshio Ueshiba
 #
+import time
 from rclpy.node            import Node
 from aist_robotiq_msgs.msg import CModelStatus, CModelCommand
 
@@ -45,6 +46,8 @@ class CModelBase(Node):
         slave_ids   = self.declare_parameter('slave_ids', [9]).value
         arg3fs      = self.declare_parameter('arg3fs', [False]).value
         self._arg3f = dict(zip(slave_ids, arg3fs))
+        self._activate_devices()
+
         self._pub   = self.create_publisher(CModelStatus, '~/status', 3)
         self._sub   = self.create_subscription(CModelCommand, '~/command',
                                                self.put_command, 3)
@@ -54,6 +57,13 @@ class CModelBase(Node):
     def __del__(self):
         self.disconnect()           # (defined in derived class)
 
+    def _activate_devices(self):
+        for slave_id in self._arg3f.keys():
+            self.put_command(CModelCommand(r_sid=slave_id, r_act=0))
+            time.sleep(0.1)
+            self.put_command(CModelCommand(r_sid=slave_id, r_act=1))
+            time.sleep(0.1)
+
     def _timer_cb(self):
         for slave_id in self._arg3f.keys():
             status = self.get_status(slave_id)  # (defined in derived class)
@@ -61,8 +71,7 @@ class CModelBase(Node):
 
     def _clip_command(self, command):
         def clip(x, min_value, max_value):
-            return min_value if x < min_value else \
-                   max_value if x > max_value else x
+            return min(max(min_value, x), max_value)
 
         command.r_sid = clip(command.r_sid, 1, 9)
         command.r_act = clip(command.r_act, 0, 1)
