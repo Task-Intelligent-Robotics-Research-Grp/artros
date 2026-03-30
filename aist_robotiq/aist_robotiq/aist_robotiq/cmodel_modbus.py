@@ -97,7 +97,7 @@ class CModelModbusBase(CModelBase):
         self._write_registers(message, slave_id)  # (defined in derived class)
 
     def _get_status(self, nbytes, slave_id):
-        nregs    = 2*((nbytes - 1)/2)
+        nregs    = 2*((nbytes - 1)//2)
         response = self._read_registers(nregs,
                                         slave_id) # (defined in derived class)
 
@@ -143,7 +143,7 @@ class CModelModbusRTU(CModelModbusBase):
                                           stopbits=1, bytesize=8, parity='N',
                                           baudrate=115200, timeout=0.2)
         self._client.connect()
-        self.get_logger().info('started[dev=%d]' % dev)
+        self.get_logger().info('started[dev=%s]' % dev)
 
     def _write_registers(self, message, slave_id):
         with self._lock:
@@ -151,4 +151,8 @@ class CModelModbusRTU(CModelModbusBase):
 
     def _read_registers(self, nregs, slave_id):
         with self._lock:
-            return self._client.read_input_registers(0x07D0, nregs, slave_id)
+            self.get_logger().warn('### nregs=%d, slave_id=%d'
+                                   % (nregs, slave_id))
+            ret = self._client.read_input_registers(0x07D0, nregs, slave_id)
+            self.get_logger().warn('### ret=%s' % ret)
+            return ret

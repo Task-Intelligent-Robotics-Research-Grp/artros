@@ -1,13 +1,13 @@
 Panels:
   - Class: rviz_common/Displays
-    Help Height: 70
+    Help Height: 0
     Name: Displays
     Property Tree Widget:
       Expanded:
         - /MotionPlanning1
         - /TF1
-      Splitter Ratio: 0.5
-    Tree Height: 569
+      Splitter Ratio: 0.5232558250427246
+    Tree Height: 560
   - Class: rviz_common/Help
     Name: Help
   - Class: rviz_common/Views
@@ -402,7 +402,7 @@ Visualization Manager:
         Goal State Color: 250; 128; 0
         Interactive Marker Size: 0
         Joint Violation Color: 255; 0; 255
-        Planning Group: left_lbr
+        Planning Group: right_lbr
         Query Goal State: true
         Query Start State: false
         Show Workspace: false
@@ -743,240 +743,21 @@ Visualization Manager:
       Value: true
       Velocity_Scaling_Factor: 1
     - Class: rviz_default_plugins/TF
-      Enabled: true
+      Enabled: false
       Filter (blacklist): ""
       Filter (whitelist): ""
       Frame Timeout: 15
       Frames:
         All Enabled: true
-        ground:
-          Value: true
-        left_lbr_link_0:
-          Value: true
-        left_lbr_link_1:
-          Value: true
-        left_lbr_link_2:
-          Value: true
-        left_lbr_link_3:
-          Value: true
-        left_lbr_link_4:
-          Value: true
-        left_lbr_link_5:
-          Value: true
-        left_lbr_link_6:
-          Value: true
-        left_lbr_link_7:
-          Value: true
-        left_lbr_link_ee:
-          Value: true
-        left_mounter_back_bar:
-          Value: true
-        left_mounter_base_back_bar:
-          Value: true
-        left_mounter_base_front_bar:
-          Value: true
-        left_mounter_base_left_bar:
-          Value: true
-        left_mounter_base_leg0:
-          Value: true
-        left_mounter_base_leg1:
-          Value: true
-        left_mounter_base_leg2:
-          Value: true
-        left_mounter_base_leg3:
-          Value: true
-        left_mounter_base_link:
-          Value: true
-        left_mounter_base_right_bar:
-          Value: true
-        left_mounter_front_bar:
-          Value: true
-        left_mounter_left_bar:
-          Value: true
-        left_mounter_leg0:
-          Value: true
-        left_mounter_leg1:
-          Value: true
-        left_mounter_leg2:
-          Value: true
-        left_mounter_leg3:
-          Value: true
-        left_mounter_prop0:
-          Value: true
-        left_mounter_prop1:
-          Value: true
-        left_mounter_prop2:
-          Value: true
-        left_mounter_prop3:
-          Value: true
-        left_mounter_right_bar:
-          Value: true
-        left_mounter_top_origin:
-          Value: true
-        right_lbr_link_0:
-          Value: true
-        right_lbr_link_1:
-          Value: true
-        right_lbr_link_2:
-          Value: true
-        right_lbr_link_3:
-          Value: true
-        right_lbr_link_4:
-          Value: true
-        right_lbr_link_5:
-          Value: true
-        right_lbr_link_6:
-          Value: true
-        right_lbr_link_7:
-          Value: true
-        right_lbr_link_ee:
-          Value: true
-        right_mounter_back_bar:
-          Value: true
-        right_mounter_base_back_bar:
-          Value: true
-        right_mounter_base_front_bar:
-          Value: true
-        right_mounter_base_left_bar:
-          Value: true
-        right_mounter_base_leg0:
-          Value: true
-        right_mounter_base_leg1:
-          Value: true
-        right_mounter_base_leg2:
-          Value: true
-        right_mounter_base_leg3:
-          Value: true
-        right_mounter_base_link:
-          Value: true
-        right_mounter_base_right_bar:
-          Value: true
-        right_mounter_front_bar:
-          Value: true
-        right_mounter_left_bar:
-          Value: true
-        right_mounter_leg0:
-          Value: true
-        right_mounter_leg1:
-          Value: true
-        right_mounter_leg2:
-          Value: true
-        right_mounter_leg3:
-          Value: true
-        right_mounter_prop0:
-          Value: true
-        right_mounter_prop1:
-          Value: true
-        right_mounter_prop2:
-          Value: true
-        right_mounter_prop3:
-          Value: true
-        right_mounter_right_bar:
-          Value: true
-        right_mounter_top_origin:
-          Value: true
-        world:
-          Value: true
       Marker Scale: 0.5
       Name: TF
       Show Arrows: false
       Show Axes: true
       Show Names: true
       Tree:
-        world:
-          ground:
-            left_mounter_base_link:
-              left_mounter_base_back_bar:
-                {}
-              left_mounter_base_front_bar:
-                left_mounter_leg0:
-                  left_mounter_leg1:
-                    {}
-                  left_mounter_leg2:
-                    {}
-                  left_mounter_leg3:
-                    {}
-              left_mounter_base_left_bar:
-                {}
-              left_mounter_base_leg0:
-                left_mounter_base_leg1:
-                  left_mounter_prop1:
-                    {}
-                left_mounter_base_leg2:
-                  left_mounter_prop2:
-                    {}
-                left_mounter_base_leg3:
-                  left_mounter_prop3:
-                    {}
-                left_mounter_prop0:
-                  {}
-              left_mounter_base_right_bar:
-                {}
-              left_mounter_front_bar:
-                left_mounter_back_bar:
-                  {}
-                left_mounter_left_bar:
-                  {}
-                left_mounter_right_bar:
-                  {}
-              left_mounter_top_origin:
-                left_lbr_link_0:
-                  left_lbr_link_1:
-                    left_lbr_link_2:
-                      left_lbr_link_3:
-                        left_lbr_link_4:
-                          left_lbr_link_5:
-                            left_lbr_link_6:
-                              left_lbr_link_7:
-                                left_lbr_link_ee:
-                                  {}
-            right_mounter_base_link:
-              right_mounter_base_back_bar:
-                {}
-              right_mounter_base_front_bar:
-                right_mounter_leg0:
-                  right_mounter_leg1:
-                    {}
-                  right_mounter_leg2:
-                    {}
-                  right_mounter_leg3:
-                    {}
-              right_mounter_base_left_bar:
-                {}
-              right_mounter_base_leg0:
-                right_mounter_base_leg1:
-                  right_mounter_prop1:
-                    {}
-                right_mounter_base_leg2:
-                  right_mounter_prop2:
-                    {}
-                right_mounter_base_leg3:
-                  right_mounter_prop3:
-                    {}
-                right_mounter_prop0:
-                  {}
-              right_mounter_base_right_bar:
-                {}
-              right_mounter_front_bar:
-                right_mounter_back_bar:
-                  {}
-                right_mounter_left_bar:
-                  {}
-                right_mounter_right_bar:
-                  {}
-              right_mounter_top_origin:
-                right_lbr_link_0:
-                  right_lbr_link_1:
-                    right_lbr_link_2:
-                      right_lbr_link_3:
-                        right_lbr_link_4:
-                          right_lbr_link_5:
-                            right_lbr_link_6:
-                              right_lbr_link_7:
-                                right_lbr_link_ee:
-                                  {}
+        {}
       Update Interval: 0
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -1018,7 +799,7 @@ Visualization Manager:
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 1278
+  Height: 749
   Help:
     collapsed: false
   Hide Left Dock: false
@@ -1027,9 +808,9 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000002b4000004a4fc0200000004fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004100fffffffc0000003d000002d90000019a0100001cfa000000000100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001ee00fffffffb000000100044006900730070006c0061007900730100000000000002b40000015600fffffffb0000000800480065006c0070000000029a0000006e0000006e00fffffffb0000000a00560069006500770073010000031c000001c5000000a400ffffff0000052a000004a400000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000002060000028ffc0200000004fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004400fffffffc0000003f0000028f000001b50100001efa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001ee00fffffffb000000100044006900730070006c0061007900730100000000000002b40000015600fffffffb0000000800480065006c0070000000029a0000006e0000006f00fffffffb0000000a005600690065007700730000000205000000c9000000a900ffffff000003620000028f00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
-  Width: 2020
-  X: 883
-  Y: 273
+  Width: 1390
+  X: 446
+  Y: 191
