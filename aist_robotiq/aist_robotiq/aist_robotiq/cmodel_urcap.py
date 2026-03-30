@@ -17,37 +17,6 @@ class CModelURCap(CModelBase):
     Uses port 63352 which is opened by the Robotiq Gripper URCap
     and receives ASCII commands.
     """
-    # WRITE VARIABLES (CAN ALSO READ)
-    SID = 'SID'  # sid : socket slave ID
-    ACT = 'ACT'  # act : activate (1 while activated, can be reset to clear fault status)
-    MOD = 'MOD'  # mod : mode for EPick suction gripper (0: auto, 1: advanced)
-    GTO = 'GTO'  # gto : go to (will perform go to with the actions set in pos, for, spe)
-    ATR = 'ATR'  # atr : auto-release (emergency slow move)
-    ARD = 'ARD'  # ard : auto-release direction (open(1) or close(0) during auto-release)
-    ICF = 'ICF'  # icf : individual finger control (0: disable, 1: enable)
-    ICS = 'ICS'  # ics : individual scissor control (0: disable, 1: enable)
-    POS = 'POS'  # pos : position (0-255), 0 = open
-    SPE = 'SPE'  # spe : speed (0-255)
-    FOR = 'FOR'  # for : force (0-255)
-    PRB = 'PRB'  # prb : position for finger B (0-255), 0 = open
-    SPB = 'SPB'  # spb : speed for finger B (0-255)
-    FRB = 'FRB'  # frb : force for finger B (0-255)
-    PRC = 'PRC'  # prc : position for finger C (0-255), 0 = open
-    SPC = 'SPC'  # spc : speed for finger C (0-255)
-    FRC = 'FRC'  # frc : force for finger C (0-255)
-    PRS = 'PRS'  # prc : position for scissor (0-255), 0 = open
-    SPS = 'SPS'  # spc : speed for scissor (0-255)
-    FRS = 'FRS'  # frc : force for scissor (0-255)
-
-    # READ VARIABLES
-    STA = 'STA'  # status (0 = is reset, 1 = activating, 3 = active)
-    OBJ = 'OBJ'  # object detection (0 = moving, 1 = outer grip, 2 = inner grip, 3 = no object at rest)
-    PRE = 'PRE'  # position request (echo of last commanded position)
-    FLT = 'FLT'  # fault (0=ok, see manual for errors if not zero)
-    COU = 'COU'  # motor current (0-255)
-
-    ENCODING = 'UTF-8'  # ASCII and UTF-8 both seem to work
-
     def __init__(self, name):
         """
         Constructor
@@ -80,62 +49,62 @@ class CModelURCap(CModelBase):
 
     def activate(self):
         # Clear and then reset ACT
-        self._set_var(self.ACT, 0)
-        self._set_var(self.ACT, 1)
+        self._set_var('ACT', 0)
+        self._set_var('ACT', 1)
 
         # Wait until STA == 3.
-        while self._get_var(self.STA) != 3:
+        while self._get_var('STA') != 3:
             time.sleep(0.01)
 
     def put_command(self, command):
         command  = self._clip_command(command)
         # Do not set variable 'ACT' because setting zero value will cause
         # the device reset.
-        vars = [(self.SID, command.r_sid),
-                (self.MOD, command.r_mod),
-                (self.GTO, command.r_gto),
-                (self.ATR, command.r_atr),
-                (self.ARD, command.r_ard),
-                (self.ICF, command.r_icf),
-                (self.ICS, command.r_ics),
-                (self.POS, command.r_pr),
-                (self.SPE, command.r_sp),
-                (self.FOR, command.r_fr)]
+        vars = [('SID', command.r_sid),
+                ('MOD', command.r_mod),
+                ('GTO', command.r_gto),
+                ('ATR', command.r_atr),
+                ('ARD', command.r_ard),
+                ('ICF', command.r_icf),
+                ('ICS', command.r_ics),
+                ('POS', command.r_pr),
+                ('SPE', command.r_sp),
+                ('FOR', command.r_fr)]
         if self._arg3f[command.r_sid]:
-            vars += [(self.PRB, command.r_prb),
-                     (self.SPB, command.r_spb),
-                     (self.FRB, command.r_frb),
-                     (self.PRC, command.r_prc),
-                     (self.SPC, command.r_spc),
-                     (self.FRC, command.r_frc),
-                     (self.PRS, command.r_prs),
-                     (self.SPS, command.r_sps),
-                     (self.FRS, command.r_frs)]
+            vars += [('PRB', command.r_prb),
+                     ('SPB', command.r_spb),
+                     ('FRB', command.r_frb),
+                     ('PRC', command.r_prc),
+                     ('SPC', command.r_spc),
+                     ('FRC', command.r_frc),
+                     ('PRS', command.r_prs),
+                     ('SPS', command.r_sps),
+                     ('FRS', command.r_frs)]
         self._set_vars(dict(vars))
 
     def get_status(self, slave_id):
         status = CModelStatus()
         # Assign values to their respective variables
-        status.g_sid = self._get_var(self.SID)
-        status.g_act = self._get_var(self.ACT)
-        status.g_mod = self._get_var(self.MOD)
-        status.g_gto = self._get_var(self.GTO)
-        status.g_sta = self._get_var(self.STA)
-        status.g_obj = self._get_var(self.OBJ)
-        status.g_flt = self._get_var(self.FLT)
-        status.g_pr  = self._get_var(self.PRE)
-        status.g_po  = self._get_var(self.POS)
-        status.g_cou = self._get_var(self.COU)
+        status.g_sid = self._get_var('SID')
+        status.g_act = self._get_var('ACT')
+        status.g_mod = self._get_var('MOD')
+        status.g_gto = self._get_var('GTO')
+        status.g_sta = self._get_var('STA')
+        status.g_obj = self._get_var('OBJ')
+        status.g_flt = self._get_var('FLT')
+        status.g_pr  = self._get_var('PRE')
+        status.g_po  = self._get_var('POS')
+        status.g_cou = self._get_var('COU')
         if self._arg3f[slave_id]:
-            status.g_prb = self._get_var(self.PRB)
-            status.g_pob = self._get_var(self.POB)
-            status.g_cub = self._get_var(self.CUB)
-            status.g_prc = self._get_var(self.PRC)
-            status.g_poc = self._get_var(self.POC)
-            status.g_cuc = self._get_var(self.CUC)
-            status.g_prs = self._get_var(self.PRS)
-            status.g_pos = self._get_var(self.POS)
-            status.g_cus = self._get_var(self.CUS)
+            status.g_prb = self._get_var('PRB')
+            status.g_pob = self._get_var('POB')
+            status.g_cub = self._get_var('CUB')
+            status.g_prc = self._get_var('PRC')
+            status.g_poc = self._get_var('POC')
+            status.g_cuc = self._get_var('CUC')
+            status.g_prs = self._get_var('PRS')
+            status.g_pos = self._get_var('POS')
+            status.g_cus = self._get_var('CUS')
         return status
 
     def _set_vars(self, var_dict):
@@ -155,7 +124,7 @@ class CModelURCap(CModelBase):
         cmd += '\n'  # new line is required for the command to finish
         # atomic commands send/rcv
         with self._lock:
-            self._socket.sendall(cmd.encode(self.ENCODING))
+            self._socket.sendall(cmd.encode('UTF-8'))
             data = self._socket.recv(1024)
 
         return self._is_ack(data)
@@ -185,14 +154,14 @@ class CModelURCap(CModelBase):
         # atomic commands send/rcv
         with self._lock:
             cmd = "GET " + variable + "\n"
-            self._socket.sendall(cmd.encode(self.ENCODING))
+            self._socket.sendall(cmd.encode('UTF-8'))
             data = self._socket.recv(1024)
 
         # expect data of the form 'VAR x', where VAR is an echo
-        # of the variable name, and X the value
+        # of the variable name, and x the value
         # note some special variables (like FLT) may send 2 bytes,
         # instead of an integer. We assume integer here
-        var_name, value_str = data.decode(self.ENCODING).split()
+        var_name, value_str = data.decode('UTF-8').split()
         if var_name != variable:
             raise ValueError("Unexpected response " + str(data)
                              + " does not match '" + variable + "'")
