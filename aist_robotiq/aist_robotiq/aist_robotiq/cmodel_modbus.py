@@ -78,7 +78,7 @@ class CModelModbusBase(CModelBase):
 
     def get_status(self, slave_id):
         # Acquire status from the Gripper
-        data = self._get_status(6 if self._arg3fs[slave_id] else 15, slave_id)
+        data = self._get_status(15 if self._arg3f[slave_id] else 6, slave_id)
 
         # Assign the values to their respective variables
         status = CModelStatus()
@@ -88,7 +88,7 @@ class CModelModbusBase(CModelBase):
         status.g_gto = (data[0] >> 3) & 0x01
         status.g_sta = (data[0] >> 4) & 0x03
         status.g_obj = (data[0] >> 6) & 0x03
-        status.g_bas =  data[1]       & 0x03
+        status.g_vas =  data[1]       & 0x03
         status.g_flt =  data[2]       & 0x0f
         status.g_pr  =  data[3]
         status.g_po  =  data[4]
@@ -137,7 +137,7 @@ class CModelModbusBase(CModelBase):
 class CModelModbusTCP(CModelModbusBase):
     def __init__(self, name):
         super().__init__(name)
-        ip = self.declare_parameter('ip', '10.66.171.40').value
+        ip = self.declare_parameter('ip', '192.168.1.11').value
         self._lock   = threading.Lock()
         self._client = ModbusTcpClient(ip)
         self._client.connect()
@@ -171,8 +171,4 @@ class CModelModbusRTU(CModelModbusBase):
 
     def _read_registers(self, nregs, slave_id):
         with self._lock:
-            self.get_logger().warn('### nregs=%d, slave_id=%d'
-                                   % (nregs, slave_id))
-            ret = self._client.read_input_registers(0x07D0, nregs, slave_id)
-            self.get_logger().warn('### ret=%s' % ret)
-            return ret
+            return self._client.read_input_registers(0x07D0, nregs, slave_id)

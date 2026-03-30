@@ -117,7 +117,7 @@ class CModelController : public rclcpp::Node
 
     double	actual_position(const cmodel_status_cp& status)	const	;
     double	actual_effort(const cmodel_status_cp& status)	const	;
-    bool	error(const cmodel_status_cp& status)		const	;
+    u_int 	error(const cmodel_status_cp& status)		const	;
     bool	stalled(const cmodel_status_cp& status)		const	;
     bool	reached_goal(const cmodel_status_cp& status)	const	;
     bool	is_active(const cmodel_status_cp& status)	const	;
@@ -295,38 +295,38 @@ CModelController::cmodel_status_cb(const cmodel_status_cp& status)
   // Handle calibration process if not moving.
     if (is_active(status) && !is_moving(status))
     {
-	if (_calibration_step == 1)
-	{
-	    RCLCPP_INFO_STREAM(get_logger(),
-			       "calibration step 1: start calibration");
-	    _calibration_step = 2;
-	    send_raw_move_command(0, 64, 1);	// full-open
-	    rclcpp::sleep_for(3s);
-	}
-	else if (_calibration_step == 2)
-	{
-	    _max_gap_counts = status->g_po;	// record at full-open
-	    RCLCPP_INFO_STREAM(get_logger(), "calibration step 2: gap["
-			       << _max_gap_counts << "]@full-open");
-	    _calibration_step = 3;
-	    send_raw_move_command(255, 64, 1);	// full-close
-	    rclcpp::sleep_for(3s);
-	}
-	else if (_calibration_step == 3)
-	{
-	    _min_gap_counts = status->g_po;	// record at full-close
-	    RCLCPP_INFO_STREAM(get_logger(), "calibration step 3: gap["
-			       << _min_gap_counts << "]@full-close");
-	    _calibration_step = 0;
-	    send_raw_move_command(0, 64, 1);	// full-open
-	    RCLCPP_INFO_STREAM(get_logger(), "calibrated to ["
-			       << _min_gap_counts << ", "
-			       << _max_gap_counts << ']');
-	}
+        if (_calibration_step == 1)
+        {
+            RCLCPP_INFO_STREAM(get_logger(),
+        		       "calibration step 1: start calibration");
+            _calibration_step = 2;
+            send_raw_move_command(0, 64, 1);	// full-open
+            rclcpp::sleep_for(3s);
+        }
+        else if (_calibration_step == 2)
+        {
+            _max_gap_counts = status->g_po;	// record at full-open
+            RCLCPP_INFO_STREAM(get_logger(), "calibration step 2: gap["
+        		       << _max_gap_counts << "]@full-open");
+            _calibration_step = 3;
+            send_raw_move_command(255, 64, 1);	// full-close
+            rclcpp::sleep_for(3s);
+        }
+        else if (_calibration_step == 3)
+        {
+            _min_gap_counts = status->g_po;	// record at full-close
+            RCLCPP_INFO_STREAM(get_logger(), "calibration step 3: gap["
+        		       << _min_gap_counts << "]@full-close");
+            _calibration_step = 0;
+            send_raw_move_command(0, 64, 1);	// full-open
+            RCLCPP_INFO_STREAM(get_logger(), "calibrated to ["
+        		       << _min_gap_counts << ", "
+        		       << _max_gap_counts << ']');
+        }
     }
 
     if (_calibration_step != 0)
-	return;
+        return;
 
   // Publish joint states of the gripper.
     auto	joint_state = std::make_unique<joint_state_t>();
@@ -457,7 +457,7 @@ CModelController::reached_goal(const cmodel_status_cp& status) const
     return status->g_obj == 3 && abs(status->g_po - _goal_r_pr) <= 1;
 }
 
-bool
+u_int
 CModelController::error(const cmodel_status_cp& status) const
 {
     return status->g_flt;

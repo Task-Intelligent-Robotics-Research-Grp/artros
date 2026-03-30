@@ -34,7 +34,6 @@
 # Author: Toshio Ueshiba
 #
 from rclpy.node            import Node
-from numpy                 import clip
 from aist_robotiq_msgs.msg import CModelStatus, CModelCommand
 
 #########################################################################
@@ -61,6 +60,10 @@ class CModelBase(Node):
             self._pub.publish(status)   # Forward device status to controller
 
     def _clip_command(self, command):
+        def clip(x, min_value, max_value):
+            return min_value if x < min_value else \
+                   max_value if x > max_value else x
+
         command.r_sid = clip(command.r_sid, 1, 9)
         command.r_act = clip(command.r_act, 0, 1)
         command.r_mod = clip(command.r_mod, 0, 3)

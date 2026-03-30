@@ -110,7 +110,7 @@ robotiq_epick_controller:
 ################
 robotiq_3f_driver:
   ros__parameters:
-    ip:        10.66.171.41  # Used for tcp/urcap drivers
+    ip:        192.168.1.11  # Used for tcp/urcap drivers
     dev:       /dev/ttyUSB0  # Used for rtu drivers
     slave_ids: [9]           # list of slave IDs of Modbus devices
     arg3fs:    [True]

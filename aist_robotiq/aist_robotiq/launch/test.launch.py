@@ -12,7 +12,7 @@ launch_arguments = [
         'default':     'robotiq_85',
         'description': 'name of the device',
         'choices':     ['robotiq_85', 'robotiq_140', 'robotiq_hande',
-                        'robotiq_epick'],
+                        'robotiq_3f', 'robotiq_epick'],
     },
 ]
 
