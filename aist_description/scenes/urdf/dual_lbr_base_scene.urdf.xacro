@@ -9,10 +9,10 @@
   <!-- location of robot arms -->
   <xacro:property name="left_lbr_x"	 value="-0.5"/>
   <xacro:property name="left_lbr_y"	 value="0.0"/>
-  <xacro:property name="left_lbr_theta"	 value="${radians(90)}"/>
+  <xacro:property name="left_lbr_theta"	 value="0.0"/>	<!-- in degrees -->
   <xacro:property name="right_lbr_x"	 value="0.5"/>
   <xacro:property name="right_lbr_y"	 value="0.0"/>
-  <xacro:property name="right_lbr_theta" value="${radians(90)}"/>
+  <xacro:property name="right_lbr_theta" value="0.0"/>	<!-- in degrees -->
 
   <!-- ground -->
   <link name="ground"/>
@@ -34,7 +34,7 @@
   <joint name="left_lbr_link_0_joint" type="fixed">
     <parent link = "left_mounter_top_origin"/>
     <child  link = "left_lbr_link_0"/>
-    <origin xyz="0 0 0" rpy="0 0 ${left_lbr_theta}"/>
+    <origin xyz="0 0 0" rpy="0 0 ${radians(left_lbr_theta)}"/>
   </joint>
   <xacro:iiwa14 robot_name="left_lbr"
 		joint_limits_path="$(arg joint_limits_path)"/>
@@ -43,7 +43,7 @@
   <joint name="right_lbr_link_0_joint" type="fixed">
     <parent link = "right_mounter_top_origin"/>
     <child  link = "right_lbr_link_0"/>
-    <origin xyz="0 0 0" rpy="0 0 ${right_lbr_theta}"/>
+    <origin xyz="0 0 0" rpy="0 0 ${radians(right_lbr_theta)}"/>
   </joint>
   <xacro:iiwa14 robot_name="right_lbr"
 		joint_limits_path="$(arg joint_limits_path)"/>

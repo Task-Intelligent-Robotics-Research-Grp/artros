@@ -57,8 +57,7 @@ def main():
     except (KeyboardInterrupt, ExternalShutdownException):
         pass
     except Exception as e:
-        cmodel.get_logger().error('Terminate the node due to exception: %s'
-                                  % e)
+        print('Terminate the node due to exception: %s' % e)
     finally:
         rclpy.shutdown()
 
