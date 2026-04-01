@@ -51,6 +51,7 @@ def main():
             cmodel = CModelModbusRTU('cmodel_rtu_driver')
         else:
             cmodel = CModelURCap('cmodel_urcap_driver')
+        cmodel.activate_devices()
         rclpy.spin(cmodel)
         cmodel.destroy_node()
 

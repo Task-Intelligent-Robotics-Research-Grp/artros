@@ -46,8 +46,6 @@ class CModelBase(Node):
         slave_ids   = self.declare_parameter('slave_ids', [9]).value
         arg3fs      = self.declare_parameter('arg3fs', [False]).value
         self._arg3f = dict(zip(slave_ids, arg3fs))
-        self._activate_devices()
-
         self._pub   = self.create_publisher(CModelStatus, '~/status', 3)
         self._sub   = self.create_subscription(CModelCommand, '~/command',
                                                self.put_command, 3)
@@ -57,21 +55,21 @@ class CModelBase(Node):
     def __del__(self):
         self.disconnect()           # (defined in derived class)
 
-    def _activate_devices(self):
+    def activate_devices(self):
         for slave_id in self._arg3f.keys():
             self.put_command(CModelCommand(r_sid=slave_id, r_act=0))
             time.sleep(0.1)
             self.put_command(CModelCommand(r_sid=slave_id, r_act=1))
             time.sleep(0.1)
-            for n in range(10):
-                if self.get_status(slave_id).g_sta == 0x03:
-                    self.get_logger().info('device[slave_id=%d] activated'
-                                           % slave_id)
-                    break
-                elif n == 9:
-                    self.get_logger().warn('device[slave_id=%d] failed to be activated'
-                                           % slave_id)
-                time.sleep(0.01)
+            # for n in range(10):
+            #     if self.get_status(slave_id).g_sta == 0x03:
+            #         self.get_logger().info('activated device[slave_id=%d]'
+            #                                % slave_id)
+            #         break
+            #     elif n == 9:
+            #         self.get_logger().error('failed to activate device[slave_id=%d]'
+            #                                % slave_id)
+            #     time.sleep(0.5)
 
     def _timer_cb(self):
         for slave_id in self._arg3f.keys():
