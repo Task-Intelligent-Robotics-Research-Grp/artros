@@ -140,7 +140,9 @@ class CModelModbusTCP(CModelModbusBase):
         ip = self.declare_parameter('ip', '192.168.1.11').value
         self._lock   = threading.Lock()
         self._client = ModbusTcpClient(ip)
-        self._client.connect()
+        if not self._client.connect():
+            self.get_logger().error('failed to connect[ip=%s]' % ip)
+            raise
         self.get_logger().info('started[ip=%s]' % ip)
 
     def _write_registers(self, message, slave_id):
@@ -162,7 +164,9 @@ class CModelModbusRTU(CModelModbusBase):
         self._client = ModbusSerialClient(method='rtu', port=dev,
                                           stopbits=1, bytesize=8, parity='N',
                                           baudrate=115200, timeout=0.2)
-        self._client.connect()
+        if not self._client.connect():
+            self.get_logger().error('failed to connect[dev=%s]' % dev)
+            raise
         self.get_logger().info('started[dev=%s]' % dev)
 
     def _write_registers(self, message, slave_id):

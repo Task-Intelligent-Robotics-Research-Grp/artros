@@ -25,7 +25,9 @@ class CModelURCap(CModelBase):
         ip = self.declare_parameter('ip', '10.66.171.40').value
         self._lock   = threading.Lock()
         self._socket = self.connect(ip)
-        #self.activate()
+        if self._socket < 0:
+            self.get_logger().error('failed to connect[ip=%s]' % ip)
+            raise
         self.get_logger().info('started[ip=%s]' % ip)
 
     def connect(self, hostname, port=63352, socket_timeout=2.0):

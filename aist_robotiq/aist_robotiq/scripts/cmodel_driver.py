@@ -55,10 +55,8 @@ def main():
         rclpy.spin(cmodel)
         cmodel.destroy_node()
 
-    except (KeyboardInterrupt, ExternalShutdownException):
-        pass
     except Exception as e:
-        print('Terminate the node due to exception: %s' % e)
+        pass
     finally:
         rclpy.shutdown()
 
