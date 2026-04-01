@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
 <robot name="robotiq_3f_gripper" xmlns:xacro="http://ros.org/wiki/xacro">
 
-  <xacro:arg name="prefix" default=""/>
+  <xacro:arg name="prefix" default="robotiq_3f_"/>
 
   <link name="world"/>
 
   <xacro:include filename="$(find aist_robotiq
 			   )/urdf/robotiq_3f_gripper.urdf.xacro" />
   <xacro:robotiq_3f_gripper prefix="$(arg prefix)" parent="world">
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <origin xyz="0 0 0" rpy="0 ${-pi/2} 0"/>
   </xacro:robotiq_3f_gripper>
 
   <gazebo>

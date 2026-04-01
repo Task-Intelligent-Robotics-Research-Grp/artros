@@ -1,10 +1,16 @@
-from launch                     import LaunchDescription
-from launch.actions             import OpaqueFunction, IncludeLaunchDescription
-from launch.substitutions       import (LaunchConfiguration, ThisLaunchFileDir,
-                                        PathJoinSubstitution,
-                                        IfElseSubstitution, EqualsSubstitution)
-from launch_ros.actions         import Node
-from aist_bringup.launch_common import declare_launch_arguments
+from launch                            import LaunchDescription
+from launch.actions                    import (OpaqueFunction,
+                                               IncludeLaunchDescription)
+from launch.substitutions              import (Command, FindExecutable,
+                                               LaunchConfiguration,
+                                               ThisLaunchFileDir,
+                                               PathJoinSubstitution,
+                                               IfElseSubstitution,
+                                               EqualsSubstitution)
+from launch_ros.substitutions          import FindPackageShare
+from launch_ros.actions                import Node
+from launch_ros.parameter_descriptions import ParameterValue
+from aist_bringup.launch_common        import declare_launch_arguments
 
 launch_arguments = [
     {
@@ -24,7 +30,23 @@ def launch_setup(context):
     client_type = IfElseSubstitution(
                       EqualsSubstitution(device_type, 'RobotiqEPick'),
                       'epick', 'cmodel')
+    robot_description = ParameterValue(
+                            Command([
+                                FindExecutable(name='xacro'), ' ',
+                                PathJoinSubstitution([
+                                    FindPackageShare('aist_robotiq'), 'urdf',
+                                    [LaunchConfiguration('device_name'),
+                                     '_gripper.urdf']
+                                ])
+                            ]),
+                            value_type=str)
     return [
+        Node(package='robot_state_publisher',
+             executable='robot_state_publisher',
+             parameters=[
+                 {'robot_description': robot_description}
+             ],
+             output='screen'),
         IncludeLaunchDescription(
             PathJoinSubstitution([ThisLaunchFileDir(), 'launch.py']),
             launch_arguments=[
@@ -39,6 +61,13 @@ def launch_setup(context):
              parameters=[{'device_name': LaunchConfiguration('device_name')}],
              prefix=['xterm -fn 7x14 -e'],
              output='screen'),
+        Node(name='rviz', package='rviz2', executable='rviz2',
+             output='screen',
+             arguments=[
+                 '-d',
+                 PathJoinSubstitution([FindPackageShare('aist_robotiq'),
+                                       'launch', 'aist_robotiq.rviz'])
+             ]),
     ]
 
 def generate_launch_description():
