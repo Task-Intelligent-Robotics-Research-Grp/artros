@@ -24,9 +24,10 @@ class CModelURCap(CModelBase):
         super().__init__(name)
         ip = self.declare_parameter('ip', '10.66.171.40').value
         self._lock   = threading.Lock()
-        self._socket = self.connect(ip)
-        if self._socket < 0:
-            self.get_logger().error('failed to connect[ip=%s]' % ip)
+        try:
+            self._socket = self.connect(ip)
+        except Exception as e:
+            self.get_logger().error('failed to connect[ip=%s]: %s' % (ip, e))
             raise
         self.get_logger().info('started[ip=%s]' % ip)
 
