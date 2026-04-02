@@ -44,7 +44,7 @@ class CModelBase(Node):
     def __init__(self, name):
         super().__init__(name)
         slave_ids   = self.declare_parameter('slave_ids', [9]).value
-        arg3fs      = self.declare_parameter('arg3fs', [False]).value
+        arg3fs      = self.declare_parameter('arg3f_grippers', [False]).value
         self._arg3f = dict(zip(slave_ids, arg3fs))
         self._pub   = self.create_publisher(CModelStatus, '~/status', 3)
         self._sub   = self.create_subscription(CModelCommand, '~/command',

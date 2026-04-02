@@ -15,7 +15,7 @@
     </xacro:macro>
 
     <xacro:macro name="robotiq_3f_finger" params="fingerprefix">
-      <link name="${fingerprefix}link_0">
+      <link name="${fingerprefix}base_link">
 	<visual>
 	  <origin rpy="0 0 0" xyz="0.020 0 0"/>
 	  <geometry>
@@ -43,13 +43,13 @@
       </link>
 
       <joint name="${fingerprefix}joint" type="revolute">
-	<parent link="${fingerprefix}link_0"/>
-	<child link="${fingerprefix}link_1"/>
+	<parent link="${fingerprefix}base_link"/>
+	<child link="${fingerprefix}proximal_link"/>
 	<axis xyz="0 0 1"/>
 	<origin xyz="0.020 0 0" rpy="0 0 0"/>
 	<limit effort="100" lower="0" upper="${radians(180)}" velocity="100"/>
       </joint>
-      <link name="${fingerprefix}link_1">
+      <link name="${fingerprefix}proximal_link">
 	<visual>
 	  <origin xyz="0.050 -.028 0" rpy="0 0 -0.52"/>
 	  <geometry>
@@ -72,16 +72,16 @@
 	</inertial>
       </link>
 
-      <joint name="${fingerprefix}joint_2" type="revolute">
-	<parent link="${fingerprefix}link_1"/>
-	<child link="${fingerprefix}link_2"/>
+      <joint name="${fingerprefix}medial_joint" type="revolute">
+	<parent link="${fingerprefix}proximal_link"/>
+	<child link="${fingerprefix}medial_link"/>
 	<axis xyz="0 0 1"/>
 	<origin xyz="0.050 -.028 0" rpy="0 0 -0.52"/>
 	<limit effort="100" lower="0" upper="${radians(180)}" velocity="100"/>
 	<mimic joint="${fingerprefix}joint"
 	       multiplier="1" offset="0"/>
       </joint>
-      <link name="${fingerprefix}link_2">
+      <link name="${fingerprefix}medial_link">
 	<!--
 	    NOTE: This link has an offset in the z-direction based on the models that were
 	    used to generate grap-it poses.  With the offset below the model appears visually
@@ -109,16 +109,16 @@
 	</inertial>
       </link>
 
-      <joint name="${fingerprefix}joint_3" type="revolute">
-	<parent link="${fingerprefix}link_2"/>
-	<child link="${fingerprefix}link_3"/>
+      <joint name="${fingerprefix}distal_joint" type="revolute">
+	<parent link="${fingerprefix}medial_link"/>
+	<child link="${fingerprefix}distal_link"/>
 	<axis xyz="0 0 1"/>
 	<origin xyz="0.039 0 0" rpy="0 0 0"/>
 	<limit effort="100" lower="0" upper="${radians(180)}" velocity="100"/>
 	<mimic joint="${fingerprefix}joint"
 	       multiplier="1" offset="0"/>
       </joint>
-      <link name="${fingerprefix}link_3">
+      <link name="${fingerprefix}distal_link">
 	<visual>
 	  <origin xyz="0 0 0" rpy="0 0 0.52"/>
 	  <geometry>
@@ -187,37 +187,37 @@
       <origin xyz="${tip_height} 0.0 0.0" rpy="0 ${radians(-90)} 0"/>
     </xacro:set_frame>
 
-    <!-- Finger 1 -->
+    <!-- middle finger -->
+    <joint name="${prefix}palm_finger_middle_joint" type="fixed">
+      <parent link="${prefix}palm"/>
+      <child link="${prefix}middle_finger_base_link"/>
+      <axis xyz="0 0 1"/>
+      <origin xyz="0.0455 0.0214 0" rpy="0 0 ${radians(90)}"/>
+    </joint>
+    <xacro:robotiq_3f_finger fingerprefix="${prefix}middle_finger_"/>
+
+    <!-- left finger -->
     <joint name="${prefix}scissor_joint" type="revolute">
       <parent link="${prefix}palm"/>
-      <child link="${prefix}finger_1_link_0"/>
-      <axis xyz="0 1 0"/>
-      <origin xyz="-0.0455 0.0214 0.036"
-	      rpy="0 ${radians(180)} ${radians(-90)}"/>
-      <limit effort="100" lower="-0.16" upper="0.25" velocity="100"/>
-    </joint>
-    <xacro:robotiq_3f_finger fingerprefix="${prefix}finger_1_"/>
-
-    <!-- Finger 2 -->
-    <joint name="${prefix}palm_finger_2_joint" type="revolute">
-      <parent link="${prefix}palm"/>
-      <child link="${prefix}finger_2_link_0"/>
+      <child link="${prefix}left_finger_base_link"/>
       <axis xyz="0 1 0"/>
       <origin xyz="-0.0455 0.0214 -0.036"
 	      rpy="0 ${radians(180)} ${radians(-90)}"/>
       <limit effort="100" lower="-0.25" upper="0.16" velocity="100"/>
+    </joint>
+    <xacro:robotiq_3f_finger fingerprefix="${prefix}left_finger_"/>
+
+    <!-- right finger -->
+    <joint name="${prefix}right_finger_scissor_joint" type="revolute">
+      <parent link="${prefix}palm"/>
+      <child link="${prefix}right_finger_base_link"/>
+      <axis xyz="0 1 0"/>
+      <origin xyz="-0.0455 0.0214 0.036"
+	      rpy="0 ${radians(180)} ${radians(-90)}"/>
+      <limit effort="100" lower="-0.16" upper="0.25" velocity="100"/>
       <mimic joint="${prefix}scissor_joint" multiplier="-1" offset="0"/>
     </joint>
-    <xacro:robotiq_3f_finger fingerprefix="${prefix}finger_2_"/>
-
-    <!-- Finger middle -->
-    <joint name="${prefix}palm_finger_middle_joint" type="fixed">
-      <parent link="${prefix}palm"/>
-      <child link="${prefix}finger_middle_link_0"/>
-      <axis xyz="0 0 1"/>
-      <origin xyz="0.0455 0.0214 0" rpy="0 0 ${radians(90)}"/>
-    </joint>
-    <xacro:robotiq_3f_finger fingerprefix="${prefix}finger_middle_"/>
+    <xacro:robotiq_3f_finger fingerprefix="${prefix}right_finger_"/>
 
     <!--
         <include filename="$(find aist_robotiq)/cfg/robotiq-3f-gripper_finger_articulated_macro.xacro" />
