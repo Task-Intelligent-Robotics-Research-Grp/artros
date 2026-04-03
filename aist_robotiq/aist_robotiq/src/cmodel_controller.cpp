@@ -95,8 +95,6 @@ class CModelController : public rclcpp::Node
     template <class ACT>
     using goal_handle_p	= std::shared_ptr<goal_handle_t<ACT> >;
 
-    using vector_t      = std::vector<double>;
-
   public:
 		CModelController(const rclcpp::NodeOptions& options)	;
 
@@ -117,8 +115,8 @@ class CModelController : public rclcpp::Node
 				  double max_effort)		const	;
     void	send_raw_move_command(int pos, int vel, int eff) const	;
 
-    vector_t	actual_position(const cmodel_status_cp& status)	const	;
-    vector_t	actual_effort(const cmodel_status_cp& status)	const	;
+    double	actual_position(const cmodel_status_cp& status)	const	;
+    double	actual_effort(const cmodel_status_cp& status)	const	;
     u_int 	error(const cmodel_status_cp& status)		const	;
     bool	stalled(const cmodel_status_cp& status)		const	;
     bool	reached_goal(const cmodel_status_cp& status)	const	;
@@ -137,6 +135,7 @@ class CModelController : public rclcpp::Node
     const double			_max_velocity;
     const double			_min_effort;
     const double			_max_effort;
+    const std::string			_joint_name;
 
   // Position parameters to be calibrated
     int					_min_gap_counts;
@@ -144,7 +143,6 @@ class CModelController : public rclcpp::Node
     int					_calibration_step;
 
   // Publisher for JointState
-    joint_state_t                       _joint_state;
     const pub_p<joint_state_t>		_joint_state_pub;
 
   // Service for setting velocity
@@ -182,12 +180,13 @@ CModelController::CModelController(const rclcpp::NodeOptions& options)
 		     this, "mix_effort", 40.0)),
      _max_effort(ddynamic_reconfigure2::declare_read_only_parameter(
 		     this, "max_effort", 100.0)),
+     _joint_name(ddynamic_reconfigure2::declare_read_only_parameter(
+		     this, "joint_name", "finger_joint")),
 
      _min_gap_counts(255),
      _max_gap_counts(0),
-     _calibration_step(0),
+     _calibration_step(-1),
 
-     _joint_state(),
      _joint_state_pub(create_publisher<joint_state_t>("/joint_states", 1)),
 
      _velocity(0.5*(_min_velocity + _max_velocity)),
@@ -225,15 +224,6 @@ CModelController::CModelController(const rclcpp::NodeOptions& options)
 {
     using namespace	std::chrono_literals;
 
-    _joint_state.name = ddynamic_reconfigure2::declare_read_only_parameter(
-                            this, "joints",
-                            std::vector<std::string>{"finger_joint"});
-    _joint_state.position.resize(_joint_state.name.size(), 0.0);
-    _joint_state.velocity.resize(_joint_state.name.size(), 0.0);
-    _joint_state.effort  .resize(_joint_state.name.size(), 0.0);
-    _joint_state.header.stamp.sec     = 0;
-    _joint_state.header.stamp.nanosec = 0;
-
     rclcpp::sleep_for(2s);	// wait for server comes up
     calibrate();
 
@@ -251,6 +241,12 @@ CModelController::set_velocity_cb(req_cp<set_velocity_t> req,
 CModelController::goal_response_t
 CModelController::goal_cb(const goal_uuid_t&, goal_cp<gripper_command_t> goal)
 {
+    if (_calibration_step != 0)
+    {
+        RCLCPP_WARN_STREAM(get_logger(),
+                           "goal REJECTED: calibration not completed");
+        return goal_response_t::REJECT;
+    }
     RCLCPP_INFO_STREAM(get_logger(),
 		       "goal ACCEPTED: position=" << goal->command.position
 		       << ", max_effort=" << goal->command.max_effort);
@@ -273,8 +269,8 @@ CModelController::handle_accepted_cb(goal_handle_p<gripper_command_t> goal_handl
     if (_current_goal_handle != nullptr && _current_goal_handle->is_active())
     {
 	auto	result = std::make_unique<gripper_command_t::Result>();
-	result->position     = actual_position(_cmodel_status)[0];
-	result->effort	     = actual_effort(_cmodel_status)[0];
+	result->position     = actual_position(_cmodel_status);
+	result->effort	     = actual_effort(_cmodel_status);
 	result->stalled	     = stalled(_cmodel_status);
 	result->reached_goal = reached_goal(_cmodel_status);
 	_current_goal_handle->abort(std::move(result));
@@ -339,11 +335,13 @@ CModelController::cmodel_status_cb(const cmodel_status_cp& status)
         return;
 
   // Publish joint states of the gripper.
-    _joint_state.header.stamp = now();
-    _joint_state.position = actual_position(status);
-  //_joint_state.velocity.push_back(0.0);
-    _joint_state.effort = actual_effort(status);
-    _joint_state_pub->publish(_joint_state);
+    auto	joint_state = std::make_unique<joint_state_t>();
+    joint_state->header.stamp = now();
+    joint_state->name.push_back(_joint_name);
+    joint_state->position.push_back(actual_position(status));
+    joint_state->velocity.push_back(0.0);
+    joint_state->effort.push_back(actual_effort(status));
+    _joint_state_pub->publish(std::move(joint_state));
 
   // Check if the current goal is active.
     if (!_current_goal_handle || !_current_goal_handle->is_active())
@@ -352,8 +350,8 @@ CModelController::cmodel_status_cb(const cmodel_status_cp& status)
     const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
 
     auto	result = std::make_unique<gripper_command_t::Result>();
-    result->position     = actual_position(status)[0];
-    result->effort	 = actual_effort(status)[0];
+    result->position     = actual_position(status);
+    result->effort	 = actual_effort(status);
     result->stalled	 = stalled(status);
     result->reached_goal = reached_goal(status);
 
@@ -435,36 +433,17 @@ CModelController::send_raw_move_command(int pos, int vel, int eff) const
     _cmodel_command_pub->publish(std::move(cmodel_command));
 }
 
-CModelController::vector_t
+double
 CModelController::actual_position(const cmodel_status_cp& status) const
 {
-    vector_t    position(_joint_state.name.size());
-    position[0] = (status->g_po - _min_gap_counts) * position_per_tick()
-                + _min_position;
-    if (position.size() == 4)
-    {
-        position[1] = (status->g_pob - _min_gap_counts) * position_per_tick()
-                    + _min_position;
-        position[2] = (status->g_poc - _min_gap_counts) * position_per_tick()
-                    + _min_position;
-        position[3] = (status->g_pos - _min_gap_counts) * position_per_tick()
-                    + _min_position;
-    }
-    return position;
+    return (status->g_po - _min_gap_counts) * position_per_tick()
+	 + _min_position;
 }
 
-CModelController::vector_t
+double
 CModelController::actual_effort(const cmodel_status_cp& status) const
 {
-    vector_t    effort(_joint_state.name.size());
-    effort[0] = status->g_cou * effort_per_tick() + _min_effort;
-    if (effort.size() == 4)
-    {
-        effort[1] = status->g_cub * effort_per_tick() + _min_effort;
-        effort[2] = status->g_cuc * effort_per_tick() + _min_effort;
-        effort[3] = status->g_cus * effort_per_tick() + _min_effort;
-    }
-    return effort;
+    return status->g_cou * effort_per_tick() + _min_effort;
 }
 
 bool

@@ -34,8 +34,8 @@
 // Author: Toshio Ueshiba (t.ueshiba@aist.go.jp)
 //
 /*!
- *  \file	cmodel_controller.cpp
- *  \brief	controller for Robotiq grippers
+ *  \file       robotiq_3f_controller.cpp
+ *  \brief	controller for Robotiq-3F grippers
  */
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
@@ -51,6 +51,14 @@ namespace aist_robotiq
 /************************************************************************
 *  static functions							*
 ************************************************************************/
+template <class T> inline std::array<T, 4>
+array4_from_vector(const std::vector<T>& v)
+{
+    if (v.size() != 4)
+        throw std::runtime_error("input vector size must be 4!");
+    return {v[0], v[1], v[2], v[3]};
+}
+
 static inline rclcpp::SubscriptionOptions
 create_subscription_options(const rclcpp::CallbackGroup::SharedPtr& cbg)
 {
@@ -60,14 +68,14 @@ create_subscription_options(const rclcpp::CallbackGroup::SharedPtr& cbg)
 }
 
 /************************************************************************
-*  class Robotiq3FController						*
+*  class CModelController						*
 ************************************************************************/
-class Robotiq3FController : public rclcpp::Node
+class CModelController : public rclcpp::Node
 {
   private:
-    using cmodel_status_t   = aist_robotiq_msgs::msg::Robotiq3FStatus;
+    using cmodel_status_t   = aist_robotiq_msgs::msg::CModelStatus;
     using cmodel_status_cp  = cmodel_status_t::ConstSharedPtr;
-    using cmodel_command_t  = aist_robotiq_msgs::msg::Robotiq3FCommand;
+    using cmodel_command_t  = aist_robotiq_msgs::msg::CModelCommand;
     using joint_state_t	    = sensor_msgs::msg::JointState;
     using gripper_command_t = control_msgs::action::GripperCommand;
     using set_velocity_t    = aist_robotiq_msgs::srv::SetVelocity;
@@ -95,8 +103,12 @@ class Robotiq3FController : public rclcpp::Node
     template <class ACT>
     using goal_handle_p	= std::shared_ptr<goal_handle_t<ACT> >;
 
+    using vector_t      = std::vector<double>;
+    using array4d_t    = std::array<double, 4>;
+    using array4i_t    = std::array<int,    4>;
+
   public:
-		Robotiq3FController(const rclcpp::NodeOptions& options)	;
+		CModelController(const rclcpp::NodeOptions& options)	;
 
   private:
     void	set_velocity_cb(req_cp<set_velocity_t> req,
@@ -111,38 +123,41 @@ class Robotiq3FController : public rclcpp::Node
     void	cmodel_status_cb(const cmodel_status_cp& status)	;
 
     void	calibrate()						;
-    int		send_move_command(double position, double velocity,
-				  double max_effort)		const	;
-    void	send_raw_move_command(int pos, int vel, int eff) const	;
+    array4i_t	send_move_command(const array4d_t& position,
+                                  const array4d_t& velocity,
+				  const array4d_t& max_effort)	const	;
+    void	send_raw_move_command(const array4i_t& pos,
+                                      const array4i_t& vel,
+                                      const array4i_t& eff)     const	;
 
-    double	actual_position(const cmodel_status_cp& status)	const	;
-    double	actual_effort(const cmodel_status_cp& status)	const	;
-    bool	error(const cmodel_status_cp& status)		const	;
+    vector_t	actual_position(const cmodel_status_cp& status)	const	;
+    vector_t	actual_effort(const cmodel_status_cp& status)	const	;
+    u_int 	error(const cmodel_status_cp& status)		const	;
     bool	stalled(const cmodel_status_cp& status)		const	;
     bool	reached_goal(const cmodel_status_cp& status)	const	;
     bool	is_active(const cmodel_status_cp& status)	const	;
     bool	is_moving(const cmodel_status_cp& status)	const	;
-    double	position_per_tick()				const	;
-    double	velocity_per_tick()				const	;
-    double	effort_per_tick()				const	;
+    double	position_per_tick(size_t i)			const	;
+    double	velocity_per_tick(size_t i)			const	;
+    double	effort_per_tick(size_t i)			const	;
 
   private:
   // Read-only parameters
     const int                           _slave_id;
-    const double			_min_position;
-    const double			_max_position;
-    const double			_min_velocity;
-    const double			_max_velocity;
-    const double			_min_effort;
-    const double			_max_effort;
-    const std::string			_joint_name;
+    const array4d_t			_min_position;
+    const array4d_t			_max_position;
+    const array4d_t			_min_velocity;
+    const array4d_t			_max_velocity;
+    const array4d_t			_min_effort;
+    const array4d_t			_max_effort;
 
   // Position parameters to be calibrated
-    int					_min_gap_counts;
-    int					_max_gap_counts;
+    array4i_t                   	_min_gap_counts;
+    array4i_t                           _max_gap_counts;
     int					_calibration_step;
 
   // Publisher for JointState
+    joint_state_t                       _joint_state;
     const pub_p<joint_state_t>		_joint_state_pub;
 
   // Service for setting velocity
@@ -164,35 +179,46 @@ class Robotiq3FController : public rclcpp::Node
     std::mutex				_current_goal_mtx;
 };
 
-Robotiq3FController::Robotiq3FController(const rclcpp::NodeOptions& options)
+CModelController::CModelController(const rclcpp::NodeOptions& options)
     :rclcpp::Node("cmodel_controller", options),
      _slave_id(ddynamic_reconfigure2::declare_read_only_parameter(
                    this, "slave_id", 9)),
-     _min_position(ddynamic_reconfigure2::declare_read_only_parameter(
-		       this, "min_position", 0.810)),
-     _max_position(ddynamic_reconfigure2::declare_read_only_parameter(
-		       this, "max_position", 0.000)),
-     _min_velocity(ddynamic_reconfigure2::declare_read_only_parameter(
-		       this, "min_velocity", 0.013)),
-     _max_velocity(ddynamic_reconfigure2::declare_read_only_parameter(
-		       this, "max_velocity", 0.100)),
-     _min_effort(ddynamic_reconfigure2::declare_read_only_parameter(
-		     this, "mix_effort", 40.0)),
-     _max_effort(ddynamic_reconfigure2::declare_read_only_parameter(
-		     this, "max_effort", 100.0)),
-     _joint_name(ddynamic_reconfigure2::declare_read_only_parameter(
-		     this, "joint_name", "finger_joint")),
+     _min_position(array4_from_vector(
+                       ddynamic_reconfigure2::declare_read_only_parameter(
+                           this, "min_position",
+                           vector_t{1.047, 1.047, 1.047, 0.160}))),
+     _max_position(array4_from_vector(
+                       ddynamic_reconfigure2::declare_read_only_parameter(
+                           this, "max_position",
+                           vector_t{0.000, 0.000, 0.000, -0.250}))),
+     _min_velocity(array4_from_vector(
+                       ddynamic_reconfigure2::declare_read_only_parameter(
+                           this, "min_velocity",
+                           vector_t{0.020, 0.020, 0.020, 0.020}))),
+     _max_velocity(array4_from_vector(
+                       ddynamic_reconfigure2::declare_read_only_parameter(
+                           this, "max_velocity",
+                           vector_t{0.110, 0.110, 0.110, 0.110}))),
+     _min_effort(array4_from_vector(
+                     ddynamic_reconfigure2::declare_read_only_parameter(
+                         this, "min_effort",
+                         vector_t{40.0, 40.0, 40.0, 40.0}))),
+     _max_effort(array4_from_vector(
+                     ddynamic_reconfigure2::declare_read_only_parameter(
+                         this, "max_effort",
+                         vector_t{185.0, 185.0, 185.0, 185.0}))),
 
-     _min_gap_counts(255),
-     _max_gap_counts(0),
+     _min_gap_counts{255, 255, 255, 255},
+     _max_gap_counts{0, 0, 0, 0},
      _calibration_step(0),
 
+     _joint_state(),
      _joint_state_pub(create_publisher<joint_state_t>("/joint_states", 1)),
 
-     _velocity(0.5*(_min_velocity + _max_velocity)),
+     _velocity(0.5*(_min_velocity[0] + _max_velocity[0])),
      _set_velocity_srv(create_service<set_velocity_t>(
 			   "~/set_velocity",
-			   std::bind(&Robotiq3FController::set_velocity_cb,
+			   std::bind(&CModelController::set_velocity_cb,
 				     this,
 				     std::placeholders::_1,
 				     std::placeholders::_2))),
@@ -205,24 +231,38 @@ Robotiq3FController::Robotiq3FController(const rclcpp::NodeOptions& options)
 			    rclcpp::CallbackGroupType::MutuallyExclusive)),
      _cmodel_status_sub(create_subscription<cmodel_status_t>(
 			    "/status", 1,
-			    std::bind(&Robotiq3FController::cmodel_status_cb,
+			    std::bind(&CModelController::cmodel_status_cb,
 				      this, std::placeholders::_1),
 			    create_subscription_options(_cmodel_status_cbg))),
 
      _gripper_command_srv(rclcpp_action::create_server<gripper_command_t>(
 			      this, "~/gripper_cmd",
-			      std::bind(&Robotiq3FController::goal_cb, this,
+			      std::bind(&CModelController::goal_cb, this,
 					std::placeholders::_1,
 					std::placeholders::_2),
-			      std::bind(&Robotiq3FController::cancel_cb, this,
+			      std::bind(&CModelController::cancel_cb, this,
 					std::placeholders::_1),
-			      std::bind(&Robotiq3FController::
+			      std::bind(&CModelController::
 					handle_accepted_cb, this,
 					std::placeholders::_1))),
      _current_goal_handle(nullptr),
      _current_goal_mtx()
 {
     using namespace	std::chrono_literals;
+
+    _joint_state.name = ddynamic_reconfigure2::declare_read_only_parameter(
+                            this, "joints",
+                            std::vector<std::string>{"finger_joint"});
+    if (_joint_state.name.size() != 4)
+    {
+        RCLCPP_ERROR_STREAM(get_logger(), "4 joint names must be specified!");
+        throw;
+    }
+    _joint_state.position.resize(_joint_state.name.size(), 0.0);
+    _joint_state.velocity.resize(_joint_state.name.size(), 0.0);
+    _joint_state.effort  .resize(_joint_state.name.size(), 0.0);
+    _joint_state.header.stamp.sec     = 0;
+    _joint_state.header.stamp.nanosec = 0;
 
     rclcpp::sleep_for(2s);	// wait for server comes up
     calibrate();
@@ -231,16 +271,15 @@ Robotiq3FController::Robotiq3FController(const rclcpp::NodeOptions& options)
 }
 
 void
-Robotiq3FController::set_velocity_cb(req_cp<set_velocity_t> req,
+CModelController::set_velocity_cb(req_cp<set_velocity_t> req,
 				  res_p<set_velocity_t>  res)
 {
     _velocity = req->velocity;
     res->success = true;
 }
 
-Robotiq3FController::goal_response_t
-Robotiq3FController::goal_cb(const goal_uuid_t&,
-                             goal_cp<gripper_command_t> goal)
+CModelController::goal_response_t
+CModelController::goal_cb(const goal_uuid_t&, goal_cp<gripper_command_t> goal)
 {
     RCLCPP_INFO_STREAM(get_logger(),
 		       "goal ACCEPTED: position=" << goal->command.position
@@ -248,15 +287,15 @@ Robotiq3FController::goal_cb(const goal_uuid_t&,
     return goal_response_t::ACCEPT_AND_EXECUTE;
 }
 
-Robotiq3FController::cancel_response_t
-Robotiq3FController::cancel_cb(goal_handle_p<gripper_command_t>)
+CModelController::cancel_response_t
+CModelController::cancel_cb(goal_handle_p<gripper_command_t>)
 {
     RCLCPP_DEBUG_STREAM(get_logger(), "accepted request for cancelling goal");
     return cancel_response_t::ACCEPT;
 }
 
 void
-Robotiq3FController::handle_accepted_cb(goal_handle_p<gripper_command_t> goal_handle)
+CModelController::handle_accepted_cb(goal_handle_p<gripper_command_t> goal_handle)
 {
     const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
 
@@ -264,8 +303,8 @@ Robotiq3FController::handle_accepted_cb(goal_handle_p<gripper_command_t> goal_ha
     if (_current_goal_handle != nullptr && _current_goal_handle->is_active())
     {
 	auto	result = std::make_unique<gripper_command_t::Result>();
-	result->position     = actual_position(_cmodel_status);
-	result->effort	     = actual_effort(_cmodel_status);
+	result->position     = actual_position(_cmodel_status)[0];
+	result->effort	     = actual_effort(_cmodel_status)[0];
 	result->stalled	     = stalled(_cmodel_status);
 	result->reached_goal = reached_goal(_cmodel_status);
 	_current_goal_handle->abort(std::move(result));
@@ -282,7 +321,7 @@ Robotiq3FController::handle_accepted_cb(goal_handle_p<gripper_command_t> goal_ha
 }
 
 void
-Robotiq3FController::cmodel_status_cb(const cmodel_status_cp& status)
+CModelController::cmodel_status_cb(const cmodel_status_cp& status)
 {
     using namespace	std::chrono_literals;
 
@@ -296,47 +335,68 @@ Robotiq3FController::cmodel_status_cb(const cmodel_status_cp& status)
   // Handle calibration process if not moving.
     if (is_active(status) && !is_moving(status))
     {
-	if (_calibration_step == 1)
-	{
-	    RCLCPP_INFO_STREAM(get_logger(),
-			       "calibration step 1: start calibration");
-	    _calibration_step = 2;
-	    send_raw_move_command(0, 64, 1);	// full-open
-	    rclcpp::sleep_for(3s);
-	}
-	else if (_calibration_step == 2)
-	{
-	    _max_gap_counts = status->g_po;	// record at full-open
-	    RCLCPP_INFO_STREAM(get_logger(), "calibration step 2: gap["
-			       << _max_gap_counts << "]@full-open");
-	    _calibration_step = 3;
-	    send_raw_move_command(255, 64, 1);	// full-close
-	    rclcpp::sleep_for(3s);
-	}
-	else if (_calibration_step == 3)
-	{
-	    _min_gap_counts = status->g_po;	// record at full-close
-	    RCLCPP_INFO_STREAM(get_logger(), "calibration step 3: gap["
-			       << _min_gap_counts << "]@full-close");
-	    _calibration_step = 0;
-	    send_raw_move_command(0, 64, 1);	// full-open
-	    RCLCPP_INFO_STREAM(get_logger(), "calibrated to ["
-			       << _min_gap_counts << ", "
-			       << _max_gap_counts << ']');
-	}
+        if (_calibration_step == 1)
+        {
+            RCLCPP_INFO_STREAM(get_logger(),
+        		       "calibration step 1: start calibration");
+            _calibration_step = 2;
+            send_raw_move_command({0, 0, 0, 0},
+                                  {64, 64, 64, 64},
+                                  {1, 1, 1, 1});	// full-open
+            rclcpp::sleep_for(3s);
+        }
+        else if (_calibration_step == 2)
+        {
+            _max_gap_counts[0] = status->g_po;	// record at full-open
+            _max_gap_counts[1] = status->g_pob;	// record at full-open
+            _max_gap_counts[2] = status->g_poc;	// record at full-open
+            _max_gap_counts[3] = status->g_pos;	// record at full-open
+            RCLCPP_INFO_STREAM(get_logger(), "calibration step 2: gap["
+        		       << _max_gap_counts[0] << ','
+        		       << _max_gap_counts[1] << ','
+        		       << _max_gap_counts[2] << ','
+        		       << _max_gap_counts[3] << "]@full-open");
+            _calibration_step = 3;
+            send_raw_move_command({255, 255, 255, 255},
+                                  {64, 64, 64, 64},
+                                  {1, 1, 1, 1});	// full-close
+            rclcpp::sleep_for(3s);
+        }
+        else if (_calibration_step == 3)
+        {
+            _min_gap_counts[0] = status->g_po;	// record at full-close
+            _min_gap_counts[1] = status->g_pob;	// record at full-close
+            _min_gap_counts[2] = status->g_poc;	// record at full-close
+            _min_gap_counts[3] = status->g_pos;	// record at full-close
+            RCLCPP_INFO_STREAM(get_logger(), "calibration step 3: gap["
+        		       << _min_gap_counts[0] << ','
+        		       << _min_gap_counts[1] << ','
+        		       << _min_gap_counts[2] << ','
+        		       << _min_gap_counts[3] << "]@full-close");
+            _calibration_step = 0;
+            send_raw_move_command({0, 0, 0, 0},
+                                  {64, 64, 64, 64},
+                                  {1, 1, 1, 1});	// full-open
+            RCLCPP_INFO_STREAM(get_logger(), "calibrated to ["
+        		       << _min_gap_counts[0] << ','
+        		       << _max_gap_counts[0] << "], ["
+        		       << _min_gap_counts[1] << ','
+        		       << _max_gap_counts[1] << "], ["
+        		       << _min_gap_counts[2] << ','
+        		       << _max_gap_counts[2] << "], ["
+        		       << _min_gap_counts[3] << ','
+        		       << _max_gap_counts[3] << ']');
+        }
     }
 
     if (_calibration_step != 0)
-	return;
+        return;
 
   // Publish joint states of the gripper.
-    auto	joint_state = std::make_unique<joint_state_t>();
-    joint_state->header.stamp = now();
-    joint_state->name.push_back(_joint_name);
-    joint_state->position.push_back(actual_position(status));
-    joint_state->velocity.push_back(0.0);
-    joint_state->effort.push_back(actual_effort(status));
-    _joint_state_pub->publish(std::move(joint_state));
+    _joint_state.header.stamp = now();
+    _joint_state.position     = actual_position(status);
+    _joint_state.effort       = actual_effort(status);
+    _joint_state_pub->publish(_joint_state);
 
   // Check if the current goal is active.
     if (!_current_goal_handle || !_current_goal_handle->is_active())
@@ -345,8 +405,8 @@ Robotiq3FController::cmodel_status_cb(const cmodel_status_cp& status)
     const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
 
     auto	result = std::make_unique<gripper_command_t::Result>();
-    result->position     = actual_position(status);
-    result->effort	 = actual_effort(status);
+    result->position     = actual_position(status)[0];
+    result->effort	 = actual_effort(status)[0];
     result->stalled	 = stalled(status);
     result->reached_goal = reached_goal(status);
 
@@ -394,55 +454,87 @@ Robotiq3FController::cmodel_status_cb(const cmodel_status_cp& status)
 }
 
 void
-Robotiq3FController::calibrate()
+CModelController::calibrate()
 {
     _calibration_step = 1;
 }
 
-int
-Robotiq3FController::send_move_command(double position,
-				    double velocity, double effort) const
+CModelController::array4i_t
+CModelController::send_move_command(const array4d_t& position,
+				    const array4d_t& velocity,
+                                    const array4d_t& effort) const
 {
-    const auto	pos = std::clamp(int((position - _min_position) /
-				     position_per_tick()) + _min_gap_counts,
-				 _max_gap_counts, _min_gap_counts);
-    const auto	vel = std::clamp(int((velocity - _min_velocity) /
-				     velocity_per_tick()),
-				 0, 255);
-    const auto	eff = std::clamp(int((effort - _min_effort)/effort_per_tick()),
-				 0, 255);
+    array4i_t   pos, vel, eff;
+    for (size_t i = 0; i < 4; ++i)
+    {
+        pos[i] = std::clamp(int((position[i] - _min_position[i])
+                                / position_per_tick(i))
+                            + _min_gap_counts[i],
+                            _max_gap_counts[i], _min_gap_counts[i]);
+        vel[i] = std::clamp(int((velocity[i] - _min_velocity[i])
+                                / velocity_per_tick(i)),
+                            0, 255);
+        eff[i] = std::clamp(int((effort[i] - _min_effort[i])
+                                / effort_per_tick(i)),
+                            0, 255);
+    }
     send_raw_move_command(pos, vel, eff);
     return pos;
 }
 
 void
-Robotiq3FController::send_raw_move_command(int pos, int vel, int eff) const
+CModelController::send_raw_move_command(const array4i_t& pos,
+                                        const array4i_t& vel,
+                                        const array4i_t& eff) const
 {
     auto	cmodel_command = std::make_unique<cmodel_command_t>();
     cmodel_command->r_sid = _slave_id;
     cmodel_command->r_act = 1;
     cmodel_command->r_gto = 1;
-    cmodel_command->r_pr  = pos;
-    cmodel_command->r_sp  = vel;
-    cmodel_command->r_fr  = eff;
+    cmodel_command->r_pr  = pos[0];
+    cmodel_command->r_sp  = vel[0];
+    cmodel_command->r_fr  = eff[0];
+    cmodel_command->r_prb = pos[1];
+    cmodel_command->r_spb = vel[1];
+    cmodel_command->r_frb = eff[1];
+    cmodel_command->r_prc = pos[2];
+    cmodel_command->r_spc = vel[2];
+    cmodel_command->r_frc = eff[2];
+    cmodel_command->r_prs = pos[3];
+    cmodel_command->r_sps = vel[3];
+    cmodel_command->r_frs = eff[3];
     _cmodel_command_pub->publish(std::move(cmodel_command));
 }
 
-double
-Robotiq3FController::actual_position(const cmodel_status_cp& status) const
+CModelController::vector_t
+CModelController::actual_position(const cmodel_status_cp& status) const
 {
-    return (status->g_po - _min_gap_counts) * position_per_tick()
-	 + _min_position;
+    vector_t    position(_joint_state.name.size());
+    position[0] = (status->g_po  - _min_gap_counts[0]) * position_per_tick(0)
+                + _min_position[0];
+    position[1] = (status->g_pob - _min_gap_counts[1]) * position_per_tick(1)
+                + _min_position[1];
+    position[2] = (status->g_poc - _min_gap_counts[2]) * position_per_tick(2)
+                + _min_position[2];
+    position[3] = (status->g_pos - _min_gap_counts[3]) * position_per_tick(3)
+                + _min_position[3];
+    return position;
 }
 
-double
-Robotiq3FController::actual_effort(const cmodel_status_cp& status) const
+CModelController::vector_t
+CModelController::actual_effort(const cmodel_status_cp& status) const
 {
-    return status->g_cou * effort_per_tick() + _min_effort;
+    vector_t    effort(_joint_state.name.size());
+    effort[0] = status->g_cou * effort_per_tick(0) + _min_effort[0];
+    effort[1] = status->g_cub * effort_per_tick(1) + _min_effort[1];
+    effort[2] = status->g_cuc * effort_per_tick(2) + _min_effort[2];
+    effort[3] = status->g_cus * effort_per_tick(3) + _min_effort[3];
+
+    return effort;
 }
 
 bool
-Robotiq3FController::stalled(const cmodel_status_cp& status) const
+CModelController::stalled(const cmodel_status_cp& status) const
 {
   // After the goal accepted in _goal_cb(), status->g_pr does not
   // correctly reflects the requested position if cmodel_status_cb() is
@@ -453,48 +545,53 @@ Robotiq3FController::stalled(const cmodel_status_cp& status) const
 }
 
 bool
-Robotiq3FController::reached_goal(const cmodel_status_cp& status) const
+CModelController::reached_goal(const cmodel_status_cp& status) const
 {
-    return status->g_obj == 3 && abs(status->g_po - _goal_r_pr) <= 1;
+    return status->g_obj == 3
+        && abs(status->g_po - _goal_r_pr) <= 1
+        && abs(status->g_po - _goal_r_pr) <= 1
+        && abs(status->g_po - _goal_r_pr) <= 1
+        && abs(status->g_po - _goal_r_pr) <= 1;
 }
 
-bool
-Robotiq3FController::error(const cmodel_status_cp& status) const
+u_int
+CModelController::error(const cmodel_status_cp& status) const
 {
     return status->g_flt;
 }
 
 bool
-Robotiq3FController::is_active(const cmodel_status_cp& status) const
+CModelController::is_active(const cmodel_status_cp& status) const
 {
     return status->g_sta == 3 && status->g_act == 1;
 }
 
 bool
-Robotiq3FController::is_moving(const cmodel_status_cp& status) const
+CModelController::is_moving(const cmodel_status_cp& status) const
 {
     return status->g_gto == 1 && status->g_obj == 0;
 }
 
 double
-Robotiq3FController::position_per_tick() const
+CModelController::position_per_tick(size_t i) const
 {
-    return (_max_position - _min_position)/(_max_gap_counts - _min_gap_counts);
+    return (_max_position[i]   - _min_position[i])
+         / (_max_gap_counts[i] - _min_gap_counts[i]);
 }
 
 double
-Robotiq3FController::velocity_per_tick() const
+CModelController::velocity_per_tick(size_t i) const
 {
-    return (_max_velocity - _min_velocity)/255;
+    return (_max_velocity[i] - _min_velocity[i])/255;
 }
 
 double
-Robotiq3FController::effort_per_tick() const
+CModelController::effort_per_tick(size_t i) const
 {
-    return (_max_effort - _min_effort)/255;
+    return (_max_effort[i] - _min_effort[i])/255;
 }
 }	// namespace aist_robotiq
 
 #include <rclcpp_components/register_node_macro.hpp>
 
-RCLCPP_COMPONENTS_REGISTER_NODE(aist_robotiq::Robotiq3FController)
+RCLCPP_COMPONENTS_REGISTER_NODE(aist_robotiq::CModelController)

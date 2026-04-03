@@ -47,7 +47,7 @@
 	<child link="${fingerprefix}proximal_link"/>
 	<axis xyz="0 0 1"/>
 	<origin xyz="0.020 0 0" rpy="0 0 0"/>
-	<limit effort="100" lower="0" upper="${radians(180)}" velocity="100"/>
+	<limit effort="100" lower="0" upper="${radians(60)}" velocity="100"/>
       </joint>
       <link name="${fingerprefix}proximal_link">
 	<visual>
@@ -77,9 +77,8 @@
 	<child link="${fingerprefix}medial_link"/>
 	<axis xyz="0 0 1"/>
 	<origin xyz="0.050 -.028 0" rpy="0 0 -0.52"/>
-	<limit effort="100" lower="0" upper="${radians(180)}" velocity="100"/>
-	<mimic joint="${fingerprefix}joint"
-	       multiplier="0" offset="0"/>
+	<limit effort="100" lower="0" upper="${radians(60)}" velocity="100"/>
+	<mimic joint="${fingerprefix}joint" multiplier="0" offset="0"/>
       </joint>
       <link name="${fingerprefix}medial_link">
 	<!--
@@ -114,7 +113,7 @@
 	<child link="${fingerprefix}distal_link"/>
 	<axis xyz="0 0 1"/>
 	<origin xyz="0.039 0 0" rpy="0 0 0"/>
-	<limit effort="100" lower="0" upper="${radians(180)}" velocity="100"/>
+	<limit effort="100" lower="0" upper="${radians(60)}" velocity="100"/>
 	<mimic joint="${fingerprefix}joint"
 	       multiplier="-1" offset="0"/>
       </joint>

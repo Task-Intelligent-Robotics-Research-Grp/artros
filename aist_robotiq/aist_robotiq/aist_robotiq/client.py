@@ -179,8 +179,8 @@ class GenericGripper(object):
         goal_handle = future.result()
         if not goal_handle.accepted:
             self._logger.error('goal rejected')
-            return
-        self._logger.info('goal accepted')
+        else:
+            self._logger.info('goal accepted')
         self._get_result_future = goal_handle.get_result_async()
 
     def _feedback_cb(self, feedback):
@@ -374,8 +374,8 @@ class EPickGripper(object):
         goal_handle = future.result()
         if not goal_handle.accepted:
             self._logger.error('goal rejected')
-            return
-        self._logger.info('goal accepted')
+        else:
+            self._logger.info('goal accepted')
         self._get_result_future = goal_handle.get_result_async()
 
     def _feedback_cb(self, feedback):

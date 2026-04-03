@@ -120,8 +120,8 @@ class CModelModbusBase(CModelBase):
         nregs    = 2*((nbytes - 1)//2)
         response = self._read_registers(nregs,
                                         slave_id) # (defined in derived class)
-
-        if isinstance(response, ModbusIOException):
+        if response.isError():
+            self.get_logger().error(str(response))
             raise RuntimeError(response)
 
         # Decompose each register word to two bytes in little-endian order.
