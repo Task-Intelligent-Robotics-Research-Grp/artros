@@ -3,62 +3,62 @@
 ####################
 robotiq_140_driver:
   ros__parameters:
-    ip:        10.66.171.40  # Used for tcp/urcap drivers
-    dev:       /dev/ttyUSB0  # Used for rtu drivers
-    slave_ids: [9]           # list of slave IDs of Modbus devices
-    arg3fs:    [False]
+    ip:             10.66.171.40  # Used for tcp/urcap drivers
+    dev:            /dev/ttyUSB0  # Used for rtu drivers
+    slave_ids:      [9]           # list of slave IDs of Modbus devices
+    arg3f_grippers: [False]
 
 robotiq_140_controller:
   ros__parameters:
-    slave_id:   9
-    joint_name: robotiq_140_finger_joint
+    slave_id: 9
+    joints:   [robotiq_140_finger_joint]
 
     # Gap width between fingers in meters [0.000, 0.140]
     min_gap: 0.000
     max_gap: 0.140
 
     # Gripper position in radians [0.69, 0,00]
-    min_position: 0.69
-    max_position: 0.00
+    min_position: [0.69]
+    max_position: [0.00]
 
     # Gripper velocity in m/s [0.030, 0.250]
-    min_velocity: 0.030
-    max_velocity: 0.250
+    min_velocity: [0.030]
+    max_velocity: [0.250]
 
     # Gripper effort in N. [0.0, 125.0]
-    min_effort:   0.0
-    max_effort: 125.0
+    min_effort: [  0.0]
+    max_effort: [125.0]
 
 ###################
 #  Robotiq 2F-85  #
 ###################
 robotiq_85_driver:
   ros__parameters:
-    ip:        10.66.171.41  # Used for tcp/urcap drivers
-    dev:       /dev/ttyUSB0  # Used for rtu drivers
-    slave_ids: [9]           # list of slave IDs of Modbus devices
-    arg3fs:    [False]
+    ip:             10.66.171.41  # Used for tcp/urcap drivers
+    dev:            /dev/ttyUSB0  # Used for rtu drivers
+    slave_ids:      [9]           # list of slave IDs of Modbus devices
+    arg3f_grippers: [False]
 
 robotiq_85_controller:
   ros__parameters:
-    slave_id:   9
-    joint_name: robotiq_85_finger_joint
+    slave_id: 9
+    joints:   [robotiq_85_finger_joint]
 
     # Gap width between fingers in meters [0.000, 0.085]
     min_gap: 0.000
     max_gap: 0.085
 
     # Gripper position in radians [0.81, 0,00]
-    min_position: 0.81
-    max_position: 0.00
+    min_position: [0.81]
+    max_position: [0.00]
 
     # Gripper velocity in m/s [0.020, 0.150]
-    min_velocity: 0.020
-    max_velocity: 0.150
+    min_velocity: [0.020]
+    max_velocity: [0.150]
 
     # Gripper effort in N. [0.0, 235.0]
-    min_effort:   0.0
-    max_effort: 235.0
+    min_effort: [  0.0]
+    max_effort: [235.0]
 
 ###################
 #  Robotiq HandE  #
@@ -72,24 +72,24 @@ robotiq_hande_driver:
 
 robotiq_hande_controller:
   ros__parameters:
-    slave_id:   9
-    joint_name: robotiq_hande_finger_joint
+    slave_id: 9
+    joints:   [robotiq_hande_finger_joint]
 
     # Gap width between fingers in meters [0.000, 0.050]
     min_gap: 0.000
     max_gap: 0.050
 
     # Gripper position in radians [0.03, 0,00]
-    min_position: 0.03
-    max_position: 0.00
+    min_position: [0.03]
+    max_position: [0.00]
 
     # Gripper velocity in m/s [0.020, 0.150]
-    min_velocity: 0.020
-    max_velocity: 0.150
+    min_velocity: [0.020]
+    max_velocity: [0.150]
 
     # Gripper effort in N. [0.0, 185.0]
-    min_effort:   0.0
-    max_effort: 185.0
+    min_effort: [  0.0]
+    max_effort: [185.0]
 
 ###################
 #  Robotiq EPick  #

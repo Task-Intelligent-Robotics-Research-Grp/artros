@@ -28,8 +28,14 @@ ament_auto_add_library(
 
 rclcpp_components_register_nodes(
   ${PROJECT_NAME}
-    PLUGIN     ${PROJECT_NAME}::CModelController
+    PLUGIN     ${PROJECT_NAME}::CModelController<1>
     EXECUTABLE cmodel_controller_node
+)
+
+rclcpp_components_register_nodes(
+  ${PROJECT_NAME}
+    PLUGIN     ${PROJECT_NAME}::CModelController<4>
+    EXECUTABLE robotiq_3f_controller_node
 )
 
 #ament_auto_add_library(

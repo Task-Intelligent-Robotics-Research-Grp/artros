@@ -1,0 +1,15 @@
+float64 gap         # desired diameter/distance
+float64 spread      # desired spread angle
+float64 max_effort  # maximum effort to be applied
+---
+float64 position  # The current gripper gap size (in meters)
+float64 spread    # The current gripper spread angle (in radians)
+float64 effort    # The current effort exerted (in Newtons)
+bool stalled      # True iff the gripper is exerting max effort and not moving
+bool reached_goal # True iff the gripper position has reached the commanded setpoint
+---
+float64 position  # The current gripper gap size (in meters)
+float64 spread    # The current gripper spread angle (in radians)
+float64 effort    # The current effort exerted (in Newtons)
+bool stalled      # True iff the gripper is exerting max effort and not moving
+bool reached_goal # True iff the gripper position has reached the commanded setpoint
