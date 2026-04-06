@@ -1,6 +1,11 @@
+uint8 BASIC   = 0
+uint8 PINCH   = 1
+uint8 WIDE    = 2
+uint8 SCISSOR = 3
+
 float64 gap         # desired diameter/distance
-float64 spread      # desired spread angle
 float64 max_effort  # maximum effort to be applied
+uint8   mode        # BASIC/PINCH/WIDE/SCISSOR
 ---
 float64 position  # The current gripper gap size (in meters)
 float64 spread    # The current gripper spread angle (in radians)

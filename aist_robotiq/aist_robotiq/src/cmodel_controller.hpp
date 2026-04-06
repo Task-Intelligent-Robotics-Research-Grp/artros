@@ -147,14 +147,24 @@ class CModelController : public rclcpp::Node
                     result->stalled	 = stalled(status);
                     result->reached_goal = reached_goal(status);
                 }
-    // void        set_result(const result_p<gripper3f_command_t>& result,
-    //                        const cmodel_status_cp& status) const
-    //             {
-    //                 result->position     = actual_position(status)[0];
-    //                 result->effort	 = actual_effort(status)[0];
-    //                 result->stalled	 = stalled(status);
-    //                 result->reached_goal = reached_goal(status);
-    //             }
+    static darray_t
+                desired_position(const goal_cp<gripper3f_command_t>& goal)
+                {
+                    return darray_t{goal->gap};
+                }
+    static darray_t
+                desired_effort(const goal_cp<gripper3f_command_t>& goal)
+                {
+                    return darray_t{goal->max_effort};
+                }
+    void        set_result(const result_p<gripper3f_command_t>& result,
+                           const cmodel_status_cp& status) const
+                {
+                    result->position     = actual_position(status)[0];
+                    result->effort	 = actual_effort(status)[0];
+                    result->stalled	 = stalled(status);
+                    result->reached_goal = reached_goal(status);
+                }
 
     void	calibrate()
                 {
@@ -199,6 +209,8 @@ class CModelController : public rclcpp::Node
                     cmodel_command->r_sid = _slave_id;
                     cmodel_command->r_act = 1;
                     cmodel_command->r_gto = 1;
+                    cmodel_command->r_icf = 1;
+                    cmodel_command->r_ics = 1;
                     cmodel_command->r_pr  = pos[0];
                     cmodel_command->r_sp  = vel[0];
                     cmodel_command->r_fr  = eff[0];
@@ -471,11 +483,9 @@ CModelController<DOF>::set_velocity_cb(req_cp<set_velocity_t> req,
 }
 
 template <size_t DOF> typename CModelController<DOF>::goal_response_t
-CModelController<DOF>::goal_cb(const goal_uuid_t&, goal_cp<action_t> goal)
+CModelController<DOF>::goal_cb(const goal_uuid_t&, goal_cp<action_t>)
 {
-    RCLCPP_INFO_STREAM(get_logger(),
-		       "goal ACCEPTED: position=" << goal->command.position
-		       << ", max_effort=" << goal->command.max_effort);
+    RCLCPP_INFO_STREAM(get_logger(), "goal ACCEPTED");
     return goal_response_t::ACCEPT_AND_EXECUTE;
 }
 
@@ -537,7 +547,8 @@ CModelController<DOF>::cmodel_status_cb(const cmodel_status_cp& status)
         {
             _max_gap_counts = pos(status);              // record at full-open
             RCLCPP_INFO_STREAM(get_logger(), "calibration step 2: gap["
-        		       << _max_gap_counts << "]@full-open");
+        		       << _max_gap_counts.transpose()
+                               << "]@full-open");
             _calibration_step = 3;
             send_raw_move_command(iarray_t{255}, iarray_t{64}, iarray_t{1},
                                   dof_t());             // full-close
@@ -547,13 +558,14 @@ CModelController<DOF>::cmodel_status_cb(const cmodel_status_cp& status)
         {
             _min_gap_counts = pos(status);              // record at full-close
             RCLCPP_INFO_STREAM(get_logger(), "calibration step 3: gap["
-        		       << _min_gap_counts << "]@full-close");
+        		       << _min_gap_counts.transpose()
+                               << "]@full-close");
             _calibration_step = 0;
             send_raw_move_command(iarray_t{0}, iarray_t{64}, iarray_t{1},
                                   dof_t());             // full-open
             RCLCPP_INFO_STREAM(get_logger(), "calibrated to [("
-        		       << _min_gap_counts << "), ("
-        		       << _max_gap_counts << ")]");
+        		       << _min_gap_counts.transpose() << "), ("
+        		       << _max_gap_counts.transpose() << ")]");
         }
     }
 
