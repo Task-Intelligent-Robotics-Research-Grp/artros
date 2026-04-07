@@ -26,17 +26,10 @@ def launch_setup(context):
     device_type = IfElseSubstitution(
                       EqualsSubstitution(
                           LaunchConfiguration('device_name'), 'robotiq_epick'),
-                      'RobotiqEPick',
-                      IfElseSubstitution(
-                          EqualsSubstitution(
-                              LaunchConfiguration('device_name'), 'robotiq_3f'),
-                          'Robotiq3FGripper', 'RobotiqGripper'))
+                      'RobotiqEPick', 'RobotiqGripper')
     client_type = IfElseSubstitution(
                       EqualsSubstitution(device_type, 'RobotiqEPick'),
-                      'epick',
-                      IfElseSubstitution(
-                          EqualsSubstitution(device_type, 'Robotiq3FGripper'),
-                          'robotiq_3f', 'cmodel'))
+                      'epick', 'cmodel')
     robot_description = ParameterValue(
                             Command([
                                 FindExecutable(name='xacro'), ' ',

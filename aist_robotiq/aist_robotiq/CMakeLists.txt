@@ -23,19 +23,12 @@ ament_auto_find_build_dependencies()
 ament_auto_add_library(
   ${PROJECT_NAME} SHARED
     src/cmodel_controller.cpp
-    src/robotiq_3f_controller.cpp
 )
 
 rclcpp_components_register_nodes(
   ${PROJECT_NAME}
     PLUGIN     ${PROJECT_NAME}::CModelController<1>
     EXECUTABLE cmodel_controller_node
-)
-
-rclcpp_components_register_nodes(
-  ${PROJECT_NAME}
-    PLUGIN     ${PROJECT_NAME}::CModelController<4>
-    EXECUTABLE robotiq_3f_controller_node
 )
 
 #ament_auto_add_library(
