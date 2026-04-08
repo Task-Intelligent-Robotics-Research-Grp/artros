@@ -354,7 +354,7 @@ class CModelController : public rclcpp::Node
 
   // Position parameters to be calibrated
     array4i                       	_min_pos;
-    array4i                           _max_pos;
+    array4i                             _max_pos;
     int					_calibration_step;
 
   // Publisher for JointState
@@ -532,7 +532,7 @@ CModelController::cmodel_status_cb(const cmodel_status_cp& status)
     _cmodel_status = status;
 
   // Handle calibration process if not moving.
-    if (_calibration_step && is_active(status) && !is_moving(status))
+    if (is_active(status) && !is_moving(status))
     {
         switch (_calibration_step)
         {
@@ -542,6 +542,7 @@ CModelController::cmodel_status_cb(const cmodel_status_cp& status)
             RCLCPP_INFO_STREAM(get_logger(),
         		       "calibration step 1: start finger calibration");
             send_raw_move_command(array4i{0}, array4i{64}, array4i{1});
+            rclcpp::sleep_for(500ms);
             ++_calibration_step;
             break;
           case 2:
@@ -549,6 +550,7 @@ CModelController::cmodel_status_cb(const cmodel_status_cp& status)
             RCLCPP_INFO_STREAM(get_logger(), "calibration step 2: finger gaps["
         		       << _max_pos.transpose() << "]@full-open");
             send_raw_move_command(array4i{255}, array4i{64}, array4i{1});
+            rclcpp::sleep_for(500ms);
             ++_calibration_step;
             break;
           case 3:
@@ -556,6 +558,7 @@ CModelController::cmodel_status_cb(const cmodel_status_cp& status)
             RCLCPP_INFO_STREAM(get_logger(), "calibration step 3: finger gaps["
         		       << _min_pos.transpose() << "]@full-close");
             send_raw_move_command(array4i{0}, array4i{64}, array4i{1});
+            rclcpp::sleep_for(500ms);
             if (dof() == 1)
                 _calibration_step = 8;
             else
@@ -563,6 +566,7 @@ CModelController::cmodel_status_cb(const cmodel_status_cp& status)
             break;
           case 4:
             set_mode(set_mode_t::Request::SCISSOR);
+            rclcpp::sleep_for(500ms);
             RCLCPP_INFO_STREAM(get_logger(),
         		       "calibration step 4: switch to scissor mode");
             ++_calibration_step;
@@ -571,6 +575,7 @@ CModelController::cmodel_status_cb(const cmodel_status_cp& status)
             RCLCPP_INFO_STREAM(get_logger(),
         		       "calibration step 5: start scissor calibration");
             send_raw_move_command(array4i{0}, array4i{64}, array4i{1});
+            rclcpp::sleep_for(500ms);
             ++_calibration_step;
             break;
           case 6:
@@ -578,6 +583,7 @@ CModelController::cmodel_status_cb(const cmodel_status_cp& status)
             RCLCPP_INFO_STREAM(get_logger(), "calibration step 6: scissor gap["
         		       << _max_pos[3] << "]@full-open");
             send_raw_move_command(array4i{255}, array4i{64}, array4i{1});
+            rclcpp::sleep_for(500ms);
             ++_calibration_step;
             break;
           case 7:
@@ -585,6 +591,7 @@ CModelController::cmodel_status_cb(const cmodel_status_cp& status)
             RCLCPP_INFO_STREAM(get_logger(), "calibration step 7: sissor gap["
         		       << _min_pos[3] << "]@full-close");
             set_mode(set_mode_t::Request::BASIC);
+            rclcpp::sleep_for(500ms);
             ++_calibration_step;
             break;
           case 8:
@@ -594,10 +601,10 @@ CModelController::cmodel_status_cb(const cmodel_status_cp& status)
             _calibration_step = 0;
             break;
         }
-
-        rclcpp::sleep_for(500ms);
-        return;
     }
+
+    if (_calibration_step)
+        return;
 
     if (error(status))	// Check if any error occured in the driver.
     {

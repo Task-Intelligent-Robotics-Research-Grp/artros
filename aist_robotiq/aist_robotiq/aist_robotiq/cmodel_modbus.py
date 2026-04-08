@@ -170,9 +170,16 @@ class CModelModbusRTU(CModelModbusBase):
         self.get_logger().info('started[dev=%s]' % dev)
 
     def _write_registers(self, message, slave_id):
+        self.get_logger().warn('BEGIN: _write_registers(), %d bytes'
+                               % len(message))
         with self._lock:
             self._client.write_registers(0x03E8, message, slave_id)
+        self.get_logger().warn('END:   _write_registers()')
 
     def _read_registers(self, nregs, slave_id):
+        self.get_logger().warn('BEGIN: _read_registers(), %d registers'
+                               % nregs)
         with self._lock:
-            return self._client.read_input_registers(0x07D0, nregs, slave_id)
+            data = self._client.read_input_registers(0x07D0, nregs, slave_id)
+            self.get_logger().warn('END:   _read_registers()')
+            return data
