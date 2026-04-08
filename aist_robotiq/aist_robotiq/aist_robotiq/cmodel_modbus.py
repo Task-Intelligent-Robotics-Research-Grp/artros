@@ -163,7 +163,7 @@ class CModelModbusRTU(CModelModbusBase):
         self._lock   = threading.Lock()
         self._client = ModbusSerialClient(method='rtu', port=dev,
                                           stopbits=1, bytesize=8, parity='N',
-                                          baudrate=115200, timeout=0.2)
+                                          baudrate=115200, timeout=1.0)
         if not self._client.connect():
             self.get_logger().error('failed to connect[dev=%s]' % dev)
             raise

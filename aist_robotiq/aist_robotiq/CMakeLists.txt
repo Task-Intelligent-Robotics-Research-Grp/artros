@@ -27,7 +27,7 @@ ament_auto_add_library(
 
 rclcpp_components_register_nodes(
   ${PROJECT_NAME}
-    PLUGIN     ${PROJECT_NAME}::CModelController<1>
+    PLUGIN     ${PROJECT_NAME}::CModelController
     EXECUTABLE cmodel_controller_node
 )
 

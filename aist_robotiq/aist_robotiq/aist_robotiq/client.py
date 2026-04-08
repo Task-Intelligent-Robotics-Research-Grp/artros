@@ -42,7 +42,7 @@ from rclpy.action             import ActionClient
 from action_msgs.msg          import GoalStatus
 from control_msgs.action      import GripperCommand
 from control_msgs.msg         import GripperCommand as GripperCommandMsg
-from aist_robotiq_msgs.action import Gripper3FCommand, EPickCommand
+from aist_robotiq_msgs.action import EPickCommand
 from aist_robotiq_msgs.msg    import EPickCommand as EPickCommandMsg
 
 ######################################################################
@@ -235,9 +235,9 @@ class RobotiqGripper(GenericGripper):
              / (self._max_gap - self._min_gap)
 
 ######################################################################
-#  class Robotiq3FGripper                                              #
+#  class Robotiq3FGripper                                            #
 ######################################################################
-class Robotiq3FGripper(object):
+class Robotiq3FGripper(RobotiqGripper):
     def __init__(self, node, prefix='robotiq_3f_gripper_', max_effort=0.0):
         """
         Constructor
@@ -245,7 +245,7 @@ class Robotiq3FGripper(object):
                           from multiple devices
         @param max_effort maximum effort applied when gripping objects
         """
-        super().__init__()
+        super().__init__(node, prefix, max_effort)
 
         ns = prefix + 'controller'
         self._clock    = node.get_clock()
@@ -266,28 +266,6 @@ class Robotiq3FGripper(object):
 
         assert self._min_gap < self._max_gap
         assert self._min_position != self._max_position
-
-
-    def move(self, gap, max_effort=0.0, timeout=Duration()):
-        return super().move(self._position(gap), max_effort, timeout)
-
-    def wait(self, timeout=Duration()):
-        result = super().wait(timeout)
-        result.position = self._gap(result.position)
-        return result
-
-    def _position(self, gap):
-        return (gap - self._min_gap) * self._position_per_gap \
-             + self._min_position
-
-    def _gap(self, position):
-        return (position - self._min_position) / self._position_per_gap \
-             + self._min_gap
-
-    @property
-    def _position_per_gap(self):
-        return (self._max_position - self._min_position) \
-             / (self._max_gap - self._min_gap)
 
 ######################################################################
 #  class EPickGripper                                                #

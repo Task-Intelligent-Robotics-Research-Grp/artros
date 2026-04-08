@@ -67,9 +67,9 @@ create_subscription_options(const rclcpp::CallbackGroup::SharedPtr& cbg)
 class CModelController : public rclcpp::Node
 {
   private:
-    using dvector_t     = std::vector<double>;
-    using darray_t      = Eigen::ArrayXd;
-    using iarray_t      = Eigen::ArrayXi;
+    using vector_t     = std::vector<double>;
+    using array4d       = Eigen::Array4d;
+    using array4i       = Eigen::Array4i;
 
     using cmodel_status_t       = aist_robotiq_msgs::msg::CModelStatus;
     using cmodel_status_cp      = cmodel_status_t::ConstSharedPtr;
@@ -124,7 +124,7 @@ class CModelController : public rclcpp::Node
                 }
     void        set_mode_cb(req_cp<set_mode_t> req, res_p<set_mode_t> res)
                 {
-                    _mode = req->mode;
+                    set_mode(req->mode);
                     res->success = true;
                 }
 
@@ -136,16 +136,32 @@ class CModelController : public rclcpp::Node
     void	handle_accepted_cb(
                     goal_handle_p<gripper_command_t> goal_handle)	;
     void	cmodel_status_cb(const cmodel_status_cp& status)	;
+    void        set_mode(u_int mode)
+                {
+                    _mode = mode;
 
-    static darray_t
-                desired_position(const goal_cp<gripper_command_t>& goal)
-                {
-                    return darray_t{goal->command.position};
+                    if (_mode >= set_mode_t::Request::ICF)
+                        return;
+
+                    auto cmodel_command = std::make_unique<cmodel_command_t>();
+                    cmodel_command->r_sid = _slave_id;
+                    cmodel_command->r_act = 1;
+                    cmodel_command->r_mod = _mode;
+
+                    _cmodel_command_pub->publish(std::move(cmodel_command));
                 }
-    static darray_t
-                desired_effort(const goal_cp<gripper_command_t>& goal)
+
+    array4d     desired_position(const goal_cp<gripper_command_t>& goal) const
                 {
-                    return darray_t{goal->command.max_effort};
+                    return array4d{goal->command.position};
+                }
+    array4d     desired_velocity() const
+                {
+                    return array4d{_velocity};
+                }
+    array4d     desired_effort(const goal_cp<gripper_command_t>& goal)
+                {
+                    return array4d{goal->command.max_effort};
                 }
     void        set_result(const result_p<gripper_command_t>& result,
                            const cmodel_status_cp& status) const
@@ -160,9 +176,9 @@ class CModelController : public rclcpp::Node
                 {
                     _calibration_step = 1;
                 }
-    iarray_t	send_move_command(const darray_t& position,
-                                  const darray_t& velocity,
-				  const darray_t& max_effort) const
+    array4i	send_move_command(const array4d& position,
+                                  const array4d& velocity,
+				  const array4d& max_effort) const
                 {
                     const auto  pos = clamp(((position - _min_position) /
                                              position_per_tick()).cast<int>()
@@ -170,16 +186,20 @@ class CModelController : public rclcpp::Node
                                             _max_pos, _min_pos);
                     const auto  vel = clamp(((velocity - _min_velocity) /
                                              velocity_per_tick()).cast<int>(),
-                                            iarray_t{0}, iarray_t{255});
+                                            array4i{0}, array4i{255});
                     const auto  eff = clamp(((max_effort - _min_effort) /
                                              effort_per_tick()).cast<int>(),
-                                            iarray_t{0}, iarray_t{255});
+                                            array4i{0}, array4i{255});
                     send_raw_move_command(pos, vel, eff);
                     return pos;
                 }
-    void        send_raw_move_command(const iarray_t& pos, const iarray_t& vel,
-                                      const iarray_t& eff) const
+    void        send_raw_move_command(const array4i& pos,
+                                      const array4i& vel,
+                                      const array4i& eff) const
                 {
+                    RCLCPP_WARN_STREAM(get_logger(), "pos=("
+                                       << pos.transpose() << ')');
+
                     auto cmodel_command = std::make_unique<cmodel_command_t>();
                     cmodel_command->r_sid = _slave_id;
                     cmodel_command->r_act = 1;
@@ -203,59 +223,40 @@ class CModelController : public rclcpp::Node
                     cmodel_command->r_pr  = pos[0];
                     cmodel_command->r_sp  = vel[0];
                     cmodel_command->r_fr  = eff[0];
-                    if (pos.size() == 4)
-                    {
-                        cmodel_command->r_prb = pos[1];
-                        cmodel_command->r_spb = vel[1];
-                        cmodel_command->r_frb = eff[1];
-                        cmodel_command->r_prc = pos[2];
-                        cmodel_command->r_spc = vel[2];
-                        cmodel_command->r_frc = eff[2];
-                        cmodel_command->r_prs = pos[3];
-                        cmodel_command->r_sps = vel[3];
-                        cmodel_command->r_frs = eff[3];
-                    }
+                    cmodel_command->r_prb = pos[1];
+                    cmodel_command->r_spb = vel[1];
+                    cmodel_command->r_frb = eff[1];
+                    cmodel_command->r_prc = pos[2];
+                    cmodel_command->r_spc = vel[2];
+                    cmodel_command->r_frc = eff[2];
+                    cmodel_command->r_prs = pos[3];
+                    cmodel_command->r_sps = vel[3];
+                    cmodel_command->r_frs = eff[3];
+
                     _cmodel_command_pub->publish(std::move(cmodel_command));
                 }
-    void        send_raw_move_command(int pos, int vel, int eff) const
-                {
-                    auto cmodel_command = std::make_unique<cmodel_command_t>();
-                    cmodel_command->r_sid = _slave_id;
-                    cmodel_command->r_act = 1;
-                    cmodel_command->r_mod = _mode;
-                    cmodel_command->r_icf = 0;
-                    cmodel_command->r_ics = 0;
-                    cmodel_command->r_gto = 1;
-                    cmodel_command->r_pr  = pos[0];
-                    cmodel_command->r_sp  = vel[0];
-                    cmodel_command->r_fr  = eff[0];
-                }
 
-    darray_t	actual_position(const cmodel_status_cp& status) const
+    array4d	actual_position(const cmodel_status_cp& status) const
                 {
                     return (pos(status) - _min_pos).cast<double>()
                          * position_per_tick() + _min_position;
                 }
-    darray_t	actual_effort(const cmodel_status_cp& status) const
+    array4d	actual_effort(const cmodel_status_cp& status) const
                 {
                     return eff(status).cast<double>() * effort_per_tick()
                          + _min_effort;
                 }
-    iarray_t    pos(const cmodel_status_cp& status) const
+    static array4i
+                pos(const cmodel_status_cp& status)
                 {
-                    iarray_t    p;
-                    p << status->g_po;
-                    if (dof() == 4)
-                        p << status->g_pob, status->g_poc, status->g_pos;
-                    return p;
+                    return array4i{status->g_po,  status->g_pob,
+                                   status->g_poc, status->g_pos};
                 }
-    iarray_t    eff(const cmodel_status_cp& status) const
+    static array4i
+                eff(const cmodel_status_cp& status)
                 {
-                    iarray_t    e;
-                    e << status->g_cou;
-                    if (dof() == 4)
-                        e << status->g_cub, status->g_cuc, status->g_cus;
-                    return e;
+                    return array4i{status->g_cou, status->g_cub,
+                                   status->g_cuc, status->g_cus};
                 }
     static u_int
                 error(const cmodel_status_cp& status)
@@ -264,19 +265,41 @@ class CModelController : public rclcpp::Node
                 }
     bool	stalled(const cmodel_status_cp& status) const
                 {
+                    const auto  p = pos(status);
+
                   // After the goal accepted in _goal_cb(), status->g_pr
                   // does not correctly reflects the requested position if
                   // cmodel_status_cb() is called before send_move_command().
                   // Thus we have to use _goal_r_pr instead of status->g_pr.
-                    return (status->g_obj == 1 &&
-                            (pos(status) > _goal_r_pr + 1).all()) ||
-                           (status->g_obj == 2 &&
-                            (pos(status) < _goal_r_pr - 1).all());
+                    switch (_mode)
+                    {
+                      default:
+                        break;
+                      case set_mode_t::Request::ICF:
+                        return (status->g_obj == 1       &&
+                                p[0] > _goal_r_pr[0] + 1 &&
+                                p[1] > _goal_r_pr[1] + 1 &&
+                                p[2] > _goal_r_pr[2] + 1) ||
+                               (status->g_obj == 2 &&
+                                p[0] < _goal_r_pr[0] - 1 &&
+                                p[1] < _goal_r_pr[1] - 1 &&
+                                p[2] < _goal_r_pr[2] - 1);
+                      case set_mode_t::Request::ICS:
+                        return (status->g_obj == 1       &&
+                                p[3] > _goal_r_pr[3] + 1) ||
+                               (status->g_obj == 2       &&
+                                p[3] < _goal_r_pr[3] - 1);
+                    }
+                    return (status->g_obj == 1       &&
+                            p[0] > _goal_r_pr[0] + 1) ||
+                           (status->g_obj == 2       &&
+                            p[0] < _goal_r_pr[0] - 1);
                 }
     bool	reached_goal(const cmodel_status_cp& status) const
                 {
-                    return status->g_obj == 3 &&
-                           (abs(pos(status) - _goal_r_pr) <= 1).all();
+                    return status->g_obj == 3;
+                    // return status->g_obj == 3 &&
+                    //        (abs(pos(status) - _goal_r_pr) <= 1).all();
                 }
     static bool	is_active(const cmodel_status_cp& status)
                 {
@@ -287,59 +310,51 @@ class CModelController : public rclcpp::Node
                     return status->g_gto == 1 && status->g_obj == 0;
                 }
 
-    darray_t	position_per_tick() const
+    array4d	position_per_tick() const
                 {
                     return (_max_position - _min_position)
                          / (_max_pos - _min_pos).cast<double>();
                 }
-    darray_t	velocity_per_tick() const
+    array4d	velocity_per_tick() const
                 {
                     return (_max_velocity - _min_velocity) / 255.0;
                 }
-    darray_t	effort_per_tick() const
+    array4d	effort_per_tick() const
                 {
                     return (_max_effort - _min_effort) / 255.0;
                 }
 
-    static iarray_t
-                clamp(const iarray_t& x,
-                      const iarray_t& min, const iarray_t& max)
+    static array4i
+                clamp(const array4i& x,
+                      const array4i& min, const array4i& max)
                 {
-                    iarray_t    val;
-                    for (ssize_t i = 0; i < x.size(); ++i)
-                        val[i] = std::clamp(x[i], min[i], max[i]);
-                    return val;
+                    return array4i{std::clamp(x[0], min[0], max[0]),
+                                   std::clamp(x[1], min[1], max[1]),
+                                   std::clamp(x[2], min[2], max[2]),
+                                   std::clamp(x[3], min[3], max[3])};
                 }
-    static darray_t
-                dvector_to_darray(const dvector_t& v)
+    static array4d
+                vector_to_array4d(const vector_t& v)
                 {
-                    darray_t    a(v.size());
+                    array4d    a;
                     for (ssize_t i = 0; i < a.size(); ++i)
-                        a[i] = v[i];
+                        a[i] = (size_t(i) < v.size() ? v[i] : a[0]);
                     return a;
-                }
-    static dvector_t
-                darray_to_dvector(const darray_t& a)
-                {
-                    dvector_t   v(a.size());
-                    for (size_t i = 0; i < v.size(); ++i)
-                        v[i] = a[i];
-                    return v;
                 }
 
   private:
   // Read-only parameters
     const int                           _slave_id;
-    const darray_t			_min_position;
-    const darray_t			_max_position;
-    const darray_t			_min_velocity;
-    const darray_t			_max_velocity;
-    const darray_t			_min_effort;
-    const darray_t			_max_effort;
+    const array4d			_min_position;
+    const array4d			_max_position;
+    const array4d			_min_velocity;
+    const array4d			_max_velocity;
+    const array4d			_min_effort;
+    const array4d			_max_effort;
 
   // Position parameters to be calibrated
-    iarray_t                       	_min_pos;
-    iarray_t                            _max_pos;
+    array4i                       	_min_pos;
+    array4i                           _max_pos;
     int					_calibration_step;
 
   // Publisher for JointState
@@ -356,7 +371,7 @@ class CModelController : public rclcpp::Node
 
   // Publisher for command to the driver
     const pub_p<cmodel_command_t>	_cmodel_command_pub;
-    iarray_t				_goal_r_pr;
+    array4i				_goal_r_pr;
 
   // Subscriber for Status from the driver
     cmodel_status_cp			_cmodel_status;
@@ -373,27 +388,27 @@ CModelController::CModelController(const rclcpp::NodeOptions& options)
     :rclcpp::Node("cmodel_controller", options),
      _slave_id(ddynamic_reconfigure2::declare_read_only_parameter(
                    this, "slave_id", 9)),
-     _min_position(dvector_to_darray(
+     _min_position(vector_to_array4d(
                        ddynamic_reconfigure2::declare_read_only_parameter(
-                           this, "min_position", dvector_t{0.81}))),
-     _max_position(dvector_to_darray(
+                           this, "min_position", vector_t{0.81}))),
+     _max_position(vector_to_array4d(
                        ddynamic_reconfigure2::declare_read_only_parameter(
-                           this, "max_position", dvector_t{0.00}))),
-     _min_velocity(dvector_to_darray(
+                           this, "max_position", vector_t{0.00}))),
+     _min_velocity(vector_to_array4d(
                        ddynamic_reconfigure2::declare_read_only_parameter(
-                           this, "min_velocity", dvector_t{0.020}))),
-     _max_velocity(dvector_to_darray(
+                           this, "min_velocity", vector_t{0.020}))),
+     _max_velocity(vector_to_array4d(
                        ddynamic_reconfigure2::declare_read_only_parameter(
-                           this, "max_velocity", dvector_t{0.150}))),
-     _min_effort(dvector_to_darray(
+                           this, "max_velocity", vector_t{0.150}))),
+     _min_effort(vector_to_array4d(
                      ddynamic_reconfigure2::declare_read_only_parameter(
-                         this, "min_effort", dvector_t{0.0}))),
-     _max_effort(dvector_to_darray(
+                         this, "min_effort", vector_t{0.0}))),
+     _max_effort(vector_to_array4d(
                      ddynamic_reconfigure2::declare_read_only_parameter(
-                         this, "max_effort", dvector_t{235.0}))),
+                         this, "max_effort", vector_t{235.0}))),
 
-     _min_pos(_min_position.size()),
-     _max_pos(_max_position.size()),
+     _min_pos(),
+     _max_pos(),
      _calibration_step(0),
 
      _joint_state(),
@@ -418,7 +433,7 @@ CModelController::CModelController(const rclcpp::NodeOptions& options)
                    nullptr),
 
      _cmodel_command_pub(create_publisher<cmodel_command_t>("/command", 1)),
-     _goal_r_pr(0),
+     _goal_r_pr{0},
 
      _cmodel_status(nullptr),
      _cmodel_status_cbg(create_callback_group(
@@ -446,10 +461,10 @@ CModelController::CModelController(const rclcpp::NodeOptions& options)
     _joint_state.name = ddynamic_reconfigure2::declare_read_only_parameter(
                             this, "joints",
                             std::vector<std::string>{"finger_joint"});
-    if (_joint_state.name.size() != 1 || _joint_state.name.size() != 4)
+    if (dof() != 1 && dof() != 4)
     {
-        RCLCPP_ERROR_STREAM(get_logger(),
-                            "The number of joints must be one or four!");
+        RCLCPP_ERROR_STREAM(get_logger(), "The number of joints["
+                            << dof() << "] must be one or four!");
         throw;
     }
     if (_min_position.size() != dof() || _max_position.size() != dof() ||
@@ -471,12 +486,22 @@ CModelController::CModelController(const rclcpp::NodeOptions& options)
     calibrate();
 
     RCLCPP_INFO_STREAM(get_logger(), "controller started");
+    RCLCPP_INFO_STREAM(get_logger(), "  position range: [("
+                       << _min_position.transpose() << ")-("
+                       << _max_position.transpose() << ")]");
+    RCLCPP_INFO_STREAM(get_logger(), "  velocity range: [("
+                       << _min_velocity.transpose() << ")-("
+                       << _max_velocity.transpose() << ")]");
+    RCLCPP_INFO_STREAM(get_logger(), "  effort range:   [("
+                       << _min_effort.transpose() << ")-("
+                       << _max_effort.transpose() << ")]");
 }
 
 typename CModelController::goal_response_t
-CModelController::goal_cb(const goal_uuid_t&, goal_cp<gripper_command_t>)
+CModelController::goal_cb(const goal_uuid_t&, goal_cp<gripper_command_t> goal)
 {
-    RCLCPP_INFO_STREAM(get_logger(), "goal ACCEPTED");
+    RCLCPP_INFO_STREAM(get_logger(), "goal ACCEPTED: position="
+                       << goal->command.position);
     return goal_response_t::ACCEPT_AND_EXECUTE;
 }
 
@@ -507,7 +532,7 @@ CModelController::handle_accepted_cb(
 
   // Send a move command to the gripper.
     _goal_r_pr = send_move_command(desired_position(goal_handle->get_goal()),
-                                   darray_t{_velocity},
+                                   desired_velocity(),
                                    desired_effort(goal_handle->get_goal()));
 }
 
@@ -533,64 +558,80 @@ CModelController::cmodel_status_cb(const cmodel_status_cp& status)
           case 1:
             RCLCPP_INFO_STREAM(get_logger(),
         		       "calibration step 1: start finger calibration");
-            _mode = set_mode_t::Request::BASIC;
-            send_raw_move_command(0, 64, 1);
+            send_raw_move_command(array4i{0}, array4i{64}, array4i{1});
             ++_calibration_step;
-            rclcpp::sleep_for(3s);
             break;
           case 2:
             _max_pos = pos(status);             // record at full-open
             RCLCPP_INFO_STREAM(get_logger(), "calibration step 2: finger gaps["
         		       << _max_pos.transpose() << "]@full-open");
-            send_raw_move_command(255, 64, 1);
+            send_raw_move_command(array4i{255}, array4i{64}, array4i{1});
             ++_calibration_step;
-            rclcpp::sleep_for(3s);
             break;
           case 3:
             _min_pos = pos(status);             // record at full-close
             RCLCPP_INFO_STREAM(get_logger(), "calibration step 3: finger gaps["
         		       << _min_pos.transpose() << "]@full-close");
-            send_raw_move_command(0, 64, 1);
+            send_raw_move_command(array4i{0}, array4i{64}, array4i{1});
             if (dof() == 1)
-                _calibration_step = 0;
+                _calibration_step = 8;
             else
                 ++_calibration_step;
-            rclcpp::sleep_for(3s);
             break;
           case 4:
+            set_mode(set_mode_t::Request::SCISSOR);
             RCLCPP_INFO_STREAM(get_logger(),
-        		       "calibration step 1: start scissor calibration");
-            _mode = set_mode_t::Request::SCISSOR;
-            send_raw_move_command(iarray_t{0}, iarray_t{64}, iarray_t{1});
+        		       "calibration step 4: switch to scissor mode");
             ++_calibration_step;
-            rclcpp::sleep_for(3s);
             break;
           case 5:
-            _max_pos[3] = pos(status)[3];       // record at full-open
-            RCLCPP_INFO_STREAM(get_logger(), "calibration step 2: scissor gap["
-        		       << _max_pos[3] << "]@full-open");
-            send_raw_move_command(iarray_t{255}, iarray_t{64}, iarray_t{1});
+            RCLCPP_INFO_STREAM(get_logger(),
+        		       "calibration step 5: start scissor calibration");
+            send_raw_move_command(array4i{0}, array4i{64}, array4i{1});
             ++_calibration_step;
-            rclcpp::sleep_for(3s);
             break;
           case 6:
+            _max_pos[3] = pos(status)[3];       // record at full-open
+            RCLCPP_INFO_STREAM(get_logger(), "calibration step 6: scissor gap["
+        		       << _max_pos[3] << "]@full-open");
+            send_raw_move_command(array4i{255}, array4i{64}, array4i{1});
+            ++_calibration_step;
+            break;
+          case 7:
             _min_pos[3] = pos(status)[3];       // record at full-close
-            RCLCPP_INFO_STREAM(get_logger(), "calibration step 3: sissor gap["
+            RCLCPP_INFO_STREAM(get_logger(), "calibration step 7: sissor gap["
         		       << _min_pos[3] << "]@full-close");
-            send_raw_move_command(iarray_t{0}, iarray_t{64}, iarray_t{1});
+            set_mode(set_mode_t::Request::BASIC);
+            ++_calibration_step;
+            break;
+          case 8:
+            RCLCPP_INFO_STREAM(get_logger(), "calibration completed: range[("
+                               << _min_pos.transpose() << ")-("
+                               << _max_pos.transpose() << ")]");
             _calibration_step = 0;
-            rclcpp::sleep_for(3s);
             break;
         }
+    }
+
+    if (error(status))	// Check if any error occured in the driver.
+    {
+	RCLCPP_ERROR_STREAM(get_logger(), "status error[error code:"
+			    << error(status) << ']');
+	return;
     }
 
     if (_calibration_step != 0)
         return;
 
   // Publish joint states of the gripper.
+    const auto  position = actual_position(status);
+    const auto  effort   = actual_effort(status);
     _joint_state.header.stamp = now();
-    _joint_state.position     = darray_to_dvector(actual_position(status));
-    _joint_state.effort       = darray_to_dvector(actual_effort(status));
+    for (ssize_t i = 0; i < dof(); ++i)
+    {
+        _joint_state.position[i] = position[i];
+        _joint_state.effort[i]   = effort[i];
+    }
     _joint_state_pub->publish(_joint_state);
 
   // Check if the current goal is active.
