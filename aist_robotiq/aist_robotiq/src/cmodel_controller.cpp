@@ -467,14 +467,6 @@ CModelController::CModelController(const rclcpp::NodeOptions& options)
                             << dof() << "] must be one or four!");
         throw;
     }
-    if (_min_position.size() != dof() || _max_position.size() != dof() ||
-        _min_velocity.size() != dof() || _max_velocity.size() != dof() ||
-        _min_effort.size()   != dof() || _max_effort.size()   != dof())
-    {
-        RCLCPP_ERROR_STREAM(get_logger(),
-                            "The number of elements in parameters min_position, max_position, min_velocity, max_velocity, min_effort and max_effort must be same as the number of joints!");
-        throw;
-    }
 
     _joint_state.position.resize(dof(), 0.0);
     _joint_state.velocity.resize(dof(), 0.0);
@@ -486,15 +478,6 @@ CModelController::CModelController(const rclcpp::NodeOptions& options)
     calibrate();
 
     RCLCPP_INFO_STREAM(get_logger(), "controller started");
-    RCLCPP_INFO_STREAM(get_logger(), "  position range: [("
-                       << _min_position.transpose() << ")-("
-                       << _max_position.transpose() << ")]");
-    RCLCPP_INFO_STREAM(get_logger(), "  velocity range: [("
-                       << _min_velocity.transpose() << ")-("
-                       << _max_velocity.transpose() << ")]");
-    RCLCPP_INFO_STREAM(get_logger(), "  effort range:   [("
-                       << _min_effort.transpose() << ")-("
-                       << _max_effort.transpose() << ")]");
 }
 
 typename CModelController::goal_response_t
@@ -549,7 +532,7 @@ CModelController::cmodel_status_cb(const cmodel_status_cp& status)
     _cmodel_status = status;
 
   // Handle calibration process if not moving.
-    if (is_active(status) && !is_moving(status))
+    if (_calibration_step && is_active(status) && !is_moving(status))
     {
         switch (_calibration_step)
         {
@@ -611,6 +594,9 @@ CModelController::cmodel_status_cb(const cmodel_status_cp& status)
             _calibration_step = 0;
             break;
         }
+
+        rclcpp::sleep_for(500ms);
+        return;
     }
 
     if (error(status))	// Check if any error occured in the driver.
@@ -619,9 +605,6 @@ CModelController::cmodel_status_cb(const cmodel_status_cp& status)
 			    << error(status) << ']');
 	return;
     }
-
-    if (_calibration_step != 0)
-        return;
 
   // Publish joint states of the gripper.
     const auto  position = actual_position(status);
@@ -643,13 +626,15 @@ CModelController::cmodel_status_cb(const cmodel_status_cp& status)
     auto	result = std::make_unique<gripper_command_t::Result>();
     set_result(result, status);
 
-  // Publish speed and filtered current as a feedback.
-    auto	feedback = std::make_unique<gripper_command_t::Feedback>();
-    feedback->position	   = result->position;
-    feedback->effort	   = result->effort;
-    feedback->stalled	   = result->stalled;
-    feedback->reached_goal = result->reached_goal;
-    _current_goal_handle->publish_feedback(std::move(feedback));
+    if (error(status))	// Check if any error occured in the driver.
+    {
+	_current_goal_handle->abort(std::move(result));
+	_current_goal_handle = nullptr;
+
+	RCLCPP_ERROR_STREAM(get_logger(), "goal ABORTED[error code:"
+			    << error(status) << ']');
+	return;
+    }
 
     if (error(status))	// Check if any error occured in the driver.
     {
@@ -684,6 +669,14 @@ CModelController::cmodel_status_cb(const cmodel_status_cp& status)
 	RCLCPP_INFO_STREAM(get_logger(), "goal SUCCEEDED[stalled]");
 	return;
     }
+
+  // Publish speed and filtered current as a feedback.
+    auto	feedback = std::make_unique<gripper_command_t::Feedback>();
+    feedback->position	   = result->position;
+    feedback->effort	   = result->effort;
+    feedback->stalled	   = result->stalled;
+    feedback->reached_goal = result->reached_goal;
+    _current_goal_handle->publish_feedback(std::move(feedback));
 }
 }	// namespace aist_robotiq
 
