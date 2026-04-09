@@ -69,6 +69,7 @@ class TestCModelClient(Node):
             print('  g:         Grasp')
             print('  r:         Release')
             print('  <numeric>: Open gripper with a specified gap value')
+            print('  m:         Set mode')
             print('  q:         Quit\n')
 
             key = input('>> ')
@@ -78,6 +79,9 @@ class TestCModelClient(Node):
                 result = self._gripper.release()
             elif is_float(key):
                 result = self._gripper.move(float(key))
+            elif key == 'm':
+                mode = int(input('  mode: '))
+                result = self._gripper.set_mode(mode)
             elif key=='q':
                 break
             else:

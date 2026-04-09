@@ -56,24 +56,24 @@ class CModelModbusBase(CModelBase):
 
         # Convert the command to a byte array of 6-length.
         data = []
-        data.append(command.r_act +
-                    (command.r_mod << 1) + (command.r_gto << 3) +
-                    (command.r_atr << 4) + (command.r_ard << 5))  # Data0
-        data.append((command.r_icf << 2) + (command.r_ics << 3))  # Data1
-        data.append(0)                                            # Data2
-        data.append(command.r_pr)                                 # Data3
-        data.append(command.r_sp)                                 # Data4
-        data.append(command.r_fr)                                 # Data5
+        data.append(command.r_act |
+                    (command.r_mod << 1) | (command.r_gto << 3) |
+                    (command.r_atr << 4) | (command.r_ard << 5))  # Byte 0
+        data.append((command.r_icf << 2) | (command.r_ics << 3))  # Byte 1
+        data.append(0)                                            # Byte 2
+        data.append(command.r_pr)                                 # Byte 3
+        data.append(command.r_sp)                                 # Byte 4
+        data.append(command.r_fr)                                 # Byte 5
         if self._arg3f[command.r_sid]:
-            data.append(command.r_prb)                            # Data6
-            data.append(command.r_spb)                            # Data7
-            data.append(command.r_frb)                            # Data8
-            data.append(command.r_prc)                            # Data9
-            data.append(command.r_spc)                            # Data10
-            data.append(command.r_frc)                            # Data11
-            data.append(command.r_prs)                            # Data12
-            data.append(command.r_sps)                            # Data13
-            data.append(command.r_frs)                            # Data14
+            data.append(command.r_prb)                            # Byte 6
+            data.append(command.r_spb)                            # Byte 7
+            data.append(command.r_frb)                            # Byte 8
+            data.append(command.r_prc)                            # Byte 9
+            data.append(command.r_spc)                            # Byte 10
+            data.append(command.r_frc)                            # Byte 11
+            data.append(command.r_prs)                            # Byte 12
+            data.append(command.r_sps)                            # Byte 13
+            data.append(command.r_frs)                            # Byte 14
         self._put_command(data, command.r_sid)
 
     def get_status(self, slave_id):
@@ -83,26 +83,29 @@ class CModelModbusBase(CModelBase):
         # Assign the values to their respective variables
         status = CModelStatus()
         status.g_sid = slave_id
-        status.g_act =  data[0]       & 0x01
+        status.g_act =  data[0]       & 0x01    # Byte 0
         status.g_mod = (data[0] >> 1) & 0x03
         status.g_gto = (data[0] >> 3) & 0x01
         status.g_sta = (data[0] >> 4) & 0x03
         status.g_obj = (data[0] >> 6) & 0x03
-        status.g_vas =  data[1]       & 0x03
-        status.g_flt =  data[2]       & 0x0f
-        status.g_pr  =  data[3]
-        status.g_po  =  data[4]
-        status.g_cou =  data[5]
+        status.g_vas =  data[1]       & 0x03    # Byte 1
+        status.g_dtb =  data[1] >> 2) & 0x03
+        status.g_dtc =  data[1] >> 4) & 0x03
+        status.g_dts =  data[1] >> 6) & 0x03
+        status.g_flt =  data[2]       & 0x0f    # Byte 2
+        status.g_pr  =  data[3]                 # Byte 3
+        status.g_po  =  data[4]                 # Byte 4
+        status.g_cou =  data[5]                 # Byte 5
         if self._arg3f[slave_id]:
-            status.g_prb = data[6]
-            status.g_pob = data[7]
-            status.g_cub = data[8]
-            status.g_prc = data[9]
-            status.g_poc = data[10]
-            status.g_cuc = data[11]
-            status.g_prs = data[12]
-            status.g_pos = data[13]
-            status.g_cus = data[14]
+            status.g_prb = data[6]              # Byte 6
+            status.g_pob = data[7]              # Byte 7
+            status.g_cub = data[8]              # Byte 8
+            status.g_prc = data[9]              # Byte 9
+            status.g_poc = data[10]             # Byte 10
+            status.g_cuc = data[11]             # Byte 11
+            status.g_prs = data[12]             # Byte 12
+            status.g_pos = data[13]             # Byte 13
+            status.g_cus = data[14]             # Byte 14
         return status
 
     def _put_command(self, data, slave_id):
@@ -113,7 +116,7 @@ class CModelModbusBase(CModelBase):
         # Compose every two datas into one register word in big-endian order.
         message = []
         for i in range(0, len(data), 2):
-            message.append((data[i] << 8) + data[i+1])
+            message.append((data[i] << 8) | data[i+1])
         self._write_registers(message, slave_id)  # (defined in derived class)
 
     def _get_status(self, nbytes, slave_id):
@@ -161,9 +164,9 @@ class CModelModbusRTU(CModelModbusBase):
         super().__init__(name)
         dev = self.declare_parameter('dev', '/dev/ttyUSB0').value
         self._lock   = threading.Lock()
-        self._client = ModbusSerialClient(method='rtu', port=dev,
-                                          stopbits=1, bytesize=8, parity='N',
-                                          baudrate=115200, timeout=1.0)
+        self._client = ModbusSerialClient(port=dev,
+                                          baudrate=115200, bytesize=8,
+                                          parity='N', stopbits=1, timeout=1.0)
         if not self._client.connect():
             self.get_logger().error('failed to connect[dev=%s]' % dev)
             raise

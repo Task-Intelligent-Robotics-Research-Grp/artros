@@ -34,8 +34,8 @@
 // Author: Toshio Ueshiba (t.ueshiba@aist.go.jp)
 //
 /*!
- *  \file	cmodel_controller.cpp
- *  \brief	controller for Robotiq grippers
+ *  \file       cmodel_controller.cpp
+ *  \brief      controller for Robotiq grippers
  */
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
@@ -51,12 +51,12 @@
 namespace aist_robotiq
 {
 /************************************************************************
-*  static functions							*
+*  static functions                                                     *
 ************************************************************************/
 static inline rclcpp::SubscriptionOptions
 create_subscription_options(const rclcpp::CallbackGroup::SharedPtr& cbg)
 {
-    rclcpp::SubscriptionOptions	options;
+    rclcpp::SubscriptionOptions options;
     options.callback_group = cbg;
     return options;
 }
@@ -67,7 +67,7 @@ create_subscription_options(const rclcpp::CallbackGroup::SharedPtr& cbg)
 class CModelController : public rclcpp::Node
 {
   private:
-    using vector_t     = std::vector<double>;
+    using vector_t      = std::vector<double>;
     using array4d       = Eigen::Array4d;
     using array4i       = Eigen::Array4i;
 
@@ -84,15 +84,15 @@ class CModelController : public rclcpp::Node
     using callback_group_p      = rclcpp::CallbackGroup::SharedPtr;
 
     template <class MSG>
-    using pub_p		= typename rclcpp::Publisher<MSG>::SharedPtr;
+    using pub_p         = typename rclcpp::Publisher<MSG>::SharedPtr;
     template <class MSG>
-    using sub_p		= typename rclcpp::Subscription<MSG>::SharedPtr;
+    using sub_p         = typename rclcpp::Subscription<MSG>::SharedPtr;
     template <class SRV>
-    using srv_p		= typename rclcpp::Service<SRV>::SharedPtr;
+    using srv_p         = typename rclcpp::Service<SRV>::SharedPtr;
     template <class SRV>
-    using req_cp	= typename SRV::Request::ConstSharedPtr;
+    using req_cp        = typename SRV::Request::ConstSharedPtr;
     template <class SRV>
-    using res_p		= typename SRV::Response::SharedPtr;
+    using res_p         = typename SRV::Response::SharedPtr;
     template <class ACT>
     using action_p      = typename rclcpp_action::Server<ACT>::SharedPtr;
     template <class ACT>
@@ -108,16 +108,21 @@ class CModelController : public rclcpp::Node
 
 
   public:
-		CModelController(const rclcpp::NodeOptions& options)	;
+                CModelController(const rclcpp::NodeOptions& options)    ;
 
   private:
     ssize_t     dof() const
                 {
                     return _joint_state.name.size();
                 }
+    void        trigger_calibration()
+                {
+                    _calibration_step = 1;
+                }
+    void        do_calibration(const cmodel_status_cp& status)          ;
 
-    void	set_velocity_cb(req_cp<set_velocity_t> req,
-				res_p<set_velocity_t>  res)
+    void        set_velocity_cb(req_cp<set_velocity_t> req,
+                                res_p<set_velocity_t>  res)
                 {
                     _velocity = req->velocity;
                     res->success = true;
@@ -129,13 +134,13 @@ class CModelController : public rclcpp::Node
                 }
 
     goal_response_t
-		goal_cb(const goal_uuid_t&,
+                goal_cb(const goal_uuid_t&,
                         goal_cp<gripper_command_t> goal)                ;
     cancel_response_t
-		cancel_cb(goal_handle_p<gripper_command_t>)             ;
-    void	handle_accepted_cb(
-                    goal_handle_p<gripper_command_t> goal_handle)	;
-    void	cmodel_status_cb(const cmodel_status_cp& status)	;
+                cancel_cb(goal_handle_p<gripper_command_t>)             ;
+    void        handle_accepted_cb(
+                    goal_handle_p<gripper_command_t> goal_handle)       ;
+    void        cmodel_status_cb(const cmodel_status_cp& status)        ;
     void        set_mode(u_int mode)
                 {
                     _mode = mode;
@@ -167,18 +172,14 @@ class CModelController : public rclcpp::Node
                            const cmodel_status_cp& status) const
                 {
                     result->position     = actual_position(status)[0];
-                    result->effort	 = actual_effort(status)[0];
-                    result->stalled	 = stalled(status);
+                    result->effort       = actual_effort(status)[0];
+                    result->stalled      = stalled(status);
                     result->reached_goal = reached_goal(status);
                 }
 
-    void	calibrate()
-                {
-                    _calibration_step = 1;
-                }
-    array4i	send_move_command(const array4d& position,
+    array4i     send_move_command(const array4d& position,
                                   const array4d& velocity,
-				  const array4d& max_effort) const
+                                  const array4d& effort) const
                 {
                     const auto  pos = clamp(((position - _min_position) /
                                              position_per_tick()).cast<int>()
@@ -187,7 +188,7 @@ class CModelController : public rclcpp::Node
                     const auto  vel = clamp(((velocity - _min_velocity) /
                                              velocity_per_tick()).cast<int>(),
                                             array4i{0}, array4i{255});
-                    const auto  eff = clamp(((max_effort - _min_effort) /
+                    const auto  eff = clamp(((effort - _min_effort) /
                                              effort_per_tick()).cast<int>(),
                                             array4i{0}, array4i{255});
                     send_raw_move_command(pos, vel, eff);
@@ -236,12 +237,12 @@ class CModelController : public rclcpp::Node
                     _cmodel_command_pub->publish(std::move(cmodel_command));
                 }
 
-    array4d	actual_position(const cmodel_status_cp& status) const
+    array4d     actual_position(const cmodel_status_cp& status) const
                 {
                     return (pos(status) - _min_pos).cast<double>()
                          * position_per_tick() + _min_position;
                 }
-    array4d	actual_effort(const cmodel_status_cp& status) const
+    array4d     actual_effort(const cmodel_status_cp& status) const
                 {
                     return eff(status).cast<double>() * effort_per_tick()
                          + _min_effort;
@@ -263,7 +264,7 @@ class CModelController : public rclcpp::Node
                 {
                     return status->g_flt;
                 }
-    bool	stalled(const cmodel_status_cp& status) const
+    bool        stalled(const cmodel_status_cp& status) const
                 {
                     const auto  p = pos(status);
 
@@ -295,31 +296,31 @@ class CModelController : public rclcpp::Node
                            (status->g_obj == 2       &&
                             p[0] < _goal_r_pr[0] - 1);
                 }
-    bool	reached_goal(const cmodel_status_cp& status) const
+    bool        reached_goal(const cmodel_status_cp& status) const
                 {
                     return status->g_obj == 3;
                     // return status->g_obj == 3 &&
                     //        (abs(pos(status) - _goal_r_pr) <= 1).all();
                 }
-    static bool	is_active(const cmodel_status_cp& status)
+    static bool is_active(const cmodel_status_cp& status)
                 {
-                    return status->g_sta == 3 && status->g_act == 1;
+                    return status->g_act == 1 && status->g_sta == 3;
                 }
-    static bool	is_moving(const cmodel_status_cp& status)
+    static bool is_moving(const cmodel_status_cp& status)
                 {
                     return status->g_gto == 1 && status->g_obj == 0;
                 }
 
-    array4d	position_per_tick() const
+    array4d     position_per_tick() const
                 {
                     return (_max_position - _min_position)
                          / (_max_pos - _min_pos).cast<double>();
                 }
-    array4d	velocity_per_tick() const
+    array4d     velocity_per_tick() const
                 {
                     return (_max_velocity - _min_velocity) / 255.0;
                 }
-    array4d	effort_per_tick() const
+    array4d     effort_per_tick() const
                 {
                     return (_max_effort - _min_effort) / 255.0;
                 }
@@ -345,49 +346,57 @@ class CModelController : public rclcpp::Node
   private:
   // Read-only parameters
     const int                           _slave_id;
-    const array4d			_min_position;
-    const array4d			_max_position;
-    const array4d			_min_velocity;
-    const array4d			_max_velocity;
-    const array4d			_min_effort;
-    const array4d			_max_effort;
+    const array4d                       _min_gap;
+    const array4d                       _max_gap;
+    const array4d                       _min_position;
+    const array4d                       _max_position;
+    const array4d                       _min_velocity;
+    const array4d                       _max_velocity;
+    const array4d                       _min_effort;
+    const array4d                       _max_effort;
 
   // Position parameters to be calibrated
-    array4i                       	_min_pos;
+    array4i                             _min_pos;
     array4i                             _max_pos;
-    int					_calibration_step;
+    int                                 _calibration_step;
 
   // Publisher for JointState
     joint_state_t                       _joint_state;
-    const pub_p<joint_state_t>		_joint_state_pub;
+    const pub_p<joint_state_t>          _joint_state_pub;
 
   // Service for setting velocity
-    double				_velocity;
-    const srv_p<set_velocity_t>		_set_velocity_srv;
+    double                              _velocity;
+    const srv_p<set_velocity_t>         _set_velocity_srv;
 
   // Service for setting mode
-    u_int				_mode;
-    const srv_p<set_mode_t>		_set_mode_srv;
+    u_int                               _mode;
+    const srv_p<set_mode_t>             _set_mode_srv;
 
   // Publisher for command to the driver
-    const pub_p<cmodel_command_t>	_cmodel_command_pub;
-    array4i				_goal_r_pr;
+    const pub_p<cmodel_command_t>       _cmodel_command_pub;
+    array4i                             _goal_r_pr;
 
   // Subscriber for Status from the driver
-    cmodel_status_cp			_cmodel_status;
-    const callback_group_p		_cmodel_status_cbg;
-    const sub_p<cmodel_status_t>	_cmodel_status_sub;
+    cmodel_status_cp                    _cmodel_status;
+    const callback_group_p              _cmodel_status_cbg;
+    const sub_p<cmodel_status_t>        _cmodel_status_sub;
 
   // Gripper command action stuffs
-    const action_p<gripper_command_t>	_gripper_command_srv;
-    goal_handle_p<gripper_command_t>	_current_goal_handle;
-    std::mutex				_current_goal_mtx;
+    const action_p<gripper_command_t>   _gripper_command_srv;
+    goal_handle_p<gripper_command_t>    _current_goal_handle;
+    std::mutex                          _current_goal_mtx;
 };
 
 CModelController::CModelController(const rclcpp::NodeOptions& options)
     :rclcpp::Node("cmodel_controller", options),
      _slave_id(ddynamic_reconfigure2::declare_read_only_parameter(
                    this, "slave_id", 9)),
+     _min_gap(vector_to_array4d(
+                       ddynamic_reconfigure2::declare_read_only_parameter(
+                           this, "min_gap", vector_t{0.0}))),
+     _max_gap(vector_to_array4d(
+                       ddynamic_reconfigure2::declare_read_only_parameter(
+                           this, "max_gap", vector_t{0.085}))),
      _min_position(vector_to_array4d(
                        ddynamic_reconfigure2::declare_read_only_parameter(
                            this, "min_position", vector_t{0.81}))),
@@ -416,11 +425,11 @@ CModelController::CModelController(const rclcpp::NodeOptions& options)
 
      _velocity(0.5*(_min_velocity[0] + _max_velocity[0])),
      _set_velocity_srv(create_service<set_velocity_t>(
-			   "~/set_velocity",
-			   std::bind(&CModelController::set_velocity_cb,
-				     this,
-				     std::placeholders::_1,
-				     std::placeholders::_2))),
+                           "~/set_velocity",
+                           std::bind(&CModelController::set_velocity_cb,
+                                     this,
+                                     std::placeholders::_1,
+                                     std::placeholders::_2))),
 
      _mode(set_mode_t::Request::BASIC),
      _set_mode_srv(_min_position.size() == 4 ?
@@ -437,26 +446,26 @@ CModelController::CModelController(const rclcpp::NodeOptions& options)
 
      _cmodel_status(nullptr),
      _cmodel_status_cbg(create_callback_group(
-			    rclcpp::CallbackGroupType::MutuallyExclusive)),
+                            rclcpp::CallbackGroupType::MutuallyExclusive)),
      _cmodel_status_sub(create_subscription<cmodel_status_t>(
-			    "/status", 1,
-			    std::bind(&CModelController::cmodel_status_cb,
-				      this, std::placeholders::_1),
-			    create_subscription_options(_cmodel_status_cbg))),
+                            "/status", 1,
+                            std::bind(&CModelController::cmodel_status_cb,
+                                      this, std::placeholders::_1),
+                            create_subscription_options(_cmodel_status_cbg))),
 
      _gripper_command_srv(rclcpp_action::create_server<gripper_command_t>(
-			      this, "~/gripper_cmd",
-			      std::bind(&CModelController::goal_cb, this,
-					std::placeholders::_1,
-					std::placeholders::_2),
-			      std::bind(&CModelController::cancel_cb,
+                              this, "~/gripper_cmd",
+                              std::bind(&CModelController::goal_cb, this,
+                                        std::placeholders::_1,
+                                        std::placeholders::_2),
+                              std::bind(&CModelController::cancel_cb,
                                         this, std::placeholders::_1),
-			      std::bind(&CModelController::handle_accepted_cb,
+                              std::bind(&CModelController::handle_accepted_cb,
                                         this, std::placeholders::_1))),
      _current_goal_handle(nullptr),
      _current_goal_mtx()
 {
-    using namespace	std::chrono_literals;
+    using namespace     std::chrono_literals;
 
     _joint_state.name = ddynamic_reconfigure2::declare_read_only_parameter(
                             this, "joints",
@@ -474,21 +483,96 @@ CModelController::CModelController(const rclcpp::NodeOptions& options)
     _joint_state.header.stamp.sec     = 0;
     _joint_state.header.stamp.nanosec = 0;
 
-    rclcpp::sleep_for(2s);	// wait for server comes up
-    calibrate();
+    rclcpp::sleep_for(2s);      // wait for server comes up
+    trigger_calibration();
 
     RCLCPP_INFO_STREAM(get_logger(), "controller started");
 }
 
-typename CModelController::goal_response_t
+void
+CModelController::do_calibration(const cmodel_status_cp& status)
+{
+    using namespace     std::chrono_literals;
+
+    switch (_calibration_step)
+    {
+      default:
+        return;
+      case 1:
+        RCLCPP_INFO_STREAM(get_logger(),
+                           "calibration step 1: start finger calibration");
+        send_raw_move_command(array4i{0}, array4i{64}, array4i{1});    // open
+        ++_calibration_step;
+        break;
+      case 2:
+        _max_pos = pos(status);             // record at full-open
+        RCLCPP_INFO_STREAM(get_logger(), "calibration step 2: finger pos["
+                           << _max_pos.transpose() << "]@full-open");
+        send_raw_move_command(array4i{255}, array4i{64}, array4i{1});  // close
+        ++_calibration_step;
+        break;
+      case 3:
+        _min_pos = pos(status);             // record at full-close
+        RCLCPP_INFO_STREAM(get_logger(), "calibration step 3: finger pos["
+                           << _min_pos.transpose() << "]@full-close");
+        send_raw_move_command(array4i{0}, array4i{64}, array4i{1});    // open
+        if (dof() == 1)
+            _calibration_step = 8;
+        else
+            ++_calibration_step;
+        break;
+      case 4:
+        set_mode(set_mode_t::Request::SCISSOR); // switch to scissor mode
+        RCLCPP_INFO_STREAM(get_logger(),
+                           "calibration step 4: switch to scissor mode");
+        ++_calibration_step;
+        break;
+      case 5:
+        RCLCPP_INFO_STREAM(get_logger(),
+                           "calibration step 5: start scissor calibration");
+        send_raw_move_command(array4i{0}, array4i{64}, array4i{1});    // open
+        ++_calibration_step;
+        break;
+      case 6:
+        _max_pos[3] = pos(status)[3];       // record at full-open
+        RCLCPP_INFO_STREAM(get_logger(), "calibration step 6: scissor pos["
+                           << _max_pos[3] << "]@full-open");
+        send_raw_move_command(array4i{255}, array4i{64}, array4i{1});  // close
+        ++_calibration_step;
+        break;
+      case 7:
+        _min_pos[3] = pos(status)[3];       // record at full-close
+        RCLCPP_INFO_STREAM(get_logger(), "calibration step 7: sissor pos["
+                           << _min_pos[3] << "]@full-close");
+        set_mode(set_mode_t::Request::BASIC);   // switch back to basic mode
+        ++_calibration_step;
+        break;
+      case 8:
+        RCLCPP_INFO_STREAM(get_logger(), "calibration completed: range[("
+                           << _min_pos.transpose() << ")-("
+                           << _max_pos.transpose() << ")]");
+        _calibration_step = 0;
+        break;
+    }
+
+    rclcpp::sleep_for(500ms);
+}
+
+CModelController::goal_response_t
 CModelController::goal_cb(const goal_uuid_t&, goal_cp<gripper_command_t> goal)
 {
+    if (_calibration_step)
+    {
+        RCLCPP_ERROR_STREAM(get_logger(),
+                            "goal REJECTED: calibration not completed");
+        return goal_response_t::REJECT;
+    }
     RCLCPP_INFO_STREAM(get_logger(), "goal ACCEPTED: position="
                        << goal->command.position);
     return goal_response_t::ACCEPT_AND_EXECUTE;
 }
 
-typename CModelController::cancel_response_t
+CModelController::cancel_response_t
 CModelController::cancel_cb(goal_handle_p<gripper_command_t>)
 {
     RCLCPP_DEBUG_STREAM(get_logger(), "request for cancelling goal accepted");
@@ -499,17 +583,17 @@ void
 CModelController::handle_accepted_cb(
     goal_handle_p<gripper_command_t> goal_handle)
 {
-    const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
+    const std::lock_guard<std::mutex>   lock(_current_goal_mtx);
 
   // If any active goal exists, abort it.
     if (_current_goal_handle != nullptr && _current_goal_handle->is_active())
     {
-	auto    result = std::make_unique<gripper_command_t::Result>();
+        auto    result = std::make_unique<gripper_command_t::Result>();
         set_result(result, _cmodel_status);
-	_current_goal_handle->abort(std::move(result));
-	_current_goal_handle = nullptr;
+        _current_goal_handle->abort(std::move(result));
+        _current_goal_handle = nullptr;
 
-	RCLCPP_WARN_STREAM(get_logger(), "previous goal ABORTED");
+        RCLCPP_WARN_STREAM(get_logger(), "previous goal ABORTED");
     }
     _current_goal_handle = goal_handle;
 
@@ -522,95 +606,28 @@ CModelController::handle_accepted_cb(
 void
 CModelController::cmodel_status_cb(const cmodel_status_cp& status)
 {
-    using namespace	std::chrono_literals;
-
-  // Reject if slave ID of the input status is not a one of this
+  // Reject the input status not of mine.
     if (status->g_sid != _slave_id)
         return;
 
-  // Keep the latest status for aborting previous goal.
-    _cmodel_status = status;
-
-  // Handle calibration process if not moving.
-    if (is_active(status) && !is_moving(status))
-    {
-        switch (_calibration_step)
-        {
-          default:
-            break;
-          case 1:
-            RCLCPP_INFO_STREAM(get_logger(),
-        		       "calibration step 1: start finger calibration");
-            send_raw_move_command(array4i{0}, array4i{64}, array4i{1});
-            rclcpp::sleep_for(500ms);
-            ++_calibration_step;
-            break;
-          case 2:
-            _max_pos = pos(status);             // record at full-open
-            RCLCPP_INFO_STREAM(get_logger(), "calibration step 2: finger gaps["
-        		       << _max_pos.transpose() << "]@full-open");
-            send_raw_move_command(array4i{255}, array4i{64}, array4i{1});
-            rclcpp::sleep_for(500ms);
-            ++_calibration_step;
-            break;
-          case 3:
-            _min_pos = pos(status);             // record at full-close
-            RCLCPP_INFO_STREAM(get_logger(), "calibration step 3: finger gaps["
-        		       << _min_pos.transpose() << "]@full-close");
-            send_raw_move_command(array4i{0}, array4i{64}, array4i{1});
-            rclcpp::sleep_for(500ms);
-            if (dof() == 1)
-                _calibration_step = 8;
-            else
-                ++_calibration_step;
-            break;
-          case 4:
-            set_mode(set_mode_t::Request::SCISSOR);
-            rclcpp::sleep_for(500ms);
-            RCLCPP_INFO_STREAM(get_logger(),
-        		       "calibration step 4: switch to scissor mode");
-            ++_calibration_step;
-            break;
-          case 5:
-            RCLCPP_INFO_STREAM(get_logger(),
-        		       "calibration step 5: start scissor calibration");
-            send_raw_move_command(array4i{0}, array4i{64}, array4i{1});
-            rclcpp::sleep_for(500ms);
-            ++_calibration_step;
-            break;
-          case 6:
-            _max_pos[3] = pos(status)[3];       // record at full-open
-            RCLCPP_INFO_STREAM(get_logger(), "calibration step 6: scissor gap["
-        		       << _max_pos[3] << "]@full-open");
-            send_raw_move_command(array4i{255}, array4i{64}, array4i{1});
-            rclcpp::sleep_for(500ms);
-            ++_calibration_step;
-            break;
-          case 7:
-            _min_pos[3] = pos(status)[3];       // record at full-close
-            RCLCPP_INFO_STREAM(get_logger(), "calibration step 7: sissor gap["
-        		       << _min_pos[3] << "]@full-close");
-            set_mode(set_mode_t::Request::BASIC);
-            rclcpp::sleep_for(500ms);
-            ++_calibration_step;
-            break;
-          case 8:
-            RCLCPP_INFO_STREAM(get_logger(), "calibration completed: range[("
-                               << _min_pos.transpose() << ")-("
-                               << _max_pos.transpose() << ")]");
-            _calibration_step = 0;
-            break;
-        }
-    }
-
-    if (_calibration_step)
+  // Return immediately if activation or mode swithcing is in progress.
+    if (!is_active(status))
         return;
 
-    if (error(status))	// Check if any error occured in the driver.
+  // Return immediately if any error occured in the driver.
+    if (error(status))
     {
-	RCLCPP_ERROR_STREAM(get_logger(), "status error[error code:"
-			    << error(status) << ']');
-	return;
+        RCLCPP_ERROR_STREAM(get_logger(), "status error[error code:"
+                            << error(status) << ']');
+        return;
+    }
+
+  // Handle calibration process if not moving.
+    if (_calibration_step)
+    {
+        if (!is_moving(status))
+            do_calibration(status);
+        return;
     }
 
   // Publish joint states of the gripper.
@@ -626,66 +643,59 @@ CModelController::cmodel_status_cb(const cmodel_status_cp& status)
 
   // Check if the current goal is active.
     if (!_current_goal_handle || !_current_goal_handle->is_active())
-	return;
+        return;
 
-    const std::lock_guard<std::mutex>	lock(_current_goal_mtx);
+  // Process the current goal.
+    const std::lock_guard<std::mutex>   lock(_current_goal_mtx);
 
-    auto	result = std::make_unique<gripper_command_t::Result>();
+    _cmodel_status = status;  // Keep the latest status for aborting the goal.
+
+    auto        result = std::make_unique<gripper_command_t::Result>();
     set_result(result, status);
 
-    if (error(status))	// Check if any error occured in the driver.
+    if (error(status))  // Check if any error occured in the driver.
     {
-	_current_goal_handle->abort(std::move(result));
-	_current_goal_handle = nullptr;
+        _current_goal_handle->abort(std::move(result));
+        _current_goal_handle = nullptr;
 
-	RCLCPP_ERROR_STREAM(get_logger(), "goal ABORTED[error code:"
-			    << error(status) << ']');
-	return;
-    }
-
-    if (error(status))	// Check if any error occured in the driver.
-    {
-	_current_goal_handle->abort(std::move(result));
-	_current_goal_handle = nullptr;
-
-	RCLCPP_ERROR_STREAM(get_logger(), "goal ABORTED[error code:"
-			    << error(status) << ']');
-	return;
+        RCLCPP_ERROR_STREAM(get_logger(), "goal ABORTED[error code:"
+                            << error(status) << ']');
+        return;
     }
     else if (_current_goal_handle->is_canceling())
     {
-	_current_goal_handle->canceled(std::move(result));
-	_current_goal_handle = nullptr;
+        _current_goal_handle->canceled(std::move(result));
+        _current_goal_handle = nullptr;
 
-	RCLCPP_WARN_STREAM(get_logger(), "goal CANCELED");
-	return;
+        RCLCPP_WARN_STREAM(get_logger(), "goal CANCELED");
+        return;
     }
     else if (result->reached_goal)
     {
-	_current_goal_handle->succeed(std::move(result));
-	_current_goal_handle = nullptr;
+        _current_goal_handle->succeed(std::move(result));
+        _current_goal_handle = nullptr;
 
-	RCLCPP_INFO_STREAM(get_logger(), "goal SUCCEEDED[reached goal]");
-	return;
+        RCLCPP_INFO_STREAM(get_logger(), "goal SUCCEEDED[reached goal]");
+        return;
     }
     else if (result->stalled)
     {
-	_current_goal_handle->succeed(std::move(result));
-	_current_goal_handle = nullptr;
+        _current_goal_handle->succeed(std::move(result));
+        _current_goal_handle = nullptr;
 
-	RCLCPP_INFO_STREAM(get_logger(), "goal SUCCEEDED[stalled]");
-	return;
+        RCLCPP_INFO_STREAM(get_logger(), "goal SUCCEEDED[stalled]");
+        return;
     }
 
   // Publish speed and filtered current as a feedback.
-    auto	feedback = std::make_unique<gripper_command_t::Feedback>();
-    feedback->position	   = result->position;
-    feedback->effort	   = result->effort;
-    feedback->stalled	   = result->stalled;
+    auto        feedback = std::make_unique<gripper_command_t::Feedback>();
+    feedback->position     = result->position;
+    feedback->effort       = result->effort;
+    feedback->stalled      = result->stalled;
     feedback->reached_goal = result->reached_goal;
     _current_goal_handle->publish_feedback(std::move(feedback));
 }
-}	// namespace aist_robotiq
+}       // namespace aist_robotiq
 
 #include <rclcpp_components/register_node_macro.hpp>
 

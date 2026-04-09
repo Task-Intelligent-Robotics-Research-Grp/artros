@@ -14,8 +14,8 @@ robotiq_140_controller:
     joints:   [robotiq_140_finger_joint]
 
     # Gap width between fingers in meters [0.000, 0.140]
-    min_gap: 0.000
-    max_gap: 0.140
+    min_gap: [0.000]
+    max_gap: [0.140]
 
     # Gripper position in radians [0.69, 0,00]
     min_position: [0.69]
@@ -45,8 +45,8 @@ robotiq_85_controller:
     joints:   [robotiq_85_finger_joint]
 
     # Gap width between fingers in meters [0.000, 0.085]
-    min_gap: 0.000
-    max_gap: 0.085
+    min_gap: [0.000]
+    max_gap: [0.085]
 
     # Gripper position in radians [0.81, 0,00]
     min_position: [0.81]
@@ -76,8 +76,8 @@ robotiq_hande_controller:
     joints:   [robotiq_hande_finger_joint]
 
     # Gap width between fingers in meters [0.000, 0.050]
-    min_gap: 0.000
-    max_gap: 0.050
+    min_gap: [0.000]
+    max_gap: [0.050]
 
     # Gripper position in radians [0.03, 0,00]
     min_position: [0.03]
@@ -90,20 +90,6 @@ robotiq_hande_controller:
     # Gripper effort in N. [0.0, 185.0]
     min_effort: [  0.0]
     max_effort: [185.0]
-
-###################
-#  Robotiq EPick  #
-###################
-robotiq_epick_driver:
-  ros__parameters:
-    ip:             10.66.171.41  # Used for tcp/urcap drivers
-    dev:            /dev/ttyUSB0  # Used for rtu drivers
-    slave_ids:      [9]           # list of slave IDs of Modbus devices
-    arg3f_grippers: [False]
-
-robotiq_epick_controller:
-  ros__parameters:
-    max_pressure: 0.085
 
 ################
 #  Robotiq 3F  #
@@ -125,8 +111,8 @@ robotiq_3f_controller:
       - robotiq_3f_scissor_joint
 
     # Gap width between fingers in meters [0.000, 0.167]
-    min_gap: 0.000
-    max_gap: 0.167
+    min_gap: [0.000, 0.000, 0.000, 0.000]
+    max_gap: [0.167, 0.167, 0.167, 0.050]
 
     # Gripper position in radians
     min_position: [1.047, 1.047, 1.047,  0.160]
@@ -139,3 +125,17 @@ robotiq_3f_controller:
     # Gripper effort in N. [0.0, 185.0]
     min_effort: [15.0, 15.0, 15.0, 15.0]
     max_effort: [60.0, 60.0, 60.0, 60.0]
+
+###################
+#  Robotiq EPick  #
+###################
+robotiq_epick_driver:
+  ros__parameters:
+    ip:             10.66.171.41  # Used for tcp/urcap drivers
+    dev:            /dev/ttyUSB0  # Used for rtu drivers
+    slave_ids:      [9]           # list of slave IDs of Modbus devices
+    arg3f_grippers: [False]
+
+robotiq_epick_controller:
+  ros__parameters:
+    max_pressure: 0.085

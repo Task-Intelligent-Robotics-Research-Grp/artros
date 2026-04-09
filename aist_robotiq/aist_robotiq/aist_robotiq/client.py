@@ -39,9 +39,12 @@ import rclpy, time
 from rclpy.node               import Node
 from rclpy.duration           import Duration
 from rclpy.action             import ActionClient
+from rclpy.parameter_client   import AsyncParameterClient
+from rclpy.callback_groups    import MutuallyExclusiveCallbackGroup
 from action_msgs.msg          import GoalStatus
 from control_msgs.action      import GripperCommand
 from control_msgs.msg         import GripperCommand as GripperCommandMsg
+from aist_robotiq_msgs.srv    import SetMode, SetVelocity
 from aist_robotiq_msgs.action import EPickCommand
 from aist_robotiq_msgs.msg    import EPickCommand as EPickCommandMsg
 
@@ -198,20 +201,27 @@ class RobotiqGripper(GenericGripper):
         @param max_effort maximum effort applied when gripping objects
         """
         ns = prefix + 'controller'
-        self._min_gap      = node.declare_parameter(ns + '/min_gap',
-                                                    0.000).value
-        self._max_gap      = node.declare_parameter(ns + '/max_gap',
-                                                    0.085).value
-        self._min_position = node.declare_parameter(ns + '/min_position',
-                                                    0.81).value
-        self._max_position = node.declare_parameter(ns + '/max_position',
-                                                    0.00).value
 
-        assert self._min_gap < self._max_gap
-        assert self._min_position != self._max_position
+        # Get parameters for computing gap values from the controller.
+        param_client = AsyncParameterClient(node, ns)
+        future = param_client.get_parameters(['min_gap', 'max_gap',
+                                              'min_position', 'max_position'],
+                                             self._get_controller_parameters)
+        self.executor.spin_until_future_complete(future)
+        values = furue.result().values
+        self._min_gap      = values[0].double_array_value
+        self._max_gap      = values[1].double_array_value
+        self._min_position = values[2].double_array_value
+        self._max_position = values[3].double_array_value
+
+        # Create service client for setting velocity.
+        self._clnt_cbg     = MutuallyExclusiveCallbackGroup()
+        self._set_velocity = node.create_client(SetVelocity,
+                                                ns + '/set_velocity',
+                                                callback_group=self._clnt_cbg)
 
         super().__init__(node, ns + '/gripper_cmd',
-                         self._min_gap, self._max_gap, max_effort)
+                         self._min_gap[0], self._max_gap[0], max_effort)
 
     def move(self, gap, max_effort=0.0, timeout=Duration()):
         return super().move(self._position(gap), max_effort, timeout)
@@ -221,18 +231,21 @@ class RobotiqGripper(GenericGripper):
         result.position = self._gap(result.position)
         return result
 
+    def set_velocity(self, velocity):
+        self._set_velocity.call(SetVelocity.Request(velocity=velocity)).success
+
     def _position(self, gap):
-        return (gap - self._min_gap) * self._position_per_gap \
-             + self._min_position
+        return (gap - self._min_gap[0]) * self._position_per_gap \
+             + self._min_position[0]
 
     def _gap(self, position):
-        return (position - self._min_position) / self._position_per_gap \
-             + self._min_gap
+        return (position - self._min_position[0]) / self._position_per_gap \
+             + self._min_gap[0]
 
     @property
     def _position_per_gap(self):
-        return (self._max_position - self._min_position) \
-             / (self._max_gap - self._min_gap)
+        return (self._max_position[0] - self._min_position[0]) \
+             / (self._max_gap[0] - self._min_gap[0])
 
 ######################################################################
 #  class Robotiq3FGripper                                            #
@@ -247,25 +260,13 @@ class Robotiq3FGripper(RobotiqGripper):
         """
         super().__init__(node, prefix, max_effort)
 
+        # Create service client for setting gripper mode.
         ns = prefix + 'controller'
-        self._clock    = node.get_clock()
-        self._logger   = node.get_logger()
-        self._feedback = GripperCommand.Feedback()
-        self._client   = ActionClient(node, Gripper3FCommand,
-                                      ns + '/gripper_cmd')
-        self._client.wait_for_server()
+        self._set_mode = node.create_client(SetMode, ns + '/set_mode',
+                                            callback_group=self._clnt_cbg)
 
-        self._min_gap      = node.declare_parameter(ns + '/min_gap',
-                                                    0.000).value
-        self._max_gap      = node.declare_parameter(ns + '/max_gap',
-                                                    0.085).value
-        self._min_position = node.declare_parameter(ns + '/min_position',
-                                                    0.81).value
-        self._max_position = node.declare_parameter(ns + '/max_position',
-                                                    0.00).value
-
-        assert self._min_gap < self._max_gap
-        assert self._min_position != self._max_position
+    def set_mode(self, mode):
+        self._set_modey.call(SetMode.Request(mode=mode)).success
 
 ######################################################################
 #  class EPickGripper                                                #

@@ -57,9 +57,9 @@ class CModelBase(Node):
 
     def activate_devices(self):
         for slave_id in self._arg3f.keys():
-            self.put_command(CModelCommand(r_sid=slave_id, r_act=0))
+            self.put_command(CModelCommand(r_sid=slave_id, r_act=0, r_gto=0))
             time.sleep(0.1)
-            self.put_command(CModelCommand(r_sid=slave_id, r_act=1))
+            self.put_command(CModelCommand(r_sid=slave_id, r_act=1, r_gto=1))
             time.sleep(0.1)
             # for n in range(10):
             #     if self.get_status(slave_id).g_sta == 0x03:

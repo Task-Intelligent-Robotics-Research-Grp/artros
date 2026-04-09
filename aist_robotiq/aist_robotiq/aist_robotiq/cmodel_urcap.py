@@ -64,50 +64,54 @@ class CModelURCap(CModelBase):
         # Do not set variable 'ACT' because setting zero value will cause
         # the device reset.
         vars = [('SID', command.r_sid),
-                ('MOD', command.r_mod),
+                ('MOD', command.r_mod),                 # Byte 0
                 ('GTO', command.r_gto),
                 ('ATR', command.r_atr),
                 ('ARD', command.r_ard),
-                ('ICF', command.r_icf),
+                ('ICF', command.r_icf),                 # Byte 1
                 ('ICS', command.r_ics),
-                ('POS', command.r_pr),
-                ('SPE', command.r_sp),
-                ('FOR', command.r_fr)]
+                ('POS', command.r_pr),                  # Byte 3
+                ('SPE', command.r_sp),                  # Byte 4
+                ('FOR', command.r_fr)]                  # Byte 5
         if self._arg3f[command.r_sid]:
-            vars += [('PRB', command.r_prb),
-                     ('SPB', command.r_spb),
-                     ('FRB', command.r_frb),
-                     ('PRC', command.r_prc),
-                     ('SPC', command.r_spc),
-                     ('FRC', command.r_frc),
-                     ('PRS', command.r_prs),
-                     ('SPS', command.r_sps),
-                     ('FRS', command.r_frs)]
+            vars += [('PRB', command.r_prb),            # Byte 6
+                     ('SPB', command.r_spb),            # Byte 7
+                     ('FRB', command.r_frb),            # Byte 8
+                     ('PRC', command.r_prc),            # Byte 9
+                     ('SPC', command.r_spc),            # Byte 10
+                     ('FRC', command.r_frc),            # Byte 11
+                     ('PRS', command.r_prs),            # Byte 12
+                     ('SPS', command.r_sps),            # Byte 13
+                     ('FRS', command.r_frs)]            # Byte 14
         self._set_vars(dict(vars))
 
     def get_status(self, slave_id):
         status = CModelStatus()
         # Assign values to their respective variables
         status.g_sid = self._get_var('SID')
-        status.g_act = self._get_var('ACT')
+        status.g_act = self._get_var('ACT')             # Byte 0
         status.g_mod = self._get_var('MOD')
         status.g_gto = self._get_var('GTO')
         status.g_sta = self._get_var('STA')
         status.g_obj = self._get_var('OBJ')
-        status.g_flt = self._get_var('FLT')
-        status.g_pr  = self._get_var('PRE')
-        status.g_po  = self._get_var('POS')
-        status.g_cou = self._get_var('COU')
+        status.g_flt = self._get_var('FLT')             # Byte 2
+        status.g_pr  = self._get_var('PRE')             # Byte 3
+        status.g_po  = self._get_var('POS')             # Byte 4
+        status.g_cou = self._get_var('COU')             # Byte 5
         if self._arg3f[slave_id]:
-            status.g_prb = self._get_var('PRB')
-            status.g_pob = self._get_var('POB')
-            status.g_cub = self._get_var('CUB')
-            status.g_prc = self._get_var('PRC')
-            status.g_poc = self._get_var('POC')
-            status.g_cuc = self._get_var('CUC')
-            status.g_prs = self._get_var('PRS')
-            status.g_pos = self._get_var('POS')
-            status.g_cus = self._get_var('CUS')
+            status.g_vas = self._get_var('DTA')         # Byte 1
+            status.g_dtb = self._get_var('DTB')
+            status.g_dtc = self._get_var('DTC')
+            status.g_dts = self._get_var('DTS')
+            status.g_prb = self._get_var('PRB')         # Byte 6
+            status.g_pob = self._get_var('POB')         # Byte 7
+            status.g_cub = self._get_var('CUB')         # Byte 8
+            status.g_prc = self._get_var('PRC')         # Byte 9
+            status.g_poc = self._get_var('POC')         # Byte 10
+            status.g_cuc = self._get_var('CUC')         # Byte 11
+            status.g_prs = self._get_var('PRS')         # Byte 12
+            status.g_pos = self._get_var('POS')         # Byte 13
+            status.g_cus = self._get_var('CUS')         # Byte 14
         return status
 
     def _set_vars(self, var_dict):
