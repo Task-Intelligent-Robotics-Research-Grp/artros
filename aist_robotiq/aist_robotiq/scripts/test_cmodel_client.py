@@ -48,7 +48,7 @@ class TestCModelClient(Node):
 
         device_name = self.declare_parameter('device_name',
                                              'a_bot_gripper').value
-        self._gripper = RobotiqGripper(self, device_name + '_')
+        self._gripper = Robotiq3FGripper(self, device_name + '_')
         self.get_logger().info('started')
 
         cli_thread = threading.Thread(target=self.interactive)
@@ -79,8 +79,11 @@ class TestCModelClient(Node):
                 result = self._gripper.release()
             elif is_float(key):
                 result = self._gripper.move(float(key))
+            elif key == 'v':
+                velocity = float(input('  velocity: '))
+                result = self._gripper.set_velocity(velocity)
             elif key == 'm':
-                mode = int(input('  mode: '))
+                mode = int(input('  mode(0: BASIC, 1: PINCH, 2: WIDE, 3: SCISSOR, 4: ICF, 5: ICS): '))
                 result = self._gripper.set_mode(mode)
             elif key=='q':
                 break
