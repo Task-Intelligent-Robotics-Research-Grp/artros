@@ -37,7 +37,8 @@
 #
 import rclpy, sys, threading
 from rclpy.node          import Node
-from aist_robotiq.client import RobotiqGripper
+from rclpy.duration      import Duration
+from aist_robotiq.client import RobotiqGripper, Robotiq3FGripper
 
 #########################################################################
 #  class TestCModelClient                                               #
@@ -69,16 +70,20 @@ class TestCModelClient(Node):
             print('  g:         Grasp')
             print('  r:         Release')
             print('  <numeric>: Open gripper with a specified gap value')
+            print('  c:         Cancel motion')
             print('  m:         Set mode')
             print('  q:         Quit\n')
 
             key = input('>> ')
             if key == 'g':
-                result = self._gripper.grasp()
+                result = self._gripper.grasp(timeout=Duration(seconds=-1))
             elif key == 'r':
-                result = self._gripper.release()
+                result = self._gripper.release(timeout=Duration(seconds=-1))
             elif is_float(key):
-                result = self._gripper.move(float(key))
+                result = self._gripper.move(float(key),
+                                            timeout=Duration(seconds=-1))
+            elif key == 'c':
+                self._gripper.cancel()
             elif key == 'v':
                 velocity = float(input('  velocity: '))
                 result = self._gripper.set_velocity(velocity)

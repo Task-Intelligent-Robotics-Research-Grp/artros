@@ -112,7 +112,7 @@ robotiq_3f_controller:
 
     # Gap width between fingers in meters [0.000, 0.167]
     min_gap: [0.000, 0.000, 0.000, 0.000]
-    max_gap: [0.167, 0.167, 0.167, 0.050]
+    max_gap: [0.167, 0.167, 0.167, 0.115]
 
     # Gripper position in radians
     min_position: [1.047, 1.047, 1.047,  0.160]

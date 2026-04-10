@@ -66,10 +66,12 @@ class GenericGripper(object):
         """
         super().__init__()
 
-        self._clock    = node.get_clock()
-        self._logger   = node.get_logger()
-        self._feedback = GripperCommand.Feedback()
-        self._client   = ActionClient(node, GripperCommand, action_ns)
+        self._clock             = node.get_clock()
+        self._logger            = node.get_logger()
+        self._feedback          = GripperCommand.Feedback()
+        self._goal_handle       = None
+        self._get_result_future = None
+        self._client            = ActionClient(node, GripperCommand, action_ns)
         self._client.wait_for_server()
 
         self._parameters = {'grasp_position':   min_position,
@@ -175,16 +177,26 @@ class GenericGripper(object):
         """
         Cancel the latest motion command sent to the gripper.
         """
-        if self._client.get_state() in (GoalStatus.PENDING, GoalStatus.ACTIVE):
-            self._client.cancel_goal()
+        if not self._goal_handle:
+            self._logger.warn('no active goals')
+            return
+        self._goal_handle.cancel_goal_async().add_done_callback(
+            self._cancel_response_cb)
 
     def _goal_response_cb(self, future):
-        goal_handle = future.result()
-        if not goal_handle.accepted:
+        self._goal_handle = future.result()
+        if not self._goal_handle.accepted:
             self._logger.error('goal rejected')
+            return
+        self._logger.info('goal accepted')
+        self._get_result_future = self._goal_handle.get_result_async()
+
+    def _cancel_response_cb(self, future):
+        cancel_response = future.result()
+        if len(cancel_response.goals_canceling) == 0:
+            self._logger.warn('no active goals')
         else:
-            self._logger.info('goal accepted')
-        self._get_result_future = goal_handle.get_result_async()
+            self._logger.info('goal canceled')
 
     def _feedback_cb(self, feedback):
         self._feedback = feedback
@@ -194,25 +206,11 @@ class GenericGripper(object):
 ######################################################################
 class RobotiqGripper(GenericGripper):
     def __init__(self, node, prefix='a_bot_gripper_', max_effort=0.0):
-        """
-        Constructor
-        @param prefix     string prefix for identifying a specific gripper
-                          from multiple devices
-        @param max_effort maximum effort applied when gripping objects
-        """
         ns = prefix + 'controller'
+        super().__init__(node, ns + '/gripper_cmd', max_effort=max_effort)
 
         # Get parameters for computing gap values from the controller.
-        param_client = AsyncParameterClient(node, ns)
-        future = param_client.get_parameters(['min_gap', 'max_gap',
-                                              'min_position', 'max_position'],
-                                             self._get_controller_parameters)
-        self.executor.spin_until_future_complete(future)
-        values = furue.result().values
-        self._min_gap      = values[0].double_array_value
-        self._max_gap      = values[1].double_array_value
-        self._min_position = values[2].double_array_value
-        self._max_position = values[3].double_array_value
+        self._param_client = AsyncParameterClient(node, ns)
 
         # Create service client for setting velocity.
         self._clnt_cbg     = MutuallyExclusiveCallbackGroup()
@@ -220,8 +218,8 @@ class RobotiqGripper(GenericGripper):
                                                 ns + '/set_velocity',
                                                 callback_group=self._clnt_cbg)
 
-        super().__init__(node, ns + '/gripper_cmd',
-                         self._min_gap[0], self._max_gap[0], max_effort)
+        self.get_controller_parameters()
+        # self._logger.info('RobotiqGripper: client of %s started' % ns)
 
     def move(self, gap, max_effort=0.0, timeout=Duration()):
         return super().move(self._position(gap), max_effort, timeout)
@@ -231,8 +229,25 @@ class RobotiqGripper(GenericGripper):
         result.position = self._gap(result.position)
         return result
 
+    def get_controller_parameters(self):
+        self._param_client.get_parameters(['min_gap', 'max_gap',
+                                           'min_position', 'max_position'],
+                                          self._get_controller_parameters_cb)
+
     def set_velocity(self, velocity):
         self._set_velocity.call(SetVelocity.Request(velocity=velocity)).success
+
+    def _get_controller_parameters_cb(self, future):
+        values = future.result().values
+        self._min_gap      = values[0].double_array_value
+        self._max_gap      = values[1].double_array_value
+        self._min_position = values[2].double_array_value
+        self._max_position = values[3].double_array_value
+        # self._logger.info('### _get_controller_parameters_cb(): %s, %s, %s, %s'
+        #                   % (self._min_gap, self._max_gap,
+        #                      self._min_position, self._max_position))
+        self.parameters = {'grasp_position':   self._min_gap[0],
+                           'release_position': self._max_gap[0]}
 
     def _position(self, gap):
         return (gap - self._min_gap[0]) * self._position_per_gap \
@@ -252,21 +267,16 @@ class RobotiqGripper(GenericGripper):
 ######################################################################
 class Robotiq3FGripper(RobotiqGripper):
     def __init__(self, node, prefix='robotiq_3f_gripper_', max_effort=0.0):
-        """
-        Constructor
-        @param prefix     string prefix for identifying a specific gripper
-                          from multiple devices
-        @param max_effort maximum effort applied when gripping objects
-        """
         super().__init__(node, prefix, max_effort)
 
         # Create service client for setting gripper mode.
         ns = prefix + 'controller'
         self._set_mode = node.create_client(SetMode, ns + '/set_mode',
                                             callback_group=self._clnt_cbg)
+        # self._logger.info('Robotiq3FGripper: client of %s started' % ns)
 
     def set_mode(self, mode):
-        self._set_modey.call(SetMode.Request(mode=mode)).success
+        self._set_mode.call(SetMode.Request(mode=mode)).success
 
 ######################################################################
 #  class EPickGripper                                                #

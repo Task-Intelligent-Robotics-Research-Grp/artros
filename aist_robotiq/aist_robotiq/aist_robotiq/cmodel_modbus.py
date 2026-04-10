@@ -89,9 +89,9 @@ class CModelModbusBase(CModelBase):
         status.g_sta = (data[0] >> 4) & 0x03
         status.g_obj = (data[0] >> 6) & 0x03
         status.g_vas =  data[1]       & 0x03    # Byte 1
-        status.g_dtb =  data[1] >> 2) & 0x03
-        status.g_dtc =  data[1] >> 4) & 0x03
-        status.g_dts =  data[1] >> 6) & 0x03
+        status.g_dtb = (data[1] >> 2) & 0x03
+        status.g_dtc = (data[1] >> 4) & 0x03
+        status.g_dts = (data[1] >> 6) & 0x03
         status.g_flt =  data[2]       & 0x0f    # Byte 2
         status.g_pr  =  data[3]                 # Byte 3
         status.g_po  =  data[4]                 # Byte 4
@@ -173,16 +173,9 @@ class CModelModbusRTU(CModelModbusBase):
         self.get_logger().info('started[dev=%s]' % dev)
 
     def _write_registers(self, message, slave_id):
-        self.get_logger().warn('BEGIN: _write_registers(), %d bytes'
-                               % len(message))
         with self._lock:
             self._client.write_registers(0x03E8, message, slave_id)
-        self.get_logger().warn('END:   _write_registers()')
 
     def _read_registers(self, nregs, slave_id):
-        self.get_logger().warn('BEGIN: _read_registers(), %d registers'
-                               % nregs)
         with self._lock:
-            data = self._client.read_input_registers(0x07D0, nregs, slave_id)
-            self.get_logger().warn('END:   _read_registers()')
-            return data
+            return self._client.read_input_registers(0x07D0, nregs, slave_id)

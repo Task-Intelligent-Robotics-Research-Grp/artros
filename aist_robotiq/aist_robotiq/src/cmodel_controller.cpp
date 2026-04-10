@@ -198,9 +198,6 @@ class CModelController : public rclcpp::Node
                                       const array4i& vel,
                                       const array4i& eff) const
                 {
-                    RCLCPP_WARN_STREAM(get_logger(), "pos=("
-                                       << pos.transpose() << ')');
-
                     auto cmodel_command = std::make_unique<cmodel_command_t>();
                     cmodel_command->r_sid = _slave_id;
                     cmodel_command->r_act = 1;
@@ -298,9 +295,8 @@ class CModelController : public rclcpp::Node
                 }
     bool        reached_goal(const cmodel_status_cp& status) const
                 {
-                    return status->g_obj == 3;
-                    // return status->g_obj == 3 &&
-                    //        (abs(pos(status) - _goal_r_pr) <= 1).all();
+                    return status->g_obj == 3 &&
+                           (std::abs(pos(status)[0] - _goal_r_pr[0]) <= 1);
                 }
     static bool is_active(const cmodel_status_cp& status)
                 {
@@ -583,6 +579,8 @@ void
 CModelController::handle_accepted_cb(
     goal_handle_p<gripper_command_t> goal_handle)
 {
+    using namespace     std::chrono_literals;
+
     const std::lock_guard<std::mutex>   lock(_current_goal_mtx);
 
   // If any active goal exists, abort it.
@@ -601,6 +599,9 @@ CModelController::handle_accepted_cb(
     _goal_r_pr = send_move_command(desired_position(goal_handle->get_goal()),
                                    desired_velocity(),
                                    desired_effort(goal_handle->get_goal()));
+
+  // We need some delay because the gripper hardware needs some time to
+    rclcpp::sleep_for(500ms);
 }
 
 void
