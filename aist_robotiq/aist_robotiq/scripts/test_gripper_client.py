@@ -38,18 +38,18 @@
 import rclpy, sys, threading
 from rclpy.node          import Node
 from rclpy.duration      import Duration
-from aist_robotiq.client import RobotiqGripper, Robotiq3FGripper
+from aist_robotiq.client import RobotiqGripper
 
 #########################################################################
-#  class TestCModelClient                                               #
+#  class TestGripperClient                                              #
 #########################################################################
-class TestCModelClient(Node):
+class TestGripperClient(Node):
     def __init__(self, name):
         super().__init__(name)
 
         device_name = self.declare_parameter('device_name',
                                              'a_bot_gripper').value
-        self._gripper = Robotiq3FGripper(self, device_name + '_')
+        self._gripper = RobotiqGripper(self, device_name + '_')
         self.get_logger().info('started')
 
         cli_thread = threading.Thread(target=self.interactive)
@@ -71,7 +71,7 @@ class TestCModelClient(Node):
             print('  r:         Release')
             print('  <numeric>: Open gripper with a specified gap value')
             print('  c:         Cancel motion')
-            print('  m:         Set mode')
+            print('  m:         Switch mode')
             print('  q:         Quit\n')
 
             key = input('>> ')
@@ -89,7 +89,7 @@ class TestCModelClient(Node):
                 result = self._gripper.set_velocity(velocity)
             elif key == 'm':
                 mode = int(input('  mode(0: BASIC, 1: PINCH, 2: WIDE, 3: SCISSOR, 4: ICF, 5: ICS): '))
-                result = self._gripper.set_mode(mode)
+                result = self._gripper.switch_mode(mode)
             elif key=='q':
                 break
             else:
@@ -104,7 +104,7 @@ class TestCModelClient(Node):
 def main():
     rclpy.init(args=sys.argv)
 
-    test = TestCModelClient('test_cmodel_client')
+    test = TestGripperClient('test_gripper_client')
     rclpy.spin(test)
 
 if __name__ == '__main__':

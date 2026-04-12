@@ -22,13 +22,13 @@ ament_auto_find_build_dependencies()
 ###################################
 ament_auto_add_library(
   ${PROJECT_NAME} SHARED
-    src/cmodel_controller.cpp
+    src/gripper_controller.cpp
 )
 
 rclcpp_components_register_nodes(
   ${PROJECT_NAME}
-    PLUGIN     ${PROJECT_NAME}::CModelController
-    EXECUTABLE cmodel_controller_node
+    PLUGIN     ${PROJECT_NAME}::GripperController
+    EXECUTABLE gripper_controller_node
 )
 
 #ament_auto_add_library(
@@ -51,7 +51,7 @@ install(
   PROGRAMS
     scripts/cmodel_driver.py
     scripts/epick_controller.py
-    scripts/test_cmodel_client.py
+    scripts/test_gripper_client.py
     scripts/test_epick_client.py
     scripts/test_status_sub.py
   DESTINATION

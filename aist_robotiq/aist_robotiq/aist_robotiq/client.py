@@ -44,7 +44,8 @@ from rclpy.callback_groups    import MutuallyExclusiveCallbackGroup
 from action_msgs.msg          import GoalStatus
 from control_msgs.action      import GripperCommand
 from control_msgs.msg         import GripperCommand as GripperCommandMsg
-from aist_robotiq_msgs.srv    import SetMode, SetVelocity
+from aist_robotiq_msgs.srv    import SetVelocity
+from aist_robotiq_msgs.action import SwitchMode
 from aist_robotiq_msgs.action import EPickCommand
 from aist_robotiq_msgs.msg    import EPickCommand as EPickCommandMsg
 
@@ -156,14 +157,12 @@ class GenericGripper(object):
         @return result of control_msgs/GripperCommandResult type
         """
         if timeout.nanoseconds < 0:
-            return GripperCommand.Result(position=0, effort=0,
-                                         stalled=False, reached_goal=False)
+            return None
 
         timeout_time = self._clock.now() + timeout
         while self._get_result_future is None or \
               not self._get_result_future.done():
-            if timeout.nanoseconds > 0 and \
-               self._clock.now() > timeout_time:
+            if timeout.nanoseconds > 0 and self._clock.now() > timeout_time:
                 self._logger.error('Timeout[%f] has expired before goal finished' %
                                    timeout.nanoseconds*1.0e-9)
                 return GripperCommand.Result(position=self._feedback.position,
@@ -171,7 +170,19 @@ class GenericGripper(object):
                                              stalled=self._feedback.stalled,
                                              reached_goal=self._feedback.reached_goal)
             time.sleep(0.1)
+        # while self._get_result_future is None or \
+        #       not self._get_result_future.done():
+        #     if timeout.nanoseconds > 0 and self._clock.now() > timeout_time:
+        #         self._logger.error('Timeout[%f] has expired before goal finished' %
+        #                            timeout.nanoseconds*1.0e-9)
+        #         return GripperCommand.Result(position=self._feedback.position,
+        #                                      effort=self._feedback.effort,
+        #                                      stalled=self._feedback.stalled,
+        #                                      reached_goal=self._feedback.reached_goal)
+        #     self._condition.wait()
         return self._get_result_future.result().result
+
+
 
     def cancel(self):
         """
@@ -218,6 +229,11 @@ class RobotiqGripper(GenericGripper):
                                                 ns + '/set_velocity',
                                                 callback_group=self._clnt_cbg)
 
+        # Create action client for switching mode.
+        self._switch_mode  = ActionClient(node, SwitchMode,
+                                          ns + '/switch_mode')
+        self._switch_mode.wait_for_server()
+
         self.get_controller_parameters()
         # self._logger.info('RobotiqGripper: client of %s started' % ns)
 
@@ -237,17 +253,43 @@ class RobotiqGripper(GenericGripper):
     def set_velocity(self, velocity):
         self._set_velocity.call(SetVelocity.Request(velocity=velocity)).success
 
+    def switch_mode(self, mode, timeout=Duration()):
+        self._switch_mode.send_goal_async(SwitchMode.Goal(mode=mode)) \
+                         .add_done_callback(self._switch_mode_goal_response_cb)
+        return self.wait_switch_mode(timeout)
+
+    def wait_switch_mode(self, timeout=Duration()):
+        if timeout.nanoseconds < 0:
+            return None
+
+        timeout_time = self._clock.now() + timeout
+        while self._switch_mode_get_result_future is None or \
+              not self._switch_mode_get_result_future.done():
+            if timeout.nanoseconds > 0 and \
+               self._clock.now() > timeout_time:
+                self._logger.error('Timeout[%f] has expired before goal finished' %
+                                   timeout.nanoseconds*1.0e-9)
+                return SwitchMode.Result(success=False)
+            time.sleep(0.1)
+        return self._switch_mode_get_result_future.result().result
+
     def _get_controller_parameters_cb(self, future):
         values = future.result().values
         self._min_gap      = values[0].double_array_value
         self._max_gap      = values[1].double_array_value
         self._min_position = values[2].double_array_value
         self._max_position = values[3].double_array_value
-        # self._logger.info('### _get_controller_parameters_cb(): %s, %s, %s, %s'
-        #                   % (self._min_gap, self._max_gap,
-        #                      self._min_position, self._max_position))
         self.parameters = {'grasp_position':   self._min_gap[0],
                            'release_position': self._max_gap[0]}
+
+    def _switch_mode_goal_response_cb(self, future):
+        self._switch_mode_goal_handle = future.result()
+        if not self._switch_mode_goal_handle.accepted:
+            self._logger.error('switch_mode goal rejected')
+            return
+        self._logger.info('switch_mode goal accepted')
+        self._switch_mode_get_result_future \
+            = self._switch_mode_goal_handle.get_result_async()
 
     def _position(self, gap):
         return (gap - self._min_gap[0]) * self._position_per_gap \
@@ -261,22 +303,6 @@ class RobotiqGripper(GenericGripper):
     def _position_per_gap(self):
         return (self._max_position[0] - self._min_position[0]) \
              / (self._max_gap[0] - self._min_gap[0])
-
-######################################################################
-#  class Robotiq3FGripper                                            #
-######################################################################
-class Robotiq3FGripper(RobotiqGripper):
-    def __init__(self, node, prefix='robotiq_3f_gripper_', max_effort=0.0):
-        super().__init__(node, prefix, max_effort)
-
-        # Create service client for setting gripper mode.
-        ns = prefix + 'controller'
-        self._set_mode = node.create_client(SetMode, ns + '/set_mode',
-                                            callback_group=self._clnt_cbg)
-        # self._logger.info('Robotiq3FGripper: client of %s started' % ns)
-
-    def set_mode(self, mode):
-        self._set_mode.call(SetMode.Request(mode=mode)).success
 
 ######################################################################
 #  class EPickGripper                                                #

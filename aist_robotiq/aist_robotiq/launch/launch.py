@@ -58,7 +58,7 @@ launch_arguments = [
 ]
 
 PLUGINS = {
-    'RobotiqGripper'  : 'aist_robotiq::CModelController',
+    'RobotiqGripper'  : 'aist_robotiq::GripperController',
     'RobotiqEPick':     'aist_robotiq::EPickController',
 }
 
