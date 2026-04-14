@@ -180,15 +180,15 @@ class GripperController : public rclcpp::Node
                 }
 
   // Utilities
-    array4d     desired_position(const goal_cp<gripper_command_t>& goal) const
+    array4d     goal_position(const goal_cp<gripper_command_t>& goal) const
                 {
                     return array4d{goal->command.position};
                 }
-    array4d     desired_velocity() const
+    array4d     goal_velocity() const
                 {
                     return array4d{_velocity};
                 }
-    array4d     desired_effort(const goal_cp<gripper_command_t>& goal)
+    array4d     goal_effort(const goal_cp<gripper_command_t>& goal)
                 {
                     return array4d{goal->command.max_effort};
                 }
@@ -679,7 +679,7 @@ GripperController::gripper_command_goal_cb(const goal_uuid_t&,
         return goal_response_t::REJECT;
     }
     RCLCPP_INFO_STREAM(get_logger(),
-                       "GripperCommand goal ACCEPTED[desired position: "
+                       "GripperCommand goal ACCEPTED[goal position: "
                        << goal->command.position << ']');
     return goal_response_t::ACCEPT_AND_EXECUTE;
 }
@@ -705,9 +705,9 @@ GripperController::gripper_command_handle_accepted_cb(
     _gripper_command_goal_handle = goal_handle;
 
   // Send a move command to the gripper.
-    _goal_pos = send_move_command(desired_position(goal_handle->get_goal()),
-                                  desired_velocity(),
-                                  desired_effort(goal_handle->get_goal()));
+    _goal_pos = send_move_command(goal_position(goal_handle->get_goal()),
+                                  goal_velocity(),
+                                  goal_effort(goal_handle->get_goal()));
 }
 
 GripperController::cancel_response_t
@@ -749,6 +749,7 @@ GripperController::process_gripper_command(const cmodel_status_cp& status)
         RCLCPP_INFO_STREAM(get_logger(),
                            "GripperCommand goal SUCCEEDED[position="
                            << result->position
+                           << ", effort=" << result->effort
                            << ", reached_goal=" << std::boolalpha
                            << result->reached_goal
                            << ", stalled=" << std::boolalpha << result->stalled

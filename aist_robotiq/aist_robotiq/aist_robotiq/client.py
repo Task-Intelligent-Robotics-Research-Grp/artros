@@ -184,18 +184,21 @@ class GenericGripper(object):
                 return GoalStatus.STATUS_UNKNOWN, None
 
             if self._result.status == GoalStatus.STATUS_SUCCEEDED:
-                self._logger.info('goal SUCCEEDED[position=%f, reached_goal=%d, stalled=%d]'
+                self._logger.info('goal SUCCEEDED[position=%f, effort=%f, reached_goal=%d, stalled=%d]'
                                   % (self._result.result.position,
+                                     self._result.result.effort,
                                      self._result.result.reached_goal,
                                      self._result.result.stalled))
             elif self._result.status == GoalStatus.STATUS_CANCELED:
-                self._logger.warn('goal CANCELED[position=%f, reached_goal=%d, stalled=%d]'
+                self._logger.warn('goal CANCELED[position=%f, effort=%f, reached_goal=%d, stalled=%d]'
                                   % (self._result.result.position,
+                                     self._result.result.effort,
                                      self._result.result.reached_goal,
                                      self._result.result.stalled))
             elif self._result.status == GoalStatus.STATUS_ABORTED:
-                self._logger.error('goal ABORTED[position=%f, reached_goal=%d, stalled=%d]'
+                self._logger.error('goal ABORTED[position=%f, effort=%f, reached_goal=%d, stalled=%d]'
                                    % (self._result.result.position,
+                                      self._result.result.effort,
                                       self._result.result.reached_goal,
                                       self._result.result.stalled))
             else:
@@ -300,22 +303,19 @@ class RobotiqGripper(GenericGripper):
         with self._condition:
             if not self._condition.wait_for(
                     lambda: self._switch_mode_result is not None, timeout_sec):
-                self._logger.error('Timeout[%f] has expired before set_mode goal finished'
+                self._logger.error('Timeout[%f] has expired before switch_mode goal finished'
                                    % timeout_sec)
                 return GoalStatus.STATUS_UNKNOWN, None
 
             if self._switch_mode_result.status == GoalStatus.STATUS_SUCCEEDED:
-                self._logger.info('switch_mode gaol SUCCEEDED[pressure=%f, stalled=%d]'
-                                  % (self._switch_mode_result.result.pressure,
-                                     self._switch_mode_result.result.stalled))
+                self._logger.info('switch_mode goal SUCCEEDED[success=%d]'
+                                  % self._switch_mode_result.result.success)
             elif self._switch_mode_result.status == GoalStatus.STATUS_CANCELED:
-                self._logger.warn('switch_mode gaol CANCELED[pressure=%f, stalled=%d]'
-                                  % (self._switch_mode_result.result.pressure,
-                                     self._switch_mode_result.result.stalled))
+                self._logger.warn('switch_mode goal CANCELED[success=%d]'
+                                  % self._switch_mode_result.result.success)
             elif self._switch_mode_result.status == GoalStatus.STATUS_ABORTED:
-                self._logger.warn('switch_mode gaol ABORTED[pressure=%f, stalled=%d]'
-                                  % (self._switch_mode_result.result.pressure,
-                                     self._switch_mode_result.result.stalled))
+                self._logger.warn('switch_mode goal ABORTED[success=%d]'
+                                  % self._switch_mode_result.result.success)
             else:
                 self._logger.error('switch_mode goal FAILED with status[%d]'
                                    % self._result.status)
