@@ -35,19 +35,20 @@ Clients of gripper action controller of control_msg/GripperCommandAction type.
 @file   __init__.py
 @author t.ueshiba@aist.go.jp
 """
-import rclpy, time, threading
+import rclpy, threading
 from rclpy.node               import Node
-from rclpy.duration           import Duration, Infinite
+from rclpy.duration           import Duration
 from rclpy.action             import ActionClient
 from rclpy.parameter_client   import AsyncParameterClient
 from rclpy.callback_groups    import MutuallyExclusiveCallbackGroup
 from action_msgs.msg          import GoalStatus
+from action_msgs.srv          import CancelGoal
 from control_msgs.action      import GripperCommand
 from control_msgs.msg         import GripperCommand as GripperCommandMsg
 from aist_robotiq_msgs.srv    import SetVelocity
 from aist_robotiq_msgs.action import SwitchMode
-from aist_robotiq_msgs.action import EPickCommand
-from aist_robotiq_msgs.msg    import EPickCommand as EPickCommandMsg
+from aist_robotiq_msgs.action import SuctionCommand
+from aist_robotiq_msgs.msg    import SuctionCommand as SuctionCommandMsg
 
 ######################################################################
 #  class GenericGripper                                              #
@@ -70,12 +71,10 @@ class GenericGripper(object):
         self._parameters  = {'grasp_position':   min_position,
                              'release_position': max_position,
                              'max_effort':       max_effort}
-        self._clock       = node.get_clock()
         self._logger      = node.get_logger()
-        self._feedback    = GripperCommand.Feedback()
-        self._condition   = threading.Condition()
+        self._goal_handle = None        # Should be kept for canceling
         self._result      = None
-        self._goal_handle = None
+        self._condition   = threading.Condition()
         self._client      = ActionClient(node, GripperCommand, action_ns)
         self._client.wait_for_server()
 
@@ -96,7 +95,7 @@ class GenericGripper(object):
         for key, value in parameters.items():
             self._parameters[key] = value
 
-    def grasp(self, timeout=Infinite):
+    def grasp(self, timeout=Duration()):
         """
         Grasp an object with the gripper.
         Desired finger position and applied effort are specified by parameters
@@ -106,12 +105,13 @@ class GenericGripper(object):
                        If zero, wait forever until the completion.
                        If negative, return immediately without waiting
                        for completion.
-        @return result of control_msgs/GripperCommandResult type
+        @return (status, result) of
+                (int, control_msgs/action/GripperCommand.Result) type
         """
         return self.move(self.parameters['grasp_position'],
                          self.parameters['max_effort'], timeout)
 
-    def release(self, timeout=Infinite):
+    def release(self, timeout=Duration()):
         """
         Release an object grasped by the gripper.
         Desired finger position is specified by a parameter
@@ -121,11 +121,12 @@ class GenericGripper(object):
                        If zero, wait forever until the completion.
                        If negative, return immediately without waiting
                        for completion.
-        @return result of control_msgs/GripperCommandResult type
+        @return (status, result) of
+                (int, control_msgs/action/GripperCommand.Result) type
         """
         return self.move(self.parameters['release_position'], 0.0, timeout)
 
-    def move(self, position, max_effort=0.0, timeout=Infinite):
+    def move(self, position, max_effort=0.0, timeout=Duration()):
         """
         Move fingers to the specified position with specified effort
         @param position   finger position
@@ -135,11 +136,9 @@ class GenericGripper(object):
                           If zero, wait forever until the completion.
                           If negative, return immediately without waiting
                           for completion.
-        @return result of control_msgs/GripperCommandResult type
+        @return (status, result) of
+                (int, control_msgs/action/GripperCommand.Result) type
         """
-        def _feedback_cb(feedback):
-            self._feedback = feedback
-
         def _goal_response_cb(future):
             def _done_cb(future):
                 with self._condition:
@@ -148,21 +147,20 @@ class GenericGripper(object):
 
             self._goal_handle = future.result()
             if not self._goal_handle.accepted:
-                self._logger.error('goal rejected')
+                self._logger.error('goal REJECTED')
                 return
-            self._logger.info('goal accepted')
+            self._logger.info('goal ACCEPTED')
+            self._result = None
             self._goal_handle.get_result_async().add_done_callback(_done_cb)
 
-        self._result = None
         self._client.send_goal_async(GripperCommand.Goal(
                                          command=GripperCommandMsg(
                                              position=position,
-                                             max_effort=max_effort)),
-                                     feedback_callback=_feedback_cb) \
+                                             max_effort=max_effort))) \
             .add_done_callback(_goal_response_cb)
         return self.wait(timeout)
 
-    def wait(self, timeout=Infinite):
+    def wait(self, timeout=Duration()):
         """
         Wait the gripper for completing the movement.
         @param timeout If positive, wait timeout duration until
@@ -170,30 +168,40 @@ class GenericGripper(object):
                        If zero, wait forever until the completion.
                        If negative, return immediately without waiting
                        for completion.
-        @return result of control_msgs/GripperCommandResult type
+        @return (status, result) of
+                (int, control_msgs/action/GripperCommand.Result) type
         """
-        if timeout == Duration():
-            return None
-        timeout_sec = None if timeout == Infinite else \
+        if timeout < Duration():
+            return
+        timeout_sec = None if timeout == Duration() else \
                       timeout.nanoseconds*1.0e-9
+
         with self._condition:
             if not self._condition.wait_for(lambda: self._result is not None,
                                             timeout_sec):
-                self._logger.error('Timeout[%f] has expired before goal finished' %
-                                   timeout_sec)
-                return GripperCommand.Result(position=self._feedback.position,
-                                             effort=self._feedback.effort,
-                                             stalled=self._feedback.stalled,
-                                             reached_goal=self._feedback.reached_goal)
-            if self._result.status != GoalStatus.STATUS_SUCCEEDED:
+                self._logger.error('Timeout[%f] has expired before goal finished'
+                                   % timeout_sec)
+                return GoalStatus.STATUS_UNKNOWN, None
+
+            if self._result.status == GoalStatus.STATUS_SUCCEEDED:
+                self._logger.info('goal SUCCEEDED[position=%f, reached_goal=%d, stalled=%d]'
+                                  % (self._result.result.position,
+                                     self._result.result.reached_goal,
+                                     self._result.result.stalled))
+            elif self._result.status == GoalStatus.STATUS_CANCELED:
+                self._logger.warn('goal CANCELED[position=%f, reached_goal=%d, stalled=%d]'
+                                  % (self._result.result.position,
+                                     self._result.result.reached_goal,
+                                     self._result.result.stalled))
+            elif self._result.status == GoalStatus.STATUS_ABORTED:
+                self._logger.error('goal ABORTED[position=%f, reached_goal=%d, stalled=%d]'
+                                   % (self._result.result.position,
+                                      self._result.result.reached_goal,
+                                      self._result.result.stalled))
+            else:
                 self._logger.error('goal FAILED with status[%d]'
-                                  % self._result.status)
-                return None
-            self._logger.info('goal SUCCEEDED[position=%f, reached_goal=%d, stalled=%d]'
-                              % (self._result.result.position,
-                                 self._result.result.reached_goal,
-                                 self._result.result.stalled))
-            return self._result.result
+                                   % self._result.status)
+            return self._result.status, self._result.result
 
     def cancel(self):
         """
@@ -201,10 +209,11 @@ class GenericGripper(object):
         """
         def _cancel_response_cb(future):
             cancel_response = future.result()
-            if len(cancel_response.goals_canceling) > 0:
-                self._logger.info('goal canceled')
-            else:
-                self._logger.error('goal failed to be canceled')
+            if cancel_response.return_code != CancelGoal.Response.ERROR_NONE:
+                self._logger.error('request for cancelling goal REJECTED[error_code=%d]'
+                                   % cancel_response.return_code)
+                return
+            self._logger.info('request for cancelling goal ACCEPTED')
 
         if not self._goal_handle:
             self._logger.warn('no active goals')
@@ -238,14 +247,14 @@ class RobotiqGripper(GenericGripper):
         self.get_controller_parameters()
         # self._logger.info('RobotiqGripper: client of %s started' % ns)
 
-    def move(self, gap, max_effort=0.0, timeout=Infinite):
+    def move(self, gap, max_effort=0.0, timeout=Duration()):
         return super().move(self._position(gap), max_effort, timeout)
 
-    def wait(self, timeout=Infinite):
-        result = super().wait(timeout)
+    def wait(self, timeout=Duration()):
+        status, result = super().wait(timeout)
         if result is not None:
             result.position = self._gap(result.position)
-        return result
+        return status, result
 
     def get_controller_parameters(self):
         def _get_parameters_cb(future):
@@ -264,7 +273,7 @@ class RobotiqGripper(GenericGripper):
     def set_velocity(self, velocity):
         self._set_velocity.call(SetVelocity.Request(velocity=velocity)).success
 
-    def switch_mode(self, mode, timeout=Infinite):
+    def switch_mode(self, mode, timeout=Duration()):
         def _goal_response_cb(future):
             def _done_cb(future):
                 with self._condition:
@@ -273,33 +282,45 @@ class RobotiqGripper(GenericGripper):
 
             goal_handle = future.result()
             if not goal_handle.accepted:
-                self._logger.error('switch_mode goal rejected')
+                self._logger.error('switch_mode goal REJECTED')
                 return
-            self._logger.info('switch_mode goal accepted')
+            self._logger.info('switch_mode goal ACCEPTED')
             goal_handle.get_result_async().add_done_callback(_done_cb)
 
         self._switch_mode.send_goal_async(SwitchMode.Goal(mode=mode)) \
                          .add_done_callback(_goal_response_cb)
         return self.wait_switch_mode(timeout)
 
-    def wait_switch_mode(self, timeout=Infinite):
-        if timeout == Duration():
-            return None
+    def wait_switch_mode(self, timeout=Duration()):
+        if timeout < Duration():
+            return
 
-        timeout_sec = None if timeout == Infinite else \
+        timeout_sec = None if timeout == Duration() else \
                       timeout.nanoseconds*1.0e-9
         with self._condition:
             if not self._condition.wait_for(
                     lambda: self._switch_mode_result is not None, timeout_sec):
-                self._logger.error('Timeout[%f] has expired before set_mode goal finished' %
-                                   timeout_sec)
-                return SwitchMode.Result(success=False)
-            if self._switch_mode_result.status != GoalStatus.STATUS_SUCCEEDED:
-                self._logger.error('switch_mode gaol FAILED with status[%d]'
-                                   % self._switch_mode_result.status)
-                return None
-            self._logger.info('switch_mode goal SUCCEEDED')
-            return self._switch_mode_result.result
+                self._logger.error('Timeout[%f] has expired before set_mode goal finished'
+                                   % timeout_sec)
+                return GoalStatus.STATUS_UNKNOWN, None
+
+            if self._switch_mode_result.status == GoalStatus.STATUS_SUCCEEDED:
+                self._logger.info('switch_mode gaol SUCCEEDED[pressure=%f, stalled=%d]'
+                                  % (self._switch_mode_result.result.pressure,
+                                     self._switch_mode_result.result.stalled))
+            elif self._switch_mode_result.status == GoalStatus.STATUS_CANCELED:
+                self._logger.warn('switch_mode gaol CANCELED[pressure=%f, stalled=%d]'
+                                  % (self._switch_mode_result.result.pressure,
+                                     self._switch_mode_result.result.stalled))
+            elif self._switch_mode_result.status == GoalStatus.STATUS_ABORTED:
+                self._logger.warn('switch_mode gaol ABORTED[pressure=%f, stalled=%d]'
+                                  % (self._switch_mode_result.result.pressure,
+                                     self._switch_mode_result.result.stalled))
+            else:
+                self._logger.error('switch_mode goal FAILED with status[%d]'
+                                   % self._result.status)
+            return (self._switch_mode_result.status,
+                    self._switch_mode_result.result)
 
     def _position(self, gap):
         return (gap - self._min_gap[0]) * self._position_per_gap \
@@ -315,15 +336,15 @@ class RobotiqGripper(GenericGripper):
              / (self._max_gap[0] - self._min_gap[0])
 
 ######################################################################
-#  class EPickGripper                                                #
+#  class RobotiqSuction                                              #
 ######################################################################
-class EPickGripper(object):
+class RobotiqSuction(object):
     """
-    Gripper client of aist_robotiq/EPickCommandAction type.
+    Gripper client of aist_robotiq/SuctionCommandAction type.
     """
     def __init__(self, node, prefix='a_bot_gripper_', advanced_mode=False,
                  grasp_pressure=-78.0, detection_pressure=-10.0,
-                 release_pressure=0.0):
+                 release_pressure=0.0, grasp_timeout=1.0):
         """
         Constructor
         @param prefix     string prefix for identifying a specific gripper
@@ -332,17 +353,21 @@ class EPickGripper(object):
         super().__init__()
 
         ns = prefix + 'controller'
-        self._clock    = node.get_clock()
-        self._logger   = node.get_logger()
-        self._feedback = EPickCommand.Feedback()
-        self._client   = ActionClient(node, EPickCommand,
-                                      ns + '/gripper_cmd')
-        self._client.wait_for_server()
+
+        # Get parameters for computing gap values from the controller.
+        self._param_client = AsyncParameterClient(node, ns)
+
+        # Create action client for suction command.
+        self._logger          = node.get_logger()
+        self._suction_command = ActionClient(node, SuctionCommand,
+                                             ns + '/gripper_cmd')
+        self._suction_command.wait_for_server()
 
         self._parameters = {'advanced_mode':      advanced_mode,
                             'grasp_pressure':     grasp_pressure,
                             'detection_pressure': detection_pressure,
-                            'release_pressure':   release_pressure}
+                            'release_pressure':   release_pressure,
+                            'grasp_timeout':      grasp_timeout}
 
     @property
     def parameters(self):
@@ -372,13 +397,14 @@ class EPickGripper(object):
                        If zero, wait forever until the completion.
                        If negative, return immediately without waiting
                        for completion.
-        @return result of aist_robotiq/EPickCommandResult type
+        @return result of aist_robotiq/SuctionCommandResult type
         """
-        return self.move(self.parameters['grasp_pressure'],
+        return self.suck(self.parameters['grasp_pressure'],
                          self.parameters['detection_pressure'],
+                         Duration(seconds=self.parameters['grasp_timeout']),
                          timeout)
 
-    def release(self, timeout=Duration(seconds=-1)):
+    def release(self, timeout=Duration()):
         """
         Release an object grasped by the gripper.
         Value of applied pressure is specified by a parameter
@@ -388,13 +414,15 @@ class EPickGripper(object):
                        If zero, wait forever until the completion.
                        If negative, return immediately without waiting
                        for completion.
-        @return result of aist_robotiq/EPickCommandResult type
+        @return result of aist_robotiq/SuctionCommandResult type
         """
-        return self.move(self.parameters['release_pressure'],
+        return self.suck(self.parameters['release_pressure'],
                          self.parameters['detection_pressure'],
+                         Duration(seconds=self.parameters['grasp_timeout']),
                          timeout)
 
-    def move(self, max_pressure, min_pressure, timeout=Duration()):
+    def suck(self,
+             max_pressure, min_pressure, grasp_timeout, timeout=Duration()):
         """
         Move fingers to the specified position with specified effort
         @param max_pressure maximum pressure value applied
@@ -404,17 +432,29 @@ class EPickGripper(object):
                             If zero, wait forever until the completion.
                             If negative, return immediately without waiting
                             for completion.
-        @return result of aist_robotiq/EPickCommandResult type
+        @return result of aist_robotiq/SuctionCommandResult type
         """
-        self._get_result_future = None
+        def _goal_response_cb(future):
+            def _done_cb(future):
+                with self._condition:
+                    self._result = future.result()
+                    self._condition.notify_all()
+
+            self._goal_handle = future.result()
+            if not self._goal_handle.accepted:
+                self._logger.error('goal REJECTED')
+                return
+            self._logger.info('goal ACCEPTED')
+            self._result = None
+            self._goal_handle.get_result_async().add_done_callback(_done_cb)
+
         self._client.send_goal_async(
-             EPickCommand.Goal(
-                 command=EPickCommandMsg(
-                     advanced_mode=self.parameters['advanced_mode'],
-                     max_pressure=max_pressure,
-                     min_pressure=min_pressure,
-                     timeout=timeout.to_msg())),
-             feedback_cb=self._feedback_cb) \
+            SuctionCommand.Goal(
+                command=SuctionCommandMsg(
+                    advanced_mode=self.parameters['advanced_mode'],
+                    max_pressure=max_pressure,
+                    min_pressure=min_pressure,
+                    timeout=timeout.to_msg()))) \
             .add_done_callback(self._goal_response_cb)
         return self.wait(timeout)
 
@@ -426,37 +466,52 @@ class EPickGripper(object):
                        If zero, wait forever until the completion.
                        If negative, return immediately without waiting
                        for completion.
-        @return result of aist_robotiq/EPickCommandResult type
+        @return result of aist_robotiq/SuctionCommandResult type
         """
-        if timeout.nanoseconds < 0:
-            return EPickCommand.Result(pressure=0.0, stalled=False)
+        if timeout < Duration():
+            return
 
-        timeout_time = self._clock.now() + timeout
-        while self._get_result_future is None or \
-              not self._get_result_future.done():
-            if timeout.nanoseconds > 0 and \
-               self._clock.now() > timeout_time:
+        timeout_sec = None if timeout == Duration() else \
+                      timeout.nanoseconds*1.0e-9
+
+        with self._condition:
+            if not self._condition.wait_for(lambda: self._result is not None,
+                                            timeout_sec):
                 self._logger.error('Timeout[%f] has expired before goal finished'
-                                   % timeout.nanoseconds/1.0e9)
-                return EPickCommand.Result(pressure=self._feedback.pressure,
-                                           stalled=self._feedback.stalled)
-            time.sleep(0.1)
-        return self._get_result_future.result().result
+                                   % timeout_sec)
+                return GoalStatus.STATUS_UNKNOWN, None
+
+            if self._result.status == GoalStatus.STATUS_SUCCEEDED:
+                self._logger.info('goal SUCCEEDED[pressure%f, stalled=%d]'
+                                  % (self._result.result.pressure,
+                                     self._result.result.stalled))
+            elif self._result.status == GoalStatus.STATUS_CANCELED:
+                self._logger.warn('goal CANCELED[pressure=%f, stalled=%d]'
+                                  % (self._result.result.pressure,
+                                     self._result.result.stalled))
+            elif self._result.status == GoalStatus.STATUS_ABORTED:
+                self._logger.error('goal ABORTED[pressure=%f, stalled=%d]'
+                                   % (self._result.result.pressure,
+                                      self._result.result.stalled))
+            else:
+                self._logger.error('goal FAILED with status[%d]'
+                                   % self._result.status)
+        return self._result.status, self._result.result
 
     def cancel(self):
         """
         Cancel the latest motion command sent to the gripper.
         """
-        if self._client.get_state() in (GoalStatus.PENDING, GoalStatus.ACTIVE):
-            self._client.cancel_goal()
+        def _cancel_response_cb(future):
+            cancel_response = future.result()
+            if cancel_response.return_code != CancelGoal.Response.ERROR_NONE:
+                self._logger.error('request for cancelling goal REJECTED[error_code=%d]'
+                                   % cancel_response.return_code)
+                return
+            self._logger.info('request for cancelling goal ACCEPTED')
 
-    def _goal_response_cb(self, future):
-        self._goal_handle = future.result()
-        if not self._goal_handle.accepted:
-            self._logger.error('goal rejected')
-        else:
-            self._logger.info('goal accepted')
-        self._get_result_future = self._goal_handle.get_result_async()
-
-    def _feedback_cb(self, feedback):
-        self._feedback = feedback
+        if not self._goal_handle:
+            self._logger.warn('no active goals')
+            return
+        self._goal_handle.cancel_goal_async() \
+                         .add_done_callback(_cancel_response_cb)

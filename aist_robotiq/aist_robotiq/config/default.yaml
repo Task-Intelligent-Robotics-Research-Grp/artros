@@ -3,8 +3,8 @@
 ####################
 robotiq_140_driver:
   ros__parameters:
-    ip:             10.66.171.40  # Used for tcp/urcap drivers
-    dev:            /dev/ttyUSB0  # Used for rtu drivers
+    ip:             10.66.171.40  # for tcp/urcap drivers
+    dev:            /dev/ttyUSB0  # for rtu drivers
     slave_ids:      [9]           # list of slave IDs of Modbus devices
     arg3f_grippers: [False]
 
@@ -34,8 +34,8 @@ robotiq_140_controller:
 ###################
 robotiq_85_driver:
   ros__parameters:
-    ip:             10.66.171.41  # Used for tcp/urcap drivers
-    dev:            /dev/ttyUSB0  # Used for rtu drivers
+    ip:             10.66.171.41  # for tcp/urcap drivers
+    dev:            /dev/ttyUSB0  # for rtu drivers
     slave_ids:      [9]           # list of slave IDs of Modbus devices
     arg3f_grippers: [False]
 
@@ -65,8 +65,8 @@ robotiq_85_controller:
 ###################
 robotiq_hande_driver:
   ros__parameters:
-    ip:             10.66.171.41  # Used for tcp/urcap drivers
-    dev:            /dev/ttyUSB0  # Used for rtu drivers
+    ip:             10.66.171.41  # for tcp/urcap drivers
+    dev:            /dev/ttyUSB0  # for rtu drivers
     slave_ids:      [9]           # list of slave IDs of Modbus devices
     arg3f_grippers: [False]
 
@@ -96,8 +96,8 @@ robotiq_hande_controller:
 ################
 robotiq_3f_driver:
   ros__parameters:
-    ip:             192.168.1.11  # Used for tcp/urcap drivers
-    dev:            /dev/ttyUSB0  # Used for rtu drivers
+    ip:             192.168.1.11  # for tcp/urcap drivers
+    dev:            /dev/ttyUSB0  # for rtu drivers
     slave_ids:      [9]           # list of slave IDs of Modbus devices
     arg3f_grippers: [True]
 

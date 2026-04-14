@@ -1,4 +1,4 @@
-EPickCommand command
+SuctionCommand command
 ---
 float64 pressure
 bool    stalled

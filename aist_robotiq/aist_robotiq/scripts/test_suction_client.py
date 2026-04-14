@@ -37,12 +37,12 @@
 #
 import rclpy, threading
 from rclpy.node          import Node
-from aist_robotiq.client import EPickGripper
+from aist_robotiq.client import RobotiqSuction
 
 #########################################################################
-#  class TestEPickClient                                                #
+#  class TestSuctionClient                                              #
 #########################################################################
-class TestEPickClient(Node):
+class TestSuctionClient(Node):
     def __init__(self, name):
         super().__init__(name)
 
@@ -56,11 +56,11 @@ class TestEPickClient(Node):
                                                     -10.0).value
         release_pressure   = self.declare_parameter('release_pressure',
                                                     0.0).value
-        timeout            = self.declare_parameter('timeout', 1.0).value
+        grasp_timeout      = self.declare_parameter('grasp_timeout', 1.0).value
 
-        gripper = EPickGripper(self, device_name + '_', advanced_mode,
-                               grasp_pressure, detection_pressure,
-                               release_pressure)
+        gripper = RobotiqSuction(self, device_name + '_', advanced_mode,
+                                 grasp_pressure, detection_pressure,
+                                 release_pressure, grasp_timeout)
         self.get_logger().info('started')
 
         cli_thread = threading.Thread(target=self.interactive)
@@ -89,7 +89,7 @@ class TestEPickClient(Node):
             elif key == 'r':
                 result = self._gripper.release()
             elif is_float(key):
-                result = self._gripper.move(float(key))
+                result = self._gripper.suck(float(key))
             elif key=='q':
                 break
             else:
@@ -105,5 +105,5 @@ class TestEPickClient(Node):
 if __name__ == '__main__':
     rclpy.init()
 
-    test = TestEPickClient('test_epick_client')
+    test = TestSuctionClient('test_suction_client')
     rclpy.spin(test)

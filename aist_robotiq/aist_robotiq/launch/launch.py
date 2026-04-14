@@ -58,8 +58,8 @@ launch_arguments = [
 ]
 
 PLUGINS = {
-    'RobotiqGripper'  : 'aist_robotiq::GripperController',
-    'RobotiqEPick':     'aist_robotiq::EPickController',
+    'RobotiqGripper': 'aist_robotiq::GripperController',
+    'RobotiqSuction': 'aist_robotiq::SuctionController',
 }
 
 def declare_launch_arguments(args):
