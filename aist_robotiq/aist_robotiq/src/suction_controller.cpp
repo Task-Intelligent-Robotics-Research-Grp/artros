@@ -39,8 +39,6 @@
  */
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
-#include <control_msgs/action/gripper_command.hpp>
-#include <sensor_msgs/msg/joint_state.hpp>
 #include <aist_robotiq_msgs/msg/c_model_status.hpp>
 #include <aist_robotiq_msgs/msg/c_model_command.hpp>
 #include <aist_robotiq_msgs/action/suction_command.hpp>
