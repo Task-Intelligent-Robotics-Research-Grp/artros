@@ -166,6 +166,15 @@ class GripperController : public rclcpp::Node
                 {
                     using namespace     std::chrono_literals;
 
+                    if (mode == _mode)
+                        return;
+                    else if (mode  == switch_mode_t::Goal::SCISSOR ||
+                             _mode == switch_mode_t::Goal::SCISSOR)
+                    {
+
+                    }
+
+
                     _mode = mode;
                     if (_mode >= switch_mode_t::Goal::ICF)
                         return;
@@ -180,7 +189,8 @@ class GripperController : public rclcpp::Node
                 }
 
   // Utilities
-    array4d     goal_position(const goal_cp<gripper_command_t>& goal) const
+    static array4d
+                goal_position(const goal_cp<gripper_command_t>& goal)
                 {
                     return array4d{goal->command.position};
                 }
@@ -188,12 +198,13 @@ class GripperController : public rclcpp::Node
                 {
                     return array4d{_velocity};
                 }
-    array4d     goal_effort(const goal_cp<gripper_command_t>& goal)
+    static array4d
+                goal_effort(const goal_cp<gripper_command_t>& goal)
                 {
                     return array4d{goal->command.max_effort};
                 }
 
-    void        send_reset_command()
+    void        send_reset_command() const
                 {
                     using namespace     std::chrono_literals;
 
