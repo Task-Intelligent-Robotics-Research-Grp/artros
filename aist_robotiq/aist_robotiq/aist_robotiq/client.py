@@ -63,12 +63,17 @@ class GenericGripper(SimpleActionClient):
         @param max_position position when fully opened
         @param max_effort   maximum effort applied when gripping objects
         """
-        super().__init__(node, GripperCommand, action_ns)
+        self._callback_group = MutuallyExclusiveCallbackGroup()
+        super().__init__(node, GripperCommand, action_ns, self._callback_group)
         self.wait_for_server()
 
         self._parameters  = {'grasp_position':   min_position,
                              'release_position': max_position,
                              'max_effort':       max_effort}
+
+    @property
+    def callback_group(self):
+        return self._callback_group
 
     @property
     def parameters(self):
@@ -135,7 +140,7 @@ class GenericGripper(SimpleActionClient):
                                   command=GripperCommandMsg(
                                       position=position,
                                       max_effort=max_effort)),
-                              timeout)
+                              timeout=timeout)
 
 ######################################################################
 #  class RobotiqGripper                                              #
@@ -149,10 +154,9 @@ class RobotiqGripper(GenericGripper):
         self._param_client = AsyncParameterClient(node, ns)
 
         # Create service client for setting velocity.
-        self._clnt_cbg     = MutuallyExclusiveCallbackGroup()
-        self._set_velocity = node.create_client(SetVelocity,
-                                                ns + '/set_velocity',
-                                                callback_group=self._clnt_cbg)
+        self._set_velocity \
+            = node.create_client(SetVelocity, ns + '/set_velocity',
+                                 callback_group=self.callback_group)
 
         # Create action client for switching mode.
         self._switch_mode = SimpleActionClient(node, SwitchMode,
@@ -189,7 +193,8 @@ class RobotiqGripper(GenericGripper):
         self._set_velocity.call(SetVelocity.Request(velocity=velocity)).success
 
     def switch_mode(self, mode, timeout=Duration()):
-        return self._switch_mode.send_goal(SwitchMode.Goal(mode=mode), timeout)
+        return self._switch_mode.send_goal(SwitchMode.Goal(mode=mode),
+                                           timeout=timeout)
 
     def wait_switch_mode(self, timeout=Duration()):
         return self._witch_mode.wait(timeout)
@@ -223,7 +228,9 @@ class RobotiqSuction(SimpleActionClient):
                           from multiple devices
         """
         ns = prefix + 'controller'
-        super().__init__(node, SuctionCommand, ns + '/gripper_cmd')
+        self._callback_group = MutuallyExclusiveCallbackGroup()
+        super().__init__(node, SuctionCommand, ns + '/gripper_cmd',
+                         self._callback_group)
         self.wait_for_server()
 
         # Get parameters for computing gap values from the controller.
@@ -233,6 +240,10 @@ class RobotiqSuction(SimpleActionClient):
                             'detection_pressure': detection_pressure,
                             'release_pressure':   release_pressure,
                             'grasp_timeout':      grasp_timeout}
+
+    @property
+    def callback_group(self):
+        return self._callback_group
 
     @property
     def parameters(self):
@@ -304,4 +315,5 @@ class RobotiqSuction(SimpleActionClient):
                                advanced_mode=self.parameters['advanced_mode'],
                                max_pressure=max_pressure,
                                min_pressure=min_pressure,
-                               timeout=timeout.to_msg())))
+                               timeout=grasp_timeout.to_msg())),
+                              timouet=timeout)

@@ -35,7 +35,7 @@ Clients of gripper action controller of control_msg/GripperCommandAction type.
 @file   __init__.py
 @author t.ueshiba@aist.go.jp
 """
-import rclpy, threading
+import rclpy, threading, copy
 from rclpy.duration  import Duration
 from rclpy.action    import ActionClient
 from action_msgs.msg import GoalStatus
@@ -99,16 +99,16 @@ class SimpleActionClient(object):
                                             timeout_sec):
                 self._logger.error('Timeout[%fsec] has expired' % timeout_sec)
                 return GoalStatus.STATUS_UNKNOWN, None
-
-            if self._result[0] == GoalStatus.STATUS_SUCCEEDED:
-                self._logger.info('goal SUCCEEDED')
-            elif self._result[0] == GoalStatus.STATUS_CANCELED:
-                self._logger.warn('goal CANCELED')
-            elif self._result[0] == GoalStatus.STATUS_ABORTED:
-                self._logger.error('goal ABORTED')
-            else:
-                self._logger.error('goal FAILED[status=%d]' % self._result[0])
-            return self._result
+            result = copy.deepcopy(self._result)
+        if result[0] == GoalStatus.STATUS_SUCCEEDED:
+            self._logger.info('goal SUCCEEDED')
+        elif result[0] == GoalStatus.STATUS_CANCELED:
+            self._logger.warn('goal CANCELED')
+        elif result[0] == GoalStatus.STATUS_ABORTED:
+            self._logger.error('goal ABORTED')
+        else:
+            self._logger.error('goal FAILED[status=%d]' % result[0])
+        return result
 
     def cancel(self):
         def _cancel_response_cb(future):

@@ -359,6 +359,10 @@ class GripperController : public rclcpp::Node
                     return (status->g_gto == 1 && status->g_obj == 0)
                         || status->g_sta != 3;
                 }
+    static bool is_ready(const cmodel_status_cp& status)
+                {
+                    return status->g_sta == 3;
+                }
 
     array4d     position_per_tick() const
                 {
@@ -858,7 +862,7 @@ GripperController::process_switch_mode(const cmodel_status_cp& status)
         _switch_mode_goal_handle = nullptr;
         send_reset_command();
     }
-    else if (!is_moving(status))
+    else if (is_ready(status))
     {
         RCLCPP_INFO_STREAM(get_logger(),
                            "SwitchMode goal SUCCEEDED[mode=" << _mode << ']');
