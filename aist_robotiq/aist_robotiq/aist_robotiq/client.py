@@ -39,6 +39,7 @@ import rclpy, threading
 from rclpy.duration           import Duration
 from rclpy.parameter_client   import AsyncParameterClient
 from rclpy.callback_groups    import MutuallyExclusiveCallbackGroup
+from action_msgs.msg          import GoalStatus
 from control_msgs.action      import GripperCommand
 from control_msgs.msg         import GripperCommand as GripperCommandMsg
 from aist_robotiq_msgs.srv    import SetVelocity
@@ -70,10 +71,6 @@ class GenericGripper(SimpleActionClient):
         self._parameters  = {'grasp_position':   min_position,
                              'release_position': max_position,
                              'max_effort':       max_effort}
-
-    @property
-    def callback_group(self):
-        return self._callback_group
 
     @property
     def parameters(self):
@@ -150,20 +147,23 @@ class RobotiqGripper(GenericGripper):
         ns = prefix + 'controller'
         super().__init__(node, ns + '/gripper_cmd', max_effort=max_effort)
 
-        # Get parameters for computing gap values from the controller.
-        self._param_client = AsyncParameterClient(node, ns)
-
         # Create service client for setting velocity.
         self._set_velocity \
             = node.create_client(SetVelocity, ns + '/set_velocity',
                                  callback_group=self.callback_group)
 
+        # Get parameters for computing gap values from the controller.
+        self._param_client = AsyncParameterClient(node, ns)
+        self.get_controller_parameters()
+
         # Create action client for switching mode.
-        self._switch_mode = SimpleActionClient(node, SwitchMode,
-                                               ns + '/switch_mode')
+        self._mode = SetMode.Goal.BASIC
+        self._individual_control_fingers = True
+        self._individual_control_scissor = True
+        self._set_mode = SimpleActionClient(node, SetMode, ns + '/set_mode',
+                                            self._callback_group)
         self.wait_for_server()
 
-        self.get_controller_parameters()
         # self._logger.info('RobotiqGripper: client of %s started' % ns)
 
     def move(self, gap, max_effort=0.0, timeout=Duration()):
@@ -178,6 +178,7 @@ class RobotiqGripper(GenericGripper):
     def get_controller_parameters(self):
         def _get_parameters_cb(future):
             values = future.result().values
+
             self._min_gap      = values[0].double_array_value
             self._max_gap      = values[1].double_array_value
             self._min_position = values[2].double_array_value
@@ -192,25 +193,36 @@ class RobotiqGripper(GenericGripper):
     def set_velocity(self, velocity):
         self._set_velocity.call(SetVelocity.Request(velocity=velocity)).success
 
-    def switch_mode(self, mode, timeout=Duration()):
-        return self._switch_mode.send_goal(SwitchMode.Goal(mode=mode),
-                                           timeout=timeout)
-
-    def wait_switch_mode(self, timeout=Duration()):
-        return self._witch_mode.wait(timeout)
+    def set_mode(self, mode, individual_control_fingers=False,
+                 individual_control_scissor=False):
+        status, result \
+            = self._set_mode.send_goal(
+                  SwitchMode.Goal(
+                      mode=mode,
+                      individual_control_fingers=individual_control_fingers,
+                      individual_control_scissor=individual_control_scissor),
+                  timeout=Duration())
+        if status == GoalStatus.STATUS_SUCCEEDED and result.success:
+            self._mode = mode
+            self._individual_control_fingers = individual_control_fingers
+            self._individual_control_scissor = individual_control_scissor
 
     def _position(self, gap):
-        return (gap - self._min_gap[0]) * self._position_per_gap \
-             + self._min_position[0]
+        idx = self._idx()
+        return (gap - self._min_gap[idx]) * self._position_per_gap(idx) \
+             + self._min_position[idx]
 
     def _gap(self, position):
-        return (position - self._min_position[0]) / self._position_per_gap \
-             + self._min_gap[0]
+        idx = self._idx()
+        return (position - self._min_position[idx]) \
+             / self._position_per_gap(idx) + self._min_gap[idx]
 
-    @property
-    def _position_per_gap(self):
-        return (self._max_position[0] - self._min_position[0]) \
-             / (self._max_gap[0] - self._min_gap[0])
+    def _position_per_gap(self, idx):
+        return (self._max_position[idx] - self._min_position[idx]) \
+             / (self._max_gap[idx]      - self._min_gap[idx])
+
+    def _idx(self):
+        return 3 if self._mode == SetMode.Goal.SCISSOR else 0
 
 ######################################################################
 #  class RobotiqSuction                                              #

@@ -2,10 +2,10 @@ uint8 BASIC   = 0
 uint8 PINCH   = 1
 uint8 WIDE    = 2
 uint8 SCISSOR = 3
-uint8 ICF     = 4  # independent control of fingers
-uint8 ICS     = 5  # independent control of scissor
 
 uint8 mode
+bool  individual_control_fingers
+bool  individual_control_scissor
 ---
 bool  success
 ---

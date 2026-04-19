@@ -68,6 +68,7 @@ class SimpleActionClient(object):
     def send_goal(self, goal, feedback_cb=None, timeout=None):
         def _goal_response_cb(future):
             def _done_cb(future):
+                self._goal_handle = None
                 with self._condition:
                     self._result = (future.result().status,
                                     future.result().result)
