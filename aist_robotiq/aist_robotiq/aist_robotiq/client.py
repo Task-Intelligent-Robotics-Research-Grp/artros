@@ -206,6 +206,9 @@ class RobotiqGripper(GenericGripper):
             self._mode = mode
             self._individual_control_fingers = individual_control_fingers
             self._individual_control_scissor = individual_control_scissor
+            return True
+        else:
+            return False
 
     def _position(self, gap):
         idx = self._idx()
