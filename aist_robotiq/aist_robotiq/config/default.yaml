@@ -110,13 +110,13 @@ robotiq_3f_controller:
       - robotiq_3f_right_finger_joint
       - robotiq_3f_scissor_joint
 
-    # Gap width between fingers in meters [0.000, 0.167]
-    min_gap: [-0.219, -0.219, -0.219, 0.000]
-    max_gap: [ 0.167,  0.167,  0.167, 0.115]
+    # Gap width between fingers in meters [-0.2169, 0.167]
+    min_gap: [-0.2169, -0.2169, -0.2169, 0.0000]
+    max_gap: [ 0.1670,  0.1670,  0.1670, 0.1150]
 
-    # Gripper position in radians
-    min_position: [1.047, 1.047, 1.047,  0.160]
-    max_position: [0.000, 0.000, 0.000, -0.250]
+    # Gripper position in radians [120(deg), 0(deg)]
+    min_position: [2.0944, 2.0944, 2.0944,  0.1600]
+    max_position: [0.0000, 0.0000, 0.0000, -0.2500]
 
     # Gripper velocity in m/s
     min_velocity: [0.020, 0.020, 0.020, 0.020]

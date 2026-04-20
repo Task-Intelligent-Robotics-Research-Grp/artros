@@ -3,7 +3,9 @@
        xmlns:xacro="http://ros.org/wiki/xacro">
   <xacro:macro name="robotiq_3f_gripper" params="prefix parent *origin">
 
-    <xacro:property name="tip_height"	value="0.204"/>
+    <xacro:property name="tip_height"		value="0.204"/>
+    <xacro:property name="distal_length"	value="0.0335"/>
+    <xacro:property name="distal_offset"	value="0.0095"/>
 
     <xacro:macro name="set_frame" params="name parent *origin">
       <joint name="${name}_joint" type="fixed">
@@ -47,18 +49,18 @@
 	<child link="${fingerprefix}proximal_link"/>
 	<axis xyz="0 0 1"/>
 	<origin xyz="0.020 0 0" rpy="0 0 0"/>
-	<limit effort="100" lower="0" upper="${radians(60)}" velocity="100"/>
+	<limit effort="100" lower="0" upper="${radians(120)}" velocity="100"/>
       </joint>
       <link name="${fingerprefix}proximal_link">
 	<visual>
-	  <origin xyz="0.050 -.028 0" rpy="0 0 -0.52"/>
+	  <origin xyz="0.050 -.028 0" rpy="0 0 ${radians(-30)}"/>
 	  <geometry>
             <mesh filename="package://aist_robotiq/meshes/visual/robotiq_3f_link_1.dae"/>
 	  </geometry>
 	  <material name="green"/>
 	</visual>
 	<collision>
-	  <origin xyz="0.050 -.028 0" rpy="0 0 -0.52"/>
+	  <origin xyz="0.050 -.028 0" rpy="0 0 ${radians(-30)}"/>
 	  <geometry>
             <mesh filename="package://aist_robotiq/meshes/collision/robotiq_3f_link_1.stl"/>
 	  </geometry>
@@ -76,8 +78,8 @@
 	<parent link="${fingerprefix}proximal_link"/>
 	<child link="${fingerprefix}medial_link"/>
 	<axis xyz="0 0 1"/>
-	<origin xyz="0.050 -.028 0" rpy="0 0 -0.52"/>
-	<limit effort="100" lower="0" upper="${radians(60)}" velocity="100"/>
+	<origin xyz="0.050 -.028 0" rpy="0 0 ${radians(-30)}"/>
+	<limit effort="100" lower="0" upper="${radians(120)}" velocity="100"/>
 	<mimic joint="${fingerprefix}joint" multiplier="0" offset="0"/>
       </joint>
       <link name="${fingerprefix}medial_link">
@@ -113,20 +115,20 @@
 	<child link="${fingerprefix}distal_link"/>
 	<axis xyz="0 0 1"/>
 	<origin xyz="0.039 0 0" rpy="0 0 0"/>
-	<limit effort="100" lower="0" upper="${radians(60)}" velocity="100"/>
+	<limit effort="100" lower="0" upper="${radians(120)}" velocity="100"/>
 	<mimic joint="${fingerprefix}joint"
 	       multiplier="-1" offset="0"/>
       </joint>
       <link name="${fingerprefix}distal_link">
 	<visual>
-	  <origin xyz="0 0 0" rpy="0 0 0.52"/>
+	  <origin xyz="0 0 0" rpy="0 0 ${radians(30)}"/>
 	  <geometry>
             <mesh filename="package://aist_robotiq/meshes/visual/robotiq_3f_link_3.dae"/>
 	  </geometry>
 	  <material name="green"/>
 	</visual>
 	<collision>
-	  <origin xyz="0 0 0" rpy="0 0 0.52"/>
+	  <origin xyz="0 0 0" rpy="0 0 ${radians(30)}"/>
 	  <geometry>
             <mesh filename="package://aist_robotiq/meshes/collision/robotiq_3f_link_3.stl"/>
 	  </geometry>
@@ -139,6 +141,15 @@
 		   iyy="0.00085" iyz="0" izz="0.001632"/>
 	</inertial>
       </link>
+
+      <xacro:set_frame name="${fingerprefix}tip_link"
+		       parent="${fingerprefix}distal_link">
+	<origin xyz="${distal_length*cos(radians(30))}
+		     ${distal_length*sin(radians(30)) + distal_offset}
+		     0.0"
+		rpy="0 0 ${radians(30)}"/>
+      </xacro:set_frame>
+
     </xacro:macro>
 
     <!-- Base -->
