@@ -74,7 +74,6 @@ class SimpleActionClient(object):
                                     future.result().result)
                     self._condition.notify_all()
 
-            self._result = None
             self._goal_handle = future.result()
             if not self._goal_handle.accepted:
                 self._logger.error('goal REJECTED')
@@ -85,6 +84,7 @@ class SimpleActionClient(object):
             self._logger.info('goal ACCEPTED')
             self._goal_handle.get_result_async().add_done_callback(_done_cb)
 
+        self._result = None
         self._client.send_goal_async(goal, feedback_callback=feedback_cb) \
                     .add_done_callback(_goal_response_cb)
         if timeout is None:
@@ -112,6 +112,8 @@ class SimpleActionClient(object):
         return result
 
     def cancel(self):
+        print('### cancel() called!')
+
         def _cancel_response_cb(future):
             cancel_response = future.result()
             if cancel_response.return_code != CancelGoal.Response.ERROR_NONE:

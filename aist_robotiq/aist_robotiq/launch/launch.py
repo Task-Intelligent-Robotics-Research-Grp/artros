@@ -18,12 +18,12 @@ launch_arguments = [
         'description': 'absolute path to configuration file'
     },
     {
-        'name':        'device_names',
+        'name':        'gripper_names',
         'default':     'robotiq_85',
         'description': 'comma-separated list of device names'
     },
     {
-        'name':        'device_types',
+        'name':        'gripper_types',
         'default':     'RobotiqGripper',        # RobotiqGripper/RobotiqEPick
         'description': 'comma-separated list of device types'
     },
@@ -72,13 +72,13 @@ def declare_launch_arguments(args):
 def launch_setup(context):
 
     composable_nodes = []
-    for device_name, device_type \
-          in zip(LaunchConfiguration('device_names').perform(context)
+    for gripper_name, device_type \
+          in zip(LaunchConfiguration('gripper_names').perform(context)
                  .split(','),
-                 LaunchConfiguration('device_types').perform(context)
+                 LaunchConfiguration('gripper_types').perform(context)
                  .split(',')):
         composable_nodes.append(
-            ComposableNode(name=device_name + '_controller',
+            ComposableNode(name=gripper_name + '_controller',
                            package='aist_robotiq',
                            plugin=PLUGINS[device_type],
                            parameters=[

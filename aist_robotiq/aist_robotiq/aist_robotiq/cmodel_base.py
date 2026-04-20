@@ -57,6 +57,7 @@ class CModelBase(Node):
 
     def activate_devices(self):
         for slave_id in self._arg3f.keys():
+            self.get_logger().info('activating device[slave_id=%d]' % slave_id)
             self.put_command(CModelCommand(r_sid=slave_id, r_act=0, r_gto=0))
             time.sleep(0.1)
             self.put_command(CModelCommand(r_sid=slave_id, r_act=1, r_gto=1))
@@ -70,6 +71,8 @@ class CModelBase(Node):
             #         self.get_logger().error('failed to activate device[slave_id=%d]'
             #                                % slave_id)
             #     time.sleep(0.5)
+        self.get_logger().info('all devices activated')
+
 
     def _timer_cb(self):
         for slave_id in self._arg3f.keys():

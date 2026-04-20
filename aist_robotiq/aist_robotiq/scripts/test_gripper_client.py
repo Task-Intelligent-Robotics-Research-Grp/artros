@@ -47,9 +47,9 @@ class TestGripperClient(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        device_name = self.declare_parameter('device_name',
-                                             'a_bot_gripper').value
-        self._gripper = RobotiqGripper(self, device_name + '_')
+        gripper_name = self.declare_parameter('gripper_name',
+                                              'a_bot_gripper').value
+        self._gripper = RobotiqGripper(self, gripper_name + '_')
         self.get_logger().info('started')
 
         cli_thread = threading.Thread(target=self.interactive)
@@ -80,15 +80,16 @@ class TestGripperClient(Node):
             elif key == 'r':
                 result = self._gripper.release(timeout=Duration())
             elif is_float(key):
-                result = self._gripper.move(float(key))
+                result = self._gripper.move(float(key), timeout=None)
             elif key == 'c':
+                print('### cancel')
                 self._gripper.cancel()
             elif key == 'v':
                 velocity = float(input('  velocity: '))
                 result = self._gripper.set_velocity(velocity)
             elif key == 'm':
                 mode = int(input('  mode(0: BASIC, 1: PINCH, 2: WIDE, 3: SCISSOR, 4: ICF, 5: ICS): '))
-                result = self._gripper.switch_mode(mode)
+                result = self._gripper.set_mode(mode)
             elif key=='q':
                 break
             else:

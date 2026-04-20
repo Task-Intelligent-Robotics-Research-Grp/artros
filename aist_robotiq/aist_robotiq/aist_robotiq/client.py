@@ -43,7 +43,7 @@ from action_msgs.msg          import GoalStatus
 from control_msgs.action      import GripperCommand
 from control_msgs.msg         import GripperCommand as GripperCommandMsg
 from aist_robotiq_msgs.srv    import SetVelocity
-from aist_robotiq_msgs.action import SwitchMode
+from aist_robotiq_msgs.action import SetMode
 from aist_robotiq_msgs.action import SuctionCommand
 from aist_robotiq_msgs.msg    import SuctionCommand as SuctionCommandMsg
 from .simple_action_client    import SimpleActionClient
@@ -150,7 +150,7 @@ class RobotiqGripper(GenericGripper):
         # Create service client for setting velocity.
         self._set_velocity \
             = node.create_client(SetVelocity, ns + '/set_velocity',
-                                 callback_group=self.callback_group)
+                                 callback_group=self._callback_group)
 
         # Get parameters for computing gap values from the controller.
         self._param_client = AsyncParameterClient(node, ns)
@@ -197,7 +197,7 @@ class RobotiqGripper(GenericGripper):
                  individual_control_scissor=False):
         status, result \
             = self._set_mode.send_goal(
-                  SwitchMode.Goal(
+                  SetMode.Goal(
                       mode=mode,
                       individual_control_fingers=individual_control_fingers,
                       individual_control_scissor=individual_control_scissor),
@@ -240,7 +240,6 @@ class RobotiqSuction(SimpleActionClient):
         """
         Constructor
         @param prefix     string prefix for identifying a specific gripper
-                          from multiple devices
         """
         ns = prefix + 'controller'
         self._callback_group = MutuallyExclusiveCallbackGroup()

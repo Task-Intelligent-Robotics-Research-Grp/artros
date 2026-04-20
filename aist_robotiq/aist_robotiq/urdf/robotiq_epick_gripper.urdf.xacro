@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:macro name="robotiq_epick" params="prefix parent
-					    plunger_radius:=0
-					    plunger_length:=0
-					    *origin">
+  <xacro:macro name="robotiq_epick_gripper" params="prefix parent
+						    plunger_radius:=0
+						    plunger_length:=0
+						    *origin">
 
     <xacro:property name="epick_length" value="0.101"/>
     <xacro:property name="epick_offset" value="-0.006"/>

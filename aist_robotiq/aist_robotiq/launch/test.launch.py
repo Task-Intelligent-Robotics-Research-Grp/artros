@@ -14,28 +14,28 @@ from aist_bringup.launch_common        import declare_launch_arguments
 
 launch_arguments = [
     {
-        'name':        'device_name',
+        'name':        'gripper_name',
         'default':     'robotiq_85',
-        'description': 'name of the device',
+        'description': 'name of the gripper',
         'choices':     ['robotiq_85', 'robotiq_140', 'robotiq_hande',
                         'robotiq_3f', 'robotiq_epick'],
     },
 ]
 
 def launch_setup(context):
-    device_type = IfElseSubstitution(
-                      EqualsSubstitution(
-                          LaunchConfiguration('device_name'), 'robotiq_epick'),
-                      'RobotiqSuction', 'RobotiqGripper')
+    gripper_type = IfElseSubstitution(
+                       EqualsSubstitution(
+                           LaunchConfiguration('gripper_name'), 'robotiq_epick'),
+                       'RobotiqSuction', 'RobotiqGripper')
     client_type = IfElseSubstitution(
-                      EqualsSubstitution(device_type, 'RobotiqSuction'),
+                      EqualsSubstitution(gripper_type, 'RobotiqSuction'),
                       'suction', 'gripper')
     robot_description = ParameterValue(
                             Command([
                                 FindExecutable(name='xacro'), ' ',
                                 PathJoinSubstitution([
                                     FindPackageShare('aist_robotiq'), 'urdf',
-                                    [LaunchConfiguration('device_name'),
+                                    [LaunchConfiguration('gripper_name'),
                                      '_gripper.urdf']
                                 ])
                             ]),
@@ -50,15 +50,15 @@ def launch_setup(context):
         IncludeLaunchDescription(
             PathJoinSubstitution([ThisLaunchFileDir(), 'launch.py']),
             launch_arguments=[
-                ('device_names', LaunchConfiguration('device_name')),
-                ('device_types', device_type),
-                ('driver_ns',    [LaunchConfiguration('device_name'),
-                                  '_driver']),
+                ('gripper_names',  LaunchConfiguration('gripper_name')),
+                ('gripper_types',  gripper_type),
+                ('driver_ns',      [LaunchConfiguration('gripper_name'),
+                                    '_driver']),
             ]),
         Node(name=['test_', client_type, '_client'],
              package='aist_robotiq',
              executable=['test_', client_type, '_client.py'],
-             parameters=[{'device_name': LaunchConfiguration('device_name')}],
+             parameters=[{'gripper_name': LaunchConfiguration('gripper_name')}],
              prefix=['xterm -fn 7x14 -e'],
              output='screen'),
         Node(name='rviz', package='rviz2', executable='rviz2',
