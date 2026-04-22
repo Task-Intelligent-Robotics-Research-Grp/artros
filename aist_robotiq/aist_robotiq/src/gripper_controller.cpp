@@ -450,7 +450,7 @@ class GripperController : public rclcpp::Node
 };
 
 GripperController::GripperController(const rclcpp::NodeOptions& options)
-    :rclcpp::Node("cmodel_controller", options),
+    :rclcpp::Node("gripper_controller", options),
      _slave_id(ddynamic_reconfigure2::declare_read_only_parameter(
                    this, "slave_id", 9)),
      _min_gap(vector_to_array4d(
@@ -566,7 +566,7 @@ GripperController::GripperController(const rclcpp::NodeOptions& options)
     rclcpp::sleep_for(2s);      // wait for server comes up
     trigger_calibration();
 
-    RCLCPP_INFO_STREAM(get_logger(), "controller started");
+    RCLCPP_INFO_STREAM(get_logger(), "gripper controller started");
 }
 
 void

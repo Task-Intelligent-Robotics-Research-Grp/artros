@@ -247,8 +247,6 @@ class RobotiqSuction(SimpleActionClient):
                          self._callback_group)
         self.wait_for_server()
 
-        # Get parameters for computing gap values from the controller.
-        self._param_client = AsyncParameterClient(node, ns)
         self._parameters = {'advanced_mode':      advanced_mode,
                             'grasp_pressure':     grasp_pressure,
                             'detection_pressure': detection_pressure,
@@ -291,7 +289,6 @@ class RobotiqSuction(SimpleActionClient):
         """
         return self.suck(self.parameters['grasp_pressure'],
                          self.parameters['detection_pressure'],
-                         Duration(seconds=self.parameters['grasp_timeout']),
                          timeout)
 
     def release(self, timeout=Duration()):
@@ -308,11 +305,9 @@ class RobotiqSuction(SimpleActionClient):
         """
         return self.suck(self.parameters['release_pressure'],
                          self.parameters['detection_pressure'],
-                         Duration(seconds=self.parameters['grasp_timeout']),
                          timeout)
 
-    def suck(self, max_pressure, min_pressure,
-             grasp_timeout, timeout=Duration()):
+    def suck(self, max_pressure, min_pressure, timeout=Duration()):
         """
         Move fingers to the specified position with specified effort
         @param max_pressure maximum pressure value applied
@@ -329,5 +324,7 @@ class RobotiqSuction(SimpleActionClient):
                                advanced_mode=self.parameters['advanced_mode'],
                                max_pressure=max_pressure,
                                min_pressure=min_pressure,
-                               timeout=grasp_timeout.to_msg())),
-                              timeout=timeout)
+                               timeout=Duration(
+                                   seconds=self.parameters['grasp_timeout']) \
+                               .to_msg()),
+                   timeout=timeout)

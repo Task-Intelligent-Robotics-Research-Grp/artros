@@ -135,7 +135,3 @@ robotiq_epick_driver:
     dev:            /dev/ttyUSB0  # Used for rtu drivers
     slave_ids:      [9]           # list of slave IDs of Modbus devices
     arg3f_grippers: [False]
-
-robotiq_epick_controller:
-  ros__parameters:
-    max_pressure: 0.085

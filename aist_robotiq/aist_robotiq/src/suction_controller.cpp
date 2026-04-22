@@ -72,6 +72,7 @@ class SuctionController : public rclcpp::Node
     using cancel_response_t     = rclcpp_action::CancelResponse;
     using callback_group_p      = rclcpp::CallbackGroup::SharedPtr;
     using duration_t            = builtin_interfaces::msg::Duration;
+    using array2i               = std::array<int, 2>;
 
     template <class MSG>
     using pub_p         = typename rclcpp::Publisher<MSG>::SharedPtr;
@@ -131,7 +132,7 @@ class SuctionController : public rclcpp::Node
                     _cmodel_command_pub->publish(cmodel_command);
                     rclcpp::sleep_for(100ms);
                 }
-    void        send_suction_command(bool advanced_mode,
+    array2i     send_suction_command(bool advanced_mode,
                                      double max_pressure, double min_pressure,
                                      const duration_t& timeout) const
                 {
@@ -142,7 +143,8 @@ class SuctionController : public rclcpp::Node
                     const auto  tmo_sec = timeout.sec + timeout.nanosec*1.0e-9;
                     const auto  tmo     = std::clamp(int(tmo_sec), 0, 255);
                     send_raw_suction_command(advanced_mode,
-                                          max_prs, min_prs, tmo);
+                                             max_prs, min_prs, tmo);
+                    return {max_prs, min_prs};
                 }
     void        send_raw_suction_command(bool advanced_mode, int max_prs,
                                          int min_prs, int tmo) const
@@ -183,15 +185,22 @@ class SuctionController : public rclcpp::Node
                 {
                     return status->g_flt;
                 }
-    static bool stalled(const cmodel_status_cp& status)
+    bool        stalled(const cmodel_status_cp& status) const
                 {
-                    return status->g_obj == 1 || status->g_obj == 2;
+                    return _goal_pr[0] < _goal_pr[1] &&
+                           status->g_pr == _goal_pr[0] &&
+                           (status->g_obj == 1 || status->g_obj == 2);
+                }
+    bool        released(const cmodel_status_cp& status) const
+                {
+                    return _goal_pr[0] > _goal_pr[1] &&
+                           status->g_pr == _goal_pr[0] &&
+                           (status->g_obj == 0 || status->g_obj == 3);
                 }
 
   private:
   // Read-only parameters
     const int                           _slave_id;
-    const double                        _max_pressure;
 
   // Publisher for command to the driver
     const pub_p<cmodel_command_t>       _cmodel_command_pub;
@@ -202,17 +211,16 @@ class SuctionController : public rclcpp::Node
     const sub_p<cmodel_status_t>        _cmodel_status_sub;
 
   // SuctionCommand action stuffs
+    array2i                             _goal_pr;
     const action_p<suction_command_t>   _suction_command_srv;
     goal_handle_p<suction_command_t>    _goal_handle;
     std::mutex                          _goal_mtx;
 };
 
 SuctionController::SuctionController(const rclcpp::NodeOptions& options)
-    :rclcpp::Node("cmodel_controller", options),
+    :rclcpp::Node("suction_controller", options),
      _slave_id(ddynamic_reconfigure2::declare_read_only_parameter(
                    this, "slave_id", 9)),
-     _max_pressure(ddynamic_reconfigure2::declare_read_only_parameter(
-                       this, "max_pressure", 0.085)),
 
      _cmodel_command_pub(create_publisher<cmodel_command_t>("/command", 1)),
 
@@ -225,6 +233,7 @@ SuctionController::SuctionController(const rclcpp::NodeOptions& options)
                                       this, std::placeholders::_1),
                             create_subscription_options(_cmodel_status_cbg))),
 
+     _goal_pr{0, 0},
      _suction_command_srv(rclcpp_action::create_server<suction_command_t>(
                               this, "~/gripper_cmd",
                               std::bind(&SuctionController::goal_cb, this,
@@ -238,7 +247,7 @@ SuctionController::SuctionController(const rclcpp::NodeOptions& options)
      _goal_handle(nullptr),
      _goal_mtx()
 {
-    RCLCPP_INFO_STREAM(get_logger(), "controller started");
+    RCLCPP_INFO_STREAM(get_logger(), "suction controller started");
 }
 
 /*
@@ -298,8 +307,9 @@ SuctionController::handle_accepted_cb(
 
   // Send a move command to the suction.
     const auto& command = goal_handle->get_goal()->command;
-    send_suction_command(command.advanced_mode, command.max_pressure,
-                         command.min_pressure, command.timeout);
+    _goal_pr = send_suction_command(command.advanced_mode,
+                                    command.max_pressure, command.min_pressure,
+                                    command.timeout);
 }
 
 SuctionController::cancel_response_t
@@ -358,7 +368,7 @@ SuctionController::process_suction_command(const cmodel_status_cp& status)
         _goal_handle = nullptr;
         return;
     }
-    else if (result->stalled)
+    else if (stalled(status) || released(status))
     {
         RCLCPP_INFO_STREAM(get_logger(),
                            "SuctionCommand goal SUCCEEDED[pressure="
