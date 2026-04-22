@@ -77,7 +77,8 @@ class CModelBase(Node):
     def _timer_cb(self):
         for slave_id in self._arg3f.keys():
             status = self.get_status(slave_id)  # (defined in derived class)
-            self._pub.publish(status)   # Forward device status to controller
+            if status is not None:
+                self._pub.publish(status)  # Forward device status to controller
 
     def _clip_command(self, command):
         def clip(x, min_value, max_value):

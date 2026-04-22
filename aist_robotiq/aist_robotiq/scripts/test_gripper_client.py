@@ -71,33 +71,36 @@ class TestGripperClient(Node):
             print('  r:         Release')
             print('  <numeric>: Open gripper with a specified gap value')
             print('  c:         Cancel motion')
+            print('  w:         Wait until goal completed')
             print('  m:         Switch mode')
             print('  q:         Quit\n')
 
             key = input('>> ')
             if key == 'g':
-                result = self._gripper.grasp(timeout=Duration())
+                self._gripper.grasp(timeout=None)
             elif key == 'r':
-                result = self._gripper.release(timeout=Duration())
+                self._gripper.release(timeout=None)
             elif is_float(key):
-                result = self._gripper.move(float(key), timeout=None)
+                self._gripper.move(float(key), timeout=None)
             elif key == 'c':
-                print('### cancel')
                 self._gripper.cancel()
+            elif key == 'w':
+                status, result = self._gripper.wait(timeout=Duration(seconds=10))
+                print(result)
             elif key == 'v':
                 velocity = float(input('  velocity: '))
-                result = self._gripper.set_velocity(velocity)
+                success = self._gripper.set_velocity(velocity)
+                print('%s to set velocity'
+                      % ('succeeded' if success else 'failed'))
             elif key == 'm':
                 mode = int(input('  mode(0: BASIC, 1: PINCH, 2: WIDE, 3: SCISSOR, 4: ICF, 5: ICS): '))
-                result = self._gripper.set_mode(mode)
+                status, result = self._gripper.set_mode(mode)
+                print(result)
             elif key=='q':
                 break
             else:
                 print('unknown command: %s' % key)
-                continue
 
-            print('---- Result ----')
-            print(result)
         self.destroy_node()
         rclpy.shutdown()
 

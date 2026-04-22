@@ -88,10 +88,11 @@ class CModelModbusBase(CModelBase):
         try:
             result = self._read_registers(nregs, slave_id)
             if result.isError():
-                raise RuntimeError(result)
+                self.get_logger().error(f'{result}')
+                return None
         except Exception as e:
             self.get_logger().error(f'Error: {e}')
-            return
+            return None
 
         decoder = BinaryPayloadDecoder.fromRegisters(result.registers,
                                                      byteorder=Endian.BIG,
@@ -106,26 +107,26 @@ class CModelModbusBase(CModelBase):
         status.g_gto = (data >> 3) & 0x01
         status.g_sta = (data >> 4) & 0x03
         status.g_obj = (data >> 6) & 0x03
-        data = decorer.decode_8bit_uint()               # Byte 1
+        data = decoder.decode_8bit_uint()               # Byte 1
         status.g_vas =  data       & 0x03
         status.g_dtb = (data >> 2) & 0x03
         status.g_dtc = (data >> 4) & 0x03
         status.g_dts = (data >> 6) & 0x03
-        data = decorer.decode_8bit_uint()               # Byte 2
+        data = decoder.decode_8bit_uint()               # Byte 2
         status.g_flt = data        & 0x0f
-        status.g_pr  = decorer.decode_8bit_uint()       # Byte 3
-        status.g_po  = decorer.decode_8bit_uint()       # Byte 4
-        status.g_cou = decorer.decode_8bit_uint()       # Byte 5
+        status.g_pr  = decoder.decode_8bit_uint()       # Byte 3
+        status.g_po  = decoder.decode_8bit_uint()       # Byte 4
+        status.g_cou = decoder.decode_8bit_uint()       # Byte 5
         if self._arg3f[slave_id]:
-            status.g_prb = decorer.decode_8bit_uint()   # Byte 6
-            status.g_pob = decorer.decode_8bit_uint()   # Byte 7
-            status.g_cub = decorer.decode_8bit_uint()   # Byte 8
-            status.g_prc = decorer.decode_8bit_uint()   # Byte 9
-            status.g_poc = decorer.decode_8bit_uint()   # Byte 10
-            status.g_cuc = decorer.decode_8bit_uint()   # Byte 11
-            status.g_prs = decorer.decode_8bit_uint()   # Byte 12
-            status.g_pos = decorer.decode_8bit_uint()   # Byte 13
-            status.g_cus = decorer.decode_8bit_uint()   # Byte 14
+            status.g_prb = decoder.decode_8bit_uint()   # Byte 6
+            status.g_pob = decoder.decode_8bit_uint()   # Byte 7
+            status.g_cub = decoder.decode_8bit_uint()   # Byte 8
+            status.g_prc = decoder.decode_8bit_uint()   # Byte 9
+            status.g_poc = decoder.decode_8bit_uint()   # Byte 10
+            status.g_cuc = decoder.decode_8bit_uint()   # Byte 11
+            status.g_prs = decoder.decode_8bit_uint()   # Byte 12
+            status.g_pos = decoder.decode_8bit_uint()   # Byte 13
+            status.g_cus = decoder.decode_8bit_uint()   # Byte 14
         return status
 
 #########################################################################

@@ -285,7 +285,7 @@ class RobotiqSuction(SimpleActionClient):
         @param timeout If positive, wait timeout duration until
                        the gripper completing the grasp action.
                        If zero, wait forever until the completion.
-                       If negative, return immediately without waiting
+                       If None, return immediately without waiting
                        for completion.
         @return result of aist_robotiq/SuctionCommandResult type
         """
@@ -302,7 +302,7 @@ class RobotiqSuction(SimpleActionClient):
         @param timeout If positive, wait timeout duration until
                        the gripper completing the release action.
                        If zero, wait forever until the completion.
-                       If negative, return immediately without waiting
+                       If None, return immediately without waiting
                        for completion.
         @return result of aist_robotiq/SuctionCommandResult type
         """
@@ -320,7 +320,7 @@ class RobotiqSuction(SimpleActionClient):
         @param timeout      If positive, wait timeout duration until
                             the gripper completing the move action.
                             If zero, wait forever until the completion.
-                            If negative, return immediately without waiting
+                            If None, return immediately without waiting
                             for completion.
         @return result of aist_robotiq/SuctionCommandResult type
         """
@@ -330,4 +330,4 @@ class RobotiqSuction(SimpleActionClient):
                                max_pressure=max_pressure,
                                min_pressure=min_pressure,
                                timeout=grasp_timeout.to_msg())),
-                              timouet=timeout)
+                              timeout=timeout)

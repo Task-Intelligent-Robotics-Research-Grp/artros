@@ -313,7 +313,7 @@ class GripperController : public rclcpp::Node
                                    status->g_cuc, status->g_cus};
                 }
     static u_int
-                error(const cmodel_status_cp& status)
+                fault(const cmodel_status_cp& status)
                 {
                     return status->g_flt;
                 }
@@ -807,11 +807,11 @@ GripperController::process_gripper_command(const cmodel_status_cp& status)
     auto        result = std::make_unique<gripper_command_t::Result>();
     set_gripper_command_result(result, status);
 
-    if (error(status))  // Check if any error occured in the driver.
+    if (fault(status))  // Check if any fault occured in the driver.
     {
         RCLCPP_ERROR_STREAM(get_logger(),
-                            "GripperCommand goal ABORTED[error_code="
-                            << error(status) << ']');
+                            "GripperCommand goal ABORTED[fault_code="
+                            << fault(status) << ']');
         _gripper_command_goal_handle->abort(std::move(result));
         _gripper_command_goal_handle = nullptr;
         send_reset_command();
@@ -920,10 +920,10 @@ GripperController::set_mode_cancel_cb(goal_handle_p<set_mode_t>)
 void
 GripperController::process_set_mode(const cmodel_status_cp& status)
 {
-    if (error(status))  // Check if any error occured in the driver.
+    if (fault(status))  // Check if any fault occured in the driver.
     {
-        RCLCPP_ERROR_STREAM(get_logger(), "SetMode goal ABORTED[error_code="
-                            << error(status) << ']');
+        RCLCPP_ERROR_STREAM(get_logger(), "SetMode goal ABORTED[fault_code="
+                            << fault(status) << ']');
         auto    result = std::make_unique<set_mode_t::Result>();
         result->success = false;
         _set_mode_goal_handle->abort(std::move(result));

@@ -37,6 +37,7 @@
 #
 import rclpy, threading
 from rclpy.node          import Node
+from rclpy.duration      import Duration
 from aist_robotiq.client import RobotiqSuction
 
 #########################################################################
@@ -46,7 +47,7 @@ class TestSuctionClient(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        device_name        = self.declare_parameter('device_name',
+        gripper_name       = self.declare_parameter('gripper_name',
                                                     'a_bot_gripper').value
         advanced_mode      = self.declare_parameter('advanced_mode',
                                                     False).value
@@ -58,9 +59,9 @@ class TestSuctionClient(Node):
                                                     0.0).value
         grasp_timeout      = self.declare_parameter('grasp_timeout', 1.0).value
 
-        gripper = RobotiqSuction(self, device_name + '_', advanced_mode,
-                                 grasp_pressure, detection_pressure,
-                                 release_pressure, grasp_timeout)
+        self._gripper = RobotiqSuction(self, gripper_name + '_', advanced_mode,
+                                       grasp_pressure, detection_pressure,
+                                       release_pressure, grasp_timeout)
         self.get_logger().info('started')
 
         cli_thread = threading.Thread(target=self.interactive)
@@ -81,23 +82,27 @@ class TestSuctionClient(Node):
             print('  g:         Grasp')
             print('  r:         Release')
             print('  <numeric>: Set gripper a specified pressure value')
+            print('  c:         Cancel motion')
+            print('  w:         Wait until goal completed')
             print('  q:         Quit\n')
 
             key = input('>> ')
             if key == 'g':
-                result = self._gripper.grasp()
+                self._gripper.grasp(timeout=None)
             elif key == 'r':
-                result = self._gripper.release()
+                self._gripper.release(timeout=None)
             elif is_float(key):
-                result = self._gripper.suck(float(key))
+                self._gripper.suck(float(key), timeout=None)
+            elif key == 'c':
+                self._gripper.cancel()
+            elif key == 'w':
+                status, result = self._gripper.wait(timeout=Duration(seconds=10))
+                print(result)
             elif key=='q':
                 break
             else:
                 print('unknown command: %s' % key)
-                continue
 
-            print('---- Result ----')
-            print(result)
         self.destroy_node()
         rclpy.shutdown()
 

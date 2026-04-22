@@ -1,7 +1,15 @@
 SuctionCommand command
 ---
+uint8 NO_FAULT         = 0
+uint8 ACTION_DELAYED   = 5
+uint8 POROUS_MATERIAL  = 3
+uint8 GRIPPING_TIMEOUT = 6
+uint8 TEMPERATURE      = 8
+uint8 NO_COMMUNICATION = 9
+
 float64 pressure
 bool    stalled
+uint8   fault
 ---
 float64 pressure
 bool    stalled

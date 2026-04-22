@@ -111,6 +111,7 @@ class SuctionController : public rclcpp::Node
                 {
                     result->pressure = actual_pressure(status);
                     result->stalled  = stalled(status);
+                    result->fault    = fault(status);
                 }
 
   // Utilities
@@ -178,7 +179,7 @@ class SuctionController : public rclcpp::Node
                     return status->g_act == 1 && status->g_sta == 3;
                 }
     static u_int
-                error(const cmodel_status_cp& status)
+                fault(const cmodel_status_cp& status)
                 {
                     return status->g_flt;
                 }
@@ -317,11 +318,33 @@ SuctionController::process_suction_command(const cmodel_status_cp& status)
     auto        result = std::make_unique<suction_command_t::Result>();
     set_result(result, status);
 
-    if (error(status))  // Check if any error occured in the driver.
+    if (const auto fault_code=fault(status))
     {
-        RCLCPP_ERROR_STREAM(get_logger(),
-                            "SuctionCommand goal ABORTED[error_code="
-                            << error(status) << ']');
+        std::string     fault_message;
+
+        switch (fault(status))
+        {
+          case suction_command_t::Result::ACTION_DELAYED:
+            fault_message = "action delayed";
+            break;
+          case suction_command_t::Result::POROUS_MATERIAL:
+            fault_message = "very porous material detected";
+            break;
+          case suction_command_t::Result::GRIPPING_TIMEOUT:
+            fault_message = "gripping timeout";
+            break;
+          case suction_command_t::Result::TEMPERATURE:
+            fault_message = "maximum temperature";
+            break;
+          case suction_command_t::Result::NO_COMMUNICATION:
+            fault_message = "no communication with the gripper during 1 second";
+            break;
+          default:
+            fault_message = "fault_code=" + std::to_string(fault_code);
+            break;
+        }
+        RCLCPP_ERROR_STREAM(get_logger(), "SuctionCommand goal ABORTED["
+                            << fault_message << ']');
         _goal_handle->abort(std::move(result));
         _goal_handle = nullptr;
         send_reset_command();
