@@ -41,6 +41,7 @@
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <aist_robotiq_msgs/msg/c_model_status.hpp>
 #include <aist_robotiq_msgs/msg/c_model_command.hpp>
+#include <aist_robotiq_msgs/msg/object_state.hpp>
 #include <aist_robotiq_msgs/action/suction_command.hpp>
 #include <ddynamic_reconfigure2/ddynamic_reconfigure2.hpp>
 
@@ -66,6 +67,7 @@ class SuctionController : public rclcpp::Node
     using cmodel_status_t       = aist_robotiq_msgs::msg::CModelStatus;
     using cmodel_status_cp      = cmodel_status_t::ConstSharedPtr;
     using cmodel_command_t      = aist_robotiq_msgs::msg::CModelCommand;
+    using object_state_t        = aist_robotiq_msgs::msg::ObjectState;
     using suction_command_t     = aist_robotiq_msgs::action::SuctionCommand;
     using goal_uuid_t           = rclcpp_action::GoalUUID;
     using goal_response_t       = rclcpp_action::GoalResponse;
@@ -116,7 +118,7 @@ class SuctionController : public rclcpp::Node
                 }
 
   // Utilities
-    void        send_reset_command()
+    void        send_reset_command() const
                 {
                     using namespace     std::chrono_literals;
 
@@ -210,6 +212,9 @@ class SuctionController : public rclcpp::Node
     const callback_group_p              _cmodel_status_cbg;
     const sub_p<cmodel_status_t>        _cmodel_status_sub;
 
+  // Publisher for SuctionState
+    const pub_p<object_state_t>         _object_state_pub;
+
   // SuctionCommand action stuffs
     array2i                             _goal_pr;
     const action_p<suction_command_t>   _suction_command_srv;
@@ -232,6 +237,8 @@ SuctionController::SuctionController(const rclcpp::NodeOptions& options)
                             std::bind(&SuctionController::cmodel_status_cb,
                                       this, std::placeholders::_1),
                             create_subscription_options(_cmodel_status_cbg))),
+
+     _object_state_pub(create_publisher<object_state_t>("~/object_state", 1)),
 
      _goal_pr{0, 0},
      _suction_command_srv(rclcpp_action::create_server<suction_command_t>(
@@ -259,6 +266,11 @@ SuctionController::cmodel_status_cb(const cmodel_status_cp& status)
   // Reject the input status not of mine.
     if (status->g_sid != _slave_id)
         return;
+
+  // Publish state of object detection.
+    auto        object_state = std::make_unique<object_state_t>();
+    object_state->state = status->g_obj;
+    _object_state_pub->publish(std::move(object_state));
 
   // Return immediately if activation is in progress.
     if (!is_active(status))

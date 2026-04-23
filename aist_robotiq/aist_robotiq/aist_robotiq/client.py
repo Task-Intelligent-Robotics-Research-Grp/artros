@@ -234,9 +234,9 @@ class RobotiqSuction(SimpleActionClient):
     """
     Gripper client of aist_robotiq/SuctionCommandAction type.
     """
-    def __init__(self, node, prefix='a_bot_gripper_', advanced_mode=False,
+    def __init__(self, node, prefix='a_bot_gripper_', advanced_mode=True,
                  grasp_pressure=-78.0, detection_pressure=-10.0,
-                 release_pressure=0.0, grasp_timeout=1.0):
+                 release_pressure=0.0, grasp_timeout=0.0):
         """
         Constructor
         @param prefix     string prefix for identifying a specific gripper
@@ -319,12 +319,13 @@ class RobotiqSuction(SimpleActionClient):
                             for completion.
         @return result of aist_robotiq/SuctionCommandResult type
         """
-        return self.send_goal(SuctionCommand.Goal(
-                   command=SuctionCommandMsg(
-                               advanced_mode=self.parameters['advanced_mode'],
-                               max_pressure=max_pressure,
-                               min_pressure=min_pressure,
-                               timeout=Duration(
-                                   seconds=self.parameters['grasp_timeout']) \
-                               .to_msg()),
+        return self.send_goal(
+                   SuctionCommand.Goal(
+                       command=SuctionCommandMsg(
+                           advanced_mode=self.parameters['advanced_mode'],
+                           max_pressure=max_pressure,
+                           min_pressure=min_pressure,
+                           timeout=Duration(
+                               seconds=self.parameters['grasp_timeout']) \
+                           .to_msg())),
                    timeout=timeout)

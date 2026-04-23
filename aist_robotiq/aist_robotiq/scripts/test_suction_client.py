@@ -50,14 +50,14 @@ class TestSuctionClient(Node):
         gripper_name       = self.declare_parameter('gripper_name',
                                                     'a_bot_gripper').value
         advanced_mode      = self.declare_parameter('advanced_mode',
-                                                    False).value
+                                                    True).value
         grasp_pressure     = self.declare_parameter('grasp_pressure',
                                                     -78.0).value
         detection_pressure = self.declare_parameter('detection_pressure',
                                                     -10.0).value
         release_pressure   = self.declare_parameter('release_pressure',
                                                     0.0).value
-        grasp_timeout      = self.declare_parameter('grasp_timeout', 1.0).value
+        grasp_timeout      = self.declare_parameter('grasp_timeout', 0.0).value
 
         self._gripper = RobotiqSuction(self, gripper_name + '_', advanced_mode,
                                        grasp_pressure, detection_pressure,
@@ -96,7 +96,7 @@ class TestSuctionClient(Node):
             elif key == 'c':
                 self._gripper.cancel()
             elif key == 'w':
-                status, result = self._gripper.wait(timeout=Duration(seconds=10))
+                status, result = self._gripper.wait(timeout=Duration(seconds=2))
                 print(result)
             elif key=='q':
                 break
