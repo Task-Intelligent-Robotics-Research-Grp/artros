@@ -94,8 +94,8 @@ class TestGripperClient(Node):
                       % ('succeeded' if success else 'failed'))
             elif key == 'm':
                 mode = int(input('  mode(0: BASIC, 1: PINCH, 2: WIDE, 3: SCISSOR, 4: ICF, 5: ICS): '))
-                status, result = self._gripper.set_mode(mode)
-                print(result)
+                success = self._gripper.set_mode(mode)
+                print('%s to set mode' % ('succeeded' if success else 'failed'))
             elif key=='q':
                 break
             else:
