@@ -57,7 +57,6 @@ ament_python_install_package(${PROJECT_NAME})
 install(
   PROGRAMS
     scripts/cmodel_driver.py
-    scripts/epick_controller.py
     scripts/test_gripper_client.py
     scripts/test_suction_client.py
   DESTINATION
