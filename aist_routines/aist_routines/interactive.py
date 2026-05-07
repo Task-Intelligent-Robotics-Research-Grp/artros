@@ -36,13 +36,18 @@
 # Author: Toshio Ueshiba
 #
 import rclpy, sys, threading
-from rclpy.executors    import MultiThreadedExecutor
-from aist_routines.base import AISTBaseRoutines
+from typing          import TypeVar, Generic
+from rclpy.executors import MultiThreadedExecutor
+from .base           import BaseRoutines
+from .assembly       import AssemblyRoutines
+from .kitting        import KittingRoutines
+
+T = TypeVar('T')
 
 ######################################################################
 #  class InteractiveRoutines                                         #
 ######################################################################
-class InteractiveRoutines(AISTBaseRoutines):
+class InteractiveRoutines(Generic[T]):
     def __init__(self, name):
         super().__init__(name)
         self.get_logger().info('started')
@@ -57,8 +62,8 @@ class InteractiveRoutines(AISTBaseRoutines):
                 self.settings['initial_object_config'])
 
         arm_name = self.group_names[0]
-        axis       = 'Y'
-        speed      = 1.0
+        axis     = 'Y'
+        speed    = 1.0
 
         # Reset pose
         self.go_to_named_pose(arm_name, "home")
@@ -67,23 +72,27 @@ class InteractiveRoutines(AISTBaseRoutines):
         while rclpy.ok():
             current_pose = self.get_current_pose(arm_name)
             prompt = '{:>5}:{}({})@{}>> ' \
-                   .format(axis,
-                           self.format_pose(current_pose),
-                           speed, arm_name)
+                    .format(axis, self.format_pose(current_pose),
+                            speed, arm_name)
             key = input(prompt)
             arm_name, axis, speed = super().interactive(key, arm_name,
                                                         axis, speed)
 
-######################################################################
-#  global functions                                                  #
-######################################################################
-def main():
+def _main(routines):
     rclpy.init(args=sys.argv)
-
-    node = InteractiveRoutines('interactive')
+    node = InteractiveRoutines[routines]('interactive')
     executor = MultiThreadedExecutor()
     executor.add_node(node)
     executor.spin()
 
-if __name__ == '__main__':
-    main()
+######################################################################
+#  entry points                                                      #
+######################################################################
+def base_main():
+    _main(BaseRoutines)
+
+def assembly_main():
+    _main(AssemblyRoutines)
+
+def kitting_main():
+    _main(KittingRoutines)

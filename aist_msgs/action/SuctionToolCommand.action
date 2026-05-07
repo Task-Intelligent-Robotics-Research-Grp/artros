@@ -1,15 +1,12 @@
 # Goal
-bool                        suck        # True: suck, False: blow
-builtin_interfaces/Duration min_period  # minimum time required for
-                                        # the operation being succeeded
-					# If zero, operation succeeds
-					# immediately.
-					# If negative, operation never
-					# succeeds and should be terminated
-					# by cancel request.
+bool    suck        # True: suck, False: blow
+float64 min_period  # minimum time required for the operation being succeeded
+                    # If zero, operation succeeds immediately.
+                    # If negative, operation never succeeds
+                    # and should be terminated by cancel request.
 ---
 # Result
 bool suctioned
 ---
 # Feedback
-bool suctioned       # digital_input of ur_control
+bool suctioned      # digital_input of ur_control

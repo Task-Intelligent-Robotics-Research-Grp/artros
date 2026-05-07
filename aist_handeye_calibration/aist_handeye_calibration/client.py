@@ -34,12 +34,13 @@
 #
 # Author: Toshio Ueshiba
 #
-import rclpy, time
-from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
-from std_srvs.srv          import Empty
-from aist_msgs.srv         import (HandEyeCalibrationTakeSample,
-                                   HandEyeCalibrationGetSampleList,
-                                   HandEyeCalibrationComputeCalibration)
+import rclpy
+from rclpy.callback_groups   import MutuallyExclusiveCallbackGroup
+from std_srvs.srv            import Empty
+from aist_msgs.srv           import (HandEyeCalibrationTakeSample,
+                                     HandEyeCalibrationGetSampleList,
+                                     HandEyeCalibrationComputeCalibration)
+from srv_and_action_wrappers import ServiceClient
 
 ######################################################################
 #  class HandEyeCalibratorClient                                     #
@@ -49,30 +50,31 @@ class HandEyeCalibratorClient(object):
         super().__init__()
 
         self._cbg                 = MutuallyExclusiveCallbackGroup()
-        self._take_sample         = node.create_client(
+        self._take_sample         = ServiceClient(
+                                        node,
                                         HandEyeCalibrationTakeSample,
                                         server_ns + '/take_sample',
-                                        callback_group=self._cbg)
-        self._get_sample_list     = node.create_client(
+                                        self._cbg)
+        self._get_sample_list     = ServiceClient(
+                                        node,
                                         HandEyeCalibrationGetSampleList,
                                         server_ns + '/get_sample_list',
-                                        callback_group=self._cbg)
-        self._compute_calibration = node.create_client(
+                                        self._cbg)
+        self._compute_calibration = ServiceClient(
+                                        node,
                                         HandEyeCalibrationComputeCalibration,
                                         server_ns + '/compute_calibration',
-                                        callback_group=self._cbg)
-        self._reset               = node.create_client(
+                                        self._cbg)
+        self._reset               = ServiceClient(
+                                        node,
                                         Empty, server_ns + '/reset',
-                                        callback_group=self._cbg)
+                                        self._cbg)
 
     def take_sample_async(self):
-        return self._take_sample.call_async(HandEyeCalibrationTakeSample\
-                                            .Request())
+        self._take_sample.call(HandEyeCalibrationTakeSample.Request(), 0.0)
 
-    def wait_for_sample(self, future):
-        while not future.done():
-            time.sleep(0.1)
-        return future.result()
+    def wait_for_sample(self, timeout_sec=None):
+        return self._take_sample.wait(timeout_sec)
 
     def get_sample_list(self):
         return self._get_sample_list.call(HandEyeCalibrationGetSampleList\

@@ -34,52 +34,20 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy
-from geometry_msgs.msg                import (PoseStamped, WrenchStamped,
-                                              Vector3)
-from aist_routines.ur                 import URRoutines
-from cuda_feature_tracker_3d          import FeatureTrackerClient
-from aist_utility.compat              import *
+import rclpy
+from geometry_msgs.msg import (PoseStamped, WrenchStamped, Vector3)
+from .base             import BaseRoutines
+#from cuda_feature_tracker_3d          import FeatureTrackerClient
 
 ######################################################################
 #  class AssemblyRoutines                                            #
 ######################################################################
-class AssemblyRoutines(URRoutines):
+class AssemblyRoutines(BaseRoutines):
     """Implements assembly routines for aist robot system."""
 
-    def __init__(self):
-        super().__init__()
-
+    def __init__(self, name):
+        super().__init__(name)
         self._feature_trackers = {}
-        for robot_name in rospy.get_param('~robots').keys():
-            try:
-                self._feature_trackers[robot_name] \
-                    = FeatureTrackerClient(robot_name + '/feature_tracker')
-            except Exception as e:
-                print(e)
-        self._initialize_collision_objects()
-
-    def run(self):
-        robot_name = list(rospy.get_param('~robots').keys())[0]
-        axis       = 'Y'
-        speed      = 1.0
-
-        for rname in rospy.get_param('~robots').keys():
-            self.camera(rname + '_camera').laser_power = 0
-        self.camera(robot_name + '_camera').laser_power = 16
-
-        while not rospy.is_shutdown():
-            prompt = '{:>5}:{}>> '.format(axis,
-                                          self.format_pose(
-                                              self.get_current_pose(
-                                                  robot_name)))
-            key = raw_input(prompt)
-
-            try:
-                robot_name, axis, speed = self.interactive(key, robot_name,
-                                                           axis, speed)
-            except Exception as e:
-                print(e)
 
     # Interactive stuffs
     def print_help_messages(self):
@@ -103,13 +71,7 @@ class AssemblyRoutines(URRoutines):
         print('  B:  Move all robots to back')
 
     def interactive(self, key, robot_name, axis, speed):
-        if key == 'robot':
-            print('  current: %s' % robot_name)
-            new_robot_name = raw_input('  robot name? ')
-            if new_robot_name != '':
-                self.switch_camera(robot_name, new_robot_name)
-                robot_name = new_robot_name
-        elif key == 'pt':
+        if key == 'pt':
             tool_name = raw_input('  tool name? ')
             self.pick_tool(robot_name, tool_name)
         elif key == 'PT':
@@ -277,20 +239,7 @@ class AssemblyRoutines(URRoutines):
         self.com.reset_touch_links()
 
     def _initialize_collision_objects(self):
-        self.com.remove_object()
-        for object_type, config \
-            in rospy.get_param('~initial_object_config', {}).items():
-            self.com.create_object(object_type,
-                                   self.pose_from_xyzrpy(
-                                       config.get('offset', ()),
-                                       config['parent_link']),
-                                   config.get('subframe', 'base_link'))
-            rospy.sleep(0.5)
-            # if object_type == 'panel_bearing' or object_type == 'panel_motor':
-            #     self.com.attach_object(object_type, config['parent_link'])
-            # if object_type == 'base':
-            #     self.com.attach_object(object_type, config['parent_link'])
-
+        super()._initialize_collision_objects()
         self._screw_m3_id = 0
         self._screw_m4_id = 0
         self._generate_screw('screw_m3')

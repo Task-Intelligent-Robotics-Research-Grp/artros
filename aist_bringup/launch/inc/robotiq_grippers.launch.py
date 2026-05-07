@@ -21,26 +21,26 @@ launch_arguments = [
 
 
 def launch_setup(context):
-    config         = load_config(context)
-    devices_config = config['grippers'][LaunchConfiguration('name')
-                                        .perform(context)]
-    device_names   = [device_name
-                      for device_name in devices_config.get('grippers', {})]
-    device_types   = [device_props['type']
-                      for device_props in devices_config.get('grippers', {})
-                      .values()]
+    config          = load_config(context)
+    grippers_config = config['grippers'][LaunchConfiguration('name')
+                                         .perform(context)]
+    gripper_names   = [gripper_name
+                       for gripper_name in grippers_config.get('grippers', {})]
+    gripper_types   = [gripper_props['type']
+                       for gripper_props in grippers_config.get('grippers', {})
+                       .values()]
     return [
         IncludeLaunchDescription(
             PathJoinSubstitution([FindPackageShare('aist_robotiq'), 'launch',
                                   'launch.py']),
             launch_arguments=[
-                ('param_file',   PathJoinSubstitution([
-                                     FindPackageShare('aist_bringup'),
-                                     'config', 'devices', 'grippers.yaml'])),
-                ('device_names', ','.join(device_names)),
-                ('device_types', ','.join(device_types)),
-                ('container',    [LaunchConfiguration('name'), '_container']),
-                ('driver_ns',    [LaunchConfiguration('name'), '_driver'])
+                ('param_file',    PathJoinSubstitution([
+                                      FindPackageShare('aist_bringup'),
+                                      'config', 'devices', 'grippers.yaml'])),
+                ('gripper_names', ','.join(gripper_names)),
+                ('gripper_types', ','.join(gripper_types)),
+                ('container',     [LaunchConfiguration('name'), '_container']),
+                ('driver_ns',     [LaunchConfiguration('name'), '_driver'])
             ])
     ]
 

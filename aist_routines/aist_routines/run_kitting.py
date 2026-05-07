@@ -35,9 +35,22 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy
-from aist_routines.KittingRoutines import KittingRoutines
+import rclpy, sys
+from aist_routines.kitting import KittingRoutines
 
+######################################################################
+#  global functions                                                  #
+######################################################################
+def main():
+    rclpy.init(args=sys.argv)
+
+    node = InteractiveRoutines('interactive')
+    executor = MultiThreadedExecutor()
+    executor.add_node(node)
+    executor.spin()
+
+if __name__ == '__main__':
+    main()
 if __name__ == '__main__':
 
     rospy.init_node('kitting', anonymous=True)

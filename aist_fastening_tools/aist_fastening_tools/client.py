@@ -35,114 +35,166 @@ Clients of gripper action controller of control_msg/GripperCommandAction type.
 @file   __init__.py
 @author t.ueshiba@aist.go.jp
 """
-import rclpy, time
+import rclpy
 from rclpy.node            import Node
-from rclpy.duration        import Duration
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
-from rclpy.action          import ActionClient
 from action_msgs.msg       import GoalStatus
 from std_msgs.msg          import Bool
 from aist_msgs.action      import ScrewToolCommand, SuctionToolCommand
+from srv_and_action_wrappers.action_client import SimpleActionClient
+
+######################################################################
+#  class SuctionTool                                                 #
+######################################################################
+class SuctionTool(SimpleActionClient):
+    """
+    Suction tool client of aist_msgs.action.SuctionToolCommand type.
+    """
+    def __init__(self, node, name, suck_min_period=0.5, blow_min_period=0.2):
+        """
+        Constructor
+        @param name    name of the suction tool
+        """
+        self._name    = name
+        controller_ns = name + '_controller'
+        self._callback_group = MutuallyExclusiveCallbackGroup()
+
+        super().__init__(node, SuctionCommand, controller_ns + '/gripper_cmd',
+                         self._callback_group)
+
+        if not self.wait_for_server(timeout_sec=1.0):
+            raise RuntimeError(
+                'failed to establish connection to the actionserver[%s]' \
+                % (controller_ns + '/command'))
+
+        self._suctioned     = None
+        self._suctioned_cbg = MutuallyExclusiveCallbackGroup()
+        self._suctioned_sub = node.create_subscription(
+                                  Bool, controller_ns + '/suctioned',
+                                  self._suctioned_cb, 10,
+                                  callback_group=self._suctioned_cbg)
+        self._properties = {'suck_min_period': suck_min_period,
+                            'blow_min_period': blow_min_period}
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def base_link(self):
+        return self._name + '/base_link'
+
+    @property
+    def tip_link(self):
+        return self._name + '/tip_link'
+
+    @property
+    def properties(self):
+        return self._properties
+
+    def pregrasp(self):
+        # Set goal.min_period to zero so that the goal succeeds immediately.
+        self._suck_command(True, 0.0)
+
+    def grasp(self, timeout_sec=None):
+        return self._suck_command(True, self._properties['suck_min_period'],
+                                  timeout_sec)
+
+    def postgrasp(self):
+        self.pregrasp()
+
+    def release(self, timeout_sec=None):
+        return self._suck_command(False, self._properties['blow_min_period'],
+                                  timeout_sec)
+
+    def wait(self, timeout_sec=None):
+        status, result = super().wait(timeout_sec)
+        if status == GoalStatus.STATUS_UNKNOWN:
+            return (status,
+                    SuctionToolCommand.Result(suctioned=self._suctioned))
+        return (status, result)
+
+    def _suck_command(self, suck, min_period, timeout_sec=None):
+        return self.send_goal(SuctionToolCommand.Goal(suck=suck,
+                                                      min_period=min_period),
+                              timeout_sec)
+
+    def _suctioned_cb(self, msg):
+        self._suctioned = msg.data
 
 ######################################################################
 #  class ScrewTool                                                   #
 ######################################################################
-class ScrewTool(object):
+class ScrewTool(SuctionTool):
     """
     Screw tool client of aist_msgs.action.ScrewToolCommand type.
     """
-    def __init__(self, node, name, speed=1.0, retighten=True):
+    def __init__(self, node, name, suck_min_period=0.5, blow_min_period=0.2,
+                 speed=1.0, retighten=True):
         """
         Constructor
         @param name   name of the screw tool
         """
-        super().__init__()
+        super().__init__(node, name, suck_min_period, blow_min_period)
 
-        self._clock             = node.get_clock()
-        self._logger            = node.get_logger()
-        self._feedback          = ScrewToolCommand.Feedback()
-        self._goal_handle       = None
-        self._get_result_future = None
-        self._client_cbg        = MutuallyExclusiveCallbackGroup()
-        self._client            = ActionClient(node, ScrewToolCommand,
-                                               name + '_controller/command',
-                                               callback_group=self._client_cbg)
-        self._parameters        = {'speed':     speed,
-                                   'retighten': retighten}
-        if not self._client.wait_for_server(timeout_sec=1.0):
+        controller_ns = name + '_fastening_controller'
+        self._screw_tool = SimpleActionClient(node, ScrewToolCommand,
+                                              controller_ns + '/command',
+                                              callback_group=self._callback_group)
+        if not self._screw_tool.wait_for_server(timeout_sec=1.0):
             raise RuntimeError(
                 'failed to establish connection to the action server[%s]' \
-                % (name + '_contoller/command'))
+                % (controller_ns + '/command'))
+        self._properties['speed']     = speed
+        self._properties['retighten'] = retighten
 
-        self._logger.info('started client for screw tool[%s]' % name)
-
-    @property
-    def parameters(self):
-        """
-        Return a dictionary of grippaer parameters
-        @return a dictionary of grippaer parameters with string keys
-        """
-        return self._parameters
-
-    @parameters.setter
-    def parameters(self, parameters):
-        """
-        Set a dictionary of grippaer parameters
-        @param parameters a dictionary of grippaer parameters with string keys
-        """
-        for key, value in parameters.items():
-            self._parameters[key] = value
-
-    def tighten(self, timeout=Duration(seconds=-1)):
+    def tighten(self, timeout_sec=None):
         """
         Tighten the screw with the tool.
         Desired speed is specified by the parameter 'speed'.
-        with 'grasp_position' and 'max_effort' keys, respectively,
-        @param timeout If positive, wait timeout duration until
-                       the tool completing the tightening.
-                       If zero, wait forever until the completion.
-                       If negative, return immediately without waiting
-                       for completion.
-        @return result of aist_msgs.action.ScrewToolCommand.Result type
+        @param timeout_sec If positive, wait timeout duration until
+                           the gripper completing the movement.
+                           If non-positive, return immediately without waiting
+                           for completion.
+                           If None, wait forever until the completion.
+        @return (status, result) of
+                (int, aist_msgs/action/ScrewToolCommand.Result) type
         """
-        return self._send_goal(self.parameters['speed'],
-                               self.parameters['retighten'], timeout)
+        return self._screw_command(self.properties['speed'],
+                                   self.properties['retighten'], timeout_sec)
 
-    def loosen(self, timeout=Duration(seconds=-1)):
+    def loosen(self, timeout_sec=None):
         """
         Loosen the screw with the tool.
         Desired speed is specified by the parameter 'speed'.
-        @param timeout If positive, wait timeout duration until
-                       the gripper completing the movement.
-                       If zero, wait forever until the completion.
-                       If negative, return immediately without waiting
-                       for completion.
-        @return result of control_msgs/GripperCommandResult type
+        @param timeout_sec If positive, wait timeout duration until
+                           the gripper completing the movement.
+                           If non-positive, return immediately without waiting
+                           for completion.
+                           If None, wait forever until the completion.
+        @return (status, result) of
+                (int, aist_msgs/action/ScrewToolCommand.Result) type
         """
-        return self._send_goal(-self.parameters['speed'], False, timeout)
+        return self._screw_command(-self.properties['speed'], False,
+                                   timeout_sec)
 
-    def wait(self, timeout=Duration()):
-        """
-        Wait the gripper for completing the movement.
-        @param timeout If positive, wait timeout duration until
-                       the tool completing the tightening/loosing of the screw.
-                       If zero, wait forever until the completion.
-                       If negative, return immediately without waiting
-                       for completion.
-        @return result of control_msgs/GripperCommandResult type
-        """
-        if timeout.nanoseconds < 0:
-            return ScrewToolCommand.Result(stalled=False)
+    def pregrasp(self):
+        self._screw_command(self.properties['speed'], False, 0.0)
+        super().pregrasp()
 
-        timeout_time = self._clock.now() + timeout
-        while self._get_result_future is None or \
-              not self._get_result_future.done():
-            if timeout.nanoseconds > 0 and self._clock.now() > timeout_time:
-                self._logger.error('timeout[%.1fs] has expired before goal finished'
-                                   % (timeout.nanoseconds * 1.0e-9))
-                return ScrewToolCommand.Result(stalled=False)
-            time.sleep(0.05)
-        return self._get_result_future.result().result
+    def grasp(self, timeout_sec=None):
+        self._screw_command(self.properties['speed'], False, None)
+        status, result = super().grasp(timeout_sec)
+        if status == GoalStatus.STATUS_SUCCEEDED and result.suctioned:
+            self._screw_tool.cancel()
+        return status, result
+
+    def postgrasp(self):
+        self._screw_tool.cancel()
+        super().postgrasp()
+
+    def wait(self, timeout_sec=None):
+        return self._screw_tool.wait(timeout_sec)
 
     def cancel(self):
         """
@@ -154,147 +206,7 @@ class ScrewTool(object):
         self._goal_handle.cancel_goal_async().add_done_callback(
             self._cancel_response_cb)
 
-    def _send_goal(self, speed, retighten, timeout):
-        self._goal_handle = None
-        self._get_result_future = None
-        self._client.send_goal_async(
-            ScrewToolCommand.Goal(speed=speed, retighten=retighten),
-            feedback_callback=self._feedback_cb) \
-           .add_done_callback(self._goal_response_cb)
-        return self.wait(timeout)
-
-    def _goal_response_cb(self, future):
-        self._goal_handle = future.result()
-        if not self._goal_handle.accepted:
-            self._logger.error('goal rejected')
-            return
-        self._logger.info('goal accepted')
-        self._get_result_future = self._goal_handle.get_result_async()
-
-    def _cancel_response_cb(self, future):
-        cancel_response = future.result()
-        if len(cancel_response.goals_canceling) == 0:
-            self._logger.warn('no active goals')
-        else:
-            self._logger.info('goal canceled')
-
-    def _feedback_cb(self, feedback):
-        self._feedback = feedback
-
-######################################################################
-#  class SuctionTool                                                 #
-######################################################################
-class SuctionTool(object):
-    """
-    Suction tool client of aist_msgs.action.SuctionToolCommand type.
-    """
-    def __init__(self, node, name, suck_min_period=0.5, blow_min_period=0.2):
-        """
-        Constructor
-        @param name    name of the suction tool
-        """
-        super().__init__()
-
-        self._clock             = node.get_clock()
-        self._logger            = node.get_logger()
-        self._goal_handle       = None
-        self._get_result_future = None
-        self._client_cbg        = MutuallyExclusiveCallbackGroup()
-        self._client            = ActionClient(node, SuctionToolCommand,
-                                               name + '_controller/command',
-                                               callback_group=self._client_cbg)
-        if not self._client.wait_for_server(timeout_sec=1.0):
-            raise RuntimeError(
-                'failed to establish connection to the actionserver[%s]' \
-                % (name + '_contoller/command'))
-
-        self._suctioned     = None
-        self._suctioned_cbg = MutuallyExclusiveCallbackGroup()
-        self._suctioned_sub = node.create_subscription(
-                                  Bool, name + '_controller/suctioned',
-                                  self._suctioned_cb, 10,
-                                  callback_group=self._suctioned_cbg)
-        self._parameters = {'suck_min_period': suck_min_period,
-                            'blow_min_period': blow_min_period}
-
-        self._logger.info('started client of suction tool[%s]' % name)
-
-    @property
-    def parameters(self):
-        return self._parameters
-
-    @parameters.setter
-    def parameters(self, parameters):
-        for key, value in parameters.items():
-            self._parameters[key] = value
-
-    def pregrasp(self):
-        # Set goal.min_period to zero so that the goal succeeds immediately.
-        self._send_command(True, Duration(seconds=0), Duration(seconds=-1))
-
-    def grasp(self, timeout=Duration(seconds=-1)):
-        return self._send_command(
-                   True,
-                   Duration(seconds=self._parameters['suck_min_period']),
-                   timeout)
-
-    def postgrasp(self):
-        self.pregrasp()
-
-    def release(self, timeout=Duration(seconds=-1)):
-        return self._send_command(
-                   False,
-                   Duration(seconds=self._parameters['blow_min_period']),
-                   timeout)
-
-    def wait(self, timeout=Duration()):
-        if timeout.nanoseconds < 0:  # If timeout value is negative...
-            return SuctionToolCommand.Result(suctioned=self._suctioned)
-
-        timeout_time = self._clock.now() + timeout
-        while self._get_result_future is None or \
-              not self._get_result_future.done():
-            if timeout.nanoseconds > 0 and self._clock.now() > timeout_time:
-                self._logger.error('timeout[%.1fs] has expired before goal finished'
-                                   % (timeout.nanoseconds*1.0e-9))
-                return SuctionToolCommand.Result(suctioned=self._suctioned)
-            time.sleep(0.05)
-        self._logger.info('%s' % ('suctioned' if self._suctioned else \
-                                  'not suctioned'))
-        return self._get_result_future.result().result
-
-    def cancel(self):
-        if not self._goal_handle:
-            self._logger.warn('no active goal')
-            return
-
-        self._goal_handle.cancel_goal_async().add_done_callback(
-            self._cancel_response_cb)
-
-    def _send_command(self, suck, min_period, timeout):
-        self._goal_handle = None
-        self._get_result_future = None
-        self._client.send_goal_async(
-            SuctionToolCommand.Goal(suck=suck,
-                                    min_period=min_period.to_msg())) \
-           .add_done_callback(self._goal_response_cb)
-        return self.wait(timeout)
-
-    def _goal_response_cb(self, future):
-        goal_handle = future.result()
-        if not goal_handle.accepted:
-            self._logger.error('goal rejected')
-            return
-        self._logger.info('goal accepted')
-        self._goal_handle = goal_handle
-        self._get_result_future = goal_handle.get_result_async()
-
-    def _cancel_response_cb(self, future):
-        cancel_response = future.result()
-        if len(cancel_response.goals_canceling) == 0:
-            self._logger.warn('no active goals')
-        else:
-            self._logger.info('goal canceled')
-
-    def _suctioned_cb(self, msg):
-        self._suctioned = msg.data
+    def _screw_command(self, speed, retighten, timeout_sec):
+        return self._screw_tool.send_goal(ScrewToolCommand.Goal(
+                                            speed=speed, retighten=retighten),
+                                          None, timeout_sec)

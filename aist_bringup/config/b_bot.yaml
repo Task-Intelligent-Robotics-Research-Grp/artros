@@ -29,7 +29,7 @@ arms:
 
 grippers:
   b_bot_grippers:
-    type:             RobotiqDevices
+    type:             RobotiqGrippers
     grippers:
       b_bot_gripper:
         type:         RobotiqGripper

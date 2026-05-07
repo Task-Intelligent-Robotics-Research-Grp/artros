@@ -54,7 +54,7 @@ arms:
 
 grippers:
   a_bot_grippers:
-    type:             RobotiqDevices
+    type:             RobotiqGrippers
     grippers:
       a_bot_gripper:
         type:         RobotiqGripper
@@ -62,7 +62,7 @@ grippers:
           max_effort: 5.0
           velocity:   0.1
   b_bot_grippers:
-    type:             RobotiqDevices
+    type:             RobotiqGrippers
     grippers:
       b_bot_gripper:
         type:         RobotiqGripper

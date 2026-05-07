@@ -36,22 +36,22 @@
 #
 import rclpy, sys, threading
 import tf_transformations as tfs
-imrpot numpy as np
+import numpy as np
 
 from rclpy.executors          import MultiThreadedExecutor
-from aist_routines.base       import AISTBaseRoutines
 from aist_graspability.client import GraspabilityClinet
 
-from math                           import pi, radians, degrees, cos, sin, sqrt
-from geometry_msgs.msg              import Quaternion
+from math                     import pi, radians, degrees, cos, sin, sqrt
+from geometry_msgs.msg        import Quaternion
 # from aist_routines.AssemblyRoutines import AssemblyRoutines
 # from aist_routines.AttemptBinAction import AttemptBin
-from aist_utility.fileio             import filepath_from_url
+from aist_utility.fileio      import filepath_from_url
+from .base                    import BaseRoutines
 
 ######################################################################
 #  class KittingRoutines                                             #
 ######################################################################
-class KittingRoutines(AssemblyRoutines):
+class KittingRoutines(BaseRoutines):
     """Implements kitting routines for aist robot system."""
 
     def __init__(self, name, server_ns="graspability",
@@ -59,46 +59,27 @@ class KittingRoutines(AssemblyRoutines):
         super().__init__(name)
 
         # Graspability configuration
-        with open(self.declare_parameter('graspability_config_file',
-                                         name + '.yaml').value,
-                  'r') as f:
-            config = yaml.safe_load(f)
-        self._bin_props           = config['bin_props']
-        self._part_props          = config['part_props']
-        self._graspability_params = config['graspability_parameters']
+        self._bin_props           = self.settings['bin_props']
+        self._part_props          = self.settings['part_props']
+        self._graspability_params = self.settings['graspability_parameters']
         # self._attempt_bin = AttemptBin(self, do_error_recovery,
         #                                cancel_error_recovery)
         self._graspability_client = GraspabilityClient(self, server_ns)
 
     @property
-    def current_robot_name(self):
-        #return self._attempt_bin.current_robot_name
-        return 'b_bot'
+    def bin_props(self):
+        return self.settings['bin_props']
 
-    def run(self):
-        axis = 'Y'
+    @property
+    def part_props(self):
+        return self.settings['part_props']
 
-        while not rospy.is_shutdown():
-            self.print_help_messages()
-            print('')
-
-            prompt = '{:>5}:{}>> '.format(axis,
-                                          self.format_pose(
-                                              self.get_current_pose(
-                                                  self.current_robot_name))) \
-                     if self.current_robot_name else '>> '
-            key = raw_input(prompt)
-
-            try:
-                _, axis, _ = self.interactive(key, self.current_robot_name,
-                                              axis, 1.0)
-            except Exception as e:
-                print(e)
+    @property
+    def graspability_parameters(self):
+        return self.settings['graspability_parameters']
 
     # Interactive stuffs
     def print_help_messages(self):
-        if self.current_robot_name:
-            super().print_help_messages()
         print('=== Kitting commands ===')
         print('  m: Create a mask image')
         print('  s: Search graspabilities with normal parameters')
@@ -111,7 +92,7 @@ class KittingRoutines(AssemblyRoutines):
 
     def interactive(self, key, robot_name, axis, speed):
         if key == 'm':
-            self.create_mask_image('a_motioncam', len(self._bin_props))
+            self.create_mask_image('a_motioncam', len(self.bin_props))
         elif key == 's':
             bin_id = 'bin_' + raw_input('  bin id? ')
             self.search_bin(bin_id)
@@ -140,10 +121,10 @@ class KittingRoutines(AssemblyRoutines):
     # Commands
     def search_bin(self, bin_id,
                    min_height=0.006, max_height=0.045, max_slant=pi/4):
-        bin_props  = self._bin_props[bin_id]
+        bin_props  = self.bin_props[bin_id]
         part_id    = bin_props['part_id']
-        part_props = self._part_props[part_id]
-        params = self._graspability_params[part_id]
+        part_props = self.part_props[part_id]
+        params     = self.graspability_params[part_id]
         self._graspability_client.set_parameters(params)
 
         # Send goal first and then trigger camera frame.

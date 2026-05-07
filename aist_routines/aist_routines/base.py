@@ -58,11 +58,11 @@ from trajectory_msgs.msg                  import (JointTrajectoryPoint,
                                                   JointTrajectory)
 from controller_manager_msgs.srv          import (ListControllers,
                                                   SwitchController)
-from aist_routines.gripper_client         import GripperClient
-from aist_routines.camera_client          import CameraClient
 from aist_utility.fileio                  import filepath_from_url
 from aist_collision_object_manager.client import CollisionObjectManagerClient
 from ddynamic_reconfigure2.utils          import declare_read_only_parameter
+from .gripper_client                      import GripperClient
+from .camera_client                       import CameraClient
 
 ######################################################################
 #  global functions                                                  #
@@ -88,9 +88,9 @@ def paramtuples(d):
     return params
 
 ######################################################################
-#  class AISTBaseRoutines                                            #
+#  class BaseRoutines                                                #
 ######################################################################
-class AISTBaseRoutines(Node):
+class BaseRoutines(Node):
     ControllerTypes = ('joint_trajectory_controller/JointTrajectoryController',
                        'ur_controllers/ScaledJointTrajectoryController',
                        'position_controllers/JointGroupPositionController',
@@ -199,7 +199,7 @@ class AISTBaseRoutines(Node):
         # else:
         #     self._pick_or_place = None
 
-        self.get_logger().info('AISTBaseRoutines initialized.')
+        self.get_logger().info('BaseRoutines initialized.')
 
     def __enter__(self):
         return self
@@ -207,7 +207,7 @@ class AISTBaseRoutines(Node):
     # def __exit__(self, exception_type, exception_value, traceback):
     #     if self._pick_or_place:
     #         self._pick_or_place.shutdown()
-    #     rospy.signal_shutdown('AISTBaseRoutines() completed.')
+    #     rospy.signal_shutdown('BaseRoutines() completed.')
     #     return False  # Do not forward exceptions
 
     def declare_parameter_with_type(self, name, type_, value):
@@ -287,6 +287,10 @@ class AISTBaseRoutines(Node):
         print('  tighten:     tighten screw')
         print('  loosen:      loosen screw')
         print('  gcancel:     cancel tighten/loosen action')
+        print('=== Collision object commands ===')
+        print('  I:  Initialize all collision objects')
+        print('  i:  Show infomation on collision objects')
+        print('  ci: Show infomation on child collision object of frame')
 
     def interactive(self, key, robot_name, axis, speed=1.0):
         def _is_num(s):
@@ -457,6 +461,18 @@ class AISTBaseRoutines(Node):
             self.gripper_cancel(robot_name)
 
         # Collision objects stuffs
+        elif key == 'I':
+            self._initialize_collision_objects()
+        elif key == 'i':
+            object_id = raw_input('  object ID? ')
+            info = self.com.get_object_info(object_id)
+            if info is not None:
+                self._print_object_info(info)
+        elif key == 'ci':
+            frame_id = raw_input('  parent frame? ')
+            info = self.com.get_child_object_info(frame_id)
+            if info is not None:
+                self._print_object_info(info)
         elif key == 'r':
             object_id   = input('  object_id? ')
             attach_link = input('  attach_link? ') if object_id == '' else ''
@@ -643,7 +659,7 @@ class AISTBaseRoutines(Node):
     # Controller stuffs
     def list_controllers(self, robot_name):
         return list(filter(
-                        lambda x: x.type in AISTBaseRoutines.ControllerTypes,
+                        lambda x: x.type in BaseRoutines.ControllerTypes,
                         self._list_controllers_srvs[robot_name].call(
                             ListControllers.Request()).controller))
 
@@ -931,7 +947,7 @@ class AISTBaseRoutines(Node):
                                                     Duration(seconds=10)) \
                                   .transform
         except Exception as e:
-            self.get_logger().error('AISTBaseRoutines.transform_poses_to_target_frame(): %s' % e)
+            self.get_logger().error('BaseRoutines.transform_poses_to_target_frame(): %s' % e)
             raise e
 
         transformed_poses = PoseArray(header=Header(frame_id=target_frame,
@@ -968,7 +984,7 @@ class AISTBaseRoutines(Node):
                                                     source_frame, Time()) \
                                   .transform
         except Exception as e:
-            self.get_logger().error('AISTBaseRoutines.lookup_pose(): %s' % e)
+            self.get_logger().error('BaseRoutines.lookup_pose(): %s' % e)
             return None
         return PoseStamped(header=Header(frame_id=target_frame),
                            pose=Pose(position=Point(x=tfm.translation.x,
@@ -1022,10 +1038,10 @@ class AISTBaseRoutines(Node):
             *self.xyzrpy_from_pose(target_pose))
 
     # Private functions
-    def _initialize_collision_objects(self, initial_object_config):
+    def _initialize_collision_objects(self):
         self.com.remove_object()
-        # self.get_logger().info(initial_object_config)
-        for object_type, config in initial_object_config.items():
+        for object_type, config in self.settings.get('initial_object_config',
+                                                     {}).items():
             self.com.create_object(object_type,
                                    self.pose_from_xyzrpy(
                                        config.get('offset', ()),
@@ -1056,7 +1072,7 @@ class AISTBaseRoutines(Node):
                                               Duration(seconds=10))
             mat44 = self._tf2_buffer.asMatrix(target_frame, header)
         except Exception as e:
-            self.get_logger().error('AISTBaseRoutines._transform_points_to_target_frame(): %s' % e)
+            self.get_logger().error('BaseRoutines._transform_points_to_target_frame(): %s' % e)
             raise e
 
         return [ Point(*tuple(np.dot(mat44,

@@ -196,8 +196,7 @@ SuctionToolController::goal_cb(const goal_uuid_t&,
 {
     RCLCPP_INFO_STREAM(get_logger(),
 		       "goal ACCEPTED: suck=" << std::boolalpha << goal->suck
-		       << ", min_period="
-		       << rclcpp::Duration(goal->min_period).seconds());
+		       << ", min_period=" << goal->min_period);
     return goal_response_t::ACCEPT_AND_EXECUTE;
 }
 
@@ -313,7 +312,8 @@ SuctionToolController::io_states_cb(msg_p<io_states_t> states)
   // If the situation where the actual state coincides with the desired one
   // continues for the specified period, make the current goal succeeded.
     if (current_time >=
-	_start_time + _current_goal_handle->get_goal()->min_period)
+	_start_time + std::chrono::duration<double>(_current_goal_handle
+                                                    ->get_goal()->min_period))
     {
 	set_out_port(_blow_port, false);	// If blowing, stop it.
 

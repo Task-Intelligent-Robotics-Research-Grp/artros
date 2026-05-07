@@ -55,12 +55,12 @@ DEVICE_PROPS = {
     },
 
     # Grippers
-    'RobotiqDevices':
+    'RobotiqGrippers':
     {
         'real_drivers_launch_file': PathJoinSubstitution(
                                         [FindPackageShare('aist_bringup'),
                                          'launch', 'inc',
-                                         'robotiq_devices.launch.py'])
+                                         'robotiq_grippers.launch.py'])
     },
     'RobotiqGripper':
     {

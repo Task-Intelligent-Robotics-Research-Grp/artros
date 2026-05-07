@@ -319,12 +319,11 @@ class HandEyeCalibrationAction(object):
                 raise HandEyeCalibrationAction.AbortedException()
 
         time.sleep(self._settling_time)  # Wait the robot to settle.
-        future = self._calibrator.take_sample_async()
+        self._calibrator.take_sample()
         self._node.trigger_frame(goal_handle.request.camera_name)
-        res = self._calibrator.wait_for_sample(future)
+        res = self._calibrator.wait_for_sample()
         if not res.success:
-            self._logger.error('failed to take sample: %s'
-                               % res.message)
+            self._logger.error('failed to take sample: %s' % res.message)
             return False
 
         self._logger.info('  %d-th sample taken'
@@ -333,9 +332,9 @@ class HandEyeCalibrationAction(object):
         return True
 
     def _move(self, robot_name, xyzrpy, end_effector_link):
-        return self._node.go_to_pose_goal(
-                   robot_name, self._node.pose_from_xyzrpy(xyzrpy),
-                   end_effector_link=end_effector_link)
+        return self._node.go_to_pose_goal(robot_name,
+                                          self._node.pose_from_xyzrpy(xyzrpy),
+                                          end_effector_link=end_effector_link)
 
     def _save_calibration(self, res):
         def xyzrpy_from_transform(transform):
@@ -354,27 +353,22 @@ class HandEyeCalibrationAction(object):
 
         print('=== estimated camera pose ===')
         print('[{:.4f}, {:.4f}, {:.4f}; {:.2f}, {:.2f}. {:.2f}]'\
-              .format(
-                  *xyzrpy_from_transform(res.transform_ec.transform)))
+              .format(*xyzrpy_from_transform(res.transform_ec.transform)))
         print('=== estimated marker pose ===')
         print('[{:.4f}, {:.4f}, {:.4f}; {:.2f}, {:.2f}. {:.2f}]'\
-              .format(
-                  *xyzrpy_from_transform(res.transform_wm.transform)))
+              .format(*xyzrpy_from_transform(res.transform_wm.transform)))
         print('trans. err(m): (mean, max) = (%f, %f)'
-              % (res.mean_translation_error,
-                 res.max_translation_error))
+              % (res.mean_translation_error, res.max_translation_error))
         print('rot. err(deg): (mean, max) = (%f, %f)'
               % (res.mean_rotation_error, res.max_rotation_error))
 
         # Convert the transform to xyz-rpy representation.
         data = {'parent': res.transform_ec.header.frame_id,
                 'child' : res.transform_ec.child_frame_id,
-                'origin': xyzrpy_from_transform(
-                              res.transform_ec.transform)}
+                'origin': xyzrpy_from_transform(res.transform_ec.transform)}
 
         # Save the transform.
         filename = filepath_from_url(self._calib_file)
         with open(filename, mode='w') as file:
             yaml.dump(data, file, default_flow_style=False)
-        self._logger.info('saved calibration result in [%s]'
-                          % filename)
+        self._logger.info('saved calibration result in [%s]'  % filename)
