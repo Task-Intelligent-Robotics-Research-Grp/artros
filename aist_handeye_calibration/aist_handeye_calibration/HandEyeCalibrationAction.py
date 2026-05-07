@@ -319,7 +319,7 @@ class HandEyeCalibrationAction(object):
                 raise HandEyeCalibrationAction.AbortedException()
 
         time.sleep(self._settling_time)  # Wait the robot to settle.
-        self._calibrator.take_sample()
+        self._calibrator.take_sample_async()
         self._node.trigger_frame(goal_handle.request.camera_name)
         res = self._calibrator.wait_for_sample()
         if not res.success:

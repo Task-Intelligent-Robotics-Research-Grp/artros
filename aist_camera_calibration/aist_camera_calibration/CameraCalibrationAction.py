@@ -249,9 +249,9 @@ class CameraCalibrationAction(object):
                 raise CameraCalibrationAction.AbortedException()
 
         time.sleep(self._settling_time)  # Wait for the robot to settle.
-        future = self._calibrator.take_sample_async()
+        self._calibrator.take_sample_async()
         #self._node.trigger_frame(goal_handle.request.camera_name)
-        res = self._calibrator.wait_for_sample(future)
+        res = self._calibrator.wait_for_sample()
         if not res.success:
             self._logger.error('failed to take sample: %s' % res.message)
             return False
