@@ -34,13 +34,12 @@
 #
 # Author: Toshio Ueshiba
 #
-import rclpy
-from rclpy.callback_groups   import MutuallyExclusiveCallbackGroup
-from std_srvs.srv            import Empty
-from aist_msgs.srv           import (HandEyeCalibrationTakeSample,
-                                     HandEyeCalibrationGetSampleList,
-                                     HandEyeCalibrationComputeCalibration)
-from srv_and_action_wrappers import ServiceClient
+from rclpy.callback_groups        import MutuallyExclusiveCallbackGroup
+from std_srvs.srv                 import Empty
+from aist_msgs.srv                import (HandEyeCalibrationTakeSample,
+                                          HandEyeCalibrationGetSampleList,
+                                          HandEyeCalibrationComputeCalibration)
+from task_wrappers.service_client import ServiceClient
 
 ######################################################################
 #  class HandEyeCalibratorClient                                     #

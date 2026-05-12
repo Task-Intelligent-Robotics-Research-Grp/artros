@@ -61,12 +61,12 @@ from controller_manager_msgs.srv          import (ListControllers,
 from aist_utility.fileio                  import filepath_from_url
 from aist_collision_object_manager.client import CollisionObjectManagerClient
 from ddynamic_reconfigure2.utils          import declare_read_only_parameter
-from .gripper_client                      import GripperClient
+#from .gripper_client                      import GripperClient
 from .camera_client                       import CameraClient
 
-######################################################################
-#  global functions                                                  #
-######################################################################
+#*********************************************************************
+#  global functions                                                  *
+#*********************************************************************
 def get_grippers(config, name=''):
     if 'grippers' in config:
         grippers={}
@@ -87,17 +87,19 @@ def paramtuples(d):
         params[key] = ParamTuple(**param)
     return params
 
-######################################################################
-#  class BaseRoutines                                                #
-######################################################################
+#*********************************************************************
+#  class BaseRoutines                                                *
+#*********************************************************************
 class BaseRoutines(Node):
-    ControllerTypes = ('joint_trajectory_controller/JointTrajectoryController',
-                       'ur_controllers/ScaledJointTrajectoryController',
-                       'position_controllers/JointGroupPositionController',
-                       'velocity_controllers/JointGroupVelocityController',
-                       'cartesian_motion_controller/CartesianMotionController',
-                       'cartesian_force_controller/CartesianForceController',
-                       'cartesian_compliance_controller/CartesianComplianceController')
+    ControllerTypes = (
+        'joint_trajectory_controller/JointTrajectoryController',
+        'ur_controllers/ScaledJointTrajectoryController',
+        'position_controllers/JointGroupPositionController',
+        'velocity_controllers/JointGroupVelocityController',
+        'cartesian_motion_controller/CartesianMotionController',
+        'cartesian_force_controller/CartesianForceController',
+        'cartesian_compliance_controller/CartesianComplianceController',
+    )
 
     def __init__(self, name):
         super().__init__(name)
@@ -108,7 +110,7 @@ class BaseRoutines(Node):
         self._tf2_buffer   = Buffer()
         self._tf2_listener = TransformListener(self._tf2_buffer, self)
 
-        time.sleep(1.0)        # Necessary for listner spinning up
+        time.sleep(1.0)        # Necessary for listener spinning up
 
         # MoveIt planning parameters
         self._eef_step        = self.declare_parameter('moveit_eef_step',
@@ -155,9 +157,9 @@ class BaseRoutines(Node):
                for name in config['arms']}
 
         # Grippers
-        self._grippers = {name: GripperClient.create(self, name, props['type'],
-                                                     props.get('client_args',
-                                                               {}))
+        self._grippers = {name: self.create_gripper(name, props['type'],
+                                                    props.get('client_args',
+                                                              {}))
                           for name, props in get_grippers(config).items()}
         self._default_gripper_names = {}
         self._active_grippers       = {}
@@ -741,6 +743,13 @@ class BaseRoutines(Node):
         return False
 
     # Gripper stuffs
+    def create_gripper(self, name, type_name, props):
+        gripper_client_class = globals().get(type_name)
+        if gripper_client_class is None:
+            raise RuntimeError('unknown type[%s] of the gripper[%s]'
+                               % (type_name, name))
+        return gripper_client_class(self, name, **props)
+
     def default_gripper_name(self, robot_name):
         return self._default_gripper_names[robot_name]
 

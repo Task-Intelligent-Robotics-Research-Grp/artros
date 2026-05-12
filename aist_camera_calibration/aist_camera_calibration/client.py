@@ -34,13 +34,12 @@
 #
 # Author: Toshio Ueshiba
 #
-import rclpy, time
-from rclpy.callback_groups   import MutuallyExclusiveCallbackGroup
-from std_srvs.srv            import Empty
-from aist_msgs.srv           import (CameraCalibrationTakeSample,
-                                     CameraCalibrationGetSampleList,
-                                     CameraCalibrationComputeCalibration)
-from srv_and_action_wrappers import ServiceClient
+from rclpy.callback_groups        import MutuallyExclusiveCallbackGroup
+from std_srvs.srv                 import Empty
+from aist_msgs.srv                import (CameraCalibrationTakeSample,
+                                          CameraCalibrationGetSampleList,
+                                          CameraCalibrationComputeCalibration)
+from task_wrappers.service_client import ServiceClient
 
 ######################################################################
 #  class CameraCalibratorClient                                      #

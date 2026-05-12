@@ -1,5 +1,5 @@
 # Goal
-string                    robot_name
+string                    group_name
 string                    subframe_link
 geometry_msgs/PoseStamped pose
 bool                      pick
