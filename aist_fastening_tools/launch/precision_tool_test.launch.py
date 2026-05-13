@@ -28,8 +28,7 @@ def launch_setup(context):
              package='aist_fastening_tools',
              executable='precision_tool_test.py',
              parameters=[
-                 {'controller_ns':
-                  [LaunchConfiguration('device_name'), '_controller']}
+                 {'device_name': LaunchConfiguration('device_name')},
              ],
              prefix=['xterm -fn 7x14 -e'],
              output='screen')

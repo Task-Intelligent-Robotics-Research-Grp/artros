@@ -191,7 +191,7 @@ ScrewToolController::ScrewToolController(const rclcpp::NodeOptions& options)
 		      rclcpp::ServicesQoS(), _dxl_command_cbg)),
      _status_pub(create_publisher<screw_tool_status_t>("~/status", 1)),
      _command_srv(rclcpp_action::create_server<screw_tool_command_t>(
-		      this, "~/command",
+		      this, "~/tool_cmd",
 		      std::bind(&ScrewToolController::goal_cb, this,
 				std::placeholders::_1, std::placeholders::_2),
 		      std::bind(&ScrewToolController::cancel_cb, this,

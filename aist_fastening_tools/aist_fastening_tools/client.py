@@ -34,8 +34,117 @@
 from rclpy.callback_groups       import MutuallyExclusiveCallbackGroup
 from action_msgs.msg             import GoalStatus
 from std_msgs.msg                import Bool
+from control_msgs.msg            import GripperCommand as GripperCommandMsg
+from control_msgs.action         import GripperCommand
 from aist_msgs.action            import ScrewToolCommand, SuctionToolCommand
 from task_wrappers.action_client import SimpleActionClient
+
+from rclpy.node                  import Node
+from typing                      import Optional
+
+#************************************************************************
+#  class GenericGripper                                                 *
+#************************************************************************
+class GenericGripper(SimpleActionClient):
+    """ Action client for the generic gripper controller.
+    """
+    def __init__(self, node: Node, name: str, *,
+                 min_position: float=0.0, max_position: float=0.1,
+                 max_effort: float=0.0):
+        """ Create a RobotiqGripper client.
+
+        :param node: The ROS node to add the suction tool client to.
+        :param name: Name of the suction tool
+        :param max_effort: Maximum effort to be applied when grasping.
+        """
+        self._name    = name
+
+        # Create action client for gripper command.
+        self._cbg = MutuallyExclusiveCallbackGroup()
+        super().__init__(node, GripperCommand,
+                         name + '_controller/gripper_cmd',
+                         callback_group=self._cbg)
+
+        self._parameters = {'grasp_position':   min_position,
+                            'release_position': max_position,
+                            'max_effort':       max_effort}
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def base_link(self):
+        return self._name + '_base_link'
+
+    @property
+    def tip_link(self):
+        return self._name + '_tip_link'
+
+    @property
+    def parameters(self):
+        return self._parameters
+
+    def pregrasp(self):
+        self.release(timeout_sec=0.0)
+
+    def grasp(self, *, timeout_sec: Optional[float]=None):
+        """ Grasp an object with the gripper.
+
+        Desired finger position and applied effort are specified by parameters
+        with ``grasp_position`` and ``max_effort`` keys, respectively.
+
+        :param timeout_sec:
+          - Seconds to wait until the gripper complets movement, if positive.
+          - Wait forever, if ``None``.
+          - Return immediately without waiting for competion,
+            if zero or negative.
+        :return: A tuple of the goal status and the movement result of
+            control_msgs.action.GripperCommand.Result type
+        """
+        return self.move(self.parameters['grasp_position'],
+                         max_effort=self.parameters['max_effort'],
+                         timeout_sec=timeout_sec)
+
+    def postgrasp(self):
+        self.grasp(timeout_sec=0.0)
+
+    def release(self, *, timeout_sec: Optional[float]=None):
+        """ Release an object grasped by the gripper.
+
+        Desired finger position is specified by a parameter
+        with ``release_positio``' key. No effort is applied.
+
+        :param timeout_sec:
+          - Seconds to wait until the gripper complets movement, if positive.
+          - Wait forever, if ``None``.
+          - Return immediately without waiting for competion,
+            if zero or negative.
+        :return: A tuple of the goal status and the movement result of
+            control_msgs.action.GripperCommand.Result type
+        """
+        return self.move(self.parameters['release_position'],
+                         max_effort=0.0, timeout_sec=timeout_sec)
+
+    def move(self, position: float, *,
+             max_effort: float=0.0, timeout_sec: Optional[float]=None):
+        """ Move gripper to the desired position.
+
+        :param position: Desired finger position.
+         param max_effort: Desired maximum effort to be applied.
+        :param timeout_sec:
+          - Seconds to wait until the gripper complets movement, if positive.
+          - Wait forever, if ``None``.
+          - Return immediately without waiting for competion,
+            if zero or negative.
+        :return: A tuple of the goal status and the movement result of
+            control_msgs.action.GripperCommand.Result type
+        """
+        return self.send_goal(GripperCommand.Goal(
+                                  command=GripperCommandMsg(
+                                      position=position,
+                                      max_effort=max_effort)),
+                              timeout_sec=timeout_sec)
 
 #************************************************************************
 #  class SuctionTool                                                    *
@@ -54,13 +163,14 @@ class SuctionTool(SimpleActionClient):
         self._name       = name
         self._client_cbg = MutuallyExclusiveCallbackGroup()
 
-        super().__init__(node, SuctionCommand, controller_ns + '/gripper_cmd',
+        super().__init__(node, SuctionToolCommand,
+                         controller_ns + '/gripper_cmd',
                          callback_group=self._client_cbg)
 
-        if not self.wait_for_server(timeout_sec=1.0):
-            raise RuntimeError(
-                'failed to establish connection to the actionserver[%s]' \
-                % (controller_ns + '/command'))
+        # if not self.wait_for_server(timeout_sec=1.0):
+        #     raise RuntimeError(
+        #         'failed to establish connection to the actionserver[%s]' \
+        #         % (controller_ns + '/gripper_cmd'))
 
         self._suctioned     = None
         self._suctioned_cbg = MutuallyExclusiveCallbackGroup()
@@ -89,18 +199,20 @@ class SuctionTool(SimpleActionClient):
 
     def pregrasp(self):
         # Set goal.min_period to zero so that the goal succeeds immediately.
-        self._suck_command(True, 0.0)
+        self._suck_command(True, min_period=0.0, timeout_sec=0.0)
 
-    def grasp(self, timeout_sec=None):
-        return self._suck_command(True, self._parameters['suck_min_period'],
-                                  timeout_sec=timeout_sec)
+    def grasp(self, *, timeout_sec=None):
+        return self._suck_command(
+                   True, min_period=self._parameters['suck_min_period'],
+                   timeout_sec=timeout_sec)
 
     def postgrasp(self):
         self.pregrasp()
 
-    def release(self, timeout_sec=None):
-        return self._suck_command(False, self._parameters['blow_min_period'],
-                                  timeout_sec=timeout_sec)
+    def release(self, *, timeout_sec=None):
+        return self._suck_command(
+                   False, min_period=self._parameters['blow_min_period'],
+                   timeout_sec=timeout_sec)
 
     def wait(self, *, timeout_sec=None):
         """ Wait for the status and the result of command or cancel request.
@@ -145,16 +257,18 @@ class ScrewTool(SuctionTool):
         :param node: The ROS node to add the screw tool client to.
         :param name: Name of the screw tool
         """
-        super().__init__(node, name, suck_min_period, blow_min_period)
+        super().__init__(node, name,
+                         suck_min_period=suck_min_period,
+                         blow_min_period=blow_min_period)
 
         controller_ns = name + '_fastening_controller'
         self._screw_tool = SimpleActionClient(node, ScrewToolCommand,
-                                              controller_ns + '/command',
+                                              controller_ns + '/tool_cmd',
                                               callback_group=self._client_cbg)
-        if not self._screw_tool.wait_for_server(timeout_sec=1.0):
+        if not self._screw_tool.wait_for_server(timeout_sec=5.0):
             raise RuntimeError(
                 'failed to establish connection to the action server[%s]' \
-                % (controller_ns + '/command'))
+                % (controller_ns + '/tool_cmd'))
         self._parameters['speed']     = speed
         self._parameters['retighten'] = retighten
 
@@ -196,7 +310,7 @@ class ScrewTool(SuctionTool):
         super().pregrasp()
 
     def grasp(self, *, timeout_sec=None):
-        self._screw_command(self.parameters['speed'])
+        self._screw_command(self.parameters['speed'], timeout_sec=0.0)
         status, result = super().grasp(timeout_sec=timeout_sec)
         if status == GoalStatus.STATUS_SUCCEEDED and result.suctioned:
             self._screw_tool.cancel_goal()

@@ -8,7 +8,7 @@ from aist_bringup.launch_common import declare_launch_arguments
 launch_arguments = [
     {
         'name':        'device_name',
-        'default':     'screw_tool_m3_fastening',
+        'default':     'screw_tool_m3',
         'description': 'device name of the tool'
     }
 ]
@@ -19,7 +19,8 @@ def launch_setup(context):
             PathJoinSubstitution([ThisLaunchFileDir(),
                                   'dynamixel_devices.launch.py']),
             launch_arguments=[
-                ('device_names', LaunchConfiguration('device_name')),
+                ('device_names', [LaunchConfiguration('device_name'),
+                                  '_fastening']),
                 ('device_types', 'ScrewTool'),
                 ('container',    'screw_tools_container'),
                 ('driver_ns',    'screw_tools_driver'),

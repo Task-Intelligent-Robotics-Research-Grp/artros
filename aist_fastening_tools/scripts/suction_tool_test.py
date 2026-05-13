@@ -15,9 +15,7 @@ class SuctionToolTest(Node):
         self._suction_tool = SuctionTool(self, device_name)
         self.get_logger().info('started')
 
-        cli_thread = threading.Thread(target=self.interactive)
-        cli_thread.daemon = True
-        cli_thread.start()
+        threading.Thread(target=self.interactive, daemon=True).start()
 
     def interactive(self):
         while rclpy.ok():
@@ -26,7 +24,7 @@ class SuctionToolTest(Node):
             print('  g: grasp')
             print('  r: release')
             print('  m: set min period')
-            print('  w: wait for ten seconds')
+            print('  w: wait for result for two seconds')
             print('  c: cancel')
 
             key = input('[suck_min_period=%f]> '
@@ -35,15 +33,18 @@ class SuctionToolTest(Node):
             if key == 'q':
                 break
             elif key == 'g':
-                self._suction_tool.grasp()
+                self._suction_tool.grasp(timeout_sec=0.0)
             elif key == 'r':
                 self._suction_tool.release()
             elif key == 'm':
                 suck_min_period = float(input('  suck_min_period? '))
                 self._suction_tool.parameters = {'suck_min_period':
                                                  suck_min_period}
+            elif key == 'w':
+                status, result = self._gripper.wait(timeout_sec=2.0)
+                print(result)
             elif key == 'c':
-                self._suction_tool.cancel()
+                self._suction_tool.cancel_goal()
             else:
                 print('Unknown command[%s]' % key)
         self.destroy_node()

@@ -36,8 +36,8 @@
 # Author: Toshio Ueshiba
 #
 import rclpy, sys, threading
-from rclpy.node          import Node
-from aist_robotiq.client import GenericGripper
+from rclpy.node                  import Node
+from aist_fastening_tools.client import GenericGripper
 
 #########################################################################
 #  class TestGripperClient                                              #
@@ -46,15 +46,12 @@ class TestGripperClient(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        controller_ns = self.declare_parameter(
-                            'controller_ns',
-                            'precision_gripper_controller').value
-        self._gripper = GenericGripper(self, controller_ns + '/gripper_cmd')
+        gripper_name = self.declare_parameter('device_name',
+                                              'precision_tool').value
+        self._gripper = GenericGripper(self, gripper_name)
         self.get_logger().info('started')
 
-        cli_thread = threading.Thread(target=self.interactive)
-        cli_thread.daemon = True
-        cli_thread.start()
+        threading.Thread(target=self.interactive, daemon=True).start()
 
     def interactive(self):
         def is_float(s):
@@ -74,11 +71,11 @@ class TestGripperClient(Node):
 
             key = input('>> ')
             if key == 'g':
-                result = self._gripper.grasp()
+                status, result = self._gripper.grasp()
             elif key == 'r':
-                result = self._gripper.release()
+                status, result = self._gripper.release()
             elif is_float(key):
-                result = self._gripper.move(float(key))
+                status, result = self._gripper.move(float(key))
             elif key=='q':
                 break
             else:
