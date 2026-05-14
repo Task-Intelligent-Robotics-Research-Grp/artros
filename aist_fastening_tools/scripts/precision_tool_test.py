@@ -71,9 +71,9 @@ class TestGripperClient(Node):
 
             key = input('>> ')
             if key == 'g':
-                status, result = self._gripper.grasp()
+                self._gripper.grasp(timeout_sec=None)
             elif key == 'r':
-                status, result = self._gripper.release()
+                self._gripper.release(timeout_sec=None)
             elif is_float(key):
                 status, result = self._gripper.move(float(key))
             elif key=='q':

@@ -69,21 +69,21 @@ grippers:
         client_args:
           max_effort: 5.0
           velocity:   0.1
-  # precision_tools:
-  #   type:            DynamixelDevices
-  #   grippers:
-  #     precision_tool:
-  #       type:        PrecisionTool
-  #       client_args:
-  #         base_link: precision_tool/base_link
-  #         tip_link:  precision_tool/tip_link
-  # screw_tools:
-  #   type:            DynamixelDevices
-  #   grippers:
-  #     screw_tool_m3_fastening:
-  #       type:        ScrewTool
-  #     screw_tool_m4_fastening:
-  #       type:        ScrewTool
+  precision_tools:
+    type:            DynamixelDevices
+    grippers:
+      precision_tool:
+        type:        PrecisionTool
+        client_args:
+          base_link: precision_tool/base_link
+          tip_link:  precision_tool/tip_link
+  screw_tools:
+    type:            DynamixelDevices
+    grippers:
+      screw_tool_m3_fastening:
+        type:        ScrewTool
+      screw_tool_m4_fastening:
+        type:        ScrewTool
   suction_tools:
     type:            URioDevices
     grippers:

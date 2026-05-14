@@ -251,7 +251,7 @@ class ScrewTool(SuctionTool):
     """Screw tool client of aist_msgs.action.ScrewToolCommand type.
     """
     def __init__(self, node, name, *, suck_min_period=0.5, blow_min_period=0.2,
-                 speed=1.0, retighten=True):
+                 speed=1.0, grasp_speed=0.3, retighten=True):
         """Create ScrewTool
 
         :param node: The ROS node to add the screw tool client to.
@@ -269,8 +269,9 @@ class ScrewTool(SuctionTool):
             raise RuntimeError(
                 'failed to establish connection to the action server[%s]' \
                 % (controller_ns + '/tool_cmd'))
-        self._parameters['speed']     = speed
-        self._parameters['retighten'] = retighten
+        self._parameters['speed']       = speed
+        self._parameters['grasp_speed'] = grasp_speed
+        self._parameters['retighten']   = retighten
 
     def tighten(self, *, timeout_sec=None):
         """ Tighten the screw with the tool.
@@ -310,7 +311,7 @@ class ScrewTool(SuctionTool):
         super().pregrasp()
 
     def grasp(self, *, timeout_sec=None):
-        self._screw_command(self.parameters['speed'], timeout_sec=0.0)
+        self._screw_command(self.parameters['grasp_speed'], timeout_sec=0.0)
         status, result = super().grasp(timeout_sec=timeout_sec)
         if status == GoalStatus.STATUS_SUCCEEDED and result.suctioned:
             self._screw_tool.cancel_goal()

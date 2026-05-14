@@ -35,7 +35,7 @@ class SuctionToolTest(Node):
             elif key == 'g':
                 self._suction_tool.grasp(timeout_sec=0.0)
             elif key == 'r':
-                self._suction_tool.release()
+                self._suction_tool.release(timeout_sec=None)
             elif key == 'm':
                 suck_min_period = float(input('  suck_min_period? '))
                 self._suction_tool.parameters = {'suck_min_period':

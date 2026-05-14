@@ -47,12 +47,13 @@ class ScrewToolTest(Node):
                 self._screw_tool.parameters = {'suck_min_period':
                                                suck_min_period}
             elif key == 'w':
-                self._screw_tool.wait()
+                status, result = self._screw_tool.wait()
+                print(result)
             elif key == 'c':
                 self._screw_tool.cancel_goal()
             elif key == 's':
                 speed = np.clip(float(input('  speed? ')), 0.0, 1.0)
-                self._screw_tool.parameters = {'speed': speed}
+                self._screw_tool.parameters['speed'] = speed
             else:
                 print('Unknown command[%s]' % key)
         self.destroy_node()

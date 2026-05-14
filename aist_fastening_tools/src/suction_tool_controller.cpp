@@ -294,6 +294,7 @@ SuctionToolController::io_states_cb(msg_p<io_states_t> states)
   // Check if the current goal is requested to be canceled.
     if (_current_goal_handle->is_canceling())
     {
+        set_out_port(_suck_port, false);        // If sucking, stop it.
 	set_out_port(_blow_port, false);	// If blowing, stop it.
 
 	auto	result = std::make_unique<suction_tool_command_t::Result>();
