@@ -9,7 +9,8 @@ launch_arguments = [
     {
         'name':        'device_name',
         'default':     'screw_tool_m3',
-        'description': 'device name of the tool'
+        'description': 'device name of the tool',
+        'choices':     ['screw_tool_m3', 'screw_tool_m4'],
     }
 ]
 
@@ -29,7 +30,7 @@ def launch_setup(context):
              package='aist_fastening_tools',
              executable='screw_tool_test.py',
              parameters=[{'device_name': LaunchConfiguration('device_name')}],
-             prefix=['xterm -fn 7x14 -e'],
+             prefix=['gnome-terminal --geometry=80x60 --'],
              output='screen')
     ]
 

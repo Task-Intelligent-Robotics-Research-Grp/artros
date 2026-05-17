@@ -41,9 +41,9 @@ from aist_msgs.srv                import (CameraCalibrationTakeSample,
                                           CameraCalibrationComputeCalibration)
 from task_wrappers.service_client import ServiceClient
 
-######################################################################
-#  class CameraCalibratorClient                                      #
-######################################################################
+#*********************************************************************
+#  class CameraCalibratorClient                                      *
+#*********************************************************************
 class CameraCalibratorClient(object):
     def __init__(self, node, server_ns='camera_calibrator'):
         super().__init__()
@@ -71,7 +71,7 @@ class CameraCalibratorClient(object):
 
     def take_sample_async(self):
         return self._take_sample.call(CameraCalibrationTakeSample.Request(),
-                                      0.0)
+                                      timeout_sec=0.0)
 
     def wait_for_sample(self, timeout_sec=None):
         return self._take_sample.wait(timeout_sec)

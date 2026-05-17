@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Software License Agreement (BSD License)
 #
@@ -35,43 +35,62 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy
-import argparse
+import rclpy, sys, threading
+from typing                          import TypeVar, Generic
+from rclpy.executors                 import MultiThreadedExecutor
+from aist_routines.base_routines     import BaseRoutines
+from aist_routines.assembly_routines import AssemblyRoutines
+from aist_routines.kitting_routines  import KittingRoutines
 
-from aist_routines.MoveBaseRoutines import MoveBaseRoutines
-from aist_utility.compat            import *
-
-######################################################################
-#  global functions                                                  #
-######################################################################
-def is_num(s):
-    try:
-        float(s)
-    except ValueError:
-        return False
-    else:
-        return True
+T = TypeVar('T')
 
 ######################################################################
-#  global functions                                                  #
+#  class InteractiveRoutines                                         #
 ######################################################################
-if __name__ == '__main__':
+class InteractiveRoutines(Generic[T]):
+    def __init__(self, name):
+        super().__init__(name)
+        self.get_logger().info('started')
 
-    rospy.init_node('base_interactive', anonymous=True)
+        threading.Thread(target=self.interactive, daemon=True).start()
 
-    routines = MoveBaseRoutines()
+    def interactive(self):
+        if self.com and 'initial_object_config' in self.settings:
+            self._initialize_collision_objects(
+                self.settings['initial_object_config'])
 
-    while not rospy.is_shutdown():
-        prompt = '{}>> '.format(
-            routines.format_odom(routines.current_odom))
-        key = raw_input(prompt)
+        arm_name = self.group_names[0]
+        axis     = 'Y'
+        speed    = 1.0
 
-        if key == 'q':
-            break
-        elif key == 'move_base':
-            x     = float(raw_input('  x     = '))
-            y     = float(raw_input('  y     = '))
-            theta = float(raw_input('  theta = '))
-            routines.move_base(x, y, theta)
-        elif key == 'move_base_to_frame':
-            routines.move_base_to_frame(raw_input(' frame = '))
+        # Reset pose
+        self.go_to_named_pose(arm_name, "home")
+        self.print_help_messages()
+
+        while rclpy.ok():
+            current_pose = self.get_current_pose(arm_name)
+            prompt = '{:>5}:{}({})@{}>> ' \
+                    .format(axis, self.format_pose(current_pose),
+                            speed, arm_name)
+            key = input(prompt)
+            arm_name, axis, speed = super().interactive(key, arm_name,
+                                                        axis, speed)
+
+def _main(routines, name):
+    rclpy.init(args=sys.argv)
+    node = InteractiveRoutines[routines](name)
+    executor = MultiThreadedExecutor()
+    executor.add_node(node)
+    executor.spin()
+
+######################################################################
+#  entry points                                                      #
+######################################################################
+def interactive():
+    _main(BaseRoutines, 'interactive')
+
+def run_assembly():
+    _main(AssemblyRoutines, 'assembly')
+
+def run_kitting():
+    _main(KittingRoutines, 'kitting')

@@ -119,13 +119,23 @@ class KittingRoutines(BaseRoutines):
         return robot_name, axis, speed
 
     # Commands
-    def search_bin(self, bin_id,
-                   min_height=0.006, max_height=0.045, max_slant=pi/4):
-        bin_props  = self.bin_props[bin_id]
-        part_id    = bin_props['part_id']
-        part_props = self.part_props[part_id]
-        params     = self.graspability_params[part_id]
+    def search_bin(self, bin_id):
+        try:
+            bin_props  = self.bin_props[bin_id]
+            part_props = self.part_props[bin_props['part_id']]
+            params     = self.graspability_params[bin_props['part_id']]
+        except KeyError as e:
+            self.logger.error('search_bin() failed to get settings: %s' % e)
+            return GoalStatus.STATUS_UNKNOWN, None
+
         self._graspability_client.set_parameters(params)
+        self._graspability_client.set_graspability_filter(
+            lambda graspabilities, \
+                   min_height=bin_props.get('min_height', 0.006), \
+                   max_height=bin_props.get('max_height', 0.045), \
+                   max_slant =bin_props.get('max_slant',  pi/4):
+            self._graspability_filter(graspabilities,
+                                      min_height, max_height, max_slant))
 
         # Send goal first and then trigger camera frame.
         self._graspability_client.send_goal(border_id,
@@ -133,23 +143,10 @@ class KittingRoutines(BaseRoutines):
                                             one_shot)
         self.camera(part_props['camera_name']).trigger_frame()
 
-        return self.graspability_wait_for_result(
-                   bin_props['name'],
-                   lambda pose, min_height=min_height, max_height=max_height, max_slant=max_slant:
-                       self._pose_filter(pose,
-                                         min_height, max_height, max_slant))
+        return self._graspability_client.wait()
 
-    def graspability_send_goal(self, robot_name, part_id, border_id,
-                               one_shot=True):
-
-    def graspability_cancel(self):
-        self._graspability_client.cancel()
-
-    def graspability_wait(self, target_frame=''):
-        return self._graspability_client.wait(
-            lambda graspabilities, min_height=min_heihgt, \
-                   max_height=max_height, max_slant=max_slant:
-
+    def graspability_cancel_goal(self):
+        self._graspability_client.cancel_goal()
 
     # Utilities
     def _graspability_filter(self, graspabilities,
@@ -157,7 +154,7 @@ class KittingRoutines(BaseRoutines):
         #  We have to transform the poses to reference frame before moving
         #  because graspability poses are represented w.r.t. camera frame
         #  which will change while moving in the case of "eye on hand".
-        graspabilities.contact_points = self._transform_points_to_target_frame(
+        graspabilities.contact_points = self.transform_points_to_target_frame(
                                             graspabilities.poses.header,
                                             graspabilities.contact_points,
                                             target_frame)

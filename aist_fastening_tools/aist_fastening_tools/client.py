@@ -74,6 +74,10 @@ class GenericGripper(SimpleActionClient):
         return self._name
 
     @property
+    def type(self):
+        return 'two_finger'
+
+    @property
     def base_link(self):
         return self._name + '_base_link'
 
@@ -186,6 +190,10 @@ class SuctionTool(SimpleActionClient):
         return self._name
 
     @property
+    def type(self):
+        return 'suction'
+
+    @property
     def base_link(self):
         return self._name + '/base_link'
 
@@ -273,7 +281,7 @@ class ScrewTool(SuctionTool):
         self._parameters['grasp_speed'] = grasp_speed
         self._parameters['retighten']   = retighten
 
-    def tighten(self, *, timeout_sec=None):
+    def tighten(self, *, timeout_sec=0.0):
         """ Tighten the screw with the tool.
 
         Desired speed is specified by the parameter ``speed``.
@@ -290,7 +298,7 @@ class ScrewTool(SuctionTool):
                                    retighten=self.parameters['retighten'],
                                    timeout_sec=timeout_sec)
 
-    def loosen(self, *, timeout_sec=None):
+    def loosen(self, *, timeout_sec=0.0):
         """ Loosen the screw with the tool.
 
         Desired speed is specified by the parameter ``speed``.
@@ -310,7 +318,7 @@ class ScrewTool(SuctionTool):
         self._screw_command(self.parameters['speed'], timeout_sec=0.0)
         super().pregrasp()
 
-    def grasp(self, *, timeout_sec=None):
+    def grasp(self, *, timeout_sec=0.0):
         self._screw_command(self.parameters['grasp_speed'], timeout_sec=0.0)
         status, result = super().grasp(timeout_sec=timeout_sec)
         if status == GoalStatus.STATUS_SUCCEEDED and result.suctioned:

@@ -38,14 +38,15 @@
 import rclpy, sys, threading
 from rclpy.node            import Node
 from rclpy.experimental    import EventsExecutor
-from rclpy.action          import ActionServer, GoalResponse, CancelResponse
+from rclpy.action          import GoalResponse, CancelResponse
 from rclpy.callback_groups import (MutuallyExclusiveCallbackGroup,
                                    ReentrantCallbackGroup)
-from aist_msgs.msg         import RequestHelp, Pointing
-from aist_msgs.action      import RequestHelp as RequestHelpAction
+from aist_msgs.msg         import RequestHelp as RequestHelpMsg, Pointing
+from aist_msgs.action      import RequestHelp
 from geometry_msgs.msg     import (QuaternionStamped, PoseStamped,
                                    PointStamped, Vector3Stamped,
                                    Point, Quaternion, Vector3)
+from task_wrappers         import ActionServer
 
 ######################################################################
 #  class HMIServer                                                   #
@@ -56,53 +57,53 @@ class HMIServer(Node):
                             item_id='unknown_part_ID',
                             request=RequestHelp.NO_REQ,
                             message='')
+
     def __init__(self, name):
         super().__init__(name)
 
-        # Pointing message subscription stuffs
-        self._pointing      = None
-        self._pointing_cond = threading.Condition()
-        self._pointing_sub  = self.create_subscription(Pointing, '/pointing',
-                                                       self._pointing_cb, 3)
-
-        # RequestHelp message publishing stuffs
+        # RequestHelp message publishing stuffs: ROS -> Unity
         period = self.declare_parameter('period', 0.100).value
-        self._request_help_pub = self.create_publisher(RequestHelp,
+        self._request_help_pub = self.create_publisher(RequestHelpMsg,
                                                        '/help', 10)
         self._timer_cbg        = MutuallyExclusiveCallbackGroup()
         self._timer            = self.create_timer(
                                      period, self._timer_cb,
                                      callback_group=self._timer_cbg)
 
+        # Pointing message subscription stuffs: ROS <- Unity
+        self._pointing      = None
+        self._pointing_cond = threading.Condition()
+        self._pointing_sub  = self.create_subscription(Pointing, '/pointing',
+                                                       self._pointing_cb, 3)
+
         # RequestHelp action server stuffs
         self._goal_handle      = None
         self._goal_handle_lock = threading.Lock()
         self._request_help_cbg = ReentrantCallbackGroup()
         self._request_help_srv = ActionServer(
-                                     self, RequestHelpAction, '~/request_help',
-                                     callback_group=self._request_help_cbg,
-                                     execute_callback=self._execute_cb,
-                                     goal_callback=self._goal_cb,
-                                     handle_accepted_callback=self._handle_accepted_cb,
-                                     cancel_callback=self._cancel_cb)
+                                     self, RequestHelp, '~/request_help',
+                                     self._execute_cb,
+                                     callback_group=self._request_help_cbg)
         self.get_logger().info('started')
 
     def _timer_cb(self):
+        """ Publish messages requesting for help toward the remote operator.
+
+        If the RequestHelp action server is active, publish message
+        of RequestHelp type in the goal request. Otherwise, publish message
+        with NO_REQ reqeust field.
+        """
         with self._goal_handle_lock:
             req = self._goal_handle.request.request \
                   if self._goal_handle is not None else HMIServer._NoReq
         req.pose.header.stamp = self.get_clock().now().to_msg()
         self._request_help_pub.publish(req)
 
-    def _pointing_cb(self, pointing):
-        """
-        Receive response message with finger direction from VR side.
-        Send feedback to the action client if pointing_state is NO_RES.
-        Set state of the goal to SUCCEEDED, send the message as a result
-        and revert _curr_req to _no_req, otherwise.
+    def _pointing_cb(self, pointing: Pointing):
+        """ Subscribe error recovery command messages from the remote operator.
 
-        @type  pointing: finger_pointing_msgs.msg.pointing
-        @param pointing: finger direction response from VR side
+        Reception of the message is notified to the execution callback
+        of the action server.
         """
         pointing.header.stamp = self.get_clock().now().to_msg()
 
@@ -110,24 +111,10 @@ class HMIServer(Node):
             self._pointing = pointing
             self._pointing_cond.notify_all()
 
-    def _goal_cb(self, goal):
-        self.get_logger().info('new goal received')
-        return GoalResponse.ACCEPT
-
-    def _handle_accepted_cb(self, goal_handle):
-        with self._goal_handle_lock:
-            if self._goal_handle is not None and self._goal_handle.is_active:
-                self._goal_handle.abort()
-                self.get_logger().warn('previous goal ABORTED')
-            self._goal_handle = goal_handle
-        self.get_logger('new goal ACCEPTED')
-        goal_handle.execute()
-
-    def _cancel_cb(self):
-        self.get_logger().warn('current goal requested to be cancelled')
-        return CancelResponse.ACCEPT
-
     def _execute_cb(self, goal_handle):
+        with self._goal_handle_lock:
+            self._goal_handle = goal_handle
+
         while goal_handle.is_active:
             # Get subscribed pointing message from VR side.
             with self._pointing_cond:
@@ -135,8 +122,9 @@ class HMIServer(Node):
                                                     self._pointing is not None,
                                                     1.0):
                     goal_handle.abort()
-                    self.get_logger().error('timeout expired while waiting for pointing message from VR side')
-                    return
+                    self.get_logger().error('timeout expired while waiting for pointing message from the remote operator')
+                    pointing = Pointing(pointing_state=Pointing.NO_RES)
+                    break
                 pointing = self._pointing
                 self._pointing = None
 

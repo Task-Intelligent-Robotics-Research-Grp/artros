@@ -33,44 +33,44 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy, threading, copy, numpy as np
-from actionlib          import SimpleActionServer, SimpleActionClient
-from actionlib_msgs.msg import GoalStatus
-from geometry_msgs.msg  import Transform, Vector3, Quaternion
-from aist_msgs.msg      import (SweepAction, SweepGoal,
-                                SweepResult, SweepFeedback)
-from tf                 import transformations as tfs
+import rclpy, threading, copy, numpy as np
+import tf_transformations as tfs
+from rclpy.node                  import Node
+from task_wrappers.action_server import ActionServer
+from task_wrappers.action_client import SimpleActionClient
+from action_msgs.msg             import GoalStatus
+from geometry_msgs.msg           import Transform, Vector3, Quaternion
+from aist_msgs.action            import Sweep
 
-######################################################################
-#  class Sweep                                                       #
-######################################################################
+#*********************************************************************
+#  class Sweep                                                       *
+#*********************************************************************
 class Sweep(SimpleActionClient):
-    def __init__(self, routines):
-        SimpleActionClient.__init__(self, 'sweep', SweepAction)
+    def __init__(self, node: Node):
+        super().__init__(node, Sweep, 'sweep')
 
-        self._routines      = routines
-        self._current_stage = SweepFeedback.IDLING
+        self._current_stage = Sweep.Feedback.IDLING
         self._target_stage  = None
+
+        self._node          = node
         self._condition     = threading.Condition()
-        self._server        = SimpleActionServer("sweep", SweepAction,
-                                                 self._execute_cb, False)
-        self._server.register_preempt_callback(self._preempt_cb)
-        self._server.start()
+        self._server        = ActionServer(node, Sweep, "sweep",
+                                           self._execute_cb)
         self.wait_for_server()
 
     # Client stuffs
-    def send_goal(self, robot_name, pose, sweep_length, sweep_offset,
-                  approach_offset, departure_offset, speed_fast, speed_slow,
-                  wait=True, done_cb=None, active_cb=None):
-        SimpleActionClient.send_goal(self,
-                                     SweepGoal(robot_name, pose, sweep_length,
-                                               sweep_offset, approach_offset,
-                                               departure_offset,
-                                               speed_fast, speed_slow),
-                                     done_cb, active_cb, self._feedback_cb)
-        if wait:
-            self.wait_for_result()
-            return self.get_result().result
+    def sweep(self, robot_name, pose, sweep_length, sweep_offset,
+              approach_offset, departure_offset, speed_fast, speed_slow,
+              *, timeout_sec=0.0):
+        return super().send_goal(Sweep.Goal(robot_name=robot_name, pose=pose,
+                                            sweep_length=sweep_length,
+                                            sweep_offset=sweep_offset,
+                                            approach_offset=approach_offset,
+                                            departure_offset=departure_offset,
+                                            speed_fast=speed_fast,
+                                            speed_slow=speed_slow),
+                                 feedback_callback=self._feedback_cb,
+                                 timeout_sec=timeout_sec)
 
     def wait_for_stage(self, stage, timeout=rospy.Duration()):
         self._target_stage = stage          # Set stage to be waited for
@@ -95,24 +95,23 @@ class Sweep(SimpleActionClient):
                 self._condition.notifyAll()
 
     # Server stuffs
-    def shutdown(self):
-        self._server.__del__()
+    @property
+    def logger(self):
+        return self._node.get_logger()
 
-    def _execute_cb(self, goal):
-        rospy.loginfo("*** Do sweeping ***")
-        routines = self._routines
-        feedback = SweepFeedback()
-        result   = SweepResult()
+    def _execute_cb(self, goal_handle):
+        self.logger.info("*** Do sweeping ***")
+        result = SweepResult()
 
         # Go to approach pose.
-        rospy.loginfo("--- Go to approach pose. ---")
+        self.logger.info("--- Go to approach pose. ---")
         feedback.stage = SweepFeedback.MOVING
         self._server.publish_feedback(feedback)
-        success = routines.go_to_pose_goal(goal.robot_name,
-                                           goal.pose, goal.approach_offset,
-                                           goal.speed_fast)
-        if not self._server.is_active():
-            return
+        success = self._node.go_to_pose_goal(goal.robot_name,
+                                             goal.pose, goal.approach_offset,
+                                             goal.speed_fast)
+        if not goal_handle.is_active:
+            return result
         if not success:
             result.result = SweepResult.MOVE_FAILURE
             self._server.set_aborted(result, "Failed to go to approach pose")
@@ -124,7 +123,7 @@ class Sweep(SimpleActionClient):
         success = routines.go_to_pose_goal(goal.robot_name,
                                            goal.pose, goal.sweep_offset,
                                            goal.speed_slow)
-        if not self._server.is_active():
+        if not goal_handle.is_active:
             return
         if not success:
             result.result = SweepResult.APPROACH_FAILURE
@@ -132,14 +131,14 @@ class Sweep(SimpleActionClient):
             return
 
         # Sweep.
-        rospy.loginfo("--- Sweep. ---")
+        self.logger.info("--- Sweep. ---")
         feedback.stage = SweepFeedback.SWEEPING
         self._server.publish_feedback(feedback)
         offset = list(goal.sweep_offset)
         offset[1] += goal.sweep_length
         success = routines.go_to_pose_goal(goal.robot_name, goal.pose, offset,
                                            goal.speed_fast)
-        if not self._server.is_active():
+        if not goal_handle.is_active:
             return
         if not success:
             result.result = SweepResult.SWEEP_FAILURE
@@ -147,13 +146,13 @@ class Sweep(SimpleActionClient):
             return
 
         # Go back to departure(pick) or approach(place) pose.
-        rospy.loginfo("--- Go back to departure pose. ---")
+        self.logger.info("--- Go back to departure pose. ---")
         feedback.stage = SweepFeedback.DEPARTING
         self._server.publish_feedback(feedback)
-        success = routines.go_to_pose_goal(goal.robot_name,
-                                           goal.pose, goal.departure_offset,
-                                           goal.speed_fast)
-        if not self._server.is_active():
+        success = self._node.go_to_pose_goal(goal.robot_name,
+                                             goal.pose, goal.departure_offset,
+                                             goal.speed_fast)
+        if not goal_handle.is_active:
             return
         if not success:
             result.result = SweepResult.DEPARTURE_FAILURE

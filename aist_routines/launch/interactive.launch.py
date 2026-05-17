@@ -57,7 +57,7 @@ def launch_setup(context):
                       'use_sim_time': LaunchConfiguration('sim'),
                      }
                  ],
-                 prefix=['xterm -fn 7x14 -sb -geometry 80x60 -e'],
+                 prefix=['gnome-terminal --geometry=80x60 --'],
                  output='screen')]
 
 def generate_launch_description():

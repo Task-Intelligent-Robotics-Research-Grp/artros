@@ -34,22 +34,18 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy, collections, copy, numpy as np
-from math                          import pi
-from tf                            import transformations as tfs
-from geometry_msgs.msg             import (PoseStamped, PointStamped,
-                                           Vector3Stamped,
-                                           Point, Quaternion, Vector3)
-from aist_routines.KittingRoutines import KittingRoutines
-from aist_routines.SweepAction     import Sweep
-from aist_msgs.msg                 import SweepResult
-from aist_msgs.msg                 import (RequestHelpAction, RequestHelpGoal,
-                                           RequestHelpResult,
-                                           RequestHelp, Pointing)
-from actionlib                     import SimpleActionClient
-from visualization_msgs.msg        import Marker
-from std_msgs.msg                  import ColorRGBA
-from aist_utility.compat           import *
+import rclpy, collections, copy, numpy as np
+import tf_transformations as tfs
+from math                        import pi
+from geometry_msgs.msg           import (PoseStamped, PointStamped,
+                                         Vector3Stamped,
+                                         Point, Quaternion, Vector3)
+from visualization_msgs.msg      import Marker
+from std_msgs.msg                import ColorRGBA
+from aist_msgs.msg               import RequestHelp as RequestHelpMsg, Pointing
+from aist_msgs.action            import RequestHelp, Sweep
+from task_wrappers.action_client import SimpleActionClient
+from .kitting_routines           import KittingRoutines
 
 ######################################################################
 #  class HMIRoutines                                                 #
@@ -61,9 +57,7 @@ class HMIRoutines(KittingRoutines):
     _marker_props = {
         'finger' : MarkerProps(0, (0.008, 0.008, 0.008), (1.0, 0.0, 0.0, 1.0)),
         'sweep'  : MarkerProps(1, (0.006, 0.014, 0.015), (1.0, 1.0, 0.0, 1.0))
-        # 'finger' : MarkerProps(0, (0.006, 0.030, 0.015), (0.0, 1.0, 1.0, 1.0)),
-        # 'sweep'  : MarkerProps(1, (0.006, 0.030, 0.015), (1.0, 1.0, 0.0, 1.0))
-        }
+    }
 
     def __init__(self, server='hmi_server'):
         super().__init__(self.request_help_and_sweep,
@@ -76,8 +70,8 @@ class HMIRoutines(KittingRoutines):
         self._graspability_params_back = None
         self._sweep_params             = rospy.get_param('~sweep_parameters')
         self._request_help_clnt        = SimpleActionClient(
-                                             server + '/request_help',
-                                             RequestHelpAction)
+                                             self, RequestHelpAction,
+                                             server + '/request_help')
         self._sweep_clnt               = Sweep(self)
         self._marker_pub               = rospy.Publisher('pointing_marker',
                                                          Marker, queue_size=10)

@@ -41,9 +41,9 @@ from aist_msgs.srv                import (HandEyeCalibrationTakeSample,
                                           HandEyeCalibrationComputeCalibration)
 from task_wrappers.service_client import ServiceClient
 
-######################################################################
-#  class HandEyeCalibratorClient                                     #
-######################################################################
+#*********************************************************************
+#  class HandEyeCalibratorClient                                     *
+#*********************************************************************
 class HandEyeCalibratorClient(object):
     def __init__(self, node, server_ns='handeye_calibrator'):
         super().__init__()
@@ -53,24 +53,25 @@ class HandEyeCalibratorClient(object):
                                         node,
                                         HandEyeCalibrationTakeSample,
                                         server_ns + '/take_sample',
-                                        self._cbg)
+                                        callback_group=self._cbg)
         self._get_sample_list     = ServiceClient(
                                         node,
                                         HandEyeCalibrationGetSampleList,
                                         server_ns + '/get_sample_list',
-                                        self._cbg)
+                                        callback_group=self._cbg)
         self._compute_calibration = ServiceClient(
                                         node,
                                         HandEyeCalibrationComputeCalibration,
                                         server_ns + '/compute_calibration',
-                                        self._cbg)
+                                        callback_group=self._cbg)
         self._reset               = ServiceClient(
                                         node,
                                         Empty, server_ns + '/reset',
-                                        self._cbg)
+                                        callback_group=self._cbg)
 
     def take_sample_async(self):
-        self._take_sample.call(HandEyeCalibrationTakeSample.Request(), 0.0)
+        self._take_sample.call(HandEyeCalibrationTakeSample.Request(),
+                               timeout_sec=0.0)
 
     def wait_for_sample(self, timeout_sec=None):
         return self._take_sample.wait(timeout_sec)

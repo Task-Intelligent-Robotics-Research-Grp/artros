@@ -98,7 +98,7 @@ def launch_setup(context):
                       [LaunchConfiguration('config'), '.yaml']]),
                   'use_sim_time': LaunchConfiguration('sim')}
              ],
-             prefix=['xterm -fn 7x14 -sb -geometry 80x60 -e'],
+             prefix=['gnome-terminal --geometry=80x60 --'],
              output=LaunchConfiguration('output'),
              arguments=['--ros-args', '--log-level',
                         LaunchConfiguration('log_level')])

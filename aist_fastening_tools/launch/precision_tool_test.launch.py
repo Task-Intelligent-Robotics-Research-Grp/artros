@@ -30,7 +30,7 @@ def launch_setup(context):
              parameters=[
                  {'device_name': LaunchConfiguration('device_name')},
              ],
-             prefix=['xterm -fn 7x14 -e'],
+             prefix=['gnome-terminal --geometry=80x60 --'],
              output='screen')
     ]
 

@@ -9,7 +9,9 @@ launch_arguments = [
     {
         'name':        'device_name',
         'default':     'suction_tool',
-        'description': 'device name of the tool'
+        'description': 'device name of the tool',
+        'choices':     ['screw_tool_m3', 'screw_tool_m4', 'suction_tool',
+                        'base_fixture'],
     }
 ]
 
@@ -25,7 +27,7 @@ def launch_setup(context):
              package='aist_fastening_tools',
              executable='suction_tool_test.py',
              parameters=[{'device_name': LaunchConfiguration('device_name')}],
-             prefix=['xterm -fn 7x14 -e'],
+             prefix=['gnome-terminal --geometry=80x60 --'],
              output='screen')
     ]
 

@@ -456,9 +456,9 @@ class BaseRoutines(Node):
             velocity = float(input('  velocity? '))
             self.set_gripper_velocity(robot_name, velocity)
         elif key == 'tighten':
-            self.tighten(robot_name, Duration(seconds=-1))
+            self.tighten(robot_name)
         elif key == 'loosen':
-            self.loosen(robot_name, Duration(seconds=-1))
+            self.loosen(robot_name)
         elif key == 'gcancel':
             self.gripper_cancel(robot_name)
 
@@ -783,14 +783,14 @@ class BaseRoutines(Node):
     def set_gripper_velocity(self, robot_name, velocity):
         return self.gripper(robot_name).set_velocity(velocity)
 
-    def tighten(self, robot_name, timeout=Duration()):
-        self.gripper(robot_name).tighten(timeout)
+    def tighten(self, robot_name):
+        self.gripper(robot_name).tighten()
 
-    def loosen(self, robot_name, timeout=Duration()):
-        self.gripper(robot_name).loosen(timeout)
+    def loosen(self, robot_name):
+        self.gripper(robot_name).loosen()
 
     def gripper_cancel(self, robot_name):
-        self.gripper(robot_name).cancel()
+        self.gripper(robot_name).cancel_goal()
 
     # Camera stuffs
     def camera(self, camera_name):
@@ -801,74 +801,6 @@ class BaseRoutines(Node):
 
     def trigger_frame(self, camera_name):
         return self.camera(camera_name).trigger_frame()
-
-    # Graspability stuffs
-    def create_mask_image(self, camera_name, nmasks):
-        self.camera(camera_name).trigger_frame()
-        return self._graspabilityClient.create_mask_image(nmasks)
-
-    def graspability_send_goal(self, robot_name, part_id, mask_id,
-                               one_shot=True):
-        params = self._graspability_params[part_id]
-        self._graspabilityClient.set_parameters(params)
-
-        # Send goal first to be ready for subscribing image,
-        self._graspabilityClient.send_goal(mask_id,
-                                           self.gripper(robot_name).type,
-                                           None if one_shot else
-                                           self._graspability_feedback_cb)
-
-    def graspability_cancel_goal(self):
-        self._graspabilityClient.cancel_goal()
-
-    def graspability_wait_for_result(self, target_frame='', pose_filter=None,
-                                     marker_lifetime=0):
-        graspabilities = self._graspabilityClient.wait_for_result()
-
-        #  We have to transform the poses to reference frame before moving
-        #  because graspability poses are represented w.r.t. camera frame
-        #  which will change while moving in the case of "eye on hand".
-        graspabilities.contact_points = self._transform_points_to_target_frame(
-                                            graspabilities.poses.header,
-                                            graspabilities.contact_points,
-                                            target_frame)
-        graspabilities.poses          = self.transform_poses_to_target_frame(
-                                            graspabilities.poses, (),
-                                            target_frame)
-        if pose_filter is not None:
-            poses          = []
-            gscores        = []
-            contact_points = []
-            for pose, gscore, contact_point \
-                in zip(graspabilities.poses.poses, graspabilities.gscores,
-                       graspabilities.contact_points):
-                filtered_pose = pose_filter(pose)
-                if filtered_pose is not None:
-                    poses.append(filtered_pose)
-                    gscores.append(gscore)
-                    contact_points.append(contact_point)
-            graspabilities.poses.poses    = poses
-            graspabilities.gscores        = gscores
-            graspabilities.contact_points = contact_points
-        self._graspability_publish_marker(graspabilities, marker_lifetime)
-        self.get_logger().info('{} graspabilities found with stamp: [{:0>10}.{:0>9}]'
-                      .format(len(graspabilities.poses.poses),
-                              graspabilities.poses.header.stamp.secs,
-                              graspabilities.poses.header.stamp.nsecs))
-        return graspabilities
-
-    def _graspability_publish_marker(self, graspabilities, marker_lifetime=0):
-        self.delete_all_markers()
-        for i, pose in enumerate(graspabilities.poses.poses):
-            self.add_marker('graspability',
-                            PoseStamped(graspabilities.poses.header, pose),
-                            graspabilities.contact_points[i],
-                            '{}[{:.3f}]'.format(i, graspabilities.gscores[i]),
-                            lifetime=marker_lifetime)
-        self.publish_marker()
-
-    def _graspability_feedback_cb(self, feedback):
-        self._graspability_publish_marker(feedback.graspabilities)
 
     # Pick and place action stuffs
     def pick(self, robot_name, target_pose, part_id,
@@ -927,8 +859,8 @@ class BaseRoutines(Node):
                           self.pose_from_xyzrpy(offset, target_frame),
                           part_id, subframe_link, wait, done_cb, active_cb)
 
-    def pick_or_place_wait_for_stage(self, stage, timeout=Duration()):
-        return self._pick_or_place.wait_for_stage(stage, timeout)
+    def pick_or_place_wait_for_stage(self, stage, timeout_sec=None):
+        return self._pick_or_place.wait_for_stage(stage, timeout_sec=None)
 
     def pick_or_place_wait_for_result(self, timeout=Duration()):
         if self._pick_or_place.wait_for_result(timeout):
@@ -938,6 +870,25 @@ class BaseRoutines(Node):
         self._pick_or_place.cancel_goal()
 
     # Utility functions
+    def transform_points_to_target_frame(self, header, points,
+                                         target_frame=''):
+        if target_frame == '':
+            target_frame = self._reference_frame
+
+        try:
+            self._tf2_buffer.lookup_transform(target_frame, header.frame_id,
+                                              header.stamp,
+                                              Duration(seconds=10))
+            mat44 = self._tf2_buffer.asMatrix(target_frame, header)
+        except Exception as e:
+            self.get_logger().error(
+                'BaseRoutines._transform_points_to_target_frame(): %s' % e)
+            raise e
+
+        return [ Point(*tuple(np.dot(mat44,
+                                     np.array((p.x, p.y, p.z, 1.0)))[:3]))
+                 for p in points ]
+
     def transform_pose_to_target_frame(self, pose, offset=(), target_frame=''):
         poses = self.transform_poses_to_target_frame(
                     PoseArray(header=pose.header, poses=[pose.pose]),
@@ -1069,24 +1020,6 @@ class BaseRoutines(Node):
         return np.array((0.0, 0.0, 0.0, 1.0)) if len(offset) < 3 else \
                tfs.quaternion_from_euler(*np.radians(offset[0:3])) if len(offset) == 3 else \
                np.array(offset[0:4])
-
-    def _transform_points_to_target_frame(self, header, points,
-                                          target_frame=''):
-        if target_frame == '':
-            target_frame = self._reference_frame
-
-        try:
-            self._tf2_buffer.lookup_transform(target_frame, header.frame_id,
-                                              header.stamp,
-                                              Duration(seconds=10))
-            mat44 = self._tf2_buffer.asMatrix(target_frame, header)
-        except Exception as e:
-            self.get_logger().error('BaseRoutines._transform_points_to_target_frame(): %s' % e)
-            raise e
-
-        return [ Point(*tuple(np.dot(mat44,
-                                     np.array((p.x, p.y, p.z, 1.0)))[:3]))
-                 for p in points ]
 
     def _correct_orientation(self, orientation, up):
         q     = (orientation.x, orientation.y, orientation.z, orientation.w)

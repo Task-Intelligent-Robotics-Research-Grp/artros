@@ -25,8 +25,9 @@ setup(
     tests_require=["pytest"],
     entry_points={
         'console_scripts': [
-            'interactive = ' + package_name + '.interactive:main',
-            'hmi_server  = ' + package_name + '.hmi_server:main',
+            'interactive  = scripts.interactive:interactive',
+            'run_assembly = scripts.interactive:run_assembly',
+            'run_kitting  = scripts.interactive:run_kitting',
         ],
     },
 )

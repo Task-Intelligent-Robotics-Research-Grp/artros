@@ -41,44 +41,32 @@ from rclpy.action            import GoalResponse, CancelResponse
 from rclpy.callback_groups   import MutuallyExclusiveCallbackGroup
 from aist_msgs.action        import PickOrPlace
 from geometry_msgs.msg       import Point, Quaternion, Pose, PoseStamped
-from srv_and_action_wrappers import ActionServer, SimpleActionGroupClient
+from task_wrappers           import ActionServer, SimpleActionGroupClient
 
-######################################################################
-#  class PickOrPlace                                                 #
-######################################################################
-class PickOrPlaceAction(SimpleActionGroupClient):
+#************************************************************************
+#  class PickOrPlaceTaskClient                                          *
+#************************************************************************
+class PickOrPlaceTaskClient(GroupedSimpleTaskClient):
     class Error(Exception):
         def __init__(self, result, text):
             super().__init__(text)
             self.result = result
+
+        self._client_cbg = MutuallyExclusiveCallbackGroup()
+        super().__init__(node, PickOrPlace, server_ns, self._client_cbg)
+        self.wait_for_server()
 
     def __init__(self, node, server_ns='pick_or_place'):
         self._node          = node
         self._current_stage = PickOrPlaceFeedback.IDLING
         self._target_stage  = None
 
-        # Action server
-        self._server_cbg = MutuallyExclusiveCallbackGroup()
-        self._server     = ActionServer(node, PickOrPlace, server_ns,
-                                        execute_callback=self._execute_cb,
-                                        callback_group=self._server_cbg,
-                                        grouping=True)
-
-        # Action client
-        self._client_cbg = MutuallyExclusiveCallbackGroup()
-        super().__init__(node, PickOrPlace, server_ns, self._client_cbg)
-        self.wait_for_server()
-
-    @property
-    def _logger(self):
-        return self._node.get_logger()
-
     # Client stuffs
     def send_goal(self, robot_name, pose, pick, offset,
                   approach_offset, departure_offset, speed_fast, speed_slow,
                   subframe_link='', timeout_sec=None):
         return super().send_goal(PickOrPlace.Goal(
-                                     group_name=robot_name,
+                                     robot_name=robot_name,
                                      subframe_link=subframe_link,
                                      pose=pose,
                                      pick=pick,
@@ -111,14 +99,24 @@ class PickOrPlaceAction(SimpleActionGroupClient):
             with self._condition:
                 self._condition.notifyAll()
 
-    # Server stuffs
+#************************************************************************
+#  class PickOrPlaceTaskServer                                          *
+#************************************************************************
+class PickOrPlaceTaskServer(TaskServer):
+    def __init__(self, node, server_ns='pick_or_place'):
+        self._server_cbg = MutuallyExclusiveCallbackGroup()
+        self._server     = ActionServer(node, PickOrPlace, server_ns,
+                                        execute_callback=self._execute_cb,
+                                        callback_group=self._server_cbg,
+                                        grouping=True)
+
     def _execute_cb(self, goal_handle):
         request = goal_handle.request
         self._logger.loginfo('### Do %s ###'
                              % 'picking' if request.pick else 'placing')
         node    = self._node
         com     = node.com
-        gripper = node.gripper(request.group_name)
+        gripper = node.gripper(request.robot_name)
         if request.pick:
             object_id = PickOrPlace._get_object_id(request.pose.header.frame_id)
             eef_link  = ''
@@ -132,7 +130,7 @@ class PickOrPlaceAction(SimpleActionGroupClient):
                                    'Go to approach pose')
             speed   = request.speed_fast if request.pick else \
                       request.speed_slow
-            success = node.go_to_pose_goal(request.group_name, request.pose,
+            success = node.go_to_pose_goal(request.robot_name, request.pose,
                                            request.approach_offset, speed,
                                            end_effector_link=eef_link)
 
@@ -155,7 +153,7 @@ class PickOrPlaceAction(SimpleActionGroupClient):
             elif object_id != '':
                 com.append_touch_links(object_id, request.pose.header.frame_id)
 
-            success = node.go_to_pose_goal(request.group_name, request.pose,
+            success = node.go_to_pose_goal(request.robot_name, request.pose,
                                            request.offset, request.speed_slow,
                                            end_effector_link=eef_link)
 
@@ -172,23 +170,7 @@ class PickOrPlaceAction(SimpleActionGroupClient):
             self._publish_feedback(PickOrPlaceFeedback.GRASPING_OR_RELEASING,
                                    'Pick' if request.pick else 'Place')
             if request.pick:
-                if 'spiral_npoints' in gripper.parameters:
-                    timeout = rospy.Duration(
-                                  gripper.parameters['spiral_timeout'])
-                    node.spiral_motion(
-                        request.group_name, gripper.tip_link,
-                        gripper.parameters['spiral_npoints'],
-                        gripper.parameters['spiral_angle_increment'],
-                        gripper.parameters['spiral_radius_x_max'],
-                        gripper.parameters['spiral_radius_y_max'],
-                        gripper.parameters['spiral_speed'],
-                        gripper.parameters['spiral_accel'],
-                        timeout)
-                    if gripper.grasp(timeout):
-                        node.cancel_spiral_motion()
-                        rospy.sleep(rospy.Duration(0.5))
-                else:
-                    gripper.grasp()
+                gripper.grasp()
                 if object_id != '':
                     original_object_info = com.attach_object(object_id,
                                                              gripper.tip_link)
@@ -222,7 +204,7 @@ class PickOrPlaceAction(SimpleActionGroupClient):
                 else:
                     pose   = request.pose
                     offset = request.approach_offset
-            success = node.go_to_pose_goal(request.group_name,
+            success = node.go_to_pose_goal(request.robot_name,
                                            pose, offset, speed)
 
             # Check success of going back to departure/approach pose.
