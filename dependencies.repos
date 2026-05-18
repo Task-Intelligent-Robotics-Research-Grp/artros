@@ -14,9 +14,17 @@ repositories:
   aist_robotiq:
     type: git
     url: git@github.com:Task-Intelligent-Robotics-Research-Grp/aist_robotiq
-    version: ros2-devel
+    version: develop
   realsense-ros:
     type: git
     url: git@github.com:Automation-Research-Team/realsense-ros
     version: ros2-sr300-ok
-    
+  dynamixel_workbench_controllers:
+    type: git
+    url: git@github.com:Automation-Research-Team/dynamixel_workbench_controllers
+    version: devel-aist
+  rqt_reconfigure:
+    type: git
+    url: git@github.com:Automation-Research-Team/rqt_reconfigure
+    version: devel-aist
+  
