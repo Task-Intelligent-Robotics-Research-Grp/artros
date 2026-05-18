@@ -1,3 +1,0 @@
-[submodule "third_party/realsense-ros"]
-	path = third_party/realsense-ros
-	url = git@github.com:Automation-Research-Team/realsense-ros
