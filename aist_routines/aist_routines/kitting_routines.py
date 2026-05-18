@@ -39,14 +39,14 @@ import tf_transformations as tfs
 import numpy as np
 
 from rclpy.executors          import MultiThreadedExecutor
-from aist_graspability.client import GraspabilityClinet
+from aist_graspability.client import GraspabilityClient
 
 from math                     import pi, radians, degrees, cos, sin, sqrt
 from geometry_msgs.msg        import Quaternion
 # from aist_routines.AssemblyRoutines import AssemblyRoutines
 # from aist_routines.AttemptBinAction import AttemptBin
 from aist_utility.fileio      import filepath_from_url
-from .base                    import BaseRoutines
+from .base_routines           import BaseRoutines
 
 ######################################################################
 #  class KittingRoutines                                             #
