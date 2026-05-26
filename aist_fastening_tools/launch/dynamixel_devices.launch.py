@@ -17,7 +17,7 @@ launch_arguments = [
     },
     {
         'name':        'device_names',
-        'default':     'screw_tool_m3_fastening,screw_tool_m4_fastening',
+        'default':     'screw_tool_m3,screw_tool_m4',
         'description': 'list of device names'
     },
     {
@@ -69,9 +69,20 @@ def launch_setup(context):
                  .split(','),
                  LaunchConfiguration('device_types').perform(context)
                  .split(',')):
+        if device_type == 'ScrewTool':
+            composable_nodes.append(
+                ComposableNode(
+                    name=device_name + '_controller',
+                    package='aist_fastening_tools',
+                    plugin='aist_fastening_tools::SuctionToolController',
+                    parameters=[LaunchConfiguration('param_file')],
+                    extra_arguments=[{'use_intra_process_comms': True}]))
+            controller_name = device_name + '_fastening_controller'
+        else:
+            controller_name = device_name + '_controller'
         composable_nodes.append(
             ComposableNode(
-                name=device_name + '_controller',
+                name=controller_name,
                 package='aist_fastening_tools',
                 plugin=PLUGINS[device_type],
                 parameters=[LaunchConfiguration('param_file')],

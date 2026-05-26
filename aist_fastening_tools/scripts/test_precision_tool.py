@@ -37,18 +37,16 @@
 #
 import rclpy, sys, threading
 from rclpy.node                  import Node
-from aist_fastening_tools.client import GenericGripper
+from aist_fastening_tools.client import PrecisionTool
 
-#########################################################################
-#  class TestGripperClient                                              #
-#########################################################################
-class TestGripperClient(Node):
+
+class TestPrecisionTool(Node):
     def __init__(self, name):
         super().__init__(name)
 
         gripper_name = self.declare_parameter('device_name',
                                               'precision_tool').value
-        self._gripper = GenericGripper(self, gripper_name)
+        self._gripper = PrecisionTool(self, gripper_name)
         self.get_logger().info('started')
 
         threading.Thread(target=self.interactive, daemon=True).start()
@@ -90,7 +88,7 @@ class TestGripperClient(Node):
 def main():
     rclpy.init(args=sys.argv)
 
-    test = TestGripperClient('test_client')
+    test = TestPrecisionTool('test_precision_tool')
     rclpy.spin(test)
 
 if __name__ == '__main__':

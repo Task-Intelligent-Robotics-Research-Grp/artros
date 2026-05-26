@@ -29,7 +29,7 @@ arms:
 
 grippers:
   b_bot_grippers:
-    type:             RobotiqGrippers
+    type:             RobotiqDevices
     grippers:
       b_bot_gripper:
         type:         RobotiqGripper
@@ -39,33 +39,19 @@ grippers:
   screw_tools:
     type:            DynamixelDevices
     grippers:
-      screw_tool_m3_fastening:
+      screw_tool_m3:
         type:        ScrewTool
-      screw_tool_m4_fastening:
+      screw_tool_m4:
         type:        ScrewTool
   suction_tools:
     type:            URioDevices
     grippers:
-      screw_tool_m3:
-        type:        SuctionTool
-        client_args:
-          base_link: screw_tool_m3/base_link
-          tip_link:  screw_tool_m3/tip_link
-      screw_tool_m4:
-        type:        SuctionTool
-        client_args:
-          base_link: screw_tool_m4/base_link
-          tip_link:  screw_tool_m4/tip_link
       suction_tool:
         type:        SuctionTool
         client_args:
-          base_link: suction_tool/base_link
-          tip_link:  suction_tool/tip_link
       base_fixture:
-        type:        SuctionTool
+        type:        SuctionGripper
         client_args:
-          base_link: base_fixture_base_link
-          tip_link:  base_fixture_tip_link
 
 cameras:
   a_motioncam:

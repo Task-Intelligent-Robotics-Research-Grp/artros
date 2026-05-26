@@ -15,7 +15,7 @@ launch_arguments = [
     {
         'name':        'name',
         'default':     'suction_tools',
-        'description': 'Name of the Dynamixel device group'
+        'description': 'Name of the URio device group'
     },
 ]
 

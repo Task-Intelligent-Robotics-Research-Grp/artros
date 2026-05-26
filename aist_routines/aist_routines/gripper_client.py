@@ -1,4 +1,3 @@
-#
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2021, National Institute of Advanced Industrial Science and Technology (AIST)
@@ -15,7 +14,7 @@
 #    disclaimer in the documentation and/or other materials provided
 #    with the distribution.
 #  * Neither the name of National Institute of Advanced Industrial
-#    Science and Technology (AIST) nor the names of its contributors
+#    Science and Technolog (AIST) nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
 #
@@ -34,27 +33,14 @@
 #
 # Author: Toshio Ueshiba
 #
-import rclpy, sys, threading
-from rclpy.executors                 import MultiThreadedExecutor
-from aist_routines.base_routines     import BaseRoutines
-from aist_routines.assembly_routines import AssemblyRoutines
-from aist_routines.kitting_routines  import KittingRoutines
+from aist_robotiq.client         import RobotiqGripper, RobotiqSuction
+from aist_fastening_tools.client import (SuctionTool, SuctionGripper,
+                                         ScrewTool, PrecisionTool)
 
-#*********************************************************************
-#  entry points                                                      *
-#*********************************************************************
-def _main(name, routines):
-    rclpy.init(args=sys.argv)
-    node = routines(name)
-    executor = MultiThreadedExecutor()
-    executor.add_node(node)
-    executor.spin()
 
-def interactive():
-    _main('interactive', BaseRoutines)
-
-def run_assembly():
-    _main('assembly', AssemblyRoutines)
-
-def run_kitting():
-    _main('kitting', KittingRoutines)
+def create_gripper(node, name, gripper_type, client_args):
+    gripper_client_class = globals().get(gripper_type)
+    if gripper_client_class is None:
+        raise RuntimeError('unknown type[%s] of the gripper[%s]'
+                               % (gripper_type, name))
+    return gripper_client_class(node, name, **client_args)

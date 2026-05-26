@@ -33,7 +33,7 @@
 #
 # Author: Toshio Ueshiba
 #
-import rclpy, sys, time, yaml, re
+import rclpy, sys, time, yaml, re, threading
 import numpy as np
 import moveit_commander
 import tf_transformations as tfs
@@ -61,7 +61,7 @@ from controller_manager_msgs.srv          import (ListControllers,
 from aist_utility.fileio                  import filepath_from_url
 from aist_collision_object_manager.client import CollisionObjectManagerClient
 from ddynamic_reconfigure2.utils          import declare_read_only_parameter
-#from .gripper_client                      import GripperClient
+from .gripper_client                      import create_gripper
 from .camera_client                       import CameraClient
 
 #*********************************************************************
@@ -91,6 +91,9 @@ def paramtuples(d):
 #  class BaseRoutines                                                *
 #*********************************************************************
 class BaseRoutines(Node):
+    """ Collection of basic routines for controlling arms, grippers
+    and cameras.
+    """
     ControllerTypes = (
         'joint_trajectory_controller/JointTrajectoryController',
         'ur_controllers/ScaledJointTrajectoryController',
@@ -101,7 +104,11 @@ class BaseRoutines(Node):
         'cartesian_compliance_controller/CartesianComplianceController',
     )
 
-    def __init__(self, name):
+    def __init__(self, name: str):
+        """
+        Args:
+          name: Node name.
+        """
         super().__init__(name)
 
         moveit_commander.roscpp_initialize(sys.argv)
@@ -157,9 +164,8 @@ class BaseRoutines(Node):
                for name in config['arms']}
 
         # Grippers
-        self._grippers = {name: self.create_gripper(name, props['type'],
-                                                    props.get('client_args',
-                                                              {}))
+        self._grippers = {name: create_gripper(self, name, props['type'],
+                                               props.get('client_args', {}))
                           for name, props in get_grippers(config).items()}
         self._default_gripper_names = {}
         self._active_grippers       = {}
@@ -201,6 +207,8 @@ class BaseRoutines(Node):
         # else:
         #     self._pick_or_place = None
 
+        threading.Thread(target=self.interactive, daemon=True).start()
+
         self.get_logger().info('BaseRoutines initialized.')
 
     def __enter__(self):
@@ -217,48 +225,94 @@ class BaseRoutines(Node):
         return self.declare_parameter(name, param.get_parameter_value())
 
     @property
-    def tf2_buffer(self):
+    def tf2_buffer(self) -> Buffer:
+        """ TF2 buffer associated with this class.
+        """
         return self._tf2_buffer
 
     @property
-    def planning_frame(self):
+    def planning_frame(self) -> str:
+        """ MoveIt planning frame.
+        """
         return self._cmd.get_planning_frame()
 
     @property
-    def reference_frame(self):
+    def reference_frame(self) -> str:
+        """ MoveIt reference frame.
+        """
         return self._reference_frame
 
     @property
-    def eef_step(self):
+    def eef_step(self) -> float:
+        """ MoveIt end-effector step.
+        """
         return self._eef_step
 
     @property
-    def group_names(self):
+    def group_names(self) -> list[str]:
+        """ Name list of MoveIt groups.
+        """
         return self._cmd.get_group_names()
 
     @property
-    def arm_names(self):
+    def arm_names(self) -> list[str]:
+        """ Name list of arms.
+        """
         return self._list_controllers_srvs.keys()
 
     @property
-    def gripper_names(self):
+    def gripper_names(self) -> list[str]:
+        """ Name list of grippers.
+        """
         return self._grippers.keys()
 
     @property
-    def camera_names(self):
+    def camera_names(self) -> list[str]:
+        """ Name list of cameras.
+        """
         return self._cameras.keys()
 
     @property
-    def com(self):
+    def com(self) -> CollisionObjectManagerClient:
+        """ Client of collision object manager associated with this class.
+        """
         return self._com
 
     @property
-    def settings(self):
+    def settings(self) -> dict:
+        """ Settings for this class.
+        The settings are loaded from files whose names are specified by
+        the parameter 'setting_urls'.
+        """
         return self._settings
 
-
+    #
     # Interactive stuffs
+    #
+    def interactive(self):
+        if self.com and 'initial_object_config' in self.settings:
+            self._initialize_collision_objects()
+
+        arm_name = self.group_names[0]
+        axis     = 'Y'
+        speed    = 1.0
+
+        # Reset pose
+        self.go_to_named_pose(arm_name, "home")
+        self.print_help_messages()
+
+        while rclpy.ok():
+            current_pose = self.get_current_pose(arm_name)
+            prompt = '{:>5}:{}({})@{}>> ' \
+                    .format(axis, self.format_pose(current_pose),
+                            speed, arm_name)
+            command = input(prompt)
+            arm_name, axis, speed = self.process_command(command, arm_name,
+                                                         axis, speed)
+
     def print_help_messages(self):
+        """ Print help messages for CLI(command-line interface).
+        """
         print('=== General commands ===')
         print('  quit:        quit this program')
         print('  robot:       select robot')
@@ -294,7 +348,19 @@ class BaseRoutines(Node):
         print('  i:  Show infomation on collision objects')
         print('  ci: Show infomation on child collision object of frame')
 
-    def interactive(self, key, robot_name, axis, speed=1.0):
+    def process_command(self, command: str, robot_name: str, axis: str,
+                        speed: float=1.0) -> list[str, str, float]:
+        """ Process interaction with user through CLI(command-line interface).
+
+        Args:
+          command:    Command input from user.
+          robot_name: Robot name currently active.
+          axis:       Axis name currently active.
+          speed:      Current arm speed.
+
+        Returns:
+          Tuple of robot_name, axis and speed.
+        """
         def _is_num(s):
             try:
                 float(s)
@@ -312,10 +378,10 @@ class BaseRoutines(Node):
                     return None
             return offset
 
-        if key == 'quit':
+        if command == 'quit':
             self.go_to_named_pose(robot_name, 'home')  # Reset pose
             rclpy.shutdown()
-        elif key == 'robot':
+        elif command == 'robot':
             print('  current: %s' % robot_name)
             new_robot_name = input('  robot name? ')
             if new_robot_name in self.arm_names:
@@ -323,24 +389,24 @@ class BaseRoutines(Node):
             else:
                 self.get_logger().error('Unknown robot name[%s]'
                                         % new_robot_name)
-        elif key == '?' or key == 'help':
+        elif command == '?' or command == 'help':
             self.print_help_messages()
             print('')
 
         # Arm stuffs
-        elif key == 'X':
+        elif command == 'X':
             axis = 'X'
-        elif key == 'Y':
+        elif command == 'Y':
             axis = 'Y'
-        elif key == 'Z':
+        elif command == 'Z':
             axis = 'Z'
-        elif key == 'R':
+        elif command == 'R':
             axis = 'Roll'
-        elif key == 'P':
+        elif command == 'P':
             axis = 'Pitch'
-        elif key == 'W':
+        elif command == 'W':
             axis = 'Yaw'
-        elif key == '+':
+        elif command == '+':
             offset = [0, 0, 0, 0, 0, 0]
             if axis == 'X':
                 offset[0] = 0.01
@@ -355,7 +421,7 @@ class BaseRoutines(Node):
             else:
                 offset[5] = 10.0
             self.move_relative(robot_name, offset, speed)
-        elif key == '-':
+        elif command == '-':
             offset = [0, 0, 0, 0, 0, 0]
             if axis == 'X':
                 offset[0] = -0.01
@@ -370,34 +436,34 @@ class BaseRoutines(Node):
             else:
                 offset[5] = -10.0
             self.move_relative(robot_name, offset, speed)
-        elif _is_num(key):
+        elif _is_num(command):
             xyzrpy = self.xyzrpy_from_pose(self.get_current_pose(robot_name))
             if axis == 'X':
-                xyzrpy[0] = float(key)
+                xyzrpy[0] = float(command)
             elif axis == 'Y':
-                xyzrpy[1] = float(key)
+                xyzrpy[1] = float(command)
             elif axis == 'Z':
-                xyzrpy[2] = float(key)
+                xyzrpy[2] = float(command)
             elif axis == 'Roll':
-                xyzrpy[3] = float(key)
+                xyzrpy[3] = float(command)
             elif axis == 'Pitch':
-                xyzrpy[4] = float(key)
+                xyzrpy[4] = float(command)
             else:
-                xyzrpy[5] = float(key)
+                xyzrpy[5] = float(command)
             self.go_to_pose_goal(robot_name,
                                  self.pose_from_xyzrpy(xyzrpy), speed=speed)
-        elif key == 'home':
+        elif command == 'home':
             self.go_to_named_pose(robot_name, 'home')
-        elif key == 'back':
+        elif command == 'back':
             self.go_to_named_pose(robot_name, 'back')
-        elif key == 'named':
+        elif command == 'named':
             pose_name = input('  pose name? ')
             try:
                 self.go_to_named_pose(robot_name, pose_name, speed=speed)
             except rclpy.ROSException as e:
                 self.get_logger().error('Failed to go to pose[%s]: %s'
                                         % (pose_name, e))
-        elif key == 'frame':
+        elif command == 'frame':
             frame    = input('  frame? ')
             offset   = _get_offset()
             eef_link = input('  eef_link? ')
@@ -407,15 +473,15 @@ class BaseRoutines(Node):
             except Exception as e:
                 self.get_logger().error('Failed to go to frame[%s]: %s'
                                         % (frame, e))
-        elif key == 'clip':
+        elif command == 'clip':
             self.clip_wrist_joint_value(robot_name)
-        elif key == 'speed':
+        elif command == 'speed':
            speed = float(input('  speed value? '))
-        elif key == 'stop':
+        elif command == 'stop':
             self.stop(robot_name)
-        elif key == 'jvalues':
+        elif command == 'jvalues':
             print(self.get_current_joint_values(robot_name))
-        elif key == 'switch':
+        elif command == 'switch':
             controllers = self.list_controllers(robot_name)
             print('  available controllers:')
             for n, controller in enumerate(controllers):
@@ -429,62 +495,64 @@ class BaseRoutines(Node):
                     controllers[int(input('  controller #? '))].name)
             except:
                 self.get_logger().error('Invalid index!')
-        elif key == 'toggle':
+        elif command == 'toggle':
             self.toggle_control_handle(robot_name)
-        elif key == 'ftreset':
+        elif command == 'ftreset':
             self.ftsensor_reset_bias(robot_name)
 
         # Gripper stuffs
-        elif key == 'gripper':
+        elif command == 'gripper':
             print('  current: %s' % self.gripper(robot_name).name)
             try:
                 self.set_gripper(robot_name, input('  gripper name? '))
             except Exception as e:
                 self.get_logger().error('Failed to set gripper: %s' % e)
-        elif key == 'pregrasp':
+        elif command == 'pregrasp':
             self.pregrasp(robot_name)
-        elif key == 'grasp':
+        elif command == 'grasp':
             self.grasp(robot_name)
-        elif key == 'postgrasp':
+        elif command == 'postgrasp':
             self.postgrasp(robot_name)
-        elif key == 'release':
+        elif command == 'release':
             self.release(robot_name)
-        elif key == 'gpos':
+        elif command == 'gpos':
             position = float(input('  position? '))
             self.set_gripper_position(robot_name, position)
-        elif key == 'gvel':
+        elif command == 'gvel':
             velocity = float(input('  velocity? '))
             self.set_gripper_velocity(robot_name, velocity)
-        elif key == 'tighten':
+        elif command == 'tighten':
             self.tighten(robot_name)
-        elif key == 'loosen':
+        elif command == 'loosen':
             self.loosen(robot_name)
-        elif key == 'gcancel':
+        elif command == 'gcancel':
             self.gripper_cancel(robot_name)
 
         # Collision objects stuffs
-        elif key == 'I':
+        elif command == 'I':
             self._initialize_collision_objects()
-        elif key == 'i':
+        elif command == 'i':
             object_id = raw_input('  object ID? ')
             info = self.com.get_object_info(object_id)
             if info is not None:
                 self._print_object_info(info)
-        elif key == 'ci':
+        elif command == 'ci':
             frame_id = raw_input('  parent frame? ')
             info = self.com.get_child_object_info(frame_id)
             if info is not None:
                 self._print_object_info(info)
-        elif key == 'r':
+        elif command == 'r':
             object_id   = input('  object_id? ')
             attach_link = input('  attach_link? ') if object_id == '' else ''
             self.com.remove_object(object_id, attach_link)
 
         else:
-            print('  unknown command! [%s]' % key)
+            print('  unknown command! [%s]' % command)
         return robot_name, axis, speed
 
+    #
     # Joint motion stuffs
+    #
     def get_joint_names(self, robot_name):
         return self._cmd.get_group(robot_name).get_active_joints()
 
@@ -531,14 +599,14 @@ class BaseRoutines(Node):
     def go_directly_to_joint_value_target(self, robot_name,
                                           joint_values, duration):
         joint_trajectory \
-            = JointTrajectory(joint_names=self.joint_names,
-                              points=[
-                                  JointTrajectoryPoint(
-                                      positions=self.get_current_joint_values(robot_name),
-                                      time_from_start=Duration(seconds=0)),
-                                  JointTrajectoryPoint(
-                                      positions=joint_values,
-                                      time_from_start=duration)])
+            = JointTrajectory(
+                joint_names=self.joint_names,
+                points=[
+                    JointTrajectoryPoint(
+                        positions=self.get_current_joint_values(robot_name),
+                        time_from_start=Duration(seconds=0)),
+                    JointTrajectoryPoint(positions=joint_values,
+                                         time_from_start=duration)])
         return self.execute_path(robot_name,
                                  RobotTrajectory(
                                      joint_trajectory=joint_trajectory))
@@ -552,12 +620,37 @@ class BaseRoutines(Node):
         group.clear_pose_targets()
         return success
 
+    #
     # Cartesian motion stuffs
-    def get_current_pose(self, robot_name):
+    #
+    def get_current_pose(self, robot_name: str) -> PoseStamped:
+        """ Get current pose of the specified robot.
+
+        Args:
+          robot_name: Robot name.
+
+        Returns:
+          PoseStamped: Current pose of the robot.
+        """
         return self._cmd.get_group(robot_name).get_current_pose()
 
-    def move_relative(self, robot_name, offset,
-                      speed=1.0, accel=1.0, end_effector_link=''):
+    def move_relative(self, robot_name: str, offset,
+                      speed: float=1.0, accel: float=1.0,
+                      end_effector_link: str='') -> bool:
+        """ Move the end-effector from current pose by given offset values.
+        Offset is specified by a tuple with three, six of seven float values.
+
+        Args:
+          robot_name: Robot name.
+          offset:
+          speed: Upper-limit ratio relative to the maximum speed.
+          accel: Upper-limit ratio relative to the maximum acceleration.
+          end_effector_link: Link name of the end-effector. If empty,
+            use tip_link of the gripper currently attached to the robot.
+
+        Returns:
+          bool: `True` iff success.
+        """
         return self.go_to_pose_goal(robot_name,
                                     self.get_current_pose(robot_name),
                                     offset, speed, accel, end_effector_link)
@@ -658,20 +751,46 @@ class BaseRoutines(Node):
         group.stop()
         group.clear_pose_targets()
 
+    #
     # Controller stuffs
-    def list_controllers(self, robot_name):
-        return list(filter(
-                        lambda x: x.type in BaseRoutines.ControllerTypes,
-                        self._list_controllers_srvs[robot_name].call(
-                            ListControllers.Request()).controller))
+    #
+    def list_controllers(self, robot_name: str):
+        """ List of controllers associated with the robot.
 
-    def current_controller(self, robot_name):
+        Args:
+          robot_name: Robot name.
+
+        Returns:
+          List of controllers.
+        """
+        return list(filter(lambda x: x.type in BaseRoutines.ControllerTypes,
+                           self._list_controllers_srvs[robot_name].call(
+                               ListControllers.Request()).controller))
+
+    def current_controller(self, robot_name: str):
+        """ Current active controller associated with the robot.
+
+        Args:
+          robot_name: Robot name.
+
+        Returns:
+          Active contoller, if exists. `None`, if no active controllers.
+        """
         for controller in self.list_controllers(robot_name):
             if controller.state == 'active':
                 return controller
         return None
 
-    def switch_controller(self, robot_name, controller_name):
+    def switch_controller(self, robot_name: str, controller_name: str) -> bool:
+        """ Current active controller associated with the robot.
+
+        Args:
+          robot_name:      Robot name.
+          controller_name: Name of the controller to be switched to.
+
+        Returns:
+          bool: `True`, if success. `False`, if failure.
+        """
         for controller in self.list_controllers(robot_name):
             if controller.name == controller_name:
                 if controller.state == 'active':
@@ -711,7 +830,15 @@ class BaseRoutines(Node):
                                 % controller_name)
         return False
 
-    def toggle_control_handle(self, robot_name):
+    def toggle_control_handle(self, robot_name: str) -> bool:
+        """ Activate/deactivate motion control handle.
+
+        Args:
+          robot_name: Robot name.
+
+        Returns:
+          bool: `True`, if successfully switched. `False`, if failure.
+        """
         controller_name = robot_name + '_motion_control_handle'
         for controller in self.list_controllers(robot_name):
             if controller.name == controller_name:
@@ -742,8 +869,10 @@ class BaseRoutines(Node):
                 return res.ok
         return False
 
+    #
     # Gripper stuffs
-    def create_gripper(self, name, type_name, props):
+    #
+    def _create_gripper(self, name, type_name, props):
         gripper_client_class = globals().get(type_name)
         if gripper_client_class is None:
             raise RuntimeError('unknown type[%s] of the gripper[%s]'
@@ -792,7 +921,9 @@ class BaseRoutines(Node):
     def gripper_cancel(self, robot_name):
         self.gripper(robot_name).cancel_goal()
 
+    #
     # Camera stuffs
+    #
     def camera(self, camera_name):
         return self._cameras[camera_name]
 
@@ -802,7 +933,9 @@ class BaseRoutines(Node):
     def trigger_frame(self, camera_name):
         return self.camera(camera_name).trigger_frame()
 
+    #
     # Pick and place action stuffs
+    #
     def pick(self, robot_name, target_pose, part_id,
              wait=True, done_cb=None, active_cb=None):
         params = self._picking_params.get(part_id)
@@ -869,7 +1002,9 @@ class BaseRoutines(Node):
     def pick_or_place_cancel_goal(self):
         self._pick_or_place.cancel_goal()
 
+    #
     # Utility functions
+    #
     def transform_points_to_target_frame(self, header, points,
                                          target_frame=''):
         if target_frame == '':
@@ -997,7 +1132,9 @@ class BaseRoutines(Node):
         return '[{:.4f}, {:.4f}, {:.4f}; {:.2f}, {:.2f}. {:.2f}]'.format(
             *self.xyzrpy_from_pose(target_pose))
 
+    #
     # Private functions
+    #
     def _initialize_collision_objects(self):
         self.com.remove_object()
         for object_type, config in self.settings.get('initial_object_config',

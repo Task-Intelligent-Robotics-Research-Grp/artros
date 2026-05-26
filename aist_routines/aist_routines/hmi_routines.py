@@ -51,8 +51,8 @@ from .kitting_routines           import KittingRoutines
 #  class HMIRoutines                                                 #
 ######################################################################
 class HMIRoutines(KittingRoutines):
-    """Implements HMI routines for aist robot system."""
-
+    """Implements HMI routines for aist robot system.
+    """
     MarkerProps = collections.namedtuple('MarkerProps', 'id, scale, color')
     _marker_props = {
         'finger' : MarkerProps(0, (0.008, 0.008, 0.008), (1.0, 0.0, 0.0, 1.0)),
@@ -85,22 +85,22 @@ class HMIRoutines(KittingRoutines):
         print('  sw: sWeep')
         print('  rh: Request help')
 
-    def interactive(self, key, robot_name, axis, speed):
-        if key == 'sh':
+    def process_command(self, command, robot_name, axis, speed):
+        if command == 'sh':
             bin_id = 'bin_' + raw_input('  bin id? ')
             self.set_hmi_graspability_params(bin_id)
             self.search_bin(bin_id)
             self.restore_original_graspability_params(bin_id)
-        elif key == 'sw':
+        elif command == 'sw':
             bin_id = 'bin_' + raw_input('  bin id? ')
             self._attempt_bin._clear_fail_poses()
             self.sweep_bin(bin_id)
             self.go_to_named_pose(robot_name, 'home')
-        elif key == 'rh':
+        elif command == 'rh':
             bin_id = 'bin_' + raw_input('  bin id? ')
             self.request_help_bin(bin_id)
         else:
-            return super().interactive(key, robot_name, axis, speed)
+            return super().process_command(command, robot_name, axis, speed)
         return robot_name, axis, speed
 
     # Graspability stuffs

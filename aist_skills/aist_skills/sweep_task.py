@@ -45,7 +45,7 @@ from aist_msgs.action            import Sweep
 #*********************************************************************
 #  class Sweep                                                       *
 #*********************************************************************
-class Sweep(SimpleActionClient):
+class SweepTaskClient(SimpleActionClient):
     def __init__(self, node: Node):
         super().__init__(node, Sweep, 'sweep')
 

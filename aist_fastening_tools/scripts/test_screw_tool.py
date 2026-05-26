@@ -6,7 +6,7 @@ from rclpy.node                  import Node
 from aist_fastening_tools.client import ScrewTool
 
 
-class ScrewToolTest(Node):
+class TestScrewTool(Node):
     def __init__(self, name):
         super().__init__(name)
 
@@ -63,5 +63,5 @@ class ScrewToolTest(Node):
 if __name__ == '__main__':
     rclpy.init(args=sys.argv)
 
-    test = ScrewToolTest('screw_tool_test')
+    test = TestScrewTool('test_screw_tool')
     rclpy.spin(test)

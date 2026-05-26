@@ -52,9 +52,9 @@ ament_python_install_package(${PROJECT_NAME})
 
 install(
   PROGRAMS
-    scripts/precision_tool_test.py
-    scripts/screw_tool_test.py
-    scripts/suction_tool_test.py
+    scripts/test_precision_tool.py
+    scripts/test_screw_tool.py
+    scripts/test_suction_tool.py
   DESTINATION
     lib/${PROJECT_NAME}
 )

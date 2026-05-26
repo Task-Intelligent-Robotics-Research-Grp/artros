@@ -48,13 +48,13 @@ from geometry_msgs.msg        import Quaternion
 from aist_utility.fileio      import filepath_from_url
 from .base_routines           import BaseRoutines
 
-######################################################################
-#  class KittingRoutines                                             #
-######################################################################
+#************************************************************************
+#  class KittingRoutines                                                *
+#************************************************************************
 class KittingRoutines(BaseRoutines):
     """Implements kitting routines for aist robot system."""
 
-    def __init__(self, name, server_ns="graspability",
+    def __init__(self, name: str, server_ns: str="graspability",
                  do_error_recovery=None, cancel_error_recovery=None):
         super().__init__(name)
 
@@ -90,32 +90,32 @@ class KittingRoutines(BaseRoutines):
         print('  H: Move all robots to home')
         print('  B: Move all robots to back')
 
-    def interactive(self, key, robot_name, axis, speed):
-        if key == 'm':
+    def process_command(self, command, robot_name, axis, speed):
+        if command == 'm':
             self.create_mask_image('a_motioncam', len(self.bin_props))
-        elif key == 's':
+        elif command == 's':
             bin_id = 'bin_' + raw_input('  bin id? ')
             self.search_bin(bin_id)
-        elif key == 'a':
+        elif command == 'a':
             bin_id = 'bin_' + raw_input('  bin id? ')
             self.pick_tool(self.current_robot_name, 'suction_tool')
             self.go_to_named_pose(self.current_robot_name, 'home')
             self._attempt_bin.send_goal(bin_id, False, 5, self._done_cb)
-        elif key == 'A':
+        elif command == 'A':
             bin_id = 'bin_' + raw_input('  bin id? ')
             self.pick_tool(self.current_robot_name, 'suction_tool')
             self.go_to_named_pose(self.current_robot_name, 'home')
             self._attempt_bin.send_goal(bin_id, True, 5, self._done_cb)
-        elif key == 'c':
+        elif command == 'c':
             self._attempt_bin.cancel_goal()
-        elif key == 'd':
+        elif command == 'd':
             self.demo()
-        elif key == 'H':
+        elif command == 'H':
             self.go_to_named_pose('all_bots', 'home')
-        elif key == 'B':
+        elif command == 'B':
             self.go_to_named_pose('all_bots', 'back')
         elif robot_name:
-            return super().interactive(key, robot_name, axis, speed)
+            return super().process_command(command, robot_name, axis, speed)
         return robot_name, axis, speed
 
     # Commands

@@ -8,10 +8,8 @@ from aist_bringup.launch_common import declare_launch_arguments
 launch_arguments = [
     {
         'name':        'device_name',
-        'default':     'suction_tool',
-        'description': 'device name of the tool',
-        'choices':     ['screw_tool_m3', 'screw_tool_m4', 'suction_tool',
-                        'base_fixture'],
+        'default':     'precision_tool',
+        'description': 'device name of the tool'
     }
 ]
 
@@ -19,13 +17,16 @@ def launch_setup(context):
     return [
         IncludeLaunchDescription(
             PathJoinSubstitution([ThisLaunchFileDir(),
-                                  'ur_io_devices.launch.py']),
+                                  'dynamixel_devices.launch.py']),
             launch_arguments=[
                 ('device_names', LaunchConfiguration('device_name')),
+                ('device_types', 'PrecisionTool'),
+                ('container',    'precision_tools_container'),
+                ('driver_ns',    'precision_tools_driver'),
             ]),
-        Node(name='suction_tool_test',
+        Node(name='test_precision_toolb',
              package='aist_fastening_tools',
-             executable='suction_tool_test.py',
+             executable='test_precision_tool.py',
              parameters=[{'device_name': LaunchConfiguration('device_name')}],
              prefix=['gnome-terminal --geometry=80x60 --'],
              output='screen')

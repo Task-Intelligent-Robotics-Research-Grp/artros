@@ -70,35 +70,35 @@ class AssemblyRoutines(BaseRoutines):
         print('  H:  Move all robots to home')
         print('  B:  Move all robots to back')
 
-    def interactive(self, key, robot_name, axis, speed):
-        if key == 'pt':
+    def process_command(self, command, robot_name, axis, speed):
+        if command == 'pt':
             tool_name = raw_input('  tool name? ')
             self.pick_tool(robot_name, tool_name)
-        elif key == 'PT':
+        elif command == 'PT':
             self.place_tool(robot_name)
-        elif key == 'ps':
+        elif command == 'ps':
             screw_type = raw_input('  screw type? ')
             self.pick_screw(robot_name, screw_type)
-        elif key == 'PS':
+        elif command == 'PS':
             self.place_screw(robot_name)
-        elif key == 'pp':
+        elif command == 'pp':
             part_id  = raw_input('  part ID? ')
             subframe = raw_input('  subframe? ')
             if subframe == '':
                 subframe = 'default_grasp'
             self.pick_part(robot_name, part_id, subframe)
-        elif key == 'PP':
+        elif command == 'PP':
             part_id  = raw_input('  part ID? ')
             subframe = raw_input('  subframe? ')
             if subframe == '':
                 subframe = 'base_link'
             place_frame = raw_input('  place frame? ')
             self.place_part(robot_name, part_id, subframe, place_frame)
-        elif key == 'fb':
+        elif command == 'fb':
             self.fix_part('base')
-        elif key == 'FB':
+        elif command == 'FB':
             self.release_part('base')
-        elif key == 'at':
+        elif command == 'at':
             pose_name = raw_input('  viewing pose? ')
             if pose_name == '':
                 pose_name = 'fasten_screw_m4_ready'
@@ -106,31 +106,31 @@ class AssemblyRoutines(BaseRoutines):
             if target_frame == '':
                 target_frame = 'base/panel_motor_screw_hole_1'
             self.approach_target(robot_name, pose_name, target_frame)
-        elif key == 'AT':
+        elif command == 'AT':
             self.cancel_approach_target(robot_name)
-        elif key == 'I':
+        elif command == 'I':
             self._initialize_collision_objects()
-        elif key == 'i':
+        elif command == 'i':
             object_id = raw_input('  object ID? ')
             info = self.com.get_object_info(object_id)
             if info is not None:
                 self._print_object_info(info)
-        elif key == 'ci':
+        elif command == 'ci':
             frame_id = raw_input('  parent frame? ')
             info = self.com.get_child_object_info(frame_id)
             if info is not None:
                 self._print_object_info(info)
-        elif key == 'r':
+        elif command == 'r':
             object_id   = raw_input('  object_id? ')
             attach_link = raw_input('  attach_link? ') if object_id == '' else\
                           ''
             self.com.remove_object(object_id, attach_link)
-        elif key == 'H':
+        elif command == 'H':
             self.go_to_named_pose('all_bots', 'home')
-        elif key == 'B':
+        elif command == 'B':
             self.go_to_named_pose('all_bots', 'back')
         else:
-            return super().interactive(key, robot_name, axis, speed)
+            return super().process_command(command, robot_name, axis, speed)
         return robot_name, axis, speed
 
     def switch_camera(self, current_robot_name, new_robot_name,

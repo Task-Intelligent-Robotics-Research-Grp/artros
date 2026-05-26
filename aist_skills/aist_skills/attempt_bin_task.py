@@ -67,7 +67,7 @@ class AttemptBinTaskServer(TaskServer):
                          group_field='robot_name')
         self._graspability   = GraspabilityClient(node)
         self._pick_or_place  = PickOrPlaceTaskClient(node)
-        self._kitting_params = picking_params
+        self._kitting_params = kitting_params
 
         self._graspability.load_borders()
 
@@ -88,7 +88,7 @@ class AttemptBinTaskServer(TaskServer):
         self.logger.info('(AttemptBinTask) SUCCEEDED')
         return AttemptBin.Result()
 
-    def _attempt_bin(self, goal_handle, poses, place_offset):
+    def _attempt_bin(self, goal_handle, pick_poses, place_offset):
         bin_props = self._kitting_params['bin_props'] \
                         .get(goal_handle.request.bin_id)
         if not bin_props:
