@@ -18,7 +18,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        path: aist_robotiq
+        path: artros
 
     - name: Setup ROS
       uses: ros-tooling/setup-ros@v0.7
@@ -56,18 +56,18 @@ jobs:
         cd ${WS}
         colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
 
-    - name: Build documents of aist_robotiq
+    - name: Build documents of artros
       run: |
         cd ${WS}/src/artros
         doxygen
 
-    - name: Build documents of aist_robotiq_msgs
+    - name: Build documents of artros_msgs
       run: |
         cd ${WS}/src/artros/docs
         rosdoc2 build --package-path ../aist_msgs
         mv ./docs_output/aist_msgs ./html
 
-    - name: Upload artifact of aist_robotiq
+    - name: Upload artifact of artros
       uses: actions/upload-pages-artifact@v4
       with:
         path: ./artros/docs/html
