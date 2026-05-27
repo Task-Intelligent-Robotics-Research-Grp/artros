@@ -1,29 +1,29 @@
 repositories:
   ddynamic_reconfigure2:
     type: git
-    url: git@github.com:Task-Intelligent-Robotics-Research-Grp/ddynamic_reconfigure2
+    url: https://github.com/Task-Intelligent-Robotics-Research-Grp/ddynamic_reconfigure2
     version: develop
   task_wrappers:
     type: git
-    url: git@github.com:Task-Intelligent-Robotics-Research-Grp/task_wrappers
+    url: https://github.com/Task-Intelligent-Robotics-Research-Grp/task_wrappers
     version: develop
   moveit_commander_ros2:
     type: git
-    url: git@github.com:Task-Intelligent-Robotics-Research-Grp/moveit_commander_ros2
+    url: https://github.com/Task-Intelligent-Robotics-Research-Grp/moveit_commander_ros2
     version: devel-aist
   aist_robotiq:
     type: git
-    url: git@github.com:Task-Intelligent-Robotics-Research-Grp/aist_robotiq
+    url: https://github.com/Task-Intelligent-Robotics-Research-Grp/aist_robotiq
     version: develop
   realsense-ros:
     type: git
-    url: git@github.com:Task-Intelligent-Robotics-Research-Grp/realsense-ros
+    url: https://github.com/Task-Intelligent-Robotics-Research-Grp/realsense-ros
     version: ros2-sr300-ok
   dynamixel_workbench_controllers:
     type: git
-    url: git@github.com:Task-Intelligent-Robotics-Research-Grp/dynamixel_workbench_controllers
+    url: https://github.com/Task-Intelligent-Robotics-Research-Grp/dynamixel_workbench_controllers
     version: devel-aist
   rqt_reconfigure:
     type: git
-    url: git@github.com:Task-Intelligent-Robotics-Research-Grp/rqt_reconfigure
+    url: https://github.com/Task-Intelligent-Robotics-Research-Grp/rqt_reconfigure
     version: devel-aist
