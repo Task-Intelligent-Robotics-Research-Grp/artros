@@ -28,7 +28,7 @@ def launch_setup(context):
              package='aist_fastening_tools',
              executable='test_precision_tool.py',
              parameters=[{'device_name': LaunchConfiguration('device_name')}],
-             prefix=['gnome-terminal --geometry=80x60 --'],
+             prefix=['gnome-terminal --tab --'],
              output='screen')
     ]
 

@@ -171,7 +171,7 @@ SuctionToolController::SuctionToolController(
      _set_io_clnt(create_client<set_io_t>(_driver_ns + "/set_io",
 					  rclcpp::ServicesQoS(), _set_io_cbg)),
      _command_srv(rclcpp_action::create_server<suction_tool_command_t>(
-		      this, "~/gripper_cmd",
+		      this, "~/command",
 		      std::bind(&SuctionToolController::goal_cb, this,
 				std::placeholders::_1, std::placeholders::_2),
 		      std::bind(&SuctionToolController::cancel_cb, this,

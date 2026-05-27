@@ -57,35 +57,35 @@ DEVICE_PROPS = {
     # Grippers
     'RobotiqDevices':
     {
-        'real_drivers_launch_file': PathJoinSubstitution(
-                                        [FindPackageShare('aist_bringup'),
-                                         'launch', 'inc',
-                                         'robotiq_devices.launch.py'])
+        'extra_drivers_launch_file': PathJoinSubstitution(
+                                         [FindPackageShare('aist_bringup'),
+                                          'launch', 'inc',
+                                          'robotiq_devices.launch.py'])
     },
     'RobotiqGripper':
     {
-        'gz_controllers_template':  PathJoinSubstitution(
-                                        [FindPackageShare('aist_bringup'),
-                                         'config', 'templates',
-                                         'gripper_controllers.yaml']),
-        'ros2_control_file':        PathJoinSubstitution(
-                                        [FindPackageShare('aist_bringup'),
-                                         'urdf',
-                                         'robotiq.ros2_control.urdf.xacro']),
+        'gz_controllers_template':   PathJoinSubstitution(
+                                         [FindPackageShare('aist_bringup'),
+                                          'config', 'templates',
+                                          'gripper_controllers.yaml']),
+        'ros2_control_file':         PathJoinSubstitution(
+                                         [FindPackageShare('aist_bringup'),
+                                          'urdf',
+                                          'robotiq.ros2_control.urdf.xacro']),
     },
     'DynamixelDevices':
     {
-        'real_drivers_launch_file': PathJoinSubstitution(
-                                        [FindPackageShare('aist_bringup'),
-                                         'launch', 'inc',
-                                         'dynamixel_devices.launch.py'])
+        'extra_drivers_launch_file': PathJoinSubstitution(
+                                         [FindPackageShare('aist_bringup'),
+                                          'launch', 'inc',
+                                          'dynamixel_devices.launch.py'])
     },
     'URioDevices':
     {
-        'real_drivers_launch_file': PathJoinSubstitution(
-                                        [FindPackageShare('aist_bringup'),
-                                         'launch', 'inc',
-                                         'ur_io_devices.launch.py'])
+        'extra_drivers_launch_file': PathJoinSubstitution(
+                                         [FindPackageShare('aist_bringup'),
+                                          'launch', 'inc',
+                                          'ur_io_devices.launch.py'])
     },
 
     # Cameras

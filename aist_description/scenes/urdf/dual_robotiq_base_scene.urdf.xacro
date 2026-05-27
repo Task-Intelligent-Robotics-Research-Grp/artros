@@ -1,0 +1,224 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="dual_robotiq_base_scene" >
+
+  <xacro:arg name="scene"	default=""/>
+  <xacro:arg name="sim"		default="false"/>
+
+  <!-- location of robot arms -->
+  <xacro:property name="b_bot_x"	value="0"/>
+  <xacro:property name="b_bot_y"	value="0.4875"/>
+  <xacro:property name="b_bot_z"	value="0.770"/>
+  <xacro:property name="b_bot_theta"	value="${pi}"/>
+  <xacro:property name="table_h"	value="0.770"/>
+  <xacro:property name="screen_z"	value="0.048"/>
+
+  <!-- ground -->
+  <link name="ground"/>
+
+  <!-- cage -->
+  <xacro:property name="cage_w"		value="1.200"/>
+  <xacro:property name="cage_l"		value="1.580"/>
+  <xacro:property name="cage_h"		value="1.420"/>
+  <xacro:property name="cage_t"		value="0.040"/>
+  <xacro:property name="tool_bar_h"	value="0.240"/>
+  <xacro:property name="camera_bar_h"	value="1.325"/>
+  <xacro:property name="cage_z"		value="0.164"/>
+  <xacro:property name="cage_offset_x"	value="0.020"/>
+  <xacro:property name="cage_offset_y"	value="-0.005"/>
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/cage.urdf.xacro"/>
+  <xacro:cage prefix="cage_"
+	      width="${cage_w}" length="${cage_l}" height="${cage_h}"
+	      thickness="${cage_t}"
+	      workspace_height="${table_h - cage_z}"
+	      tool_bar_height="${tool_bar_h}"
+	      camera_bar_height="${camera_bar_h}"
+	      parent="ground">
+    <origin xyz="${-cage_w/2 + cage_offset_x}
+		 ${-cage_l/2 + cage_offset_y}
+		 ${cage_z}"
+	    rpy="0 0 0" />
+  </xacro:cage>
+
+  <!-- workspace -->
+  <xacro:property name="table_w"	value="0.900"/>
+  <xacro:property name="table_l"	value="0.750"/>
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/table.urdf.xacro"/>
+  <xacro:table prefix="workspace_table_"
+	       width="${table_w}" length="${table_l}" height="${table_h}"
+	       parent="ground">
+    <origin xyz="${-cage_w/2 + cage_offset_x + cage_t} ${-table_l/2} 0"
+	    rpy="0 0 0"/>
+  </xacro:table>
+  <link name="workspace_center"/>
+  <joint name="workspace_joint" type="fixed">
+    <parent link="ground"/>
+    <child  link="workspace_center"/>
+    <origin xyz="0 0 ${table_h}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- tables for mounting robot arms -->
+  <xacro:property name="bot_table_size"	value="0.225"/>
+  <xacro:table prefix="b_bot_table_"
+	       width="${bot_table_size}" length="${bot_table_size}"
+	       height="${b_bot_z}" rgba="0.0 0.1 0.3 1" parent="ground">
+    <origin xyz="${b_bot_x - bot_table_size/2} ${b_bot_y - bot_table_size/2} 0"
+	    rpy="0 0 0"/>
+  </xacro:table>
+
+  <!-- tool holders -->
+  <xacro:property name="screw_tool_m3_holder_y"	value="0.75"/>
+  <xacro:property name="screw_tool_m4_holder_y"	value="0.85"/>
+  <xacro:property name="suction_tool_holder_y"	value="0.95"/>
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/screw_tool_holder.urdf.xacro"/>
+  <xacro:screw_tool_holder prefix="screw_tool_m3_holder_"
+			   parent="cage_tool_bar">
+    <origin xyz="0 ${screw_tool_m3_holder_y} ${cage_t}" rpy="0 0 0"/>
+  </xacro:screw_tool_holder>
+  <xacro:screw_tool_holder prefix="screw_tool_m4_holder_"
+			   parent="cage_tool_bar">
+    <origin xyz="0 ${screw_tool_m4_holder_y} ${cage_t}" rpy="0 0 0"/>
+  </xacro:screw_tool_holder>
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/suction_tool_holder.urdf.xacro"/>
+  <xacro:suction_tool_holder prefix="suction_tool_holder_"
+			   parent="cage_tool_bar">
+    <origin xyz="0 ${suction_tool_holder_y} ${cage_t}" rpy="0 0 0"/>
+  </xacro:suction_tool_holder>
+
+  <!-- robot arms -->
+  <xacro:include filename="$(find aist_description
+			   )/devices/urdf/ur_robot.urdf.xacro"/>
+  <xacro:ur_robot name="b_bot" parent="b_bot_table_top_center">
+    <origin xyz="0 0 0" rpy="0 0 ${b_bot_theta}"/>
+  </xacro:ur_robot>
+
+  <!-- Spawn and attach gripper -->
+  <xacro:include filename="$(find aist_robotiq
+			   )/urdf/robotiq_dual_bracket.urdf.xacro"/>
+  <xacro:robotiq_dual_bracket prefix="b_bot_dual_bracket_"
+				parent="b_bot_tool0">
+    <origin xyz="0 0 0" rpy="0 ${-pi/2} ${pi/2}"/>
+  </xacro:robotiq_dual_bracket>
+  <xacro:include filename="$(find aist_robotiq
+			   )/urdf/robotiq_arg2f_coupling.urdf.xacro"/>
+  <xacro:robotiq_arg2f_coupling prefix="b_bot_gripper_left_coupling_"
+				parent="b_bot_dual_bracket_left_flange_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_arg2f_coupling>
+  <xacro:robotiq_arg2f_coupling prefix="b_bot_gripper_right_coupling_"
+				parent="b_bot_dual_bracket_right_flange_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_arg2f_coupling>
+  <xacro:include filename="$(find aist_description
+			   )/devices/urdf/robotiq_gripper.urdf.xacro"/>
+  <xacro:robotiq_gripper sim="$(arg sim)"
+			 type="robotiq_85"
+			 name="b_bot_gripper"
+			 parent="b_bot_gripper_left_coupling_flange_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_gripper>
+  <xacro:include filename="$(find aist_robotiq
+			   )/urdf/robotiq_epick_gripper.urdf.xacro"/>
+  <xacro:robotiq_epick_gripper prefix="b_bot_suction_"
+			       parent="b_bot_gripper_right_coupling_flange_link"
+			       plunger_radius="0.020" plunger_length="0.035">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_epick_gripper>
+
+  <!-- Add USB repeaters -->
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/usb_repeater.urdf.xacro"/>
+  <xacro:usb_repeater prefix="b_bot_usb_repeater_"
+		      parent="b_bot_wrist_2_link">
+    <origin xyz="0.000 -0.051 0.000" rpy="${pi/2} ${-pi/2} 0"/>
+  </xacro:usb_repeater>
+
+  <!-- Add Motioncam-3D scanner -->
+  <xacro:include filename="$(find aist_phoxi_camera
+			   )/urdf/motioncam_m_camera.urdf.xacro"/>
+  <xacro:motioncam_m_camera name="a_motioncam" parent="workspace_center"
+			    use_nominal_extrinsics="$(arg sim)">
+    <origin xyz="0.524 -0.074 0.657" rpy="-0.015 1.063 3.134"/>
+  </xacro:motioncam_m_camera>
+
+  <!-- Add RealSense cameras -->
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/sr305_mount_2f85.urdf.xacro"/>
+  <xacro:sr305_mount_2f85 prefix="b_bot_"
+			  parent="b_bot_gripper_left_coupling_flange_link"/>
+  <xacro:include filename="$(find aist_description
+			   )/devices/urdf/_sr305.urdf.xacro"/>
+  <xacro:sensor_sr305 name="b_bot_camera" parent="b_bot_camera_mount_flange"
+		      use_nominal_extrinsics="$(arg sim)">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:sensor_sr305>
+
+  <!-- Add camera optical links from camera calibrations -->
+  <xacro:unless value="$(arg sim)">
+    <xacro:include filename="$(find aist_description
+			     )/scenes/urdf/load_link.urdf.xacro"/>
+    <xacro:load_link filename="$(find aist_description
+			       )/scenes/calib/a_motioncam.yaml"/>
+    <xacro:load_link filename="$(find aist_description
+			       )/scenes/calib/b_bot_camera.yaml"/>
+    <xacro:load_link filename="$(find aist_description
+			       )/scenes/calib/live_camera.yaml"/>
+  </xacro:unless>
+
+  <!-- Add virtual screen -->
+  <link name="virtual_screen"/>
+  <joint name="virtual_screen_joint" type="fixed">
+    <parent link="workspace_center"/>
+    <child  link="virtual_screen"/>
+    <origin xyz="0 0 ${screen_z}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
+  <link name="world"/>
+  <joint name="ground_joint" type="fixed">
+    <parent link="world"/>
+    <child  link="ground"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Import assembly scene -->
+  <xacro:include filename="$(find aist_description
+			   )/scenes/urdf/assembly.urdf.xacro"/>
+
+  <!-- Include indivisual scene file -->
+  <xacro:if value="${'$(arg scene)' != ''}">
+    <xacro:include filename="$(find aist_description)/scenes/urdf/$(arg
+			     scene).urdf.xacro"/>
+  </xacro:if>
+
+  <!-- Settings for gazebo simulation -->
+  <xacro:if value="$(arg sim)">
+    <gazebo>
+      <!-- Launch controller managers for arms -->
+      <plugin filename="gz_ros2_control-system"
+	      name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+	<parameters>/tmp/b_bot_controllers.yaml</parameters>
+	<ros>
+	  <namespace>b_bot</namespace>
+	  <!-- <remapping>robot_description:=/robot_description</remapping> -->
+	</ros>
+      </plugin>
+
+      <!-- Launch controller manager for grippers -->
+      <!-- <plugin filename="gz_ros2_control-system" -->
+      <!-- 	      name="gz_ros2_control::GazeboSimROS2ControlPlugin"> -->
+      <!-- 	<parameters>/tmp/b_bot_gripper_controllers.yaml</parameters> -->
+      <!-- </plugin> -->
+
+      <!-- Simulate cameras -->
+      <!-- <plugin filename="gz-sim-sensors-system" -->
+      <!-- 	      name="gz::sim::systems::Sensors"> -->
+      <!-- 	<render_engine>ogre2</render_engine> -->
+      <!-- </plugin> -->
+    </gazebo>
+  </xacro:if>
+
+</robot>

@@ -3,9 +3,9 @@
 #########################################
 a_bot_grippers_driver:
   ros__parameters:
-    ip:             10.66.171.40  # Used for tcp/urcap drivers
-    slave_ids:      [9]           # list of slave IDs of Modbus devices
-    arg3f_grippers: [False]
+    ip:           10.66.171.40  # Used for tcp/urcap drivers
+    slave_ids:    [9]           # list of slave IDs of Modbus devices
+    device_types: [arg2f]
 
 a_bot_gripper_controller:
   ros__parameters:
@@ -33,9 +33,11 @@ a_bot_gripper_controller:
 
 b_bot_grippers_driver:
   ros__parameters:
-    ip:             10.66.171.41  # Used for tcp/urcap drivers
-    slave_ids:      [9]           # list of slave IDs of Modbus devices
-    arg3f_grippers: [False]
+    ip:            10.66.171.41  # Used for tcp/urcap drivers
+    # slave_ids:     [9]           # list of slave IDs of Modbus devices
+    # device_types:  [False]
+    slave_ids:     [9, 2]        # list of slave IDs of Modbus devices
+    device_types:  [arg2f, epick]
 
 b_bot_gripper_controller:
   ros__parameters:
@@ -60,6 +62,10 @@ b_bot_gripper_controller:
     # Gripper effort in N. [0.0, 235.0]
     min_effort: [  0.0]
     max_effort: [235.0]
+
+b_bot_suction_controller:
+  ros__parameters:
+    slave_id: 2
 
 #########################
 #  suction controllers  #

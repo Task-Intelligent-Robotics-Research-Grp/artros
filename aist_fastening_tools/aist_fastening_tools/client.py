@@ -102,7 +102,7 @@ class SuctionTool(SimpleActionClient):
         # Set goal.min_period to zero so that the goal succeeds immediately.
         self._suck_command(True, min_period=0.0, timeout_sec=0.0)
 
-    def grasp(self, *, timeout_sec=None):
+    def grasp(self, *, timeout_sec=0.0):
         return self._suck_command(
                    True, min_period=self._parameters['suck_min_period'],
                    timeout_sec=timeout_sec)
@@ -110,7 +110,7 @@ class SuctionTool(SimpleActionClient):
     def postgrasp(self):
         self.pregrasp()
 
-    def release(self, *, timeout_sec=None):
+    def release(self, *, timeout_sec=0.0):
         return self._suck_command(
                    False, min_period=self._parameters['blow_min_period'],
                    timeout_sec=timeout_sec)
@@ -119,7 +119,7 @@ class SuctionTool(SimpleActionClient):
         """ Wait for the status and the result of command or cancel request.
 
         Wait until the result of the suction command or a cancel request
-        issued by `cancel()` becomes available.
+        issued by `cancel_goal()` becomes available.
 
         :param timeout_sec:
           - Seconds to wait, if positive.
@@ -238,7 +238,7 @@ class ScrewTool(SuctionTool):
         return status, result
 
     def postgrasp(self):
-        self._screw_tool.cancel()
+        self._screw_tool.cancel_goal()
         super().postgrasp()
 
     def wait(self, *, timeout_sec=None):

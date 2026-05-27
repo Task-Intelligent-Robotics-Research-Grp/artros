@@ -1,32 +1,7 @@
 arms:
-  a_bot:
-    type:            URe
-    default_gripper: a_bot_gripper
-    active_controllers:
-      - scaled_joint_trajectory_controller
-      - motion_control_handle
-    consistent_controllers:
-      - joint_state_broadcaster
-    real_consistent_controllers:
-      - force_torque_sensor_broadcaster
-      - io_and_status_controller
-      - speed_scaling_state_broadcaster
-      - tcp_pose_broadcaster
-      - ur_configuration_controller
-    inactive_controllers:
-      - forward_velocity_controller
-      - forward_position_controller
-      - cartesian_compliance_controller
-      - cartesian_force_controller
-      - cartesian_motion_controller
-    real_inactive_controllers:
-      - joint_trajectory_controller
-      - force_mode_controller
-      - passthrough_trajectory_controller
-      - freedrive_mode_controller
-      - tool_contact_controller
   b_bot:
     type:            URe
+    robot_ip:        "10.66.171.41"
     default_gripper: b_bot_gripper
     active_controllers:
       - scaled_joint_trajectory_controller
@@ -53,21 +28,13 @@ arms:
       - tool_contact_controller
 
 grippers:
-  a_bot_grippers:
-    type: RobotiqDevices
-    grippers:
-      a_bot_gripper:
-        type: RobotiqGripper
   b_bot_grippers:
     type: RobotiqDevices
     grippers:
       b_bot_gripper:
         type: RobotiqGripper
-  precision_tools:
-    type: DynamixelDevices
-    grippers:
-      precision_tool:
-        type: PrecisionTool
+      b_bot_suction:
+        type: RobotiqSuction
   screw_tools:
     type: DynamixelDevices
     grippers:
@@ -81,14 +48,14 @@ grippers:
       suction_tool:
         type: SuctionTool
       base_fixture:
-        type: SuctionGripper
+        type: SuctionTool
 
 cameras:
   a_motioncam:
     type: PhoXiCamera
-  a_bot_camera:
-    type: CodedLightRealsenseCamera
   b_bot_camera:
     type: CodedLightRealsenseCamera
   live_camera:
     type: USBCamera
+
+moveit_eef_step: 0.002
