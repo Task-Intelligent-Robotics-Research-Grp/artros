@@ -11,10 +11,6 @@ repositories:
     type: git
     url: git@github.com:Task-Intelligent-Robotics-Research-Grp/moveit_commander_ros2
     version: devel-aist
-  aist_phoxi_camera:
-    type: git
-    url: git@github.com:Task-Intelligent-Robotics-Research-Grp/aist_phoxi_camera
-    version: ros2-devel
   aist_robotiq:
     type: git
     url: git@github.com:Task-Intelligent-Robotics-Research-Grp/aist_robotiq

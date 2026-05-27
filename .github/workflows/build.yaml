@@ -1,0 +1,77 @@
+name: ROS build workflow
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
+      ros_distro:
+        required: true
+        type: string
+
+jobs:
+  ros_build:
+    runs-on: ${{ inputs.os }}
+    env:
+      WS: /home/runner/work/ros2_ws
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        path: aist_robotiq
+
+    - name: Setup ROS
+      uses: ros-tooling/setup-ros@v0.7
+      with:
+        required-ros-distributions: ${{ inputs.ros_distro }}
+
+    - name: Apt update and upgrade
+      run: |
+        sudo apt update
+        sudo apt upgrade -y
+
+    - name: Install dependencies
+      run: |
+        sudo apt install nlohmann-json3-dev python3-rosdoc2 python3-doxypypy
+
+    - name: Checkout dependencies
+      run: |
+        vcs import . --input=artros/dependencies.repos
+
+    - name: Init workspace
+      run: |
+        mkdir ${WS}
+        ln -s ${GITHUB_WORKSPACE} ${WS}/src
+
+    - name: Pre build
+      run: |
+        source /opt/ros/${{ inputs.ros_distro }}/setup.bash
+        cd ${WS}/src
+        rosdep update
+        rosdep install -iy --from-paths ./
+
+    - name: Build
+      run: |
+        source /opt/ros/${{ inputs.ros_distro }}/setup.bash
+        cd ${WS}
+        colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build documents of aist_robotiq
+      run: |
+        cd ${WS}/src/artros
+        doxygen
+
+    - name: Build documents of aist_robotiq_msgs
+      run: |
+        cd ${WS}/src/artros/docs
+        rosdoc2 build --package-path ../aist_msgs
+        mv ./docs_output/aist_msgs ./html
+
+    - name: Upload artifact of aist_robotiq
+      uses: actions/upload-pages-artifact@v4
+      with:
+        path: ./artros/docs/html
+
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v5
