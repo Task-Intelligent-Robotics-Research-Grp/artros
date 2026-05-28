@@ -40,7 +40,7 @@ from geometry_msgs.msg              import (PoseStamped, QuaternionStamped,
 from action_msgs.msg                import GoalStatus
 from aist_msgs.action               import PickOrPlace, AttemptBin
 from task_wrappers.task_client      import GroupedSimpleTaskClient
-from task_wrappers.task_server      import TaskServer,
+from task_wrappers.task_server      import TaskServer
 from aist_skills.pick_or_place_task import PickOrPlaceTaskClient
 from aist_graspability.client       import GraspabilityClient
 
@@ -61,7 +61,7 @@ class AttemptBinTaskClient(GroupedSimpleTaskClient):
 #*********************************************************************
 class AttemptBinTaskServer(TaskServer):
     def __init__(self, node: Node, server_ns: str='attempt_bin',
-                 kitting_params,
+                 kitting_params: dict={},
                  do_error_recovery=None, cancel_error_recovery=None):
         super().__init__(node, AttemptBin, server_ns, self._execute_cb,
                          group_field='robot_name')

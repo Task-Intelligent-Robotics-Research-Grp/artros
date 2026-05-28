@@ -33,5 +33,5 @@ colcon build
 
 ## More info.
 Please refer to the following pages.
-- [Documentation of artros](https://task-intelligent-robotics-research-grp.github.io/artros/md_aist__robotiq_2README.html): User manual and API reference manual.
+- [Documentation of artros](https://task-intelligent-robotics-research-grp.github.io/artros/index.html): User manual and API reference manual.
 - [Documentation of artros_msgs](https://task-intelligent-robotics-research-grp.github.io/artros/artros_msgs/index.html): Definitions of ROS message/srvice/action used in `artros`.

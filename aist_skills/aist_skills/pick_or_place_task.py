@@ -257,8 +257,8 @@ class PickOrPlaceTaskServer(TaskServer):
     def _set_aborted(self, result, text):
         goal = self._server.current_goal.get_goal()
         self._server.set_aborted(PickOrPlaceResult(result))
-        self._logger.error('### %s aborted: %s ###',
-                           % ('Pick' if goal.pick else 'Place', text))
+        self._logger.error('### %s aborted: %s ###'
+                           % ('Pick' if goal.pick else 'Place'))
 
     @staticmethod
     def _get_object_id(link_name):
