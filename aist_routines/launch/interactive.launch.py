@@ -37,11 +37,9 @@ launch_arguments = [
 ]
 
 def launch_setup(context):
-    task_name = ['interactive_', LaunchConfiguration('task')]
-
-    return [Node(name=task_name,
+    return [Node(name=LaunchConfiguration('task'),
                  package='aist_routines',
-                 executable=task_name,
+                 executable=LaunchConfiguration('task'),
                  parameters=[
                      ParameterFile(LaunchConfiguration('param_file'),
                                    allow_substs=True),

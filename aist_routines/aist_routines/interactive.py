@@ -41,7 +41,7 @@ from aist_routines.assembly_routines import AssemblyRoutines
 from aist_routines.kitting_routines  import KittingRoutines
 
 
-def command_line_interface(node):
+def _command_line_interface(node):
     if node.com and 'initial_object_config' in node.settings:
         node._initialize_collision_objects()
 
@@ -65,7 +65,7 @@ def _main(name, routines):
     rclpy.init(args=sys.argv)
     node = routines(name)
 
-    threading.Thread(target=lambda: command_line_interface(node),
+    threading.Thread(target=lambda: _command_line_interface(node),
                      daemon=True).start()
 
     executor = MultiThreadedExecutor()
