@@ -23,7 +23,7 @@ HIDE_UNDOC_MEMBERS     = YES
 
 RECURSIVE              = YES
 
-EXCLUDE                = artros_msgs */scripts */launch */setup.py
+EXCLUDE                = artros_msgs aist_camera_calibration */scripts */launch */setup.py
 
 SOURCE_BROWSER         = YES
 
