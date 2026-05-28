@@ -54,8 +54,7 @@ from .base_routines           import BaseRoutines
 class KittingRoutines(BaseRoutines):
     """Implements kitting routines for aist robot system."""
 
-    def __init__(self, name: str, server_ns: str="graspability",
-                 do_error_recovery=None, cancel_error_recovery=None):
+    def __init__(self, name: str):
         super().__init__(name)
 
         # Graspability configuration
@@ -64,7 +63,7 @@ class KittingRoutines(BaseRoutines):
         self._graspability_params = self.settings['graspability_parameters']
         # self._attempt_bin = AttemptBin(self, do_error_recovery,
         #                                cancel_error_recovery)
-        self._graspability_client = GraspabilityClient(self, server_ns)
+        self._graspability_client = GraspabilityClient(self)
 
     @property
     def bin_props(self):

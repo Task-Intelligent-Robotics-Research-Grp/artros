@@ -33,7 +33,7 @@
 #
 # Author: Toshio Ueshiba
 #
-import rclpy, sys, time, yaml, re, threading
+import rclpy, sys, time, yaml, re
 import numpy as np
 import moveit_commander
 import tf_transformations as tfs
@@ -111,8 +111,6 @@ class BaseRoutines(Node):
         """
         super().__init__(name)
 
-        moveit_commander.roscpp_initialize(sys.argv)
-
         # Create TransformListener
         self._tf2_buffer   = Buffer()
         self._tf2_listener = TransformListener(self._tf2_buffer, self)
@@ -148,7 +146,7 @@ class BaseRoutines(Node):
                   'r') as f:
             config = yaml.safe_load(f)
 
-        # Arms' controller_manager services
+        # Controller_manager services for arms
         self._list_controllers_srvs \
             = {name: self.create_client(
                          ListControllers,
@@ -206,8 +204,6 @@ class BaseRoutines(Node):
         #     self._pick_or_place  = PickOrPlace(self)
         # else:
         #     self._pick_or_place = None
-
-        threading.Thread(target=self.interactive, daemon=True).start()
 
         self.get_logger().info('BaseRoutines initialized.')
 
@@ -287,29 +283,8 @@ class BaseRoutines(Node):
         return self._settings
 
     #
-    # Interactive stuffs
+    # CLI(command line interface) stuffs
     #
-    def interactive(self):
-        if self.com and 'initial_object_config' in self.settings:
-            self._initialize_collision_objects()
-
-        arm_name = self.group_names[0]
-        axis     = 'Y'
-        speed    = 1.0
-
-        # Reset pose
-        self.go_to_named_pose(arm_name, "home")
-        self.print_help_messages()
-
-        while rclpy.ok():
-            current_pose = self.get_current_pose(arm_name)
-            prompt = '{:>5}:{}({})@{}>> ' \
-                    .format(axis, self.format_pose(current_pose),
-                            speed, arm_name)
-            command = input(prompt)
-            arm_name, axis, speed = self.process_command(command, arm_name,
-                                                         axis, speed)
-
     def print_help_messages(self):
         """ Print help messages for CLI(command-line interface).
         """

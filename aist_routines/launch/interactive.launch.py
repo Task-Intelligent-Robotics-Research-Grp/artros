@@ -11,9 +11,10 @@ from aist_bringup.launch_common        import declare_launch_arguments
 
 launch_arguments = [
     {
-        'name':        'name',
-        'default':     'interactive',
-        'description': 'Name of the client'
+        'name':        'task',
+        'default':     'base',
+        'description': 'Name of the client',
+        'choices':     ['base', 'assembly', 'kitting']
     },
     {
         'name':        'config',
@@ -24,7 +25,7 @@ launch_arguments = [
         'name':        'param_file',
         'default':     PathJoinSubstitution([
                            FindPackageShare('aist_routines'), 'config',
-                           [LaunchConfiguration('name'), '.yaml']]),
+                           'interactive.yaml']),
         'description': 'Name of the hardware configuration'
     },
     {
@@ -36,17 +37,11 @@ launch_arguments = [
 ]
 
 def launch_setup(context):
-    return [Node(name=LaunchConfiguration('name'),
+    task_name = ['interactive_', LaunchConfiguration('task')]
+
+    return [Node(name=task_name,
                  package='aist_routines',
-                 executable='interactive',
-                 # parameters=[
-                 #     moveit_configs.to_dict(),
-                 #     {'robot_name':
-                 #      [LaunchConfiguration('config'), '_base_scene'],
-                 #      'moveit_config_package':
-                 #      [LaunchConfiguration('config'), '_moveit_config']},
-                 #     # set_configurable_parameters(param_args)
-                 # ],
+                 executable=task_name,
                  parameters=[
                      ParameterFile(LaunchConfiguration('param_file'),
                                    allow_substs=True),
@@ -57,7 +52,7 @@ def launch_setup(context):
                       'use_sim_time': LaunchConfiguration('sim'),
                      }
                  ],
-                 prefix=['gnome-terminal --tab --wait --geometry=80x60 --'],
+                 prefix=['gnome-terminal --tab --wait --'],
                  output='screen')]
 
 def generate_launch_description():

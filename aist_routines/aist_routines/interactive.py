@@ -40,21 +40,46 @@ from aist_routines.base_routines     import BaseRoutines
 from aist_routines.assembly_routines import AssemblyRoutines
 from aist_routines.kitting_routines  import KittingRoutines
 
-#*********************************************************************
-#  entry points                                                      *
-#*********************************************************************
+
+def command_line_interface(node):
+    if node.com and 'initial_object_config' in node.settings:
+        node._initialize_collision_objects()
+
+    arm_name = node.group_names[0]
+    axis     = 'Y'
+    speed    = 1.0
+
+    # Reset pose
+    node.go_to_named_pose(arm_name, "home")
+    node.print_help_messages()
+
+    while rclpy.ok():
+        current_pose = node.get_current_pose(arm_name)
+        prompt = '{:>5}:{}({})@{}>> ' \
+                 .format(axis, node.format_pose(current_pose), speed, arm_name)
+        command = input(prompt)
+        arm_name, axis, speed = node.process_command(command, arm_name,
+                                                     axis, speed)
+
 def _main(name, routines):
     rclpy.init(args=sys.argv)
     node = routines(name)
+
+    threading.Thread(target=lambda: command_line_interface(node),
+                     daemon=True).start()
+
     executor = MultiThreadedExecutor()
     executor.add_node(node)
     executor.spin()
 
-def interactive():
-    _main('interactive', BaseRoutines)
+#*********************************************************************
+#  entry points                                                      *
+#*********************************************************************
+def base():
+    _main('base', BaseRoutines)
 
-def run_assembly():
+def assembly():
     _main('assembly', AssemblyRoutines)
 
-def run_kitting():
+def kitting():
     _main('kitting', KittingRoutines)

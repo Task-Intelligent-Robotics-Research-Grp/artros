@@ -1,7 +1,22 @@
-interactive:
+interactive_base:
   ros__parameters:
     reference_frame: workspace_center
     moveit_eef_step: 0.002
     setting_urls:
-      - package://aist_routines/config/inc/assembly.yaml
+      - package://aist_routines/config/inc/base.yaml
+
+interactive_kitting:
+  ros__parameters:
+    reference_frame: workspace_center
+    moveit_eef_step: 0.002
+    setting_urls:
+      - package://aist_routines/config/inc/base.yaml
       - package://aist_routines/config/inc/kitting.yaml
+
+interactive_assembly:
+  ros__parameters:
+    reference_frame: workspace_center
+    moveit_eef_step: 0.002
+    setting_urls:
+      - package://aist_routines/config/inc/base.yaml
+      - package://aist_routines/config/inc/assembly.yaml
