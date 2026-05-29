@@ -241,6 +241,10 @@ class ScrewTool(SuctionTool):
         self._screw_tool.cancel_goal()
         super().postgrasp()
 
+    def release(self, *, timeout_sec=0.0):
+        self._screw_command(0.0, timeout_sec=0.0)
+        return super().release(timeout_sec=timeout_sec)
+
     def wait(self, *, timeout_sec=None):
         return self._screw_tool.wait(timeout_sec=timeout_sec)
 

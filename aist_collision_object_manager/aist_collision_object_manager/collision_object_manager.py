@@ -677,9 +677,10 @@ class CollisionObjectManager(Node):
                 raise RuntimeError("unknown collision object '%s'" % object_id)
             info.attach_link = aco.link_name
             info.touch_links = aco.touch_links
-            info.pose        = PoseStamped(aco.object.header, aco.object.pose)
+            info.pose        = PoseStamped(header=aco.object.header,
+                                           pose=aco.object.pose)
         else:
-            info.pose = PoseStamped(co.header, co.pose)
+            info.pose = PoseStamped(header=co.header, pose=co.pose)
         info.object_type = self._instance_props_dict[object_id].type
         info.parent_link = self._get_parent_link(object_id)
         return info
@@ -691,8 +692,8 @@ class CollisionObjectManager(Node):
                 info.object_id   = aco.object.id
                 info.attach_link = aco.link_name
                 info.touch_links = aco.touch_links
-                info.pose        = PoseStamped(aco.object.header,
-                                               aco.object.pose)
+                info.pose        = PoseStamped(header=aco.object.header,
+                                               pose=aco.object.pose)
                 info.object_type = self._instance_props_dict[info.object_id] \
                                        .type
                 info.parent_link = self._get_parent_link(info.object_id)

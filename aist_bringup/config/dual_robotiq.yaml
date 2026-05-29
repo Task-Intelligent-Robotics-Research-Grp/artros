@@ -35,6 +35,11 @@ grippers:
         type: RobotiqGripper
       b_bot_suction:
         type: RobotiqSuction
+  precision_tools:
+    type: DynamixelDevices
+    grippers:
+      precision_tool:
+        type: PrecisionTool
   screw_tools:
     type: DynamixelDevices
     grippers:
@@ -48,7 +53,7 @@ grippers:
       suction_tool:
         type: SuctionTool
       base_fixture:
-        type: SuctionTool
+        type: SuctionGripper
 
 cameras:
   a_motioncam:

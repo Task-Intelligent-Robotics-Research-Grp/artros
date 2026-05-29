@@ -191,6 +191,10 @@ class BaseRoutines(Node):
         if 'initial_object_config' in self.settings:
             try:
                 self._com = CollisionObjectManagerClient(self)
+
+                # he call should be asynchronous because the executor has yet
+                # been started in this constructor.
+                self._initialize_collision_objects(timeout_sec=0.0)
             except Exception as e:
                 self.get_logger().error(str(e))
                 self._com = None
@@ -206,15 +210,6 @@ class BaseRoutines(Node):
         #     self._pick_or_place = None
 
         self.get_logger().info('BaseRoutines initialized.')
-
-    def __enter__(self):
-        return self
-
-    # def __exit__(self, exception_type, exception_value, traceback):
-    #     if self._pick_or_place:
-    #         self._pick_or_place.shutdown()
-    #     rospy.signal_shutdown('BaseRoutines() completed.')
-    #     return False  # Do not forward exceptions
 
     def declare_parameter_with_type(self, name, type_, value):
         param = Parameter('tmp', type_=type_, value=value)
@@ -322,6 +317,7 @@ class BaseRoutines(Node):
         print('  I:  Initialize all collision objects')
         print('  i:  Show infomation on collision objects')
         print('  ci: Show infomation on child collision object of frame')
+        print('  r:  Remove specified collision objects')
 
     def process_command(self, command: str, robot_name: str, axis: str,
                         speed: float=1.0) -> list[str, str, float]:
@@ -507,15 +503,15 @@ class BaseRoutines(Node):
         elif command == 'I':
             self._initialize_collision_objects()
         elif command == 'i':
-            object_id = raw_input('  object ID? ')
+            object_id = input('  object ID? ')
             info = self.com.get_object_info(object_id)
             if info is not None:
-                self._print_object_info(info)
+                self.print_object_info(info)
         elif command == 'ci':
-            frame_id = raw_input('  parent frame? ')
+            frame_id = input('  parent frame? ')
             info = self.com.get_child_object_info(frame_id)
             if info is not None:
-                self._print_object_info(info)
+                self.print_object_info(info)
         elif command == 'r':
             object_id   = input('  object_id? ')
             attach_link = input('  attach_link? ') if object_id == '' else ''
@@ -980,6 +976,11 @@ class BaseRoutines(Node):
     #
     # Utility functions
     #
+    def print_object_info(self, info):
+        print('    object_id:   %s\n    type:        %s\n    parent_link: %s\n    attach_link: %s\n    touch_links: %s\n    pose:\n%s'
+              % (info.object_id, info.object_type, info.parent_link,
+                 info.attach_link, info.touch_links, info.pose))
+
     def transform_points_to_target_frame(self, header, points,
                                          target_frame=''):
         if target_frame == '':
@@ -1110,15 +1111,16 @@ class BaseRoutines(Node):
     #
     # Private functions
     #
-    def _initialize_collision_objects(self):
-        self.com.remove_object()
+    def _initialize_collision_objects(self, *, timeout_sec=None):
+        self.com.remove_object(timeout_sec=timeout_sec)
         for object_type, config in self.settings.get('initial_object_config',
                                                      {}).items():
             self.com.create_object(object_type,
                                    self.pose_from_xyzrpy(
                                        config.get('offset', ()),
                                        config['parent_link']),
-                                   config.get('subframe', 'base_link'))
+                                   config.get('subframe', 'base_link'),
+                                   timeout_sec=timeout_sec)
             time.sleep(0.5)
             # if object_type == 'panel_bearing' or object_type == 'panel_motor':
             #     self.com.attach_object(object_type, config['parent_link'])

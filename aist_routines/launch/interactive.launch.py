@@ -37,21 +37,24 @@ launch_arguments = [
 ]
 
 def launch_setup(context):
-    return [Node(name=LaunchConfiguration('task'),
-                 package='aist_routines',
-                 executable=LaunchConfiguration('task'),
-                 parameters=[
-                     ParameterFile(LaunchConfiguration('param_file'),
-                                   allow_substs=True),
-                     {'config_file':
-                      PathJoinSubstitution([
-                          FindPackageShare('aist_bringup'), 'config',
-                          [LaunchConfiguration('config'), '.yaml']]),
-                      'use_sim_time': LaunchConfiguration('sim'),
-                     }
-                 ],
-                 prefix=['gnome-terminal --tab --wait --'],
-                 output='screen')]
+    return [
+        Node(name=LaunchConfiguration('task'),
+             package='aist_routines',
+             executable=LaunchConfiguration('task'),
+             parameters=[
+                 ParameterFile(LaunchConfiguration('param_file'),
+                               allow_substs=True),
+                 {
+                     'config_file':
+                     PathJoinSubstitution([
+                         FindPackageShare('aist_bringup'), 'config',
+                         [LaunchConfiguration('config'), '.yaml']]),
+                     'use_sim_time': LaunchConfiguration('sim'),
+                 }
+             ],
+#             prefix=['gnome-terminal --tab --wait --'],
+             output='screen')
+    ]
 
 def generate_launch_description():
     return LaunchDescription(declare_launch_arguments(launch_arguments) + \

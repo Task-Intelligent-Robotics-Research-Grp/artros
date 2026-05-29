@@ -42,9 +42,6 @@ from aist_routines.kitting_routines  import KittingRoutines
 
 
 def _command_line_interface(node):
-    if node.com and 'initial_object_config' in node.settings:
-        node._initialize_collision_objects()
-
     arm_name = node.group_names[0]
     axis     = 'Y'
     speed    = 1.0
