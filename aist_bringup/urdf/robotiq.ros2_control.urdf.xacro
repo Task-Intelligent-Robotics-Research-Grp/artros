@@ -8,7 +8,7 @@
 
   <!-- Load hardware configuration parameters from YAML -->
   <xacro:property name ="config_file"
-		  value="$(find aist_bringup)/config/devices/grippers.yaml"/>
+		  value="$(find aist_bringup)/config/devices/devices.yaml"/>
   <xacro:property name ="config"
 		  value="${xacro.load_yaml(config_file
 			 )[controller_name]['ros__parameters']}"/>

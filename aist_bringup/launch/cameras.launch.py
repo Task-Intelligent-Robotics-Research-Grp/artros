@@ -14,13 +14,6 @@ launch_arguments = [
         'description': 'Name of the hardware configuration'
     },
     {
-        'name':        'param_file',
-        'default':     PathJoinSubstitution([
-                           FindPackageShare('aist_bringup'), 'config',
-                           'devices', 'cameras.yaml']),
-        'description': 'abolute path to YAML file for configuring cameras'
-    },
-    {
         'name':        'container',
         'default':     'cameras_container',
         'description': 'name of internal or external component container'
@@ -58,7 +51,11 @@ def launch_setup(context):
                 launch_arguments=[
                     ('camera_name',        camera_name),
                     ('external_container', 'true'),
-                    ('container',          LaunchConfiguration('container'))
+                    ('container',          LaunchConfiguration('container')),
+                    ('param_file',
+                     PathJoinSubstitution([
+                         FindPackageShare('aist_bringup'), 'config', 'devices',
+                         'devices.yaml'])),
                 ]))
     return actions
 

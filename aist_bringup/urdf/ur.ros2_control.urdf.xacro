@@ -9,7 +9,7 @@
 
   <!-- Load hardware configuration parameters from YAML -->
   <xacro:property name ="config_file"
-		  value="$(find aist_bringup)/config/devices/arms.yaml"/>
+		  value="$(find aist_bringup)/config/devices/devices.yaml"/>
   <xacro:property name ="config"
 		  value="${xacro.load_yaml(config_file)[name]}"/>
 

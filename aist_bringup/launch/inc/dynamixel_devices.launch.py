@@ -37,7 +37,7 @@ def launch_setup(context):
             launch_arguments=[
                 ('param_file',   PathJoinSubstitution([
                                      FindPackageShare('aist_bringup'),
-                                     'config', 'devices', 'grippers.yaml'])),
+                                     'config', 'devices', 'devices.yaml'])),
                 ('device_names', ','.join(gripper_names)),
                 ('device_types', ','.join(gripper_types)),
                 ('container',    [LaunchConfiguration('name'), '_container']),

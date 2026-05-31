@@ -1,0 +1,357 @@
+##########
+#  Arms  #
+##########
+a_bot:
+  ur_type:             ur5e
+  robot_ip:            "10.66.171.40"
+  safety_limits:       true
+  safety_pos_margin:   0.15
+  reverse_port:        50001
+  script_sender_port:  50002
+  reverse_ip:          "0.0.0.0"
+  script_command_port: 50004
+  trajectory_port:     50003
+  initial_positions:   [1.5708, -2.1, 1.4, -0.85, -1.5708, 0.0]
+
+b_bot:
+  ur_type:             ur5e
+  robot_ip:            "10.66.171.41"
+  safety_limits:       true
+  safety_pos_margin:   0.15
+  reverse_port:        50005
+  script_sender_port:  50006
+  reverse_ip:          "0.0.0.0"
+  script_command_port: 50008
+  trajectory_port:     50007
+  initial_positions:   [1.5708, -2.1, 1.4, -0.85, -1.5708, 0.0]
+
+left_lbr:
+  mode:             hardware
+  sys_cfg_pkg:      aist_bringup
+  sys_cfg:          config/devices/left_lbr_system.config.yaml
+  init_jnt_pos_pkg: aist_bringup
+  init_jnt_pos:     config/devices/left_lbr_initial_joint_positions.yaml
+
+right_lbr:
+  mode:             hardware
+  sys_cfg_pkg:      aist_bringup
+  sys_cfg:          config/devices/right_lbr_system.config.yaml
+  init_jnt_pos_pkg: aist_bringup
+  init_jnt_pos:     config/devices/right_lbr_initial_joint_positions.yaml
+
+##############
+#  Grippers  #
+##############
+#
+# robotiq gripper drivers/controllers
+#
+a_bot_grippers_driver:
+  ros__parameters:
+    ip:           10.66.171.40  # Used for tcp/urcap drivers
+    slave_ids:    [9]           # list of slave IDs of Modbus devices
+    device_types: [arg2f]
+
+a_bot_gripper_controller:
+  ros__parameters:
+    type:             robotiq_140
+    slave_id:         9
+    joints:
+      - a_bot_gripper_finger_joint
+    initial_position: 0.69
+
+    # Gap width between fingers in meters [0.000, 0.140]
+    min_gap: [0.000]
+    max_gap: [0.140]
+
+    # Gripper position in radians [0.69, 0,00]
+    min_position: [0.69]
+    max_position: [0.00]
+
+    # Gripper velocity in m/s [0.030, 0.250]
+    min_velocity: [0.030]
+    max_velocity: [0.250]
+
+    # Gripper effort in N. [0.0, 125.0]
+    min_effort: [  0.0]
+    max_effort: [125.0]
+
+b_bot_grippers_driver:
+  ros__parameters:
+    ip:            10.66.171.41  # Used for tcp/urcap drivers
+    # slave_ids:     [9]           # list of slave IDs of Modbus devices
+    # device_types:  [False]
+    slave_ids:     [9, 2]        # list of slave IDs of Modbus devices
+    device_types:  [arg2f, epick]
+
+b_bot_gripper_controller:
+  ros__parameters:
+    type:             robotiq_85
+    slave_id:         9
+    joints:
+      - b_bot_gripper_finger_joint
+    initial_position: 0.80
+
+    # Gap width between fingers in meters [0.000, 0.085]
+    min_gap: [0.000]
+    max_gap: [0.085]
+
+    # Gripper position in radians [0.81, 0,00]
+    min_position: [0.81]
+    max_position: [0.00]
+
+    # Gripper velocity in m/s [0.020, 0.150]
+    min_velocity: [0.020]
+    max_velocity: [0.150]
+
+    # Gripper effort in N. [0.0, 235.0]
+    min_effort: [  0.0]
+    max_effort: [235.0]
+
+b_bot_suction_controller:
+  ros__parameters:
+    slave_id: 2
+
+#
+# suction controllers
+#
+screw_tool_m3_controller:
+  ros__parameters:
+    driver_ns:             /b_bot/io_and_status_controller
+    digital_in_port:       0
+    digital_out_port_suck: 0
+    digital_out_port_blow: 1
+
+screw_tool_m4_controller:
+  ros__parameters:
+    driver_ns:             /b_bot/io_and_status_controller
+    digital_in_port:       1
+    digital_out_port_suck: 2
+    digital_out_port_blow: 3
+
+suction_tool_controller:
+  ros__parameters:
+    driver_ns:             /b_bot/io_and_status_controller
+    digital_in_port:       2
+    digital_out_port_suck: 4
+    digital_out_port_blow: 5
+
+base_fixture_controller:
+  ros__parameters:
+    driver_ns:             /b_bot/io_and_status_controller
+    joint_name:            base_fixture_piston_joint
+    digital_out_port_suck: 6
+    min_position:          0.000
+    max_position:          0.015
+
+#
+# screw tools fastening drivers/controllers
+#
+screw_tools_driver:
+  ros__parameters:
+    usb_port:               /dev/screw_tools
+    dxl_baud_rate:          1000000
+    dxl_read_period:        0.010
+    dxl_write_period:       0.010
+    dynamixel_info:         package://aist_bringup/config/devices/screw_tools_dynamixel_info.yaml
+    use_joint_states_topic: false
+    use_moveit:             false
+    mobile_robot_config:
+      separation_between_wheels: 0.000
+      radius_of_wheel:           0.000
+
+screw_tool_m3_fastening_controller:
+  ros__parameters:
+    driver_ns:            screw_tools_driver
+    motor_id:             2
+    control_period:       0.010
+    control_parameters:
+      loosen_period:      1.0
+      max_stall_speed:    0.01
+      min_stall_period:   0.5
+      max_noload_current: 0.03
+      min_noload_period:  0.5
+
+screw_tool_m4_fastening_controller:
+  ros__parameters:
+    driver_ns:            screw_tools_driver
+    motor_id:             3
+    control_period:       0.010
+    control_parameters:
+      loosen_period:      1.0
+      max_stall_speed:    0.01
+      min_stall_period:   0.5
+      max_noload_current: 0.03
+      min_noload_period:  0.5
+
+#
+# precision tools fastening drivers/controllers
+#
+precision_tools_driver:
+  ros__parameters:
+    usb_port:               /dev/precision_tools
+    dxl_baud_rate:          57600
+    dxl_read_period:        0.010
+    dxl_write_period:       0.010
+    dynamixel_info:         package://aist_bringup/config/devices/precision_tools_dynamixel_info.yaml
+    use_joint_states_topic: false
+    use_moveit:             false
+    mobile_robot_config:
+      separation_between_wheels: 0.000
+      radius_of_wheel:           0.000
+
+precision_tool_controller:
+  ros__parameters:
+    driver_ns:          precision_tools_driver
+    motor_id:           1
+    min_position:       0.000
+    max_position:       0.010
+    max_effort:         0.5
+    min_position_count: 2300
+    max_position_count: 2050
+    min_effort_count:   7
+    max_effort_count:   13
+    stall_timeout:      1.0
+
+#############
+#  Cameras  #
+#############
+a_bot_camera:
+  ros__parameters:
+    serial_no:       "636203005853"
+    camera_name:     a_bot_camera       # required for prefix of frame IDs
+    usb_port_id:     ""
+    device_type:     ""
+    json_file_path:  ""
+    rosbag_filename: ""
+
+    enable_color:  true
+    enable_depth:  true
+    enable_sync:   true
+    enable_infra1: false
+    enable_gyro:   false
+    enable_accel:  false
+
+    align_depth:
+      enable: true
+
+    rgb_camera:
+      color_profile: "640x480x30"
+    depth_module:
+      depth_profile: "640x480x30"  # D405, D435
+      infra_profile: "848x480x60"  # D405, D435
+    coded_light_depth_sensor:
+      depth_profile: "640x480x30"  # SR305
+      infra_profile: "640x480x30"  # SR305
+
+    pointcloud:
+      enable:                  false
+      stream_filter:           RS2_STREAM_COLOR  # RS2_STREAM_ANY
+      stream_index_filter:     0
+      allow_no_texture_points: false
+      ordered_pc:              false
+
+    publish_tf:              true
+    tf_publish_rate:         0.0  # 0 - static transform
+
+    clip_distance:           -2.0
+    linear_accel_cov:        0.01
+    initial_reset:           false
+    reconnect_timeout:       6.0
+    wait_for_device_timeout: -1.0
+    unite_imu_method:        0  # [0:none, 1:copy, 2:linear_interpolation]
+    topic_odom_in:           odom_in
+    calib_odom_file:         ""
+    publish_odom_tf:         true
+    depth_multiplier:        1.0
+    depth_offset:            0.0
+
+b_bot_camera:
+  ros__parameters:
+    serial_no:       "636203005303"
+    camera_name:     b_bot_camera       # required for prefix of frame IDs
+    usb_port_id:     ""
+    device_type:     ""
+    json_file_path:  ""
+    rosbag_filename: ""
+
+    enable_color:  true
+    enable_depth:  true
+    enable_sync:   true
+    enable_infra1: false
+    enable_gyro:   false
+    enable_accel:  false
+
+    align_depth:
+      enable: true
+
+    rgb_camera:
+      color_profile: "640x480x30"
+    depth_module:
+      depth_profile: "640x480x30"  # D405, D435
+      infra_profile: "848x480x60"  # D405, D435
+    coded_light_depth_sensor:
+      depth_profile: "640x480x30"  # SR305
+      infra_profile: "640x480x30"  # SR305
+
+    pointcloud:
+      enable:                  false
+      stream_filter:           RS2_STREAM_COLOR  # RS2_STREAM_ANY
+      stream_index_filter:     0
+      allow_no_texture_points: false
+      ordered_pc:              false
+
+    publish_tf:              true
+    tf_publish_rate:         0.0  # 0 - static transform
+
+    clip_distance:           -2.0
+    linear_accel_cov:        0.01
+    initial_reset:           false
+    reconnect_timeout:       6.0
+    wait_for_device_timeout: -1.0
+    unite_imu_method:        0  # [0:none, 1:copy, 2:linear_interpolation]
+    topic_odom_in:           odom_in
+    calib_odom_file:         ""
+    publish_odom_tf:         true
+    depth_multiplier:        1.0
+    depth_offset:            0.0
+
+a_motioncam:
+  ros__parameters:
+    id:                          LTR-066
+#    id:                          InstalledExamples-demo-example
+    trigger_mode:                1  # 0: Freerun, 1: Software, 2: Hardware
+    intensity_scale:             0.5
+    rate:                        20.0
+    processing_settings:
+      normals_estimation_radius: 2
+    output_settings:
+      send_point_cloud:          true
+      send_normal_map:           true
+      send_depth_map:            true
+      send_confidence_map:       false
+      send_texture:              true
+      send_color_camera_image:   true
+
+/live_camera/usb_cam:
+  ros__parameters:
+    video_device:       /dev/video-livecam
+    framerate:          5.0
+    io_method:          mmap
+    frame_id:           live_camera_optical_frame
+    pixel_format:       mjpeg2rgb  # see usb_cam/supported_formats for list of supported formats
+    av_device_format:   YUV422P
+    image_width:        1920
+    image_height:       1080
+    camera_name:        usb_cam
+    camera_info_url:    package://aist_description/scenes/calib/live_camera-camera_info.yaml
+    brightness:         -1
+    contrast:           -1
+    saturation:         -1
+    sharpness:          -1
+    gain: -1
+    auto_white_balance: true
+    white_balance:      4000
+    autoexposure:       true
+    exposure:           100
+    autofocus:          false
+    focus:              -1

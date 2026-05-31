@@ -179,12 +179,12 @@ def load_config(context):
 
 def load_arm_config(arm_name):
     with open(filepath_from_url(
-                  'package://aist_bringup/config/devices/arms.yaml')) as f:
+                  'package://aist_bringup/config/devices/devices.yaml')) as f:
         return yaml.safe_load(f)[arm_name]
 
 def load_gripper_config(gripper_name):
     with open(filepath_from_url(
-                  'package://aist_bringup/config/devices/grippers.yaml')) as f:
+                  'package://aist_bringup/config/devices/devices.yaml')) as f:
         return yaml.safe_load(f)[gripper_name]
 
 def declare_launch_arguments(args):

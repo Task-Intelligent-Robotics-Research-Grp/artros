@@ -15,13 +15,6 @@ launch_arguments = [
         'description': 'Name of the camera'
     },
     {
-        'name':        'param_file',
-        'default':     PathJoinSubstitution([
-                           FindPackageShare('aist_bringup'), 'config',
-                           'devices', 'cameras.yaml']),
-        'description': 'path to YAML file for configuring camera'
-    },
-    {
         'name':        'external_container',
         'default':     'false',
         'description': 'use existing external container',
@@ -64,7 +57,11 @@ def launch_setup(context):
                     name='usb_cam',
                     package='usb_cam',
                     plugin='usb_cam::UsbCamNode',
-                    parameters=[LaunchConfiguration('param_file')],
+                    parameters=[
+                        PathJoinSubstitution([
+                            FindPackageShare('aist_bringup'),
+                            'config', 'devices', 'devices.yaml']),
+                    ],
                     extra_arguments=[{'use_intra_process_comms': True}])])]
 
 def generate_launch_description():
