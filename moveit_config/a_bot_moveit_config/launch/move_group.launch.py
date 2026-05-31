@@ -26,12 +26,6 @@ launch_arguments = [
         'choices':     ['true', 'false', 'True', 'False']
     },
     {
-        'name':        'vis',
-        'default':     'false',
-        'description': 'Launch rviz2 if true',
-        'choices':     ['true', 'false', 'True', 'False']
-    },
-    {
         'name':        'warehouse_sqlite_path',
         'default':     os.path.expanduser('~/.ros/warehouse_ros.sqlite'),
         'description': 'Path where the warehouse database should be stored'
@@ -94,11 +88,6 @@ def launch_setup(context):
                              {'moveit_servo': servo_yaml}
                          ],
                          output='screen'),
-                    IncludeLaunchDescription(
-                        PathJoinSubstitution(
-                            [FindPackageShare('a_bot_moveit_config'), 'launch',
-                             'moveit_rviz.launch.py']),
-                        condition=IfCondition(LaunchConfiguration('vis'))),
                 ]
             ))]
 

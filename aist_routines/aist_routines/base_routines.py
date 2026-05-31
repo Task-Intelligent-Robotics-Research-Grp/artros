@@ -179,7 +179,7 @@ class BaseRoutines(Node):
 
         # Load setting parameters
         self._setting_urls = self.declare_parameter('setting_urls', ['']).value
-        self.load_settings(self)
+        self.load_settings()
 
         # CollisionObjectManager wrapping MoveIt PlanningSceneInterface
         if 'initial_object_config' in self.settings:

@@ -1,5 +1,6 @@
 from launch                     import LaunchDescription
 from launch.actions             import IncludeLaunchDescription, OpaqueFunction
+from launch.conditions          import IfCondition
 from launch.substitutions       import (LaunchConfiguration,
                                         PathJoinSubstitution)
 from launch_ros.substitutions   import FindPackageShare
@@ -13,6 +14,12 @@ launch_arguments = [
                            FindPackageShare('aist_routines'), 'config',
                            'default.yaml']),
         'description': 'Name of the hardware configuration'
+    },
+    {
+        'name':        'vis',
+        'default':     'true',
+        'description': 'Launch rviz2 if true',
+        'choices':     ['true', 'false', 'True', 'False']
     },
 ]
 
@@ -29,6 +36,12 @@ def launch_setup(context):
             launch_arguments=[
                 ('param_file',  LaunchConfiguration('settings_file')),
             ]),
+        IncludeLaunchDescription(
+            PathJoinSubstitution(
+                [FindPackageShare([LaunchConfiguration('config'),
+                                   '_moveit_config']),
+                 'launch', 'moveit_rviz.launch.py']),
+            condition=IfCondition(LaunchConfiguration('vis'))),
     ]
 
 def generate_launch_description():

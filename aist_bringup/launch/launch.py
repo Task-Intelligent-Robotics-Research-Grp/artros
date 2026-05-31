@@ -49,6 +49,12 @@ def launch_setup(context):
                 [FindPackageShare([LaunchConfiguration('config'),
                                    '_moveit_config']),
                  'launch', 'move_group.launch.py'])),
+        IncludeLaunchDescription(
+            PathJoinSubstitution(
+                [FindPackageShare([LaunchConfiguration('config'),
+                                   '_moveit_config']),
+                 'launch', 'moveit_rviz.launch.py']),
+            condition=IfCondition(LaunchConfiguration('vis'))),
     ]
 
 def generate_launch_description():
