@@ -37,8 +37,8 @@ def launch_setup(context):
         hdc_node,
         IncludeLaunchDescription(
             PathJoinSubstitution(
-                [FindPackageShare('aist_visualization'), 'launch',
-                 'launch.py']),
+                [FindPackageShare('aist_visualization'),
+                 'launch', 'launch.py']),
             launch_arguments=[
                 ('external_container', 'true'),
                 ('container',          'hmi_demo_container'),
@@ -50,8 +50,8 @@ def launch_setup(context):
                 on_start=[
                     IncludeLaunchDescription(
                         PathJoinSubstitution(
-                            [FindPackageShare('nep_bridge'), 'launch',
-                             'launch.py']),
+                            [FindPackageShare('nep_bridge'),
+                             'launch', 'launch.py']),
                         launch_arguments=[
                             ('param_file',
                              LaunchConfiguration('settings_file')),

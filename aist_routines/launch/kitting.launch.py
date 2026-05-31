@@ -12,8 +12,8 @@ def launch_setup(context):
             PathJoinSubstitution([ThisLaunchFileDir(), 'base.launch.py'])),
         IncludeLaunchDescription(
             PathJoinSubstitution(
-                [FindPackageShare('aist_graspability'), 'launch',
-                 'launch.py']),
+                [FindPackageShare('aist_graspability'),
+                 'launch', 'launch.py']),
             launch_arguments=[
                 ('name',        'graspability'),
                 ('camera_name', 'a_motioncam'),
