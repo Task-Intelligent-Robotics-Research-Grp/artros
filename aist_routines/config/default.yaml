@@ -1,0 +1,89 @@
+##############################
+#  collision_object_manager  #
+##############################
+collision_object_manager:
+  ros__parameters:
+    namespace:   ""
+    synchronous: false
+    object_properties_urls:
+      - package://aist_fastening_tools/config/fastening_tools_properties.yaml
+      - package://aist_description/parts/config/parts_properties.yaml
+    touch_links_urls:
+      - package://aist_routines/config/inc/touch_links.yaml
+
+################################
+#  robot_description_provider  #
+################################
+robot_description_provider:
+  ros__parameters:
+    root_frame: world
+
+####################
+#  mesh_generator  #
+####################
+mesh_generator:
+  ros__parameters:
+    screen_frame:      virtual_screen
+    reference_frame:   world
+    nsteps_u:          10
+    nsteps_v:          10
+
+################
+#  nep_bridge  #
+################
+nep_bridge:
+  ros__parameters:
+    nep_ip:      10.66.171.39
+    wait_time:   7.0
+    period:      0.1    # polling period of incoming NEP messages in seconds
+    config_file: package://aist_routines/config/inc/nep_bridge_assembly.yaml
+
+##################
+#  graspability  #
+##################
+graspability:
+  ros__parameters:
+    subscribe_image:   true
+    timeout:           5.0
+    #
+    ns:                2
+    nz:                0.6
+    object_size:       8
+    min_distance:      30
+    contact_radius:    12
+    magnet:
+      insertion_depth: 0.002
+
+####################
+#  border_creator  #
+####################
+border_creator:
+  ros__parameters:
+    borders_file: package://aist_routines/config/inc/borders.yaml
+
+#################
+#  CLI clients  #
+#################
+base:
+  ros__parameters:
+    reference_frame: workspace_center
+    moveit_eef_step: 0.002
+    setting_urls:
+      - package://aist_routines/config/inc/base.yaml
+
+kitting:
+  ros__parameters:
+    reference_frame: workspace_center
+    moveit_eef_step: 0.002
+    setting_urls:
+      - package://aist_routines/config/inc/base.yaml
+      - package://aist_routines/config/inc/kitting.yaml
+      - package://aist_routines/config/inc/borders.yaml
+
+assembly:
+  ros__parameters:
+    reference_frame: workspace_center
+    moveit_eef_step: 0.002
+    setting_urls:
+      - package://aist_routines/config/inc/base.yaml
+      - package://aist_routines/config/inc/assembly.yaml

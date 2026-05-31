@@ -2,27 +2,27 @@ bin_props:
   bin_1:
     name: bin_1_part_5
     part_id:   05_MBRFA30-2-P6
-    border_id: 1
+    border_id: 0
   bin_2:
     name: bin_1_part_16
     part_id:   16_SPWF6
-    border_id: 2
+    border_id: 1
   bin_3:
     name: bin_1_part_17
     part_id:   17_SCB4-10
-    border_id: 3
+    border_id: 2
   bin_4:
     name: bin_2_part_4
     part_id:   04_37D-GEARMOTOR-50-70
-    border_id: 4
+    border_id: 3
   bin_5:
     name: bin_2_part_7
     part_id:   07_SBARB6200ZZ_30
-    border_id: 5
+    border_id: 4
   bin_6:
     name: bin_2_part_8
     part_id:   08_KZAF1075NA4WA55GA20AA0
-    border_id: 6
+    border_id: 5
 
 part_props:
   04_37D-GEARMOTOR-50-70:

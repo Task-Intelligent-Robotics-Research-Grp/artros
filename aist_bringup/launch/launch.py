@@ -29,13 +29,6 @@ launch_arguments = [
         'description': 'Launch rviz2 if true',
         'choices':     ['true', 'false', 'True', 'False']
     },
-    {
-        'name':        'rviz_config_file',
-        'default':     PathJoinSubstitution([FindPackageShare('aist_bringup'),
-                                             'config',
-                                             [LaunchConfiguration('config'),
-                                              '.rviz']])
-    }
 ]
 
 def launch_setup(context):

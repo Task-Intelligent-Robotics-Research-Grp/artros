@@ -33,20 +33,19 @@
 #
 # Author: Toshio Ueshiba
 #
-import os
+from os.path                     import join, expanduser
 from ament_index_python.packages import get_package_share_directory
 
 
 def filepath_from_url(url):
     tokens = url.split('/')
     if len(tokens) < 3 or tokens[1] != '':
-        raise RuntimeError('illegal URL: %s' % url)
+        raise RuntimeError('illegal URL[%s]' % url)
 
     if tokens[0] == 'package:':
-        root = get_package_share_directory(tokens[2])
+        return join(get_package_share_directory(tokens[2]), *tokens[3:])
     elif tokens[0] == 'file:':
-        root = '/'
-    else:
-        raise RuntimeError('unknown URL scheme: %s' % tokens[0])
-
-    return os.path.join(root, *tokens[3:])
+        return join('/', *tokens[2:])
+    elif tokens[0] == 'home:':
+        return join(expanduser('~'), *tokens[2:])
+    raise RuntimeError('unknown URL scheme[%s]' % tokens[0])

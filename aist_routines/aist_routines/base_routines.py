@@ -178,14 +178,8 @@ class BaseRoutines(Node):
                          for name, props in config.get('cameras', {}).items()}
 
         # Load setting parameters
-        self._settings = {}
-        for url in self.declare_parameter('setting_urls', ['']).value:
-            try:
-                with open(filepath_from_url(url), 'r') as f:
-                    self._settings |= yaml.safe_load(f)
-            except Exception as e:
-                self.get_logger().error('failed to open setting file[%s]: %s'
-                                        % (url, e))
+        self._setting_urls = self.declare_parameter('setting_urls', ['']).value
+        self.load_settings(self)
 
         # CollisionObjectManager wrapping MoveIt PlanningSceneInterface
         if 'initial_object_config' in self.settings:
@@ -277,6 +271,17 @@ class BaseRoutines(Node):
         """
         return self._settings
 
+    def load_settings(self) -> None:
+        # Load setting parameters
+        self._settings = {}
+        for url in self._setting_urls:
+            try:
+                with open(filepath_from_url(url), 'r') as f:
+                    self._settings |= yaml.safe_load(f)
+            except Exception as e:
+                self.get_logger().error('failed to open setting file[%s]: %s'
+                                        % (url, e))
+
     #
     # CLI(command line interface) stuffs
     #
@@ -285,6 +290,7 @@ class BaseRoutines(Node):
         """
         print('=== General commands ===')
         print('  quit:        quit this program')
+        print('  reload:      reload settingsselect')
         print('  robot:       select robot')
         print('  ?|help:      print help messages')
         print('=== Arm commands ===')
@@ -352,6 +358,8 @@ class BaseRoutines(Node):
         if command == 'quit':
             self.go_to_named_pose(robot_name, 'home')  # Reset pose
             rclpy.shutdown()
+        elif command == 'reload':
+            self.load_settings()
         elif command == 'robot':
             print('  current: %s' % robot_name)
             new_robot_name = input('  robot name? ')

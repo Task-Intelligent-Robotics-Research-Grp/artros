@@ -101,6 +101,7 @@ b_bot_camera:
 a_motioncam:
   ros__parameters:
     id:                          LTR-066
+#    id:                          InstalledExamples-demo-example
     trigger_mode:                1  # 0: Freerun, 1: Software, 2: Hardware
     intensity_scale:             0.5
     rate:                        20.0

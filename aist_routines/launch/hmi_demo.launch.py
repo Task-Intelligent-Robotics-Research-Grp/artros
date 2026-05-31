@@ -1,7 +1,7 @@
 from launch                     import LaunchDescription
 from launch.actions             import (IncludeLaunchDescription,
                                         OpaqueFunction, RegisterEventHandler)
-from launch.substitutions       import (LaunchConfiguration,
+from launch.substitutions       import (LaunchConfiguration, ThisLaunchFileDir,
                                         PathJoinSubstitution)
 from launch.event_handlers      import OnProcessStart
 from launch_ros.actions         import Node
@@ -10,28 +10,6 @@ from aist_bringup.launch_common import declare_launch_arguments
 
 
 launch_arguments = [
-    {
-        'name':        'config',
-        'default':     'aist',
-        'description': 'Name of the hardware configuration'
-    },
-    {
-        'name':        'camera_name',
-        'default':     'live_camera',
-        'description': 'name of the camera'
-    },
-    {
-        'name':        'camera_type',
-        'default':     'USBCamera',
-        'description': 'type of the camera'
-    },
-    {
-        'name':        'param_file',
-        'default':     PathJoinSubstitution([
-                           FindPackageShare('aist_routines'), 'config',
-                           [LaunchConfiguration('config'), '.yaml']]),
-        'description': 'abolute path to YAML file for configuring cameras'
-    },
     {
         'name':        'log_level',
         'default':     'info',
@@ -55,9 +33,7 @@ def launch_setup(context):
                                LaunchConfiguration('log_level')])
     return [
         IncludeLaunchDescription(
-            PathJoinSubstitution(
-                [FindPackageShare('aist_routines'), 'launch',
-                 'assembly.launch.py'])),
+            PathJoinSubstitution([ThisLaunchFileDir(), 'kitting.launch.py'])),
         hdc_node,
         IncludeLaunchDescription(
             PathJoinSubstitution(
@@ -66,6 +42,7 @@ def launch_setup(context):
             launch_arguments=[
                 ('external_container', 'true'),
                 ('container',          'hmi_demo_container'),
+                ('param_file',         LaunchConfiguration('settings_file')),
             ]),
         RegisterEventHandler(
             OnProcessStart(
@@ -74,7 +51,11 @@ def launch_setup(context):
                     IncludeLaunchDescription(
                         PathJoinSubstitution(
                             [FindPackageShare('nep_bridge'), 'launch',
-                             'launch.py']))
+                             'launch.py']),
+                        launch_arguments=[
+                            ('param_file',
+                             LaunchConfiguration('settings_file')),
+                        ]),
                 ])),
     ]
 

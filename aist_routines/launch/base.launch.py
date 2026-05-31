@@ -8,28 +8,11 @@ from aist_bringup.launch_common import declare_launch_arguments
 
 launch_arguments = [
     {
-        'name':        'config',
-        'default':     'aist',
-        'description': 'Name of the hardware configuration'
-    },
-    {
-        'name':        'param_file',
+        'name':        'settings_file',
         'default':     PathJoinSubstitution([
                            FindPackageShare('aist_routines'), 'config',
-                           [LaunchConfiguration('config'), '.yaml']]),
-        'description': 'abolute path to YAML file for configuring cameras'
-    },
-    {
-        'name':        'log_level',
-        'default':     'info',
-        'description': 'debug log level',
-        'choices':     ['debug', 'info', 'warn', 'error', 'fatal']
-    },
-    {
-        'name':        'output',
-        'default':     'screen',
-        'description': 'pipe node output',
-        'choices':     ['screen', 'log', 'both']
+                           'default.yaml']),
+        'description': 'Name of the hardware configuration'
     },
 ]
 
@@ -42,7 +25,10 @@ def launch_setup(context):
         IncludeLaunchDescription(
             PathJoinSubstitution(
                 [FindPackageShare('aist_collision_object_manager'),
-                 'launch', 'launch.py'])),
+                 'launch', 'launch.py']),
+            launch_arguments=[
+                ('param_file',  LaunchConfiguration('settings_file')),
+            ]),
     ]
 
 def generate_launch_description():

@@ -62,5 +62,3 @@ cameras:
     type: CodedLightRealsenseCamera
   live_camera:
     type: USBCamera
-
-moveit_eef_step: 0.002

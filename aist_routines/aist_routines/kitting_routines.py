@@ -38,15 +38,15 @@ import rclpy, sys, threading
 import tf_transformations as tfs
 import numpy as np
 
-from rclpy.executors          import MultiThreadedExecutor
-from aist_graspability.client import GraspabilityClient
-
-from math                     import pi, radians, degrees, cos, sin, sqrt
-from geometry_msgs.msg        import Quaternion
+from rclpy.executors            import MultiThreadedExecutor
+from aist_graspability.client   import GraspabilityClient
+from aist_graspability_msgs.msg import Border, Point2D
+from math                       import pi, radians, degrees, cos, sin, sqrt
+from geometry_msgs.msg          import Quaternion
 # from aist_routines.AssemblyRoutines import AssemblyRoutines
 # from aist_routines.AttemptBinAction import AttemptBin
-from aist_utility.fileio      import filepath_from_url
-from .base_routines           import BaseRoutines
+from aist_utility.fileio        import filepath_from_url
+from .base_routines             import BaseRoutines
 
 #************************************************************************
 #  class KittingRoutines                                                *
@@ -57,10 +57,6 @@ class KittingRoutines(BaseRoutines):
     def __init__(self, name: str):
         super().__init__(name)
 
-        # Graspability configuration
-        self._bin_props           = self.settings['bin_props']
-        self._part_props          = self.settings['part_props']
-        self._graspability_params = self.settings['graspability_parameters']
         # self._attempt_bin = AttemptBin(self, do_error_recovery,
         #                                cancel_error_recovery)
         self._graspability_client = GraspabilityClient(self)
@@ -68,6 +64,10 @@ class KittingRoutines(BaseRoutines):
     @property
     def bin_props(self):
         return self.settings['bin_props']
+
+    @property
+    def borders(self):
+        return self.settings['borders']
 
     @property
     def part_props(self):
@@ -79,20 +79,18 @@ class KittingRoutines(BaseRoutines):
 
     # Interactive stuffs
     def print_help_messages(self):
+        super().print_help_messages()
+
         print('=== Kitting commands ===')
-        print('  m: Create a mask image')
         print('  s: Search graspabilities with normal parameters')
         print('  a: Attempt to pick and place')
         print('  A: Repeat attempts to pick and place')
         print('  c: Cancel attempts to pick and place')
-        print('  d: Perform small demo')
         print('  H: Move all robots to home')
         print('  B: Move all robots to back')
 
     def process_command(self, command, robot_name, axis, speed):
-        if command == 'm':
-            self.create_mask_image('a_motioncam', len(self.bin_props))
-        elif command == 's':
+        if command == 's':
             bin_id = 'bin_' + raw_input('  bin id? ')
             self.search_bin(bin_id)
         elif command == 'a':
@@ -107,8 +105,6 @@ class KittingRoutines(BaseRoutines):
             self._attempt_bin.send_goal(bin_id, True, 5, self._done_cb)
         elif command == 'c':
             self._attempt_bin.cancel_goal()
-        elif command == 'd':
-            self.demo()
         elif command == 'H':
             self.go_to_named_pose('all_bots', 'home')
         elif command == 'B':
@@ -121,6 +117,7 @@ class KittingRoutines(BaseRoutines):
     def search_bin(self, bin_id):
         try:
             bin_props  = self.bin_props[bin_id]
+            border     = self.borders[bin_props['border_id']]
             part_props = self.part_props[bin_props['part_id']]
             params     = self.graspability_params[bin_props['part_id']]
         except KeyError as e:
@@ -137,9 +134,9 @@ class KittingRoutines(BaseRoutines):
                                       min_height, max_height, max_slant))
 
         # Send goal first and then trigger camera frame.
-        self._graspability_client.send_goal(border_id,
-                                            self.gripper(robot_name).type,
-                                            one_shot)
+        self._graspability_client.send_goal(
+            Border(points=[Point2D(u=p[0], v=p[1]) for p in border]),
+            self.gripper(robot_name).type, one_shot)
         self.camera(part_props['camera_name']).trigger_frame()
 
         return self._graspability_client.wait()
@@ -200,10 +197,10 @@ class KittingRoutines(BaseRoutines):
     def _normalize(self, x):
         return x / sqrt(np.dot(x, x))
 
-    def _done_cb(self, state, result):
-        rospy.sleep(1)          # Pause required after cancelling arm motion
-        if self.current_robot_name:
-            self.go_to_named_pose(self.current_robot_name, 'home')
-            rospy.sleep(1)
-            self.place_tool(self.current_robot_name)
-            self.go_to_named_pose(self.current_robot_name, 'home')
+    # def _done_cb(self, state, result):
+    #     rospy.sleep(1)          # Pause required after cancelling arm motion
+    #     if self.current_robot_name:
+    #         self.go_to_named_pose(self.current_robot_name, 'home')
+    #         rospy.sleep(1)
+    #         self.place_tool(self.current_robot_name)
+    #         self.go_to_named_pose(self.current_robot_name, 'home')
