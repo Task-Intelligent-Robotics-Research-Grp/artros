@@ -58,7 +58,7 @@ grippers:
 cameras:
   a_motioncam:
     type: PhoXiCamera
-  b_bot_camera:
-    type: CodedLightRealsenseCamera
+  # b_bot_camera:
+  #   type: CodedLightRealsenseCamera
   live_camera:
     type: USBCamera

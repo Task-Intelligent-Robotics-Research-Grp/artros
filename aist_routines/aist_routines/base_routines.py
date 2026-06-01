@@ -279,7 +279,7 @@ class BaseRoutines(Node):
                 with open(filepath_from_url(url), 'r') as f:
                     self._settings |= yaml.safe_load(f)
             except Exception as e:
-                self.get_logger().error('failed to open setting file[%s]: %s'
+                self.get_logger().error('failed to load setting file[%s]: %s'
                                         % (url, e))
 
     #
@@ -995,18 +995,26 @@ class BaseRoutines(Node):
             target_frame = self._reference_frame
 
         try:
-            self._tf2_buffer.lookup_transform(target_frame, header.frame_id,
-                                              header.stamp,
-                                              Duration(seconds=10))
-            mat44 = self._tf2_buffer.asMatrix(target_frame, header)
+            tfm = self._tf2_buffer.lookup_transform(target_frame,
+                                                    header.frame_id,
+                                                    header.stamp,
+                                                    Duration(seconds=10)) \
+                                  .transform
         except Exception as e:
             self.get_logger().error(
                 'BaseRoutines._transform_points_to_target_frame(): %s' % e)
             raise e
 
-        return [ Point(*tuple(np.dot(mat44,
-                                     np.array((p.x, p.y, p.z, 1.0)))[:3]))
-                 for p in points ]
+        transformed_points = []
+        for point in points:
+            p = tfs.translation_matrix((tfm.translation.x,
+                                        tfm.translation.y,
+                                        tfm.translation.z)) \
+              @ tfs.quaternion_matrix((tfm.rotation.x, tfm.rotation.y,
+                                       tfm.rotation.z, tfm.rotation.w)) \
+              @ (point.x, point.y, point.z, 1.0)
+            transformed_points.append(Point(x=p[0], y=p[1], z=p[2]))
+        return transformed_points
 
     def transform_pose_to_target_frame(self, pose, offset=(), target_frame=''):
         poses = self.transform_poses_to_target_frame(
@@ -1033,23 +1041,22 @@ class BaseRoutines(Node):
                                                     stamp=poses.header.stamp),
                                       poses=[])
         for pose in poses.poses:
-            T = tfs.concatenate_matrices(
-                    tfs.translation_matrix((tfm.translation.x,
-                                            tfm.translation.y,
-                                            tfm.translation.z)),
-                    tfs.quaternion_matrix((tfm.rotation.x, tfm.rotation.y,
-                                           tfm.rotation.z, tfm.rotation.w)),
-                    tfs.translation_matrix((pose.position.x,
-                                            pose.position.y,
-                                            pose.position.z)),
-                    tfs.quaternion_matrix((pose.orientation.x,
-                                           pose.orientation.y,
-                                           pose.orientation.z,
-                                           pose.orientation.w)),
-                    tfs.translation_matrix(self._position_from_offset(
-                                                offset[0:3])),
-                    tfs.quaternion_matrix(self._orientation_from_offset(
-                                               offset[3:])))
+            T = tfs.translation_matrix((tfm.translation.x,
+                                        tfm.translation.y,
+                                        tfm.translation.z)) \
+              @ tfs.quaternion_matrix((tfm.rotation.x, tfm.rotation.y,
+                                       tfm.rotation.z, tfm.rotation.w)) \
+              @ tfs.translation_matrix((pose.position.x,
+                                        pose.position.y,
+                                        pose.position.z)) \
+              @ tfs.quaternion_matrix((pose.orientation.x,
+                                       pose.orientation.y,
+                                       pose.orientation.z,
+                                       pose.orientation.w)) \
+              @ tfs.translation_matrix(self._position_from_offset(
+                                           offset[0:3])) \
+              @ tfs.quaternion_matrix(self._orientation_from_offset(
+                                          offset[3:]))
             t = tfs.translation_from_matrix(T)
             q = tfs.quaternion_from_matrix(T)
             transformed_poses.poses.append(
@@ -1107,10 +1114,10 @@ class BaseRoutines(Node):
                                          transformed_pose.orientation.y,
                                          transformed_pose.orientation.z,
                                          transformed_pose.orientation.w))
-        return [transformed_pose.position.x,
+        return (transformed_pose.position.x,
                 transformed_pose.position.y,
                 transformed_pose.position.z,
-                degrees(rpy[0]), degrees(rpy[1]), degrees(rpy[2])]
+                degrees(rpy[0]), degrees(rpy[1]), degrees(rpy[2]))
 
     def format_pose(self, target_pose):
         return '[{:.4f}, {:.4f}, {:.4f}; {:.2f}, {:.2f}. {:.2f}]'.format(
@@ -1154,4 +1161,6 @@ class BaseRoutines(Node):
             dq[0:3] = (sqrt(0.5), sqrt(0.5), 0.0) # swap x and y, then flip z
         else:
             dq[0:3] = (0.5/dq[3])*a
-        return Quaternion(*tfs.quaternion_multiply(q, dq))
+        q_corrected = tfs.quaternion_multiply(q, dq)
+        return Quaternion(x=q_corrected.x, y=q_corrected.y,
+                          z=q_corrected.z, w=q_corrected.w)

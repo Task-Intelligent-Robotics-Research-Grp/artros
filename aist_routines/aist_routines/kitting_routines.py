@@ -91,17 +91,17 @@ class KittingRoutines(BaseRoutines):
 
     def process_command(self, command, robot_name, axis, speed):
         if command == 's':
-            bin_id = 'bin_' + raw_input('  bin id? ')
-            self.search_bin(bin_id)
+            bin_id = 'bin_' + input('  bin id? ')
+            self.search_bin(robot_name, bin_id)
         elif command == 'a':
-            bin_id = 'bin_' + raw_input('  bin id? ')
-            self.pick_tool(self.current_robot_name, 'suction_tool')
-            self.go_to_named_pose(self.current_robot_name, 'home')
+            bin_id = 'bin_' + input('  bin id? ')
+            self.pick_tool(robot_name, 'suction_tool')
+            self.go_to_named_pose(robot_name, 'home')
             self._attempt_bin.send_goal(bin_id, False, 5, self._done_cb)
         elif command == 'A':
-            bin_id = 'bin_' + raw_input('  bin id? ')
-            self.pick_tool(self.current_robot_name, 'suction_tool')
-            self.go_to_named_pose(self.current_robot_name, 'home')
+            bin_id = 'bin_' + input('  bin id? ')
+            self.pick_tool(robot_name, 'suction_tool')
+            self.go_to_named_pose(robot_name, 'home')
             self._attempt_bin.send_goal(bin_id, True, 5, self._done_cb)
         elif command == 'c':
             self._attempt_bin.cancel_goal()
@@ -114,29 +114,35 @@ class KittingRoutines(BaseRoutines):
         return robot_name, axis, speed
 
     # Commands
-    def search_bin(self, bin_id):
+    def search_bin(self, robot_name, bin_id):
         try:
             bin_props  = self.bin_props[bin_id]
             border     = self.borders[bin_props['border_id']]
             part_props = self.part_props[bin_props['part_id']]
-            params     = self.graspability_params[bin_props['part_id']]
+            params     = self.graspability_parameters[bin_props['part_id']]
         except KeyError as e:
-            self.logger.error('search_bin() failed to get settings: %s' % e)
+            self.get_logger().error('search_bin() failed to get settings: %s'
+                                    % e)
             return GoalStatus.STATUS_UNKNOWN, None
 
         self._graspability_client.set_parameters(params)
-        self._graspability_client.set_graspability_filter(
-            lambda graspabilities, \
-                   min_height=bin_props.get('min_height', 0.006), \
-                   max_height=bin_props.get('max_height', 0.045), \
-                   max_slant =bin_props.get('max_slant',  pi/4):
-            self._graspability_filter(graspabilities,
+        if 'min_height' in bin_props and 'max_height' in bin_props and \
+           'max_slant' in bin_props:
+            self._graspability_client.set_graspability_filter(
+                lambda graspabilities, \
+                       target_frame=bin_props['name'], \
+                       min_height=bin_props['min_height'], \
+                       max_height=bin_props['max_height'], \
+                       max_slant =bin_props['max_slant']:
+            self._graspability_filter(graspabilities, target_frame,
                                       min_height, max_height, max_slant))
+        else:
+            self._graspability_client.set_graspability_filter(None)
 
         # Send goal first and then trigger camera frame.
         self._graspability_client.send_goal(
             Border(points=[Point2D(u=p[0], v=p[1]) for p in border]),
-            self.gripper(robot_name).type, one_shot)
+            self.gripper(robot_name).type, one_shot=True, timeout_sec=0.0)
         self.camera(part_props['camera_name']).trigger_frame()
 
         return self._graspability_client.wait()
@@ -145,7 +151,7 @@ class KittingRoutines(BaseRoutines):
         self._graspability_client.cancel_goal()
 
     # Utilities
-    def _graspability_filter(self, graspabilities,
+    def _graspability_filter(self, graspabilities, target_frame,
                              min_height, max_height, max_slant):
         #  We have to transform the poses to reference frame before moving
         #  because graspability poses are represented w.r.t. camera frame
@@ -183,7 +189,7 @@ class KittingRoutines(BaseRoutines):
         normal = T[0:3, 2]      # local Z-axis at the graspability point
         up     = np.array((0, 0, 1))
         a = np.dot(normal, up)
-        b = cos(max_slant)
+        b = cos(radians(max_slant))
         if a < b:
             p = sqrt((1.0 - b*b)/(1.0 - a*a))
             q = b - a*p
@@ -191,7 +197,8 @@ class KittingRoutines(BaseRoutines):
             R[0:3, 2] = p*normal + q*up                   # fixed Z-axis
             R[0:3, 1] = self._normalize(np.cross(R[0:3, 2], T[0:3, 0]))
             R[0:3, 0] = np.cross(R[0:3, 1], R[0:3, 2])
-            pose.orientation = Quaternion(*tfs.quaternion_from_matrix(R))
+            qR = tfs.quaternion_from_matrix(R)
+            pose.orientation = Quaternion(x=qR[0], y=qR[1], z=qR[2], w=qR[3])
         return pose
 
     def _normalize(self, x):

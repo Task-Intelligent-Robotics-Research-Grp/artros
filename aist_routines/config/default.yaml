@@ -79,6 +79,8 @@ kitting:
       - package://aist_routines/config/inc/base.yaml
       - package://aist_routines/config/inc/kitting.yaml
       - package://aist_routines/config/inc/borders.yaml
+    marker_lifetime: 0      # in seconds. Zero means forever.
+    marker_scale:    0.004
 
 assembly:
   ros__parameters:
