@@ -186,7 +186,7 @@ class BaseRoutines(Node):
             try:
                 self._com = CollisionObjectManagerClient(self)
 
-                # he call should be asynchronous because the executor has yet
+                # This call should be asynchronous because the executor has yet
                 # been started in this constructor.
                 self._initialize_collision_objects(timeout_sec=0.0)
             except Exception as e:

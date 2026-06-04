@@ -92,7 +92,7 @@ class KittingRoutines(BaseRoutines):
     def process_command(self, command, robot_name, axis, speed):
         if command == 's':
             bin_id = 'bin_' + input('  bin id? ')
-            self.search_bin(robot_name, bin_id)
+            self.search_bin(bin_id)
         elif command == 'a':
             bin_id = 'bin_' + input('  bin id? ')
             self.pick_tool(robot_name, 'suction_tool')
@@ -114,7 +114,7 @@ class KittingRoutines(BaseRoutines):
         return robot_name, axis, speed
 
     # Commands
-    def search_bin(self, robot_name, bin_id):
+    def search_bin(self, bin_id):
         try:
             bin_props  = self.bin_props[bin_id]
             border     = self.borders[bin_props['border_id']]
@@ -126,6 +126,7 @@ class KittingRoutines(BaseRoutines):
             return GoalStatus.STATUS_UNKNOWN, None
 
         self._graspability_client.set_parameters(params)
+
         if 'min_height' in bin_props and 'max_height' in bin_props and \
            'max_slant' in bin_props:
             self._graspability_client.set_graspability_filter(
@@ -134,15 +135,16 @@ class KittingRoutines(BaseRoutines):
                        min_height=bin_props['min_height'], \
                        max_height=bin_props['max_height'], \
                        max_slant =bin_props['max_slant']:
-            self._graspability_filter(graspabilities, target_frame,
-                                      min_height, max_height, max_slant))
+                self._graspability_filter(graspabilities, target_frame,
+                                          min_height, max_height, max_slant))
         else:
             self._graspability_client.set_graspability_filter(None)
 
         # Send goal first and then trigger camera frame.
         self._graspability_client.send_goal(
             Border(points=[Point2D(u=p[0], v=p[1]) for p in border]),
-            self.gripper(robot_name).type, one_shot=True, timeout_sec=0.0)
+            self.gripper(part_props['robot_name']).type,
+            one_shot=True, timeout_sec=0.0)
         self.camera(part_props['camera_name']).trigger_frame()
 
         return self._graspability_client.wait()

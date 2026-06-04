@@ -124,7 +124,7 @@ class AttemptBinTaskServer(TaskServer):
             if nattempts == max_attempts:
                 break
 
-            pose = PoseStamped(pick_poses.header, p)
+            pose = PoseStamped(header=pick_poses.header, pose=p)
             if self._is_close_to_fail_poses(pose):
                 continue
 
@@ -141,9 +141,9 @@ class AttemptBinTaskServer(TaskServer):
 
                 # Begin placing and wait until reaching approach pose.
                 self.node.place_at_frame(robot_name, part_props['destination'],
-                                        part_id,
-                                        offset=(0.0, place_offset, 0.0),
-                                        wait=False)
+                                         part_id,
+                                         offset=(0.0, place_offset, 0.0),
+                                         wait=False)
                 self.node.pick_or_place_wait_for_stage(
                     PickOrPlaceFeedback.APPROACHING)
 
