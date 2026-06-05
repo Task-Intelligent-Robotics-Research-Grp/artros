@@ -12,7 +12,6 @@ a_bot_grippers_driver:
 
 a_bot_gripper_controller:
   ros__parameters:
-    type:             robotiq_140
     slave_id:         9
     joints:
       - a_bot_gripper_finger_joint
@@ -44,7 +43,6 @@ b_bot_grippers_driver:
 
 b_bot_gripper_controller:
   ros__parameters:
-    type:             robotiq_85
     slave_id:         9
     joints:
       - b_bot_gripper_finger_joint
@@ -69,6 +67,45 @@ b_bot_gripper_controller:
 b_bot_suction_controller:
   ros__parameters:
     slave_id: 2
+
+left_lbr_gripper_controller:
+  ros__parameters:
+    device_name: left_lbr_gripper
+    mimic_outer_joints:  false
+    # Coefficients for converting controller torque values to Newton-meters
+    # (Obtained from pyHand 1.0 Manual)
+    torque_coefficients: [-2.85, 37.46e-4, -1.708e-6, 2.754e-10]
+
+right_lbr_grippers_driver:
+  ros__parameters:
+    ip:            192.168.1.11  # Used for tcp/urcap drivers
+    slave_ids:     [9]           # list of slave IDs of Modbus devices
+    device_types:  [arg3f]
+
+right_lbr_gripper_controller:
+  ros__parameters:
+    slave_id:  9
+    joints:
+      - right_lbr_gripper_middle_finger_joint
+      - right_lbr_gripper_left_finger_joint
+      - right_lbr_gripper_right_finger_joint
+      - right_lbr_gripper_scissor_joint
+
+    # Gap width between fingers in meters [-0.2169, 0.167]
+    min_gap: [-0.2169, -0.2169, -0.2169, 0.0000]
+    max_gap: [ 0.1670,  0.1670,  0.1670, 0.1150]
+
+    # Gripper position in radians [120(deg), 0(deg)]
+    min_position: [2.0944, 2.0944, 2.0944,  0.1600]
+    max_position: [0.0000, 0.0000, 0.0000, -0.2500]
+
+    # Gripper velocity in m/s
+    min_velocity: [0.020, 0.020, 0.020, 0.020]
+    max_velocity: [0.110, 0.110, 0.110, 0.110]
+
+    # Gripper effort in N. [0.0, 185.0]
+    min_effort: [ 0.0,  0.0,  0.0,  0.0]
+    max_effort: [60.0, 60.0, 60.0, 60.0]
 
 #
 # suction controllers

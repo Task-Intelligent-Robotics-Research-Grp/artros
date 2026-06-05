@@ -26,3 +26,14 @@ arms:
       - lbr_state_broadcaster
     inactive_controllers:
       - forward_position_controller
+
+grippers:
+  left_lbr_gripper:
+    type: BarrettHand
+
+  right_lbr_grippers:
+    type:        RobotiqDevices
+    driver_type: tcp
+    grippers:
+      right_lbr_gripper:
+        type: RobotiqGripper

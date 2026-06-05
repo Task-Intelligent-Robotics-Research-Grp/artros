@@ -35,10 +35,8 @@
 # Author: Toshio Ueshiba
 #
 import rclpy, sys, threading
-from rclpy.executors                 import MultiThreadedExecutor
-from aist_routines.base_routines     import BaseRoutines
-from aist_routines.assembly_routines import AssemblyRoutines
-from aist_routines.kitting_routines  import KittingRoutines
+from rclpy.executors             import MultiThreadedExecutor
+from aist_routines.base_routines import BaseRoutines
 
 
 def _command_line_interface(node):
@@ -76,7 +74,11 @@ def base():
     _main('base', BaseRoutines)
 
 def assembly():
+    from aist_routines.assembly_routines import AssemblyRoutines
+
     _main('assembly', AssemblyRoutines)
 
 def kitting():
+    from aist_routines.kitting_routines  import KittingRoutines
+
     _main('kitting', KittingRoutines)

@@ -36,6 +36,7 @@
 from aist_robotiq.client         import RobotiqGripper, RobotiqSuction
 from aist_fastening_tools.client import (SuctionTool, SuctionGripper,
                                          ScrewTool, PrecisionTool)
+from aist_barrett.client         import BarrettHand
 
 
 def create_gripper(node, name, gripper_type, client_args):
