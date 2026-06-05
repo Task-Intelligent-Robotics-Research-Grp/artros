@@ -87,6 +87,13 @@ DEVICE_PROPS = {
                                           'launch', 'inc',
                                           'ur_io_devices.launch.py'])
     },
+    'BarrettHand':
+    {
+        'extra_drivers_launch_file': PathJoinSubstitution(
+                                         [FindPackageShare('aist_bringup'),
+                                          'launch', 'inc',
+                                          'barrett_hand.launch.py'])
+    },
 
     # Cameras
     'PhoXiCamera':

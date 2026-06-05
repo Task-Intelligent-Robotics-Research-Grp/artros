@@ -3,7 +3,7 @@ fri_client_sdk: # the fri_client_sdk version is used to create the correct state
   major_version: 1
   minor_version: 15
 client_command_mode: position # the command mode specifies the user-sent commands. Available: [position, torque, wrench]
-port_id: 30300 # port id for the UDP communication. Useful in multi-robot setups
+port_id: 30201 # port id for the UDP communication. Useful in multi-robot setups
 remote_host: INADDR_ANY # the expected robot IP address. INADDR_ANY will accept any incoming connection
 rt_prio: 80 # real-time priority for the control loop
 # exponential moving average time constant for joint position commands [s]:

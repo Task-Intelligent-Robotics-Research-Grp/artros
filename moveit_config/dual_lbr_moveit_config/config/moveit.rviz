@@ -4,10 +4,9 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /MotionPlanning1
-        - /TF1
-      Splitter Ratio: 0.5232558250427246
-    Tree Height: 560
+        - /MotionPlanning1/Planning Request1
+      Splitter Ratio: 0.6531007885932922
+    Tree Height: 1051
   - Class: rviz_common/Help
     Name: Help
   - Class: rviz_common/Views
@@ -36,7 +35,7 @@ Visualization Manager:
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
       Value: true
-    - Acceleration_Scaling_Factor: 1
+    - Acceleration_Scaling_Factor: 0.5
       Class: moveit_rviz_plugin/MotionPlanning
       Enabled: true
       Move Group Namespace: ""
@@ -71,6 +70,80 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          left_lbr_coupling_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_coupling_flange_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          left_lbr_gripper_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_gripper_left_finger_inner_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_gripper_left_finger_outer_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_gripper_left_finger_spread_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_gripper_left_finger_tip_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          left_lbr_gripper_middle_finger_inner_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_gripper_middle_finger_outer_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_gripper_middle_finger_tip_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          left_lbr_gripper_palm_center_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          left_lbr_gripper_right_finger_inner_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_gripper_right_finger_outer_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_gripper_right_finger_spread_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_gripper_right_finger_tip_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          left_lbr_gripper_tip_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           left_lbr_link_0:
             Alpha: 1
             Show Axes: false
@@ -223,6 +296,91 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          right_lbr_gripper_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          right_lbr_gripper_left_finger_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_left_finger_distal_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_left_finger_medial_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_left_finger_proximal_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_left_finger_tip_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          right_lbr_gripper_middle_finger_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_middle_finger_distal_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_middle_finger_medial_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_middle_finger_proximal_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_middle_finger_tip_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          right_lbr_gripper_palm:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_right_finger_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_right_finger_distal_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_right_finger_medial_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_right_finger_proximal_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_right_finger_tip_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          right_lbr_gripper_tip_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           right_lbr_link_0:
             Alpha: 1
             Show Axes: false
@@ -372,6 +530,43 @@ Visualization Manager:
             Show Trail: false
             Value: true
           right_mounter_top_origin:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          workspace_center:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          workspace_table_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          workspace_table_leg1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          workspace_table_leg2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          workspace_table_leg3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          workspace_table_top:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          workspace_table_top_center:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          workspace_table_top_origin:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -400,7 +595,7 @@ Visualization Manager:
         Colliding Link Color: 255; 0; 0
         Goal State Alpha: 1
         Goal State Color: 250; 128; 0
-        Interactive Marker Size: 0
+        Interactive Marker Size: 0.15000000596046448
         Joint Violation Color: 255; 0; 255
         Planning Group: right_lbr
         Query Goal State: true
@@ -426,6 +621,80 @@ Visualization Manager:
           Expand Tree: false
           Link Tree Style: Links in Alphabetic Order
           ground:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          left_lbr_coupling_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_coupling_flange_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          left_lbr_gripper_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_gripper_left_finger_inner_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_gripper_left_finger_outer_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_gripper_left_finger_spread_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_gripper_left_finger_tip_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          left_lbr_gripper_middle_finger_inner_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_gripper_middle_finger_outer_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_gripper_middle_finger_tip_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          left_lbr_gripper_palm_center_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          left_lbr_gripper_right_finger_inner_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_gripper_right_finger_outer_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_gripper_right_finger_spread_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_lbr_gripper_right_finger_tip_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          left_lbr_gripper_tip_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -581,6 +850,91 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          right_lbr_gripper_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          right_lbr_gripper_left_finger_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_left_finger_distal_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_left_finger_medial_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_left_finger_proximal_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_left_finger_tip_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          right_lbr_gripper_middle_finger_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_middle_finger_distal_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_middle_finger_medial_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_middle_finger_proximal_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_middle_finger_tip_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          right_lbr_gripper_palm:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_right_finger_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_right_finger_distal_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_right_finger_medial_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_right_finger_proximal_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_lbr_gripper_right_finger_tip_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          right_lbr_gripper_tip_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           right_lbr_link_0:
             Alpha: 1
             Show Axes: false
@@ -733,6 +1087,43 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          workspace_center:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          workspace_table_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          workspace_table_leg1:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          workspace_table_leg2:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          workspace_table_leg3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          workspace_table_top:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          workspace_table_top_center:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          workspace_table_top_origin:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           world:
             Alpha: 1
             Show Axes: false
@@ -741,23 +1132,379 @@ Visualization Manager:
         Show Robot Collision: false
         Show Robot Visual: true
       Value: true
-      Velocity_Scaling_Factor: 1
+      Velocity_Scaling_Factor: 0.5
     - Class: rviz_default_plugins/TF
-      Enabled: false
+      Enabled: true
       Filter (blacklist): ""
       Filter (whitelist): ""
       Frame Timeout: 15
       Frames:
-        All Enabled: true
+        All Enabled: false
+        ground:
+          Value: false
+        left_lbr_coupling_base_link:
+          Value: false
+        left_lbr_coupling_flange_link:
+          Value: false
+        left_lbr_gripper_base_link:
+          Value: false
+        left_lbr_gripper_left_finger_inner_link:
+          Value: false
+        left_lbr_gripper_left_finger_outer_link:
+          Value: false
+        left_lbr_gripper_left_finger_spread_link:
+          Value: false
+        left_lbr_gripper_left_finger_tip_link:
+          Value: false
+        left_lbr_gripper_middle_finger_inner_link:
+          Value: false
+        left_lbr_gripper_middle_finger_outer_link:
+          Value: false
+        left_lbr_gripper_middle_finger_tip_link:
+          Value: false
+        left_lbr_gripper_palm_center_link:
+          Value: false
+        left_lbr_gripper_right_finger_inner_link:
+          Value: false
+        left_lbr_gripper_right_finger_outer_link:
+          Value: false
+        left_lbr_gripper_right_finger_spread_link:
+          Value: false
+        left_lbr_gripper_right_finger_tip_link:
+          Value: false
+        left_lbr_gripper_tip_link:
+          Value: true
+        left_lbr_link_0:
+          Value: false
+        left_lbr_link_1:
+          Value: false
+        left_lbr_link_2:
+          Value: false
+        left_lbr_link_3:
+          Value: false
+        left_lbr_link_4:
+          Value: false
+        left_lbr_link_5:
+          Value: false
+        left_lbr_link_6:
+          Value: false
+        left_lbr_link_7:
+          Value: false
+        left_lbr_link_ee:
+          Value: false
+        left_mounter_back_bar:
+          Value: false
+        left_mounter_base_back_bar:
+          Value: false
+        left_mounter_base_front_bar:
+          Value: false
+        left_mounter_base_left_bar:
+          Value: false
+        left_mounter_base_leg0:
+          Value: false
+        left_mounter_base_leg1:
+          Value: false
+        left_mounter_base_leg2:
+          Value: false
+        left_mounter_base_leg3:
+          Value: false
+        left_mounter_base_link:
+          Value: false
+        left_mounter_base_right_bar:
+          Value: false
+        left_mounter_front_bar:
+          Value: false
+        left_mounter_left_bar:
+          Value: false
+        left_mounter_leg0:
+          Value: false
+        left_mounter_leg1:
+          Value: false
+        left_mounter_leg2:
+          Value: false
+        left_mounter_leg3:
+          Value: false
+        left_mounter_prop0:
+          Value: false
+        left_mounter_prop1:
+          Value: false
+        left_mounter_prop2:
+          Value: false
+        left_mounter_prop3:
+          Value: false
+        left_mounter_right_bar:
+          Value: false
+        left_mounter_top_origin:
+          Value: false
+        right_lbr_gripper_base_link:
+          Value: false
+        right_lbr_gripper_left_finger_base_link:
+          Value: false
+        right_lbr_gripper_left_finger_distal_link:
+          Value: false
+        right_lbr_gripper_left_finger_medial_link:
+          Value: false
+        right_lbr_gripper_left_finger_proximal_link:
+          Value: false
+        right_lbr_gripper_left_finger_tip_link:
+          Value: false
+        right_lbr_gripper_middle_finger_base_link:
+          Value: false
+        right_lbr_gripper_middle_finger_distal_link:
+          Value: false
+        right_lbr_gripper_middle_finger_medial_link:
+          Value: false
+        right_lbr_gripper_middle_finger_proximal_link:
+          Value: false
+        right_lbr_gripper_middle_finger_tip_link:
+          Value: false
+        right_lbr_gripper_palm:
+          Value: false
+        right_lbr_gripper_right_finger_base_link:
+          Value: false
+        right_lbr_gripper_right_finger_distal_link:
+          Value: false
+        right_lbr_gripper_right_finger_medial_link:
+          Value: false
+        right_lbr_gripper_right_finger_proximal_link:
+          Value: false
+        right_lbr_gripper_right_finger_tip_link:
+          Value: false
+        right_lbr_gripper_tip_link:
+          Value: true
+        right_lbr_link_0:
+          Value: false
+        right_lbr_link_1:
+          Value: false
+        right_lbr_link_2:
+          Value: false
+        right_lbr_link_3:
+          Value: false
+        right_lbr_link_4:
+          Value: false
+        right_lbr_link_5:
+          Value: false
+        right_lbr_link_6:
+          Value: false
+        right_lbr_link_7:
+          Value: false
+        right_lbr_link_ee:
+          Value: false
+        right_mounter_back_bar:
+          Value: false
+        right_mounter_base_back_bar:
+          Value: false
+        right_mounter_base_front_bar:
+          Value: false
+        right_mounter_base_left_bar:
+          Value: false
+        right_mounter_base_leg0:
+          Value: false
+        right_mounter_base_leg1:
+          Value: false
+        right_mounter_base_leg2:
+          Value: false
+        right_mounter_base_leg3:
+          Value: false
+        right_mounter_base_link:
+          Value: false
+        right_mounter_base_right_bar:
+          Value: false
+        right_mounter_front_bar:
+          Value: false
+        right_mounter_left_bar:
+          Value: false
+        right_mounter_leg0:
+          Value: false
+        right_mounter_leg1:
+          Value: false
+        right_mounter_leg2:
+          Value: false
+        right_mounter_leg3:
+          Value: false
+        right_mounter_prop0:
+          Value: false
+        right_mounter_prop1:
+          Value: false
+        right_mounter_prop2:
+          Value: false
+        right_mounter_prop3:
+          Value: false
+        right_mounter_right_bar:
+          Value: false
+        right_mounter_top_origin:
+          Value: false
+        workspace_center:
+          Value: true
+        workspace_table_base_link:
+          Value: false
+        workspace_table_leg1:
+          Value: false
+        workspace_table_leg2:
+          Value: false
+        workspace_table_leg3:
+          Value: false
+        workspace_table_top:
+          Value: false
+        workspace_table_top_center:
+          Value: false
+        workspace_table_top_origin:
+          Value: false
+        world:
+          Value: false
       Marker Scale: 0.5
       Name: TF
       Show Arrows: false
       Show Axes: true
       Show Names: true
       Tree:
-        {}
+        world:
+          ground:
+            left_mounter_base_link:
+              left_mounter_base_back_bar:
+                {}
+              left_mounter_base_front_bar:
+                left_mounter_leg0:
+                  left_mounter_leg1:
+                    {}
+                  left_mounter_leg2:
+                    {}
+                  left_mounter_leg3:
+                    {}
+              left_mounter_base_left_bar:
+                {}
+              left_mounter_base_leg0:
+                left_mounter_base_leg1:
+                  left_mounter_prop1:
+                    {}
+                left_mounter_base_leg2:
+                  left_mounter_prop2:
+                    {}
+                left_mounter_base_leg3:
+                  left_mounter_prop3:
+                    {}
+                left_mounter_prop0:
+                  {}
+              left_mounter_base_right_bar:
+                {}
+              left_mounter_front_bar:
+                left_mounter_back_bar:
+                  {}
+                left_mounter_left_bar:
+                  {}
+                left_mounter_right_bar:
+                  {}
+              left_mounter_top_origin:
+                left_lbr_link_0:
+                  left_lbr_link_1:
+                    left_lbr_link_2:
+                      left_lbr_link_3:
+                        left_lbr_link_4:
+                          left_lbr_link_5:
+                            left_lbr_link_6:
+                              left_lbr_link_7:
+                                left_lbr_link_ee:
+                                  left_lbr_coupling_base_link:
+                                    left_lbr_coupling_flange_link:
+                                      left_lbr_gripper_base_link:
+                                        left_lbr_gripper_left_finger_spread_link:
+                                          left_lbr_gripper_left_finger_inner_link:
+                                            left_lbr_gripper_left_finger_outer_link:
+                                              left_lbr_gripper_left_finger_tip_link:
+                                                {}
+                                        left_lbr_gripper_middle_finger_inner_link:
+                                          left_lbr_gripper_middle_finger_outer_link:
+                                            left_lbr_gripper_middle_finger_tip_link:
+                                              {}
+                                        left_lbr_gripper_palm_center_link:
+                                          {}
+                                        left_lbr_gripper_right_finger_spread_link:
+                                          left_lbr_gripper_right_finger_inner_link:
+                                            left_lbr_gripper_right_finger_outer_link:
+                                              left_lbr_gripper_right_finger_tip_link:
+                                                {}
+                                        left_lbr_gripper_tip_link:
+                                          {}
+            right_mounter_base_link:
+              right_mounter_base_back_bar:
+                {}
+              right_mounter_base_front_bar:
+                right_mounter_leg0:
+                  right_mounter_leg1:
+                    {}
+                  right_mounter_leg2:
+                    {}
+                  right_mounter_leg3:
+                    {}
+              right_mounter_base_left_bar:
+                {}
+              right_mounter_base_leg0:
+                right_mounter_base_leg1:
+                  right_mounter_prop1:
+                    {}
+                right_mounter_base_leg2:
+                  right_mounter_prop2:
+                    {}
+                right_mounter_base_leg3:
+                  right_mounter_prop3:
+                    {}
+                right_mounter_prop0:
+                  {}
+              right_mounter_base_right_bar:
+                {}
+              right_mounter_front_bar:
+                right_mounter_back_bar:
+                  {}
+                right_mounter_left_bar:
+                  {}
+                right_mounter_right_bar:
+                  {}
+              right_mounter_top_origin:
+                right_lbr_link_0:
+                  right_lbr_link_1:
+                    right_lbr_link_2:
+                      right_lbr_link_3:
+                        right_lbr_link_4:
+                          right_lbr_link_5:
+                            right_lbr_link_6:
+                              right_lbr_link_7:
+                                right_lbr_link_ee:
+                                  right_lbr_gripper_base_link:
+                                    right_lbr_gripper_palm:
+                                      right_lbr_gripper_left_finger_base_link:
+                                        right_lbr_gripper_left_finger_proximal_link:
+                                          right_lbr_gripper_left_finger_medial_link:
+                                            right_lbr_gripper_left_finger_distal_link:
+                                              right_lbr_gripper_left_finger_tip_link:
+                                                {}
+                                      right_lbr_gripper_middle_finger_base_link:
+                                        right_lbr_gripper_middle_finger_proximal_link:
+                                          right_lbr_gripper_middle_finger_medial_link:
+                                            right_lbr_gripper_middle_finger_distal_link:
+                                              right_lbr_gripper_middle_finger_tip_link:
+                                                {}
+                                      right_lbr_gripper_right_finger_base_link:
+                                        right_lbr_gripper_right_finger_proximal_link:
+                                          right_lbr_gripper_right_finger_medial_link:
+                                            right_lbr_gripper_right_finger_distal_link:
+                                              right_lbr_gripper_right_finger_tip_link:
+                                                {}
+                                    right_lbr_gripper_tip_link:
+                                      {}
+            workspace_table_base_link:
+              workspace_table_leg1:
+                {}
+              workspace_table_leg2:
+                {}
+              workspace_table_leg3:
+                {}
+              workspace_table_top:
+                workspace_table_top_origin:
+                  workspace_table_top_center:
+                    workspace_center:
+                      {}
       Update Interval: 0
-      Value: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -776,30 +1523,30 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 4.42136287689209
+      Distance: 5.309997081756592
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.38611873984336853
-        Y: 0.21135903894901276
-        Z: 0.6811259388923645
+        X: 0.03290878236293793
+        Y: -0.07296866178512573
+        Z: 0.6024711728096008
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.550000011920929
+      Pitch: 0.6049999594688416
       Target Frame: world
       Value: Orbit (rviz_default_plugins)
-      Yaw: 0.7620016932487488
+      Yaw: 0.8670015931129456
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 749
+  Height: 1240
   Help:
     collapsed: false
   Hide Left Dock: false
@@ -808,9 +1555,9 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000002060000028ffc0200000004fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004400fffffffc0000003f0000028f000001b50100001efa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001ee00fffffffb000000100044006900730070006c0061007900730100000000000002b40000015600fffffffb0000000800480065006c0070000000029a0000006e0000006f00fffffffb0000000a005600690065007700730000000205000000c9000000a900ffffff000003620000028f00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000002060000047afc0200000004fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004400fffffffc0000003f0000047a000001b50100001efa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001ee00fffffffb000000100044006900730070006c0061007900730100000000000002b40000015600fffffffb0000000800480065006c0070000000029a0000006e0000006f00fffffffb0000000a005600690065007700730000000205000000c9000000a900ffffff000005130000047a00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
-  Width: 1390
-  X: 446
-  Y: 191
+  Width: 1823
+  X: 1894
+  Y: 193

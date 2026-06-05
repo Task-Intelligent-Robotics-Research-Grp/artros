@@ -7,15 +7,35 @@
 	     default="$(find lbr_description)/urdf/iiwa14/joint_limits.yaml"/>
 
   <!-- location of robot arms -->
-  <xacro:property name="left_lbr_x"	 value="-0.5"/>
-  <xacro:property name="left_lbr_y"	 value="0.0"/>
-  <xacro:property name="left_lbr_theta"	 value="0.0"/>	<!-- in degrees -->
-  <xacro:property name="right_lbr_x"	 value="0.5"/>
-  <xacro:property name="right_lbr_y"	 value="0.0"/>
-  <xacro:property name="right_lbr_theta" value="0.0"/>	<!-- in degrees -->
+  <xacro:property name="left_lbr_x"	 value="-0.350"/>
+  <xacro:property name="left_lbr_y"	 value="0.000"/>
+  <xacro:property name="left_lbr_theta"	 value="${radians(90)}"/>
+  <xacro:property name="right_lbr_x"	 value="0.350"/>
+  <xacro:property name="right_lbr_y"	 value="0.000"/>
+  <xacro:property name="right_lbr_theta" value="${radians(90)}"/>
+  <xacro:property name="table_w"	 value="1.500"/>
+  <xacro:property name="table_l"	 value="0.750"/>
+  <xacro:property name="table_h"	 value="0.800"/>
+  <xacro:property name="table_y"	 value="0.130"/>
 
   <!-- ground -->
   <link name="ground"/>
+
+  <!-- workspace -->
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/table.urdf.xacro"/>
+  <xacro:table prefix="workspace_table_"
+	       width="${table_w}" length="${table_l}" height="${table_h}"
+	       parent="ground">
+    <origin xyz="${-table_w/2} ${table_y} 0"
+	    rpy="0 0 0"/>
+  </xacro:table>
+  <link name="workspace_center"/>
+  <joint name="workspace_joint" type="fixed">
+    <parent link="workspace_table_top_center"/>
+    <child  link="workspace_center"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
 
   <!-- arm mounters -->
   <xacro:include filename="$(find aist_description
@@ -34,7 +54,7 @@
   <joint name="left_lbr_link_0_joint" type="fixed">
     <parent link = "left_mounter_top_origin"/>
     <child  link = "left_lbr_link_0"/>
-    <origin xyz="0 0 0" rpy="0 0 ${radians(left_lbr_theta)}"/>
+    <origin xyz="0 0 0" rpy="0 0 ${left_lbr_theta}"/>
   </joint>
   <xacro:iiwa14 robot_name="left_lbr"
 		joint_limits_path="$(arg joint_limits_path)"/>
@@ -43,10 +63,34 @@
   <joint name="right_lbr_link_0_joint" type="fixed">
     <parent link = "right_mounter_top_origin"/>
     <child  link = "right_lbr_link_0"/>
-    <origin xyz="0 0 0" rpy="0 0 ${radians(right_lbr_theta)}"/>
+    <origin xyz="0 0 0" rpy="0 0 ${right_lbr_theta}"/>
   </joint>
   <xacro:iiwa14 robot_name="right_lbr"
 		joint_limits_path="$(arg joint_limits_path)"/>
+
+  <!-- barrett hand coupling -->
+  <xacro:include filename="$(find aist_barrett
+			   )/urdf/barrett_coupling.urdf.xacro"/>
+  <xacro:barrett_coupling prefix="left_lbr_coupling_"
+			  parent_link="left_lbr_link_ee">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:barrett_coupling>
+
+  <!-- barrett hand -->
+  <xacro:include filename="$(find aist_barrett
+			   )/urdf/barrett_hand.urdf.xacro"/>
+  <xacro:barrett_hand prefix="left_lbr_gripper_"
+		      parent_link="left_lbr_coupling_flange_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:barrett_hand>
+
+  <!-- robotiq-3f gripper -->
+  <xacro:include filename="$(find aist_robotiq
+			   )/urdf/robotiq_3f_gripper.urdf.xacro" />
+  <xacro:robotiq_3f_gripper prefix="right_lbr_gripper_"
+			    parent="right_lbr_link_ee">
+    <origin xyz="0 0 0" rpy="0 ${-radians(90)} ${-radians(135)}"/>
+  </xacro:robotiq_3f_gripper>
 
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
   <link name="world"/>

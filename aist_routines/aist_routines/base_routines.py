@@ -1114,10 +1114,10 @@ class BaseRoutines(Node):
                                          transformed_pose.orientation.y,
                                          transformed_pose.orientation.z,
                                          transformed_pose.orientation.w))
-        return (transformed_pose.position.x,
+        return [transformed_pose.position.x,
                 transformed_pose.position.y,
                 transformed_pose.position.z,
-                degrees(rpy[0]), degrees(rpy[1]), degrees(rpy[2]))
+                degrees(rpy[0]), degrees(rpy[1]), degrees(rpy[2])]
 
     def format_pose(self, target_pose):
         return '[{:.4f}, {:.4f}, {:.4f}; {:.2f}, {:.2f}. {:.2f}]'.format(

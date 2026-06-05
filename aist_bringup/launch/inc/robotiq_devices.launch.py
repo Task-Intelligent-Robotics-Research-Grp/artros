@@ -40,7 +40,8 @@ def launch_setup(context):
                 ('gripper_names', ','.join(gripper_names)),
                 ('gripper_types', ','.join(gripper_types)),
                 ('container',     [LaunchConfiguration('name'), '_container']),
-                ('driver_ns',     [LaunchConfiguration('name'), '_driver'])
+                ('driver_ns',     [LaunchConfiguration('name'), '_driver']),
+                ('driver_type',   devices_config.get('driver_type', 'urcap')),
             ])
     ]
 
