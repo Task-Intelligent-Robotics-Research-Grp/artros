@@ -278,11 +278,11 @@ a_motioncam:
   ros__parameters:
     id:                          LTR-066
 #    id:                          InstalledExamples-demo-example
-    trigger_mode:                1  # 0: Freerun, 1: Software, 2: Hardware
+    trigger_mode:                0  # 0: Freerun, 1: Software, 2: Hardware
     intensity_scale:             0.5
     rate:                        20.0
     motioncam:
-      operation_mode:            2  # 0: None, 1: Camera, 2: Scanner, 3: Mode2D
+      operation_mode:            1  # 0: None, 1: Camera, 2: Scanner, 3: Mode2D
     processing_settings:
       normals_estimation_radius: 2
     output_settings:

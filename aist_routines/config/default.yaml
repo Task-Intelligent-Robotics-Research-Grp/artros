@@ -49,7 +49,7 @@ graspability:
     ns:                2
     nz:                0.6
     object_size:       8
-    min_distance:      30
+    min_distance:      20
     contact_radius:    12
     magnet:
       insertion_depth: 0.002
@@ -77,8 +77,8 @@ kitting:
     moveit_eef_step: 0.002
     setting_urls:
       - package://aist_routines/config/inc/base.yaml
-      - package://aist_routines/config/inc/kitting.yaml
-      - package://aist_routines/config/inc/borders.yaml
+      - package://aist_routines/config/inc/kitting-camera.yaml
+      - package://aist_routines/config/inc/borders-camera.yaml
     marker_lifetime: 0      # in seconds. Zero means forever.
     marker_scale:    0.004
 
