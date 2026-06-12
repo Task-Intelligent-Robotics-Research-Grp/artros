@@ -87,8 +87,8 @@ right_lbr_grippers_driver:
 
 right_lbr_gripper_controller:
   ros__parameters:
-    device_name: right_lbr_grippers_driver
-    slave_id:    9
+    driver_ns: right_lbr_grippers_driver
+    slave_id:  9
     joints:
       - right_lbr_gripper_middle_finger_joint
       - right_lbr_gripper_left_finger_joint

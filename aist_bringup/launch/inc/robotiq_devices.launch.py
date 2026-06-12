@@ -23,7 +23,7 @@ launch_arguments = [
 def launch_setup(context):
     config         = load_config(context)
     devices_config = config['grippers'][LaunchConfiguration('name')
-                                         .perform(context)]
+                                        .perform(context)]
     gripper_names  = [gripper_name
                       for gripper_name in devices_config.get('grippers', {})]
     gripper_types  = [gripper_props['type']
