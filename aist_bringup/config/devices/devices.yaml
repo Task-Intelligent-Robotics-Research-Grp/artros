@@ -37,10 +37,10 @@ a_bot_gripper_controller:
 b_bot_grippers_driver:
   ros__parameters:
     ip:            10.66.171.41  # Used for tcp/urcap drivers
-    # slave_ids:     [9]           # list of slave IDs of Modbus devices
-    # device_types:  [False]
-    slave_ids:     [9, 2]        # list of slave IDs of Modbus devices
-    device_types:  [arg2f, epick]
+    slave_ids:     [9]           # list of slave IDs of Modbus devices
+    device_types:  [arg2f]
+#    slave_ids:     [9, 2]        # list of slave IDs of Modbus devices
+#    device_types:  [arg2f, epick]
 
 b_bot_gripper_controller:
   ros__parameters:
