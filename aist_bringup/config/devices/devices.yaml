@@ -73,8 +73,8 @@ b_bot_suction_controller:
 
 left_lbr_gripper_controller:
   ros__parameters:
-    device_name: left_lbr_gripper
-    mimic_outer_joints:  false
+    device_name:  left_lbr_gripper
+    mimic_joints: false
     # Coefficients for converting controller torque values to Newton-meters
     # (Obtained from pyHand 1.0 Manual)
     torque_coefficients: [-2.85, 37.46e-4, -1.708e-6, 2.754e-10]
