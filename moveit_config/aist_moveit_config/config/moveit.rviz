@@ -7,7 +7,6 @@ Panels:
         - /MotionPlanning1/Planning Request1
         - /MotionPlanning1/Planning Metrics1
         - /MotionPlanning1/Planned Path1
-        - /a_bot1
       Splitter Ratio: 0.5447154641151428
     Tree Height: 353
   - Class: rviz_common/Selection
@@ -2570,7 +2569,7 @@ Visualization Manager:
       Enabled: true
       Name: Graspabilities
       Namespaces:
-        {}
+        graspability_markers: true
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -2624,16 +2623,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 1.3987488746643066
+      Distance: 1.2620517015457153
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.43153801560401917
-        Y: 0.038854099810123444
-        Z: 0.48453155159950256
+        X: -0.35927852988243103
+        Y: -0.08040064573287964
+        Z: 0.42477211356163025
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
