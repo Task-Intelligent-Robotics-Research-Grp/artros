@@ -640,9 +640,10 @@ class BaseRoutines(Node):
                                     PoseStamped(
                                         header=Header(frame_id=target_frame),
                                         pose=Pose(
-                                            position=Point(x=0, y=0, z=0),
+                                            position=Point(
+                                                x=0.0, y=0.0, z=0.0),
                                             orientation=Quaternion(
-                                                x=0, y=0, z=0, w=1))),
+                                                x=0.0, y=0.0, z=0.0, w=1.0))),
                                     offset, speed, accel, end_effector_link)
 
     def go_to_pose_goal(self, robot_name, target_pose, offset=(),
@@ -654,12 +655,11 @@ class BaseRoutines(Node):
 
     def go_along_poses(self, robot_name, poses, offset=(),
                        speed=1.0, accel=1.0, end_effector_link=''):
-        group = self._cmd.get_group(robot_name)
-        path  = self.create_path(robot_name, poses, offset,
-                                 speed, accel, end_effector_link)
+        path = self.create_path(robot_name, poses, offset,
+                                speed, accel, end_effector_link)
         if path is None:
             return False
-
+        group = self._cmd.get_group(robot_name)
         return self.execute_path(robot_name,
                                  group.retime_trajectory(
                                      self._cmd.get_current_state(), path,
@@ -675,10 +675,9 @@ class BaseRoutines(Node):
 
     def create_path(self, robot_name, poses, offset=(),
                     speed=1.0, accel=1.0, end_effector_link=''):
-        group = self._cmd.get_group(robot_name)
-
         if end_effector_link == '':
             end_effector_link = self.gripper(robot_name).tip_link
+        group = self._cmd.get_group(robot_name)
         group.set_end_effector_link(end_effector_link)
 
         group.set_max_velocity_scaling_factor(np.clip(speed, 0.0, 1.0))
@@ -689,8 +688,8 @@ class BaseRoutines(Node):
             path, fraction = group.compute_cartesian_path(
                                  transformed_poses.poses, self._eef_step, 0.0)
         except Exception as e:
-            fraction = 0.0
             self.get_logger().error(e)
+            return None
 
         if fraction < 0.995:
             self.get_logger().error('Computed only %3.1f%% of cartesian path.'
