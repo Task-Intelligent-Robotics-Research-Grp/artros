@@ -72,37 +72,37 @@ class AssemblyRoutines(BaseRoutines):
 
     def process_command(self, command, robot_name, axis, speed):
         if command == 'pt':
-            tool_name = raw_input('  tool name? ')
+            tool_name = input('  tool name? ')
             self.pick_tool(robot_name, tool_name)
         elif command == 'PT':
             self.place_tool(robot_name)
         elif command == 'ps':
-            screw_type = raw_input('  screw type? ')
+            screw_type = input('  screw type? ')
             self.pick_screw(robot_name, screw_type)
         elif command == 'PS':
             self.place_screw(robot_name)
         elif command == 'pp':
-            part_id  = raw_input('  part ID? ')
-            subframe = raw_input('  subframe? ')
+            part_id  = input('  part ID? ')
+            subframe = input('  subframe? ')
             if subframe == '':
                 subframe = 'default_grasp'
             self.pick_part(robot_name, part_id, subframe)
         elif command == 'PP':
-            part_id  = raw_input('  part ID? ')
-            subframe = raw_input('  subframe? ')
+            part_id  = input('  part ID? ')
+            subframe = input('  subframe? ')
             if subframe == '':
                 subframe = 'base_link'
-            place_frame = raw_input('  place frame? ')
+            place_frame = input('  place frame? ')
             self.place_part(robot_name, part_id, subframe, place_frame)
         elif command == 'fb':
             self.fix_part('base')
         elif command == 'FB':
             self.release_part('base')
         elif command == 'at':
-            pose_name = raw_input('  viewing pose? ')
+            pose_name = input('  viewing pose? ')
             if pose_name == '':
                 pose_name = 'fasten_screw_m4_ready'
-            target_frame = raw_input('  target frame? ')
+            target_frame = input('  target frame? ')
             if target_frame == '':
                 target_frame = 'base/panel_motor_screw_hole_1'
             self.approach_target(robot_name, pose_name, target_frame)
@@ -111,18 +111,18 @@ class AssemblyRoutines(BaseRoutines):
         elif command == 'I':
             self._initialize_collision_objects()
         elif command == 'i':
-            object_id = raw_input('  object ID? ')
+            object_id = input('  object ID? ')
             info = self.com.get_object_info(object_id)
             if info is not None:
                 self._print_object_info(info)
         elif command == 'ci':
-            frame_id = raw_input('  parent frame? ')
+            frame_id = input('  parent frame? ')
             info = self.com.get_child_object_info(frame_id)
             if info is not None:
                 self._print_object_info(info)
         elif command == 'r':
-            object_id   = raw_input('  object_id? ')
-            attach_link = raw_input('  attach_link? ') if object_id == '' else\
+            object_id   = input('  object_id? ')
+            attach_link = input('  attach_link? ') if object_id == '' else\
                           ''
             self.com.remove_object(object_id, attach_link)
         elif command == 'H':
@@ -238,12 +238,12 @@ class AssemblyRoutines(BaseRoutines):
             self.go_to_named_pose(robot_name, result.pose_name)
         self.com.reset_touch_links()
 
-    def _initialize_collision_objects(self):
-        super()._initialize_collision_objects()
-        self._screw_m3_id = 0
-        self._screw_m4_id = 0
-        self._generate_screw('screw_m3')
-        self._generate_screw('screw_m4')
+    # def _initialize_collision_objects(self, *, timeout_sec=None):
+    #     super()._initialize_collision_objects(timeout_sec=timeout_sec)
+    #     self._screw_m3_id = 0
+    #     self._screw_m4_id = 0
+    #     self._generate_screw('screw_m3')
+    #     self._generate_screw('screw_m4')
 
     def _grasped_object_id(self, robot_name):
         gripper_name = self.gripper(robot_name).name

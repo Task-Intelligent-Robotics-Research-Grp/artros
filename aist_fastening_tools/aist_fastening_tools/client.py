@@ -137,6 +137,10 @@ class SuctionTool(SimpleActionClient):
                     SuctionToolCommand.Result(suctioned=self._suctioned))
         return (status, result)
 
+    def grasped(self, *, timeout_sec: Optional[float]=None):
+        _, result = self.wait(timeout_sec=timeout_sec)
+        return result.stalled
+
     def _suck_command(self, suck, *, min_period, timeout_sec=None):
         return self.send_goal(SuctionToolCommand.Goal(suck=suck,
                                                       min_period=min_period),
@@ -247,6 +251,10 @@ class ScrewTool(SuctionTool):
 
     def wait(self, *, timeout_sec=None):
         return self._screw_tool.wait(timeout_sec=timeout_sec)
+
+    def grasped(self, *, timeout_sec: Optional[float]=None):
+        _, result = self.wait(timeout_sec=timeout_sec)
+        return result.suctioned
 
     def cancel_goal(self):
         """ Cancel the latest motion command sent to the gripper.
@@ -369,3 +377,7 @@ class PrecisionTool(SimpleActionClient):
                                       position=position,
                                       max_effort=max_effort)),
                               timeout_sec=timeout_sec)
+
+    def grasped(self, *, timeout_sec: Optional[float]=None):
+        _, result = self.wait(timeout_sec=timeout_sec)
+        return result.stalled

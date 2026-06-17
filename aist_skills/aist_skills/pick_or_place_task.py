@@ -37,11 +37,12 @@ import rclpy, threading
 import numpy as np
 import tf_transformations as tfs
 
-from rclpy.action          import GoalResponse, CancelResponse
-from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
-from aist_msgs.action      import PickOrPlace
-from geometry_msgs.msg     import Point, Quaternion, Pose, PoseStamped
-from task_wrappers         import ActionServer, GroupedSimpleActionClient
+from rclpy.action                import GoalResponse, CancelResponse
+from rclpy.callback_groups       import MutuallyExclusiveCallbackGroup
+from aist_msgs.action            import PickOrPlace
+from geometry_msgs.msg           import Point, Quaternion, Pose, PoseStamped
+from task_wrappers.action_server import ActionServer
+from task_wrappers.action_client import GroupedSimpleActionClient
 
 #************************************************************************
 #  class PickOrPlaceTaskClient                                          *
@@ -74,10 +75,11 @@ class PickOrPlaceTaskClient(GroupedSimpleActionClient):
 #  class PickOrPlaceTaskServer                                          *
 #************************************************************************
 class PickOrPlaceTaskServer(ActionServer):
-    class Preempted(Exception):
-        def __init__(self, stage, text):
-            super().__init__(test)
-            self.stage = stage
+    class _Error(Exception):
+        def __init__(self, result, stage, text):
+            super().__init__(text)
+            self.result = result
+            self.stage  = stage
 
     def __init__(self, node, server_ns='pick_or_place'):
         self._server_cbg = MutuallyExclusiveCallbackGroup()
@@ -88,34 +90,32 @@ class PickOrPlaceTaskServer(ActionServer):
 
     def _execute_cb(self, goal_handle):
         request = goal_handle.request
-        self.logger.loginfo('### Do %s ###'
-                            % 'picking' if request.pick else 'placing')
+        self.logger.info('### Do %s ###'
+                         % 'picking' if request.pick else 'placing')
         node    = self.node
         com     = node.com
         gripper = node.gripper(request.robot_name)
         if request.pick:
-            object_id = PickOrPlace._get_object_id(request.pose.header.frame_id)
+            object_id = self._get_object_id(request.pose.header.frame_id)
             eef_link  = ''
         else:
-            object_id = PickOrPlace._get_object_id(request.subframe_link)
+            object_id = self._get_object_id(request.subframe_link)
             eef_link  = request.subframe_link
 
         try:
-            # [Stage 1] Go to approach pose.
-            goal_handle.publish_feedback(PickOrPlace.Feedback(stage='move'))
+            # [1] Move stage: Go to approach pose.
+            self.enter_stage(goal_handle, 'move')
             speed   = request.speed_fast if request.pick else \
                       request.speed_slow
             success = node.go_to_pose_goal(request.robot_name, request.pose,
                                            request.approach_offset, speed,
                                            end_effector_link=eef_link)
             if not success:
-                raise PickOrPlace.Error(PickOrPlace.Result.MOVE_FAILURE,
-                                        'Failed to go to approach pose')
-            self._check_goal_status(goal_handle, 'move')
+                raise self._Error(PickOrPlace.Result.MOVE_FAILURE,
+                                  'move', 'Failed to go to approach pose')
 
-            # [Stage 2] Go to pick/place pose.
-            goal_handle.publish_feedback(
-                PickOrPlace.Feedback(stage='approach'))
+            # [2] Approach stage: Go to pick/place pose.
+            self.enter_stage(goal_handle, 'approach', 'move')
             if request.pick:
                 gripper.pregrasp()  # Pregrasp (not wait)
                 gripper.wait()      # Wait for pregrasp completed
@@ -130,14 +130,11 @@ class PickOrPlaceTaskServer(ActionServer):
             if not success:
                 if request.pick:
                     gripper.release()
-                raise PickOrPlace.Error(PickOrPlace.Result.APPROACH_FAILURE,
-                                        'Failed to approach target')
-            self._check_goal_status(goal_handle, 'move')
+                raise self._Error(PickOrPlace.Result.APPROACH_FAILURE,
+                                  'approach', 'Failed to approach target')
 
-            # [Stage 3] Grasp/release at pick/place pose.
-            goal_handle.publish_feedback(
-                PickOrPlace.Feedback(
-                    stage='grasp' if request.pick else 'release'))
+            # [3] Grasp/release stage: Grasp or release at pick/place pose.
+            self.enter_stage(goal_handle, 'grasp/release', 'approach')
             if request.pick:
                 gripper.grasp()
                 if object_id != '':
@@ -149,11 +146,11 @@ class PickOrPlaceTaskServer(ActionServer):
                     inhand_pose = node.lookup_pose(request.subframe_link,
                                                    gripper.tip_link)
                     com.detach_object(object_id, request.pose.header.frame_id,
-                                      PickOrPlace._get_object_id(
-                                          gripper.tip_link))
+                                      self._get_object_id(gripper.tip_link))
 
-            # [Stage 4] Go back to departure(pick) or approach(place) pose.
-            goal_handle.publish_feedback(PickOrPlace.Feedback(stage='depart'))
+            # [4] Depart stage: Go back to departure(pick) or approach(place)
+            #     pose.
+            self.enter_stage(goal_handle, 'depart', 'grasp/release')
             if request.pick:
                 gripper.postgrasp()                 # Postgrasp (not wait)
                 speed  = request.speed_slow
@@ -163,7 +160,7 @@ class PickOrPlaceTaskServer(ActionServer):
                 speed = request.speed_fast
                 if object_id != '':
                     pose = PoseStamped(request.pose.header,
-                                       PickOrPlace._concatenate_poses(
+                                       self._concatenate_poses(
                                            request.pose.pose,
                                            node.pose_from_xyzrpy(
                                                request.departure_offset).pose,
@@ -180,63 +177,42 @@ class PickOrPlaceTaskServer(ActionServer):
                     if object_id != '':
                         com.detach_object(object_id,
                                           original_object_info.parent_link,
-                                          PickOrPlace._get_object_id(
+                                          self._get_object_id(
                                               gripper.tip_link))
-                raise PickOrPlace.Error(PickOrPlaceResult.DEPARTURE_FAILURE,
-                                        'Failed to depart from target')
-            self._check_goal_status(goal_handle, 'depart')
+                raise self._Error(PickOrPlace.Result.APPROACH_FAILURE,
+                                  'depart', 'Failed to depart from target')
 
-            # Check success of postgrasp.
+            # [5] Verify stage: Verify success of postgrasp.
+            self.enter_stage(goal_handle, 'verify', 'depart')
             if request.pick and \
-               rospy.get_param('use_real_robot', False) and \
-               not gripper.wait():  # Wait for postgrasp completed
+               not gripper.grasped():  # Wait for postgrasp completed
                 gripper.release()
                 if object_id != '':
                     com.detach_object(object_id,
                                       original_object_info.parent_link,
-                                      PickOrPlace._get_object_id(
-                                          gripper.tip_link))
+                                      self._get_object_id(gripper.tip_link))
                     com.move_object(object_id, original_object_info.pose,
-                                    PickOrPlace._get_subframe(
+                                    self._get_subframe(
                                         request.pose.header.frame_id))
-                raise PickOrPlace.Error(PickOrPlaceResult.GRASP_FAILURE,
-                                        'Failed to grasp')
+                raise self._Error(PickOrPlace.Result.GRASP_FAILURE,
+                                  'verify', 'Failed to grasp')
 
+            # [Final] Goal succeeded.
             goal_handle.succeed()
-            self.logger.loginfo('### %s succeeded. ###',
-                                'Pick' if request.pick else 'Place')
-            return PickOrPlace.Result(result=PickOrPlace.Result.SUCCESS)
+            self.logger.info('### %s succeeded. ###',
+                             'Pick' if request.pick else 'Place')
+            return PickOrPlace.Result(result=PickOrPlace.Result.SUCCESS,
+                                      stage='')
 
-        except PickOrPlace.Preempted as err:
-            self.logger.error('### %s %s at stage[%s]. ###'
-                              % ('Pick' if request.pick else 'Place', err,
-                                 err.stage))
-            return PickOrPlace.Result(result=PickOrPlace.Result.TIMEOUT)
-        except TimeoutError as err:
-            goal_handle.abort()
+        except self._Error as err:
             self.logger.error(err)
-            return PickOrPlace.Result(result=PickOrPlace.Result.TIMEOUT)
+            goal_handle.abort()
+            return PickOrPlace.Result(stage=err.stage, result=err.result)
+
         finally:
             if object_id != '':
                 #com.disallow_collision(object_id, gripper.tip_link)
                 com.reset_touch_links()
-
-    def _check_goal_status(self, goal_handle, current_stage):
-        if goal_handle.is_cancel_requested:     # Cancel requested?
-            goal_handle.canceled()
-            raise PickOrPlaceTask.Preemted(current_stage, 'canceled')
-        if not goal_handle.is_active:           # Aborted?
-            raise PickOrPlaceTask.Preemted(current_stage, 'aborted')
-
-    def _publish_feedback(self, stage, text):
-        self._server.publish_feedback(PickOrPlace.Feedback(stage))
-        self._logger.info('--- %s ---' % text)
-
-    def _set_aborted(self, result, text):
-        goal = self._server.current_goal.get_goal()
-        self._server.set_aborted(PickOrPlaceResult(result))
-        self._logger.error('### %s aborted: %s ###'
-                           % ('Pick' if goal.pick else 'Place'))
 
     @staticmethod
     def _get_object_id(link_name):
@@ -261,3 +237,11 @@ class PickOrPlaceTaskServer(ActionServer):
                                            pose.orientation.w))
         return Pose(Point(*tfs.translation_from_matrix(T)),
                     Quaternion(*tfs.quaternion_from_matrix(T)))
+
+#************************************************************************
+#  class PickOrPlaceTask                                                *
+#************************************************************************
+class PickOrPlaceTask(PickOrPlaceTaskClient):
+    def __init__(self, node, server_ns='pick_or_place'):
+        self._server = PickOrPlaceTaskServer(node, server_ns)
+        super().__init__(node, server_ns)

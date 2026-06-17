@@ -15,9 +15,9 @@ int32 MOVE_FAILURE=1
 int32 APPROACH_FAILURE=2
 int32 GRASP_FAILURE=3
 int32 DEPARTURE_FAILURE=4
-int32 CANCELED=10
 
-int32 result
+int32  result
+string stage
 ---
 # Feedback
-string stage  # 'move', 'approach', 'grasp'/'release', 'depart'
+string stage  # 'move', 'approach', 'grasp'/'release', 'depart', 'verify'

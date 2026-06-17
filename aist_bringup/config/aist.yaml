@@ -88,7 +88,7 @@ cameras:
     type: PhoXiCamera
   a_bot_camera:
     type: CodedLightRealsenseCamera
-  # b_bot_camera:
-  #   type: CodedLightRealsenseCamera
-  live_camera:
-    type: USBCamera
+  b_bot_camera:
+    type: CodedLightRealsenseCamera
+  # live_camera:
+  #   type: USBCamera

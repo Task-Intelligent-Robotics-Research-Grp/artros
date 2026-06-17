@@ -59,6 +59,7 @@ from trajectory_msgs.msg                  import (JointTrajectoryPoint,
 from controller_manager_msgs.srv          import (ListControllers,
                                                   SwitchController)
 from aist_utility.fileio                  import filepath_from_url
+from aist_skills.pick_or_place_task       import PickOrPlaceTask
 from aist_collision_object_manager.client import CollisionObjectManagerClient
 from ddynamic_reconfigure2.utils          import declare_read_only_parameter
 from .gripper_client                      import create_gripper
@@ -195,13 +196,8 @@ class BaseRoutines(Node):
         else:
             self._com = None
 
-        # Pick and place action
-        # if rospy.has_param('~picking_parameters'):
-        #     self._picking_params = rospy.get_param('~picking_parameters')
-        #     self._placing_params = rospy.get_param('~placing_parameters', {})
-        #     self._pick_or_place  = PickOrPlace(self)
-        # else:
-        #     self._pick_or_place = None
+        # Pick and place task
+        self._pick_or_place  = PickOrPlaceTask(self)
 
         self.get_logger().info('BaseRoutines initialized.')
 
@@ -867,7 +863,7 @@ class BaseRoutines(Node):
         return self._active_grippers[robot_name]
 
     def set_gripper_parameters(self, robot_name, parameters):
-        self.gripper(robot_name).parameters = parameters
+        self.gripper(robot_name).set_parameters(parameters)
 
     def gripper_parameters(self, robot_name):
         return self.gripper(robot_name).parameters
@@ -916,9 +912,11 @@ class BaseRoutines(Node):
     #
     def pick(self, robot_name, target_pose, part_id,
              wait=True, done_cb=None, active_cb=None):
-        params = self._picking_params.get(part_id)
+        picking_params = self.settings.get('picking_parameters', {})
+        params = picking_params.get(part_id)
+        self.get_logger().info('### [%s] %s' % (part_id, picking_params))
         if params is None:
-            params = self._picking_params[
+            params = picking_params[
                          self.com.get_object_info(part_id).object_type]
         if 'gripper_name' in params:
             self.set_gripper(robot_name, params['gripper_name'])
@@ -931,18 +929,19 @@ class BaseRoutines(Node):
                                              params['departure_offset'],
                                              params['speed_fast'],
                                              params['speed_slow'],
-                                             '', wait, done_cb, active_cb)
+                                             '')
 
-    def place(self, robot_name, target_pose, part_id,
-              subframe_link='', wait=True, done_cb=None, active_cb=None):
-        params = self._picking_params.get(part_id)
+    def place(self, robot_name, target_pose, part_id, subframe_link=''):
+        picking_params = self.settings.get('picking_parameters', {})
+        params = picking_params.get(part_id)
         if params is None:
-            params = self._picking_params[
+            params = picking_params[
                          self.com.get_object_info(part_id).object_type]
-        placing_params = self._placing_params.get(target_pose.header.frame_id,
-                                                  params)
+        placing_params = self.settings.get('placing_parameters', {}) \
+                                      .get(target_pose.header.frame_id,
+                                           params)
         if not placing_params.get('place_offset'):
-            placing_params = self._placing_params['default']
+            placing_params = placing_params['default']
         if 'gripper_name' in params:
             self.set_gripper(robot_name, params['gripper_name'])
         if 'gripper_parameters' in params:
@@ -954,28 +953,24 @@ class BaseRoutines(Node):
                                              placing_params['departure_offset'],
                                              params['speed_fast'],
                                              params['speed_slow'],
-                                             subframe_link,
-                                             wait, done_cb, active_cb)
+                                             subframe_link)
 
-    def pick_at_frame(self, robot_name, target_frame, part_id,
-                      offset=(), wait=True, done_cb=None, active_cb=None):
+    def pick_at_frame(self, robot_name, target_frame, part_id, offset=()):
         return self.pick(robot_name,
-                         self.pose_from_xyzrpy(offset, target_frame),
-                         part_id, wait, done_cb, active_cb)
+                         self.pose_from_xyzrpy(offset, target_frame), part_id)
 
     def place_at_frame(self, robot_name, target_frame, part_id,
-                       offset=(), subframe_link='',
-                       wait=True, done_cb=None, active_cb=None):
+                       offset=(), subframe_link=''):
         return self.place(robot_name,
                           self.pose_from_xyzrpy(offset, target_frame),
-                          part_id, subframe_link, wait, done_cb, active_cb)
+                          part_id, subframe_link)
 
     def pick_or_place_wait_for_stage(self, stage, timeout_sec=None):
         return self._pick_or_place.wait_for_stage(stage, timeout_sec=None)
 
-    def pick_or_place_wait_for_result(self, timeout=Duration()):
-        if self._pick_or_place.wait_for_result(timeout):
-            return self._pick_or_place.get_result().result
+    def pick_or_place_wait_for_result(self, timeout_sec=None):
+        status, result = self._pick_or_place.wait(timeout_sec=timeout_sec)
+        return result
 
     def pick_or_place_cancel_goal(self):
         self._pick_or_place.cancel_goal()
