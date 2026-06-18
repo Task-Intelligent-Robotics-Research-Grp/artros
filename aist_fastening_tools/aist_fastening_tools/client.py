@@ -61,13 +61,13 @@ class SuctionTool(SimpleActionClient):
         self._client_cbg = MutuallyExclusiveCallbackGroup()
 
         super().__init__(node, SuctionToolCommand,
-                         controller_ns + '/command',
+                         controller_ns + '/gripper_cmd',
                          callback_group=self._client_cbg)
 
         # if not self.wait_for_server(timeout_sec=1.0):
         #     raise RuntimeError(
         #         'failed to establish connection to the actionserver[%s]' \
-        #         % (controller_ns + '/command'))
+        #         % (controller_ns + '/gripper_cmd'))
 
         self._suctioned     = None
         self._suctioned_cbg = MutuallyExclusiveCallbackGroup()
@@ -284,12 +284,12 @@ class PrecisionTool(SimpleActionClient):
           max_position:
           max_effort: Maximum effort to be applied when grasping.
         """
-        self._name    = name
+        self._name = name
 
         # Create action client for gripper command.
         self._cbg = MutuallyExclusiveCallbackGroup()
         super().__init__(node, GripperCommand,
-                         name + '_controller/command',
+                         name + '_controller/gripper_cmd',
                          callback_group=self._cbg)
 
         self._parameters = {'grasp_position':   min_position,

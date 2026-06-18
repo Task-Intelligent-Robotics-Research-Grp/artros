@@ -199,10 +199,10 @@ class PickOrPlaceTaskServer(ActionServer):
 
             # [Final] Goal succeeded.
             goal_handle.succeed()
-            self.logger.info('### %s succeeded. ###',
-                             'Pick' if request.pick else 'Place')
-            return PickOrPlace.Result(result=PickOrPlace.Result.SUCCESS,
-                                      stage='')
+            self.logger.info('### %s succeeded. ###'
+                             % 'Pick' if request.pick else 'Place')
+            return PickOrPlace.Result(stage='',
+                                      result=PickOrPlace.Result.SUCCESS)
 
         except self._Error as err:
             self.logger.error(err)

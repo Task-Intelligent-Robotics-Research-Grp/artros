@@ -196,7 +196,7 @@ PrecisionToolController::PrecisionToolController(
      _present_pos(_min_pos),
      _joint_state_pub(create_publisher<joint_state_t>("/joint_states", 1)),
      _command_srv(rclcpp_action::create_server<gripper_command_t>(
-		      this, "~/command",
+		      this, "~/gripper_cmd",
 		      std::bind(&PrecisionToolController::goal_cb, this,
 				std::placeholders::_1, std::placeholders::_2),
 		      std::bind(&PrecisionToolController::cancel_cb, this,
