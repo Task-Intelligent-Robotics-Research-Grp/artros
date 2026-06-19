@@ -73,27 +73,28 @@ class AssemblyRoutines(BaseRoutines):
     def process_command(self, command, robot_name, axis, speed):
         if command == 'pt':
             tool_name = input('  tool name? ')
-            self.pick_tool(robot_name, tool_name)
+            self.pick_tool(robot_name, tool_name, timeout_sec=0.0)
         elif command == 'PT':
-            self.place_tool(robot_name)
+            self.place_tool(robot_name, timeout_sec=0.0)
         elif command == 'ps':
             screw_type = input('  screw type? ')
-            self.pick_screw(robot_name, screw_type)
+            self.pick_screw(robot_name, screw_type, timeout_sec=0.0)
         elif command == 'PS':
-            self.place_screw(robot_name)
+            self.place_screw(robot_name, timeout_sec=0.0)
         elif command == 'pp':
             part_id  = input('  part ID? ')
             subframe = input('  subframe? ')
             if subframe == '':
                 subframe = 'default_grasp'
-            self.pick_part(robot_name, part_id, subframe)
+            self.pick_part(robot_name, part_id, subframe, timeout_sec=0.0)
         elif command == 'PP':
             part_id  = input('  part ID? ')
             subframe = input('  subframe? ')
             if subframe == '':
                 subframe = 'base_link'
             place_frame = input('  place frame? ')
-            self.place_part(robot_name, part_id, subframe, place_frame)
+            self.place_part(robot_name, part_id, subframe, place_frame,
+                            timeout_sec=0.0)
         elif command == 'fb':
             self.fix_part('base')
         elif command == 'FB':
@@ -138,19 +139,20 @@ class AssemblyRoutines(BaseRoutines):
         self.camera(current_robot_name + '_camera').laser_power = 0
         self.camera(new_robot_name + '_camera').laser_power = laser_power
 
-    def pick_tool(self, robot_name, tool_name):
+    def pick_tool(self, robot_name, tool_name, *, timeout_sec=None):
         if self.gripper(robot_name).name == tool_name:
             return True
         elif self.gripper(robot_name).name != \
              self.default_gripper_name(robot_name):
             self.place_tool(robot_name)
-        if self.pick_at_frame(robot_name, tool_name + '/base_link', tool_name):
+        if self.pick_at_frame(robot_name, tool_name + '/base_link', tool_name,
+                              timeout_sec=timeout_sec):
             return False
         self.set_gripper(robot_name, tool_name)
         self.ftsensor_reset_bias(robot_name)
         return True
 
-    def place_tool(self, robot_name):
+    def place_tool(self, robot_name, *, timeout_sec=None):
         tool_name            = self.gripper(robot_name).name
         default_gripper_name = self.default_gripper_name(robot_name)
         if tool_name == default_gripper_name:
@@ -158,20 +160,22 @@ class AssemblyRoutines(BaseRoutines):
         self.set_gripper(robot_name, default_gripper_name)
         return self.place_at_frame(robot_name,
                                    tool_name + '_holder_link', tool_name,
-                                   subframe_link=tool_name + '/base_link')
+                                   subframe_link=tool_name + '/base_link',
+                                   timeout_sec=timeout_sec)
 
-    def pick_screw(self, robot_name, screw_type):
+    def pick_screw(self, robot_name, screw_type, *, timeout_sec=None):
         tool_name = 'screw_tool_' + screw_type[-2:]
         if not self.pick_tool(robot_name, tool_name):
             return False
         feeder_name = 'screw_feeder_' + screw_type[-2:]
         screw_id    = self._screw_id(screw_type)
-        if self.pick_at_frame(robot_name, screw_id + '/head', screw_id):
+        if self.pick_at_frame(robot_name, screw_id + '/head', screw_id,
+                              timeout_sec=timeout_sec):
             return False
         self._generate_screw(screw_type)
         return True
 
-    def place_screw(self, robot_name):
+    def place_screw(self, robot_name, *, timeout_sec=None):
         screw_id = self._grasped_object_id(robot_name)
         if screw_id is None:
             return False
@@ -179,24 +183,28 @@ class AssemblyRoutines(BaseRoutines):
         feeder_name = 'screw_feeder_' + screw_type[-2:]
         if self.place_at_frame(robot_name,
                                feeder_name + '_inlet_link', screw_id,
-                               subframe_link=screw_id + '/tip_link'):
+                               subframe_link=screw_id + '/tip_link',
+                               timeout_sec=timeout_sec):
             return False
         self.com.remove_object(screw_id)
         return True
 
-    def pick_part(self, robot_name, part_id, subframe):
+    def pick_part(self, robot_name, part_id, subframe, *, timeout_sec=None):
         if self.gripper(robot_name).name != \
            self.default_gripper_name(robot_name):
             self.place_tool(robot_name)
         return self.pick_at_frame(robot_name,
-                                  part_id + '/' + subframe, part_id)
+                                  part_id + '/' + subframe, part_id,
+                                  timeout_sec=timeout_sec)
 
-    def place_part(self, robot_name, part_id, subframe, place_frame):
+    def place_part(self, robot_name, part_id, subframe, place_frame,
+                   *, timeout_sec=None):
         if self.gripper(robot_name).name != \
            self.default_gripper_name(robot_name):
             return False
         return self.place_at_frame(robot_name, place_frame, part_id,
-                                   subframe_link=part_id + '/' + subframe)
+                                   subframe_link=part_id + '/' + subframe,
+                                   timeout_sec=timeout_sec)
 
     def fix_part(self, part_id, offset=(), subframe='base_link'):
         gripper = self._grippers['base_fixture']

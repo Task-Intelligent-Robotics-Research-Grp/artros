@@ -69,9 +69,9 @@ from moveit_msgs.srv               import GetPlanningScene
 from moveit_commander              import planning_scene_interface as psi
 from aist_utility.fileio           import filepath_from_url
 
-#########################################################################
-#  local functions                                                      #
-#########################################################################
+#************************************************************************
+#  local functions                                                      *
+#************************************************************************
 def _decompose_link_name(link_name):
     tokens = link_name.rsplit('/', 1)
     return tokens if len(tokens) == 2 else ('', link_name)
@@ -128,11 +128,11 @@ def _transform_from_pose(pose):
                                          z=pose.orientation.z,
                                          w=pose.orientation.w))
 
-#########################################################################
-#  class CollisionObjectManager                                         #
-#########################################################################
+#************************************************************************
+#  class CollisionObjectManager                                         *
+#************************************************************************
 class CollisionObjectManager(Node):
-    """Python interface for managing collision objects
+    """ Python interface for managing collision objects.
 
     - Maintain tree structure of collision objects
     - Service server for responding to requests for mesh resource
@@ -161,7 +161,7 @@ class CollisionObjectManager(Node):
             return self.subframe_transforms[0].header.frame_id
 
     def __init__(self, name):
-        """Initialize collision object manager
+        """ Create collision object manager.
 
         - Load object properties from parameter '~object_properties'
           for each type
@@ -316,9 +316,9 @@ class CollisionObjectManager(Node):
     # Callbacks
     #
     def _subframes_and_markers_cb(self):
-        """Timer callback
+        """ Timer callback.
 
-        Publish subframes and visual markers periodically
+        Publish subframes and visual markers periodically.
         """
         with self._lock:
             for instance_props in self._instance_props_dict.values():
@@ -330,14 +330,13 @@ class CollisionObjectManager(Node):
                     MarkerArray(markers=instance_props.markers))
 
     def _get_collision_object_cb(self, req, res):
-        """Service callback for GetCollisionObject
+        """ Service callback for GetCollisionObject.
 
         Send response with binary mesh data according to the requested URL
-        of mesh resource
+        of mesh resource.
         """
-        self.get_logger().info(
-            'received GetCollisionObject service request[object_type=%s]'
-            % req.object_type)
+        self.get_logger().info('GetCollisionObject[object_type=%s]'
+                               % req.object_type)
 
         obj_props = self._obj_props_dict.get(req.object_type)
         if not obj_props:
@@ -372,9 +371,9 @@ class CollisionObjectManager(Node):
         except Exception as e:
             self.get_logger().error('_get_collision_object_cb(): %s' % e)
 
-        self.get_logger().info(
-            'returned GetCollisionObject service response[object_type=%s]'
-            % req.object_type)
+        # self.get_logger().info(
+        #     'returned GetCollisionObject service response[object_type=%s]'
+        #     % req.object_type)
 
         return res
 
@@ -383,9 +382,6 @@ class CollisionObjectManager(Node):
 
         Execute various operations on collision objects requested by clients
         """
-        self.get_logger().info(
-            'received ManageCollisionObject service request[op=%d]' % req.op)
-
         res.success = True
 
         try:
@@ -424,11 +420,11 @@ class CollisionObjectManager(Node):
             else:
                 raise RuntimeError('unknown operation[%d]' % req.op)
         except Exception as e:
-            self.get_logger().error('%s' % e)
+            self.get_logger().error('_manage_collision_object_cb(): %s' % e)
             res.success = False
 
-        self.get_logger().info(
-            'returned ManageCollisionObject service response[op=%d]' % req.op)
+        # self.get_logger().info(
+        #     '--- returned ManageCollisionObject service response ---')
 
         return res
 
@@ -450,6 +446,10 @@ class CollisionObjectManager(Node):
           subframe    (str): subframe name with which the pose of the object
                              is specified
         """
+        self.get_logger().info(
+            "*CREATE_OBJECT*: object_type='%s', object_id='%s', frame_id='%s', subframe='%s'"
+            % (object_type, object_id, frame_id, subframe))
+
         obj_props = self._obj_props_dict.get(object_type)
         if obj_props is None:
             raise RuntimeError('unknown object type[%s]' % object_type)
@@ -496,7 +496,7 @@ class CollisionObjectManager(Node):
                         child_frame_id=object_id + '/' + subframe_name,
                         transform=_transform_from_pose(subframe_pose)))
 
-        # Create new marker IDs if not exit for this object.
+        # Create new marker IDs if not existing for this object.
         if object_id not in self._marker_id_lists:
             self._marker_id_lists[object_id] \
               = self._generate_marker_id_list(len(obj_props.visual_mesh_urls))
@@ -532,6 +532,9 @@ class CollisionObjectManager(Node):
                                %(co.id, object_type))
 
     def _remove_object(self, object_id, frame_id):
+        self.get_logger().info("*REMOVE_OBJECT*: object_id='%s', frame_id='%s'"
+                               % (object_id, frame_id))
+
         if object_id != '':
             self._delete_markers_and_subframes(object_id)
         elif frame_id != '':
@@ -550,11 +553,16 @@ class CollisionObjectManager(Node):
         self._psi.remove_world_object(object_id)
 
     def _attach_object(self, object_id, parent_link, leaf_id):
-        """Attach collision object
+        """ Attach collision object
+
         Args:
-          object_id   (str):  unique ID of the object to be attached/detached
-          parent_link (str):  name of link to be parent of the object
+          object_id:   unique ID of the object to be attached/detached
+          parent_link: name of link to be parent of the object
         """
+        self.get_logger().info(
+            "*ATTACH_OBJECT*: object_id='%s', parent_link='%s', leaf_id='%s'"
+            % (object_id, parent_link, leaf_id))
+
         co = self._get_any_object(object_id)
         if co is None:
             raise RuntimeError("unknown collision object '%s'" % object_id)
@@ -587,6 +595,10 @@ class CollisionObjectManager(Node):
         self._append_or_remove_touch_links(old_root_id, old_parent_link, True)
 
     def _detach_object(self, object_id, parent_link, leaf_id):
+        self.get_logger().info(
+            "*DETACH_OBJECT*: object_id='%s', parent_link='%s', leaf_id='%s'"
+            % (object_id, parent_link, leaf_id))
+
         aco = self._get_attached_object(object_id)
         if aco is None:
             raise RuntimeError("unknown attached collision object '%s'"
@@ -619,6 +631,10 @@ class CollisionObjectManager(Node):
         self._append_or_remove_touch_links(old_root_id, old_parent_link, True)
 
     def _move_object(self, object_id, frame_id, pose, subframe):
+        self.get_logger().info(
+            "*MOVE_OBJECT*: object_id='%s', frame_id='%s', subframe='%s'"
+            % (object_id, frame_id, subframe))
+
         co = self._get_any_object(object_id)
         if co is None:
             raise RuntimeError("unknown collision object '%s'" % object_id)
@@ -647,6 +663,10 @@ class CollisionObjectManager(Node):
                                tfs.inverse_matrix(_pose_matrix(co.pose)))
 
     def _append_or_remove_touch_links(self, object_id, link, append):
+        self.get_logger().info("*%s_TOUCH_LINKS*: object_id='%s', link='%s'"
+                               % ('APPEND' if append else 'REMOVE',
+                                  object_id, link))
+
         aco = self._get_attached_object(object_id)
         if aco is None:
             return
@@ -660,6 +680,8 @@ class CollisionObjectManager(Node):
             % (aco.object.id, aco.link_name, aco.touch_links))
 
     def _reset_touch_links(self):
+        self.get_logger().info("*RESET_TOUCH_LINKS*")
+
         for aco in self._psi.get_attached_objects().values():
             self._psi.attach_object(aco,
                                     touch_links=self._get_parent_touch_links(
@@ -668,9 +690,12 @@ class CollisionObjectManager(Node):
             'reset touch links for all attached collision objects')
 
     def _get_object_info(self, object_id):
+        self.get_logger().info("*GET_OBJECT_INFO*: object_id='%s'" % object_id)
+
         info = CollisionObjectInfo()
         info.object_id = object_id
         co = self._get_object(object_id)
+        self.get_logger().warn('### co=%s' % co)
         if co is None:
             aco = self._get_attached_object(object_id)
             if aco is None:
@@ -686,6 +711,9 @@ class CollisionObjectManager(Node):
         return info
 
     def _get_attached_child_object_info(self, frame_id):
+        self.get_logger().info("*GET_ATTACHED_CHILD_OBJECT_INFO*: frame_id='%s'"
+                               % frame_id)
+
         for aco in self._psi.get_attached_objects().values():
             if self._get_parent_link(aco.object.id) == frame_id:
                 info = CollisionObjectInfo()
@@ -701,6 +729,10 @@ class CollisionObjectManager(Node):
         return None
 
     def _set_collision_allowed(self, object_id, frame_id, allow):
+        self.get_logger().info("*%s_COLLISION*: object_id='%s', frame_id='%s'"
+                               % ('ALLOW' if allow else 'DISALLOW',
+                                  object_id, frame_id))
+
         if frame_id is None:
             others = None
         else:
@@ -748,17 +780,25 @@ class CollisionObjectManager(Node):
                                _transform_matrix(transform.transform))))
 
         # If 'co' is not attached to any links, we have reached root!
+        self.get_logger().warn('### OK0')
         if self._get_attached_object(co.id) is None:
+            self.get_logger().warn('### OK0.1: attach to %s' % co.header.frame_id)
             self._psi.attach_object(co, co.header.frame_id)
-            return co.id, self._get_parent_link(co.id)
+            self.get_logger().warn('### OK0.2: get parent of %s' % co.id)
+            parent = self._get_parent_link(co.id)
+            self.get_logger().warn('### OK0.3')
+            return co.id, parent
+        #return co.id, self._get_parent_link(co.id)
 
         # If 'co' is not attached to any other collision object or attached
         # to an object with ID of 'leaf_id', we have reached root!
+        self.get_logger().warn('### OK1')
         parent_co = self._get_any_object(self._get_parent_id(co.id))
         if parent_co is None or parent_co.id == leaf_id:
             return co.id, self._get_parent_link(co.id)
 
         # Reverse parent-child relation between 'co' and its parent.
+        self.get_logger().warn('### OK2')
         old_root_id, old_parent_link = self._rotate_tree(parent_co, leaf_id)
         self._instance_props_dict[parent_co.id].subframe_transforms[0] \
             = _inverse_transform(
