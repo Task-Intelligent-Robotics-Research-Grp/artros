@@ -1,7 +1,6 @@
 arms:
   b_bot:
     type:            URe
-    robot_ip:        "10.66.171.41"
     default_gripper: b_bot_gripper
     active_controllers:
       - scaled_joint_trajectory_controller
@@ -29,36 +28,29 @@ arms:
 
 grippers:
   b_bot_grippers:
-    type:             RobotiqDevices
+    type: RobotiqDevices
     grippers:
       b_bot_gripper:
-        type:         RobotiqGripper
-        client_args:
-          max_effort: 5.0
-          velocity:   0.1
+        type: RobotiqGripper
   screw_tools:
-    type:            DynamixelDevices
+    type: DynamixelDevices
     grippers:
       screw_tool_m3:
-        type:        ScrewTool
+        type: ScrewTool
       screw_tool_m4:
-        type:        ScrewTool
+        type: ScrewTool
   suction_tools:
-    type:            URioDevices
+    type: URioDevices
     grippers:
       suction_tool:
-        type:        SuctionTool
-        client_args:
+        type: SuctionTool
       base_fixture:
-        type:        SuctionGripper
-        client_args:
+        type: SuctionGripper
 
 cameras:
   a_motioncam:
     type: PhoXiCamera
   b_bot_camera:
     type: CodedLightRealsenseCamera
-  live_camera:
-    type: USBCamera
-
-moveit_eef_step: 0.002
+  # live_camera:
+  #   type: USBCamera

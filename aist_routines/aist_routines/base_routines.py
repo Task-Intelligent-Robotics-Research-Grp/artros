@@ -59,7 +59,7 @@ from trajectory_msgs.msg                  import (JointTrajectoryPoint,
 from controller_manager_msgs.srv          import (ListControllers,
                                                   SwitchController)
 from aist_utility.fileio                  import filepath_from_url
-from aist_skills.pick_or_place_task       import PickOrPlaceTask
+from aist_tasks.pick_or_place_task        import PickOrPlaceTask
 from aist_collision_object_manager.client import CollisionObjectManagerClient
 from ddynamic_reconfigure2.utils          import declare_read_only_parameter
 from .gripper_client                      import create_gripper
@@ -910,7 +910,7 @@ class BaseRoutines(Node):
     #
     # Pick and place action stuffs
     #
-    def pick(self, robot_name, target_pose, part_id, *, timeout_sec=None):
+    def pick(self, robot_name, part_id, target_pose, *, timeout_sec=None):
         picking_params = self.settings.get('picking_parameters', {})
         params = picking_params.get(part_id)
         self.get_logger().info('### [%s] %s' % (part_id, picking_params))
@@ -931,7 +931,7 @@ class BaseRoutines(Node):
                                              subframe_link='',
                                              timeout_sec=timeout_sec)
 
-    def place(self, robot_name, target_pose, part_id,
+    def place(self, robot_name, part_id, target_pose,
               *, subframe_link='', timeout_sec=None):
         picking_params = self.settings.get('picking_parameters', {})
         params = picking_params.get(part_id)
@@ -957,16 +957,16 @@ class BaseRoutines(Node):
                                              subframe_link=subframe_link,
                                              timeout_sec=timeout_sec)
 
-    def pick_at_frame(self, robot_name, target_frame, part_id, offset=(),
-                      *, timeout_sec=None):
-        return self.pick(robot_name,
-                         self.pose_from_xyzrpy(offset, target_frame), part_id,
+    def pick_at_frame(self, robot_name, part_id, target_frame,
+                      *, offset=(), timeout_sec=None):
+        return self.pick(robot_name, part_id,
+                         self.pose_from_xyzrpy(offset, target_frame),
                          timeout_sec=timeout_sec)
 
-    def place_at_frame(self, robot_name, target_frame, part_id, offset=(),
-                       *, subframe_link='', timeout_sec=None):
-        return self.place(robot_name,
-                          self.pose_from_xyzrpy(offset, target_frame), part_id,
+    def place_at_frame(self, robot_name, target_frame, part_id,
+                       *, offset=(), subframe_link='', timeout_sec=None):
+        return self.place(robot_name, part_id,
+                          self.pose_from_xyzrpy(offset, target_frame),
                           subframe_link=subframe_link, timeout_sec=timeout_sec)
 
     def pick_or_place_wait_for_stage(self, stage, timeout_sec=None):

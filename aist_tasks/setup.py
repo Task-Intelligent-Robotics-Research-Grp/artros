@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 from glob import glob
 
-package_name = "aist_skills"
+package_name = "aist_tasks"
 
 setup(
     name=package_name,

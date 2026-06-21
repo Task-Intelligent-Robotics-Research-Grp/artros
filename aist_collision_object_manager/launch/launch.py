@@ -16,6 +16,12 @@ launch_arguments = [
         'description': 'Absolute path to YAML configuration file'
     },
     {
+        'name':        'sim',
+        'default':     'false',
+        'description': 'Use simulation time if true',
+        'choices':     ['true', 'false', 'True', 'False']
+    },
+    {
         'name':        'log_level',
         'default':     'info',
         'description': 'debug log level',
@@ -35,7 +41,8 @@ def launch_setup(context):
              package='aist_collision_object_manager',
              executable='collision_object_manager',
              parameters=[
-                 LaunchConfiguration('param_file')
+                 LaunchConfiguration('param_file'),
+                 {'use_sim_time': LaunchConfiguration('sim')}
              ],
              arguments=[
                  '--ros-args', '--log-level',

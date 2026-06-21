@@ -134,11 +134,11 @@ def _transform_from_pose(pose):
 class CollisionObjectManager(Node):
     """ Python interface for managing collision objects.
 
-    - Maintain tree structure of collision objects
-    - Service server for responding to requests for mesh resource
-    - Service server for responding to requests for managing collision objects
-    - Publish subframes of collision objects to TF
-    - Publish shape of collision objects to topic '~collision_marker'
+    * Maintain tree structure of collision objects
+    * Service server for responding to requests for mesh resource
+    * Service server for responding to requests for managing collision objects
+    * Publish subframes of collision objects to TF
+    * Publish shape of collision objects to topic '~collision_marker'
       as visual markers
     """
 
@@ -163,9 +163,9 @@ class CollisionObjectManager(Node):
     def __init__(self, name):
         """ Create collision object manager.
 
-        - Load object properties from parameter '~object_properties'
+        * Load object properties from parameter '~object_properties'
           for each type
-        - Setup marker publisher '~collision_marker' as well as services
+        * Setup marker publisher '~collision_marker' as well as services
           '~get_collision_object' and '~manage_collision_object'
         """
         super().__init__(name)
@@ -432,19 +432,19 @@ class CollisionObjectManager(Node):
     # Operations
     #
     def _create_object(self, object_type, object_id, frame_id, pose, subframe):
-        """Create a new collision object
+        """ Create a new collision object.
 
         The created new collision object is not attached to any links
         and its pose is specified as that of subframe of the object
         with respect to the 'frame_id'.
 
         Args:
-          object_type (str): type of object to be created
-          object_id   (str): unique ID of object to identification
-          frame_id    (str): reference frame for specifying pose of the object
-          pose (geometry_msgs/Pose): pose of 'subframe' w.r.t. 'frame_id'
-          subframe    (str): subframe name with which the pose of the object
-                             is specified
+          object_type: type of object to be created
+          object_id:   unique ID of object to identification
+          frame_id:    reference frame for specifying pose of the object
+          pose:        pose of 'subframe' w.r.t. 'frame_id'
+          subframe:    subframe name with which the pose of the object
+                       is specified
         """
         self.get_logger().info(
             "*CREATE_OBJECT*: object_type='%s', object_id='%s', frame_id='%s', subframe='%s'"
@@ -695,7 +695,6 @@ class CollisionObjectManager(Node):
         info = CollisionObjectInfo()
         info.object_id = object_id
         co = self._get_object(object_id)
-        self.get_logger().warn('### co=%s' % co)
         if co is None:
             aco = self._get_attached_object(object_id)
             if aco is None:
@@ -780,25 +779,19 @@ class CollisionObjectManager(Node):
                                _transform_matrix(transform.transform))))
 
         # If 'co' is not attached to any links, we have reached root!
-        self.get_logger().warn('### OK0')
         if self._get_attached_object(co.id) is None:
-            self.get_logger().warn('### OK0.1: attach to %s' % co.header.frame_id)
             self._psi.attach_object(co, co.header.frame_id)
-            self.get_logger().warn('### OK0.2: get parent of %s' % co.id)
             parent = self._get_parent_link(co.id)
-            self.get_logger().warn('### OK0.3')
             return co.id, parent
         #return co.id, self._get_parent_link(co.id)
 
         # If 'co' is not attached to any other collision object or attached
         # to an object with ID of 'leaf_id', we have reached root!
-        self.get_logger().warn('### OK1')
         parent_co = self._get_any_object(self._get_parent_id(co.id))
         if parent_co is None or parent_co.id == leaf_id:
             return co.id, self._get_parent_link(co.id)
 
         # Reverse parent-child relation between 'co' and its parent.
-        self.get_logger().warn('### OK2')
         old_root_id, old_parent_link = self._rotate_tree(parent_co, leaf_id)
         self._instance_props_dict[parent_co.id].subframe_transforms[0] \
             = _inverse_transform(

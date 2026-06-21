@@ -9,7 +9,7 @@ Panels:
         - /MotionPlanning1/Planned Path1
         - /a_motioncam_color1/Topic1
       Splitter Ratio: 0.5447154641151428
-    Tree Height: 436
+    Tree Height: 443
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -27,7 +27,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: a_motioncam_depth_cloud
+    SyncSource: ""
 Visualization Manager:
   Class: ""
   Displays:
@@ -93,11 +93,31 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          a_bot_camera_color_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           a_bot_camera_color_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
           a_bot_camera_connector_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_camera_depth_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_camera_depth_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_camera_left_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_camera_left_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -112,6 +132,14 @@ Visualization Manager:
             Show Trail: false
             Value: true
           a_bot_camera_mount_flange:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_camera_right_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_camera_right_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -296,6 +324,10 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          a_motioncam_reference:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           a_motioncam_sensor:
             Alpha: 1
             Show Axes: false
@@ -313,11 +345,31 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          b_bot_camera_color_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           b_bot_camera_color_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
           b_bot_camera_connector_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_depth_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_depth_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_left_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_left_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -332,6 +384,14 @@ Visualization Manager:
             Show Trail: false
             Value: true
           b_bot_camera_mount_flange:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_right_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_right_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -538,228 +598,6 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          bin_1_part_16:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bin_1_part_16_bottom_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_bottom_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_bottom_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_bottom_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_top_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_top_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_top_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_top_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bin_1_part_17_bottom_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_bottom_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_bottom_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_bottom_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_top_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_top_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_top_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_top_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bin_1_part_5_bottom_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_bottom_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_bottom_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_bottom_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_top_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_top_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_top_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_top_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bin_2_part_4_bottom_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_bottom_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_bottom_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_bottom_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_top_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_top_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_top_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_top_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bin_2_part_7_bottom_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_bottom_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_bottom_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_bottom_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_top_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_top_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_top_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_top_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bin_2_part_8_bottom_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_bottom_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_bottom_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_bottom_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_top_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_top_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_top_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_top_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           cage_back_left_pillar:
             Alpha: 1
             Show Axes: false
@@ -831,19 +669,6 @@ Visualization Manager:
             Show Trail: false
             Value: true
           ground:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          live_camera_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          plate:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          plate_lower_left_corner:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -949,149 +774,6 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
           tray_1_frame_2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          tray_2_divider2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          tray_2_partition_1:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_1_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_2_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_3:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_3_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_4:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_4_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_5:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_5_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_6:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_6_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_7:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_7_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_8:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_8_pickup_1:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_8_pickup_2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_holder:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          tray_2_screw_m3_1:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m3_2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m3_3:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m3_4:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m3_5:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m3_6:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_1:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_3:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_4:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_5:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_6:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_7:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_8:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_9:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -1266,11 +948,31 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          a_bot_camera_color_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           a_bot_camera_color_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
           a_bot_camera_connector_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_camera_depth_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_camera_depth_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_camera_left_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_camera_left_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -1285,6 +987,14 @@ Visualization Manager:
             Show Trail: false
             Value: true
           a_bot_camera_mount_flange:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_camera_right_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_camera_right_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -1469,6 +1179,10 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          a_motioncam_reference:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           a_motioncam_sensor:
             Alpha: 1
             Show Axes: false
@@ -1486,11 +1200,31 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          b_bot_camera_color_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           b_bot_camera_color_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
           b_bot_camera_connector_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_depth_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_depth_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_left_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_left_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -1505,6 +1239,14 @@ Visualization Manager:
             Show Trail: false
             Value: true
           b_bot_camera_mount_flange:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_right_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_right_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -1711,228 +1453,6 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          bin_1_part_16:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bin_1_part_16_bottom_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_bottom_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_bottom_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_bottom_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_top_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_top_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_top_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_16_top_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bin_1_part_17_bottom_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_bottom_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_bottom_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_bottom_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_top_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_top_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_top_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_17_top_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bin_1_part_5_bottom_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_bottom_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_bottom_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_bottom_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_top_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_top_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_top_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_1_part_5_top_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bin_2_part_4_bottom_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_bottom_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_bottom_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_bottom_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_top_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_top_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_top_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_4_top_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bin_2_part_7_bottom_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_bottom_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_bottom_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_bottom_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_top_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_top_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_top_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_7_top_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          bin_2_part_8_bottom_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_bottom_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_bottom_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_bottom_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_top_back_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_top_back_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_top_front_left_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          bin_2_part_8_top_front_right_corner:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           cage_back_left_pillar:
             Alpha: 1
             Show Axes: false
@@ -2004,19 +1524,6 @@ Visualization Manager:
             Show Trail: false
             Value: true
           ground:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          live_camera_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          plate:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          plate_lower_left_corner:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -2122,149 +1629,6 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
           tray_1_frame_2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          tray_2_divider2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          tray_2_partition_1:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_1_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_2_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_3:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_3_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_4:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_4_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_5:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_5_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_6:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_6_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_7:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_7_pickup:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_8:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_8_pickup_1:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_partition_8_pickup_2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_holder:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          tray_2_screw_m3_1:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m3_2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m3_3:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m3_4:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m3_5:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m3_6:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_1:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_3:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_4:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_5:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_6:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_7:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_8:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          tray_2_screw_m4_9:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -2405,7 +1769,7 @@ Visualization Manager:
       Enabled: true
       Name: collision_objects
       Namespaces:
-        {}
+        "": true
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -2645,18 +2009,18 @@ Visualization Manager:
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.35927852988243103
-        Y: -0.08040064573287964
-        Z: 0.42477211356163025
+        X: -0.7437185049057007
+        Y: 0.021503066644072533
+        Z: 0.9814314842224121
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6603976488113403
+      Pitch: 0.285398006439209
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.20539768040180206
+      Yaw: 6.268582820892334
     Saved: ~
 Window Geometry:
   Displays:
@@ -2668,7 +2032,7 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000400000000000001ee00000457fc020000000efb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005d00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afc0000003f00000213000001b50100001efa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001ee00fffffffb000000100044006900730070006c0061007900730100000000000001ee0000015600fffffffb000000180061005f0062006f0074005f00630061006d0065007200610100000258000000950000001700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb000000280020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004400fffffffb000000180062005f0062006f0074005f00630061006d00650072006101000002f3000000b90000001700fffffffb00000016006c006900760065005f00630061006d0065007200610000000319000000bb0000001700fffffffb000000220061005f006d006f00740069006f006e00630061006d005f0063006f006c006f007201000003b2000000e40000001700ffffff000000010000010f000002b0fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000002b0000000a900fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000006fd0000003efc0100000002fb0000000800540069006d00650100000000000006fd0000026f00fffffffb0000000800540069006d00650100000000000004500000000000000000000005090000045700000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000001ee0000045bfc020000000efb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afc0000003d000002150000019a0100001cfa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001ee00fffffffb000000100044006900730070006c0061007900730100000000000001ee0000015600fffffffb000000180061005f0062006f0074005f00630061006d0065007200610100000258000000950000001600fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb000000280020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004100fffffffb000000180062005f0062006f0074005f00630061006d00650072006101000002f3000000ba0000001600fffffffb00000016006c006900760065005f00630061006d0065007200610000000319000000bb0000001600fffffffb000000220061005f006d006f00740069006f006e00630061006d005f0063006f006c006f007201000003b3000000e50000001600ffffff000000010000010f000002b0fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000002b0000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000006fd0000003efc0100000002fb0000000800540069006d00650100000000000006fd0000026f00fffffffb0000000800540069006d00650100000000000004500000000000000000000005090000045b00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -2678,7 +2042,7 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1789
-  X: 6665
+  X: 771
   Y: 71
   a_bot_camera:
     collapsed: false

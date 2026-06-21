@@ -55,8 +55,6 @@ class CollisionObjectManagerClient(object):
         if not self._client.wait_for_service(timeout_sec=timeout_sec):
             raise TimeoutError('timeout expired before conneted to service[%s]'
                                % service_ns)
-        node.get_logger().info('established connection to the service[%s]'
-                               % service_ns)
 
     def create_object(self, object_type, pose,
                       subframe='base_link', object_id='', *, timeout_sec=None):

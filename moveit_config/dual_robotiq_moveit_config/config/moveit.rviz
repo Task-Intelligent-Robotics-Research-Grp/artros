@@ -6,7 +6,7 @@ Panels:
       Expanded:
         - /TF1/Frames1
       Splitter Ratio: 0.703125
-    Tree Height: 527
+    Tree Height: 535
   - Class: rviz_common/Help
     Name: Help
   - Class: rviz_common/Views
@@ -71,6 +71,10 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          a_motioncam_reference:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           a_motioncam_sensor:
             Alpha: 1
             Show Axes: false
@@ -88,11 +92,31 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          b_bot_camera_color_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           b_bot_camera_color_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
           b_bot_camera_connector_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_depth_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_depth_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_left_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_left_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -107,6 +131,14 @@ Visualization Manager:
             Show Trail: false
             Value: true
           b_bot_camera_mount_flange:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_right_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_right_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -427,7 +459,12 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          live_camera_optical_frame:
+          precision_tool_holder_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          precision_tool_holder_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -690,6 +727,10 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          a_motioncam_reference:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           a_motioncam_sensor:
             Alpha: 1
             Show Axes: false
@@ -707,11 +748,31 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          b_bot_camera_color_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           b_bot_camera_color_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
           b_bot_camera_connector_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_depth_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_depth_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_left_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_left_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -726,6 +787,14 @@ Visualization Manager:
             Show Trail: false
             Value: true
           b_bot_camera_mount_flange:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_right_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_right_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -1046,7 +1115,12 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          live_camera_optical_frame:
+          precision_tool_holder_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          precision_tool_holder_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -1272,6 +1346,8 @@ Visualization Manager:
         All Enabled: false
         a_motioncam_link:
           Value: false
+        a_motioncam_reference:
+          Value: true
         a_motioncam_sensor:
           Value: false
         b_bot_base:
@@ -1280,16 +1356,30 @@ Visualization Manager:
           Value: false
         b_bot_base_link_inertia:
           Value: false
+        b_bot_camera_color_frame:
+          Value: true
         b_bot_camera_color_optical_frame:
           Value: false
         b_bot_camera_connector_link:
           Value: false
+        b_bot_camera_depth_frame:
+          Value: true
+        b_bot_camera_depth_optical_frame:
+          Value: true
+        b_bot_camera_left_ir_frame:
+          Value: true
+        b_bot_camera_left_ir_optical_frame:
+          Value: true
         b_bot_camera_link:
           Value: false
         b_bot_camera_mount:
           Value: false
         b_bot_camera_mount_flange:
           Value: false
+        b_bot_camera_right_ir_frame:
+          Value: true
+        b_bot_camera_right_ir_optical_frame:
+          Value: true
         b_bot_dual_bracket_base_link:
           Value: false
         b_bot_dual_bracket_left_flange_link:
@@ -1362,8 +1452,6 @@ Visualization Manager:
           Value: false
         b_bot_tool0:
           Value: false
-        b_bot_tool0_controller:
-          Value: false
         b_bot_upper_arm_link:
           Value: false
         b_bot_usb_repeater_base_link:
@@ -1426,8 +1514,10 @@ Visualization Manager:
           Value: false
         ground:
           Value: false
-        live_camera_optical_frame:
-          Value: false
+        precision_tool_holder_base_link:
+          Value: true
+        precision_tool_holder_link:
+          Value: true
         screw_feeder_m3_base_link:
           Value: false
         screw_feeder_m3_front_left_side:
@@ -1538,8 +1628,7 @@ Visualization Manager:
                   b_bot_table_top_center:
                     b_bot_base_link:
                       b_bot_base:
-                        b_bot_tool0_controller:
-                          {}
+                        {}
                       b_bot_base_link_inertia:
                         b_bot_shoulder_link:
                           b_bot_upper_arm_link:
@@ -1567,10 +1656,19 @@ Visualization Manager:
                                                   b_bot_camera_mount_flange:
                                                     b_bot_camera_connector_link:
                                                       b_bot_camera_link:
-                                                        {}
+                                                        b_bot_camera_depth_frame:
+                                                          b_bot_camera_color_frame:
+                                                            b_bot_camera_color_optical_frame:
+                                                              {}
+                                                          b_bot_camera_depth_optical_frame:
+                                                            {}
+                                                          b_bot_camera_left_ir_frame:
+                                                            b_bot_camera_left_ir_optical_frame:
+                                                              {}
+                                                          b_bot_camera_right_ir_frame:
+                                                            b_bot_camera_right_ir_optical_frame:
+                                                              {}
                                                 b_bot_gripper_base_link:
-                                                  b_bot_camera_color_optical_frame:
-                                                    {}
                                                   b_bot_gripper_robotiq_arg2f_base_link:
                                                     b_bot_gripper_left_inner_knuckle:
                                                       {}
@@ -1612,6 +1710,9 @@ Visualization Manager:
               cage_lower_left_bar:
                 cage_workspace_bar:
                   cage_tool_bar:
+                    precision_tool_holder_base_link:
+                      precision_tool_holder_link:
+                        {}
                     screw_tool_m3_holder_base_link:
                       screw_tool_m3_holder_link:
                         {}
@@ -1688,11 +1789,9 @@ Visualization Manager:
                 {}
             workspace_center:
               a_motioncam_link:
-                {}
-              a_motioncam_sensor:
-                {}
-              live_camera_optical_frame:
-                {}
+                a_motioncam_reference:
+                  a_motioncam_sensor:
+                    {}
               virtual_screen:
                 {}
             workspace_table_base_link:
@@ -1741,10 +1840,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.42000022530555725
+      Pitch: 0.4650002419948578
       Target Frame: world
       Value: Orbit (rviz_default_plugins)
-      Yaw: 0.2219993770122528
+      Yaw: 0.07700525224208832
     Saved: ~
 Window Geometry:
   Displays:
@@ -1758,9 +1857,9 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd00000001000000000000020200000371fc0200000004fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004400fffffffc0000003f0000026e000001b50100001efa000000000100000002fb000000100044006900730070006c0061007900730100000000ffffffff0000015600fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000000002b4000001ee00fffffffb0000000800480065006c0070000000029a0000006e0000006f00fffffffb0000000a0056006900650077007301000002b3000000fd000000a900ffffff0000050d0000037100000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd00000001000000000000020200000375fc0200000004fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004100fffffffc0000003d000002710000019a0100001cfa000000010100000002fb000000100044006900730070006c0061007900730100000000ffffffff0000015600fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000000002b4000001ee00fffffffb0000000800480065006c0070000000029a0000006e0000006e00fffffffb0000000a0056006900650077007301000002b4000000fe000000a400ffffff0000050d0000037500000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
   Width: 1813
-  X: 6802
-  Y: 31
+  X: 747
+  Y: 32
