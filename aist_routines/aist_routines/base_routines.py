@@ -922,7 +922,7 @@ class BaseRoutines(Node):
         if 'gripper_parameters' in params:
             self.set_gripper_parameters(robot_name,
                                         params['gripper_parameters'])
-        return self._pick_or_place.send_goal(robot_name, target_pose, True,
+        return self._pick_or_place.send_goal(robot_name, True, target_pose,
                                              params['pick_offset'],
                                              params['approach_offset'],
                                              params['departure_offset'],
@@ -948,7 +948,7 @@ class BaseRoutines(Node):
         if 'gripper_parameters' in params:
             self.set_gripper_parameters(robot_name,
                                         params['gripper_parameters'])
-        return self._pick_or_place.send_goal(robot_name, target_pose, False,
+        return self._pick_or_place.send_goal(robot_name, False, target_pose,
                                              placing_params['place_offset'],
                                              placing_params['approach_offset'],
                                              placing_params['departure_offset'],
@@ -963,7 +963,7 @@ class BaseRoutines(Node):
                          self.pose_from_xyzrpy(offset, target_frame),
                          timeout_sec=timeout_sec)
 
-    def place_at_frame(self, robot_name, target_frame, part_id,
+    def place_at_frame(self, robot_name, part_id, target_frame,
                        *, offset=(), subframe_link='', timeout_sec=None):
         return self.place(robot_name, part_id,
                           self.pose_from_xyzrpy(offset, target_frame),

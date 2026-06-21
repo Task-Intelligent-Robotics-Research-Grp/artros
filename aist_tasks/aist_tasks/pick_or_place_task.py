@@ -57,14 +57,14 @@ class PickOrPlaceTaskClient(GroupedSimpleActionClient):
                          group_field='robot_name')
         self.wait_for_server()
 
-    def send_goal(self, robot_name, pose, pick, offset,
+    def send_goal(self, robot_name, pick, pose, offset,
                   approach_offset, departure_offset, speed_fast, speed_slow,
                   *, subframe_link='', timeout_sec=None):
         return super().send_goal(PickOrPlace.Goal(
                                      robot_name=robot_name,
+                                     pick=pick,
                                      subframe_link=subframe_link,
                                      pose=pose,
-                                     pick=pick,
                                      offset=offset,
                                      approach_offset=approach_offset,
                                      departure_offset=departure_offset,
