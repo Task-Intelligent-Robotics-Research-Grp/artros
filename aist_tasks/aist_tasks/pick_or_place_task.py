@@ -158,7 +158,7 @@ class PickOrPlaceTaskServer(ActionServer):
                                        pose=self._concatenate_poses(
                                                 request.pose.pose,
                                                 node.pose_from_xyzrpy(
-                                                    request.departure_offset)\
+                                                    request.departure_offset) \
                                                 .pose,
                                                 inhand_pose.pose))
                     offset = ()
