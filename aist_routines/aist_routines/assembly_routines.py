@@ -157,7 +157,7 @@ class AssemblyRoutines(BaseRoutines):
         tool_name            = self.gripper(robot_name).name
         default_gripper_name = self.default_gripper_name(robot_name)
         if tool_name == default_gripper_name:
-            return PickOrPlaceClient.Success
+            return PickOrPlaceTaskClient.Success
         self.set_gripper(robot_name, default_gripper_name)
         return self.place_at_frame(robot_name, tool_name,
                                    tool_name + '_holder_link',

@@ -642,6 +642,22 @@ class BaseRoutines(Node):
                                                 x=0.0, y=0.0, z=0.0, w=1.0))),
                                     offset, speed, accel, end_effector_link)
 
+    # def go_to_pose_goal(self, robot_name, target_pose, offset=(),
+    #                     speed=1.0, accel=1.0, end_effector_link=''):
+    #     if end_effector_link == '':
+    #         end_effector_link = self.gripper(robot_name).tip_link
+    #     transformed_pose = self.transform_pose_to_target_frame(target_pose,
+    #                                                            offset)
+    #     group = self._cmd.get_group(robot_name)
+    #     group.set_pose_target(transformed_pose, end_effector_link)
+    #     success, path, planning_time, err = group.plan()
+
+    #     if not success:
+    #         self.get_logger.error('### Failed to plan!')
+    #         group.clear_pose_target(end_effector_link)
+    #         return False
+    #     return self.execute_path(robot_name, path)
+
     def go_to_pose_goal(self, robot_name, target_pose, offset=(),
                         speed=1.0, accel=1.0, end_effector_link=''):
         return self.go_along_poses(robot_name,
