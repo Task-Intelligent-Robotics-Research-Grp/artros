@@ -179,7 +179,6 @@ class BaseRoutines(Node):
                          for name, props in config.get('cameras', {}).items()}
 
         # Load setting parameters
-        self._setting_urls = self.declare_parameter('setting_urls', ['']).value
         self.load_settings()
 
         # CollisionObjectManager wrapping MoveIt PlanningSceneInterface
@@ -268,12 +267,20 @@ class BaseRoutines(Node):
         return self._settings
 
     def load_settings(self) -> None:
+        def recursive_merge(d1, d2):
+            if type(d1) != dict or type(d2) != dict:
+                return d2
+            for k2, v2 in d2.items():
+                d1[k2] = recursive_merge(d1.get(k2, {}), v2)
+            return d1
+
         # Load setting parameters
         self._settings = {}
-        for url in self._setting_urls:
+        for url in self.declare_parameter('setting_urls', ['']).value:
             try:
                 with open(filepath_from_url(url), 'r') as f:
-                    self._settings |= yaml.safe_load(f)
+                    self._settings = recursive_merge(self._settings,
+                                                     yaml.safe_load(f))
             except Exception as e:
                 self.get_logger().error('failed to load setting file[%s]: %s'
                                         % (url, e))

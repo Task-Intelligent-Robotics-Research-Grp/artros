@@ -88,4 +88,4 @@ assembly:
     moveit_eef_step: 0.002
     setting_urls:
       - package://aist_routines/config/inc/base.yaml
-#      - package://aist_routines/config/inc/assembly.yaml
+      - package://aist_routines/config/inc/assembly.yaml

@@ -154,12 +154,13 @@ class PickOrPlaceTaskServer(ActionServer):
             else:
                 speed = request.speed_fast
                 if object_id != '':
-                    pose = PoseStamped(request.pose.header,
-                                       self._concatenate_poses(
-                                           request.pose.pose,
-                                           node.pose_from_xyzrpy(
-                                               request.departure_offset).pose,
-                                           inhand_pose.pose))
+                    pose = PoseStamped(header=request.pose.header,
+                                       pose=self._concatenate_poses(
+                                                request.pose.pose,
+                                                node.pose_from_xyzrpy(
+                                                    request.departure_offset) \
+                                                .pose,
+                                                inhand_pose.pose))
                     offset = ()
                 else:
                     pose   = request.pose
@@ -226,8 +227,10 @@ class PickOrPlaceTaskServer(ActionServer):
                                            pose.orientation.y,
                                            pose.orientation.z,
                                            pose.orientation.w))
-        return Pose(Point(*tfs.translation_from_matrix(T)),
-                    Quaternion(*tfs.quaternion_from_matrix(T)))
+        t = tfs.translation_from_matrix(T)
+        q = tfs.quaternion_from_matrix(T)
+        return Pose(position=Point(x=t[0], y=t[1], z=t[2]),
+                    orientation=Quaternion(x=q[0], y=q[1], z=q[2], w=q[3]))
 
 #************************************************************************
 #  class PickOrPlaceTask                                                *
