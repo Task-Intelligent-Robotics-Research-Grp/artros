@@ -234,7 +234,7 @@
 	<parameters>/tmp/a_bot_controllers.yaml</parameters>
 	<ros>
 	  <namespace>a_bot</namespace>
-	  <!-- <remapping>robot_description:=/robot_description</remapping> -->
+	  <remapping>joint_states:=/joint_states</remapping>
 	</ros>
       </plugin>
       <plugin filename="gz_ros2_control-system"
@@ -242,7 +242,7 @@
 	<parameters>/tmp/b_bot_controllers.yaml</parameters>
 	<ros>
 	  <namespace>b_bot</namespace>
-	  <!-- <remapping>robot_description:=/robot_description</remapping> -->
+	  <remapping>joint_states:=/joint_states</remapping>
 	</ros>
       </plugin>
 
