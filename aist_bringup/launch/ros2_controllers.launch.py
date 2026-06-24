@@ -64,15 +64,6 @@ def launch_setup(context):
 
     # Setup actions executed after robot_description topic being available.
     actions = [
-        Node(package='joint_state_publisher',
-             executable='joint_state_publisher',
-             parameters=[
-                 {'rate':         50, #LaunchConfiguration('update_rate'),
-                  'use_sim_time': LaunchConfiguration('sim'),
-                  'source_list':  [robot_name + '/joint_states' \
-                                   for robot_name in config['arms']]}
-             ],
-             output='screen'),
         GroupAction(
             actions=[
                 Node(package='ros_gz_sim',
@@ -141,6 +132,7 @@ def launch_setup(context):
                                            allow_substs=True),
                          ],
                          remappings=[
+                             ('joint_states', '/joint_states'),
                              ('motion_control_handle/target_frame',
                               'target_frame'),
                              ('cartesian_compliance_controller/ft_sensor_wrench',
