@@ -936,7 +936,7 @@ class BaseRoutines(Node):
     def pick(self, robot_name, part_id, target_pose, *, timeout_sec=None):
         picking_params = self.settings.get('picking_parameters', {})
         params = picking_params.get(part_id)
-        self.get_logger().info('### [%s] %s' % (part_id, picking_params))
+        #self.get_logger().info('### [%s] %s' % (part_id, picking_params))
         if params is None:
             params = picking_params[
                          self.com.get_object_info(part_id).object_type]
