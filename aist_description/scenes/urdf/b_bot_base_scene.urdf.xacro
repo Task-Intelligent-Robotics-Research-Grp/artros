@@ -68,9 +68,9 @@
   </xacro:table>
 
   <!-- tool holders -->
-  <xacro:property name="screw_tool_m3_holder_y"	value="0.75"/>
-  <xacro:property name="screw_tool_m4_holder_y"	value="0.85"/>
-  <xacro:property name="suction_tool_holder_y"	value="0.95"/>
+  <xacro:property name="screw_tool_m3_holder_y"	value="0.70"/>
+  <xacro:property name="screw_tool_m4_holder_y"	value="0.80"/>
+  <xacro:property name="suction_tool_holder_y"	value="0.90"/>
   <xacro:include filename="$(find aist_description
 			   )/objects/urdf/screw_tool_holder.urdf.xacro"/>
   <xacro:screw_tool_holder prefix="screw_tool_m3_holder_"
