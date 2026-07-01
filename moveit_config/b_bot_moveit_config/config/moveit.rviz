@@ -4,9 +4,11 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /MotionPlanning1
+        - /MotionPlanning1/Scene Robot1
+        - /MotionPlanning1/Planning Request1
+        - /TF1/Frames1
       Splitter Ratio: 0.5
-    Tree Height: 725
+    Tree Height: 716
   - Class: rviz_common/Help
     Name: Help
   - Class: rviz_common/Views
@@ -71,10 +73,6 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          a_motioncam_reference:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           a_motioncam_sensor:
             Alpha: 1
             Show Axes: false
@@ -92,31 +90,11 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          b_bot_camera_color_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           b_bot_camera_color_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
           b_bot_camera_connector_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_camera_depth_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_camera_depth_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_camera_left_ir_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_camera_left_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -131,14 +109,6 @@ Visualization Manager:
             Show Trail: false
             Value: true
           b_bot_camera_mount_flange:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_camera_right_ir_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_camera_right_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -416,6 +386,10 @@ Visualization Manager:
             Show Trail: false
             Value: true
           ground:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          live_camera_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -648,7 +622,7 @@ Visualization Manager:
         Colliding Link Color: 255; 0; 0
         Goal State Alpha: 1
         Goal State Color: 250; 128; 0
-        Interactive Marker Size: 0
+        Interactive Marker Size: 0.10000000149011612
         Joint Violation Color: 255; 0; 255
         Planning Group: b_bot
         Query Goal State: true
@@ -678,10 +652,6 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          a_motioncam_reference:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           a_motioncam_sensor:
             Alpha: 1
             Show Axes: false
@@ -699,31 +669,11 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          b_bot_camera_color_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           b_bot_camera_color_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
           b_bot_camera_connector_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_camera_depth_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_camera_depth_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_camera_left_ir_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_camera_left_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -738,14 +688,6 @@ Visualization Manager:
             Show Trail: false
             Value: true
           b_bot_camera_mount_flange:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_camera_right_ir_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_camera_right_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -1026,6 +968,10 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          live_camera_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           screw_feeder_m3_base_link:
             Alpha: 1
             Show Axes: false
@@ -1239,6 +1185,423 @@ Visualization Manager:
         Show Robot Visual: true
       Value: true
       Velocity_Scaling_Factor: 1
+    - Class: rviz_default_plugins/TF
+      Enabled: true
+      Filter (blacklist): ""
+      Filter (whitelist): ""
+      Frame Timeout: 15
+      Frames:
+        All Enabled: false
+        a_motioncam_link:
+          Value: false
+        a_motioncam_sensor:
+          Value: false
+        b_bot_base:
+          Value: false
+        b_bot_base_link:
+          Value: false
+        b_bot_base_link_inertia:
+          Value: false
+        b_bot_camera_color_optical_frame:
+          Value: false
+        b_bot_camera_connector_link:
+          Value: false
+        b_bot_camera_link:
+          Value: false
+        b_bot_camera_mount:
+          Value: false
+        b_bot_camera_mount_flange:
+          Value: false
+        b_bot_flange:
+          Value: false
+        b_bot_forearm_link:
+          Value: false
+        b_bot_ft_frame:
+          Value: false
+        b_bot_gripper_base_link:
+          Value: false
+        b_bot_gripper_coupling_base_link:
+          Value: false
+        b_bot_gripper_coupling_flange_link:
+          Value: false
+        b_bot_gripper_left_inner_finger:
+          Value: false
+        b_bot_gripper_left_inner_finger_pad:
+          Value: false
+        b_bot_gripper_left_inner_knuckle:
+          Value: false
+        b_bot_gripper_left_outer_finger:
+          Value: false
+        b_bot_gripper_left_outer_knuckle:
+          Value: false
+        b_bot_gripper_right_inner_finger:
+          Value: false
+        b_bot_gripper_right_inner_finger_pad:
+          Value: false
+        b_bot_gripper_right_inner_knuckle:
+          Value: false
+        b_bot_gripper_right_outer_finger:
+          Value: false
+        b_bot_gripper_right_outer_knuckle:
+          Value: false
+        b_bot_gripper_robotiq_arg2f_base_link:
+          Value: false
+        b_bot_gripper_tip_link:
+          Value: true
+        b_bot_shoulder_link:
+          Value: false
+        b_bot_table_base_link:
+          Value: false
+        b_bot_table_leg1:
+          Value: false
+        b_bot_table_leg2:
+          Value: false
+        b_bot_table_leg3:
+          Value: false
+        b_bot_table_top:
+          Value: false
+        b_bot_table_top_center:
+          Value: false
+        b_bot_table_top_origin:
+          Value: false
+        b_bot_tool0:
+          Value: false
+        b_bot_tool0_controller:
+          Value: false
+        b_bot_upper_arm_link:
+          Value: false
+        b_bot_usb_repeater_base_link:
+          Value: false
+        b_bot_usb_repeater_body:
+          Value: false
+        b_bot_usb_repeater_front_leg:
+          Value: false
+        b_bot_usb_repeater_left_leg:
+          Value: false
+        b_bot_usb_repeater_plate:
+          Value: false
+        b_bot_usb_repeater_right_leg:
+          Value: false
+        b_bot_wrist_1_link:
+          Value: false
+        b_bot_wrist_2_link:
+          Value: false
+        b_bot_wrist_3_link:
+          Value: false
+        base_fixture_base_link:
+          Value: false
+        base_fixture_head_base_link:
+          Value: false
+        base_fixture_head_tip_link:
+          Value: false
+        base_fixture_piston:
+          Value: false
+        base_fixture_piston_head:
+          Value: false
+        base_fixture_tip_link:
+          Value: false
+        cage_back_left_pillar:
+          Value: false
+        cage_back_right_pillar:
+          Value: false
+        cage_front_left_pillar:
+          Value: false
+        cage_front_right_pillar:
+          Value: false
+        cage_lower_back_bar:
+          Value: false
+        cage_lower_front_bar:
+          Value: false
+        cage_lower_left_bar:
+          Value: false
+        cage_lower_right_bar:
+          Value: false
+        cage_tool_bar:
+          Value: false
+        cage_upper_back_bar:
+          Value: false
+        cage_upper_front_bar:
+          Value: false
+        cage_upper_left_bar:
+          Value: false
+        cage_upper_right_bar:
+          Value: false
+        cage_workspace_bar:
+          Value: false
+        ground:
+          Value: false
+        live_camera_optical_frame:
+          Value: false
+        screw_feeder_m3_base_link:
+          Value: false
+        screw_feeder_m3_front_left_side:
+          Value: false
+        screw_feeder_m3_front_right_side:
+          Value: false
+        screw_feeder_m3_gap:
+          Value: false
+        screw_feeder_m3_inlet_link:
+          Value: false
+        screw_feeder_m3_outlet_link:
+          Value: false
+        screw_feeder_m4_base_link:
+          Value: false
+        screw_feeder_m4_front_left_side:
+          Value: false
+        screw_feeder_m4_front_right_side:
+          Value: false
+        screw_feeder_m4_gap:
+          Value: false
+        screw_feeder_m4_inlet_link:
+          Value: false
+        screw_feeder_m4_outlet_link:
+          Value: false
+        screw_tool_m3_holder_base_link:
+          Value: false
+        screw_tool_m3_holder_link:
+          Value: false
+        screw_tool_m4_holder_base_link:
+          Value: false
+        screw_tool_m4_holder_link:
+          Value: false
+        suction_tool_holder_base_link:
+          Value: false
+        suction_tool_holder_link:
+          Value: false
+        tray_1:
+          Value: false
+        tray_1_frame_1:
+          Value: false
+        tray_1_frame_2:
+          Value: false
+        virtual_screen:
+          Value: false
+        workbench_back_bar:
+          Value: false
+        workbench_base_link:
+          Value: false
+        workbench_center_bar:
+          Value: false
+        workbench_front_border:
+          Value: false
+        workbench_holder_link:
+          Value: false
+        workbench_right_bar:
+          Value: false
+        workbench_right_border:
+          Value: false
+        workbench_table_base_link:
+          Value: false
+        workbench_table_leg1:
+          Value: false
+        workbench_table_leg2:
+          Value: false
+        workbench_table_leg3:
+          Value: false
+        workbench_table_top:
+          Value: false
+        workbench_table_top_center:
+          Value: false
+        workbench_table_top_origin:
+          Value: false
+        workspace_center:
+          Value: false
+        workspace_table_base_link:
+          Value: false
+        workspace_table_leg1:
+          Value: false
+        workspace_table_leg2:
+          Value: false
+        workspace_table_leg3:
+          Value: false
+        workspace_table_top:
+          Value: false
+        workspace_table_top_center:
+          Value: false
+        workspace_table_top_origin:
+          Value: false
+        world:
+          Value: false
+      Marker Scale: 0.15000000596046448
+      Name: TF
+      Show Arrows: false
+      Show Axes: true
+      Show Names: true
+      Tree:
+        world:
+          ground:
+            b_bot_table_base_link:
+              b_bot_table_leg1:
+                {}
+              b_bot_table_leg2:
+                {}
+              b_bot_table_leg3:
+                {}
+              b_bot_table_top:
+                b_bot_table_top_origin:
+                  b_bot_table_top_center:
+                    b_bot_base_link:
+                      b_bot_base:
+                        b_bot_tool0_controller:
+                          {}
+                      b_bot_base_link_inertia:
+                        b_bot_shoulder_link:
+                          b_bot_upper_arm_link:
+                            b_bot_forearm_link:
+                              b_bot_wrist_1_link:
+                                b_bot_wrist_2_link:
+                                  b_bot_usb_repeater_base_link:
+                                    b_bot_usb_repeater_front_leg:
+                                      {}
+                                    b_bot_usb_repeater_left_leg:
+                                      {}
+                                    b_bot_usb_repeater_plate:
+                                      b_bot_usb_repeater_body:
+                                        {}
+                                    b_bot_usb_repeater_right_leg:
+                                      {}
+                                  b_bot_wrist_3_link:
+                                    b_bot_flange:
+                                      b_bot_tool0:
+                                        b_bot_gripper_coupling_base_link:
+                                          b_bot_gripper_coupling_flange_link:
+                                            b_bot_camera_mount:
+                                              b_bot_camera_mount_flange:
+                                                b_bot_camera_connector_link:
+                                                  b_bot_camera_link:
+                                                    {}
+                                            b_bot_gripper_base_link:
+                                              b_bot_camera_color_optical_frame:
+                                                {}
+                                              b_bot_gripper_robotiq_arg2f_base_link:
+                                                b_bot_gripper_left_inner_knuckle:
+                                                  {}
+                                                b_bot_gripper_left_outer_knuckle:
+                                                  b_bot_gripper_left_outer_finger:
+                                                    b_bot_gripper_left_inner_finger:
+                                                      b_bot_gripper_left_inner_finger_pad:
+                                                        {}
+                                                b_bot_gripper_right_inner_knuckle:
+                                                  {}
+                                                b_bot_gripper_right_outer_knuckle:
+                                                  b_bot_gripper_right_outer_finger:
+                                                    b_bot_gripper_right_inner_finger:
+                                                      b_bot_gripper_right_inner_finger_pad:
+                                                        {}
+                                              b_bot_gripper_tip_link:
+                                                {}
+                                    b_bot_ft_frame:
+                                      {}
+            cage_front_left_pillar:
+              cage_back_left_pillar:
+                {}
+              cage_back_right_pillar:
+                {}
+              cage_front_right_pillar:
+                {}
+              cage_lower_back_bar:
+                {}
+              cage_lower_front_bar:
+                {}
+              cage_lower_left_bar:
+                cage_workspace_bar:
+                  cage_tool_bar:
+                    screw_tool_m3_holder_base_link:
+                      screw_tool_m3_holder_link:
+                        {}
+                    screw_tool_m4_holder_base_link:
+                      screw_tool_m4_holder_link:
+                        {}
+                    suction_tool_holder_base_link:
+                      suction_tool_holder_link:
+                        {}
+                  workbench_base_link:
+                    screw_feeder_m3_base_link:
+                      screw_feeder_m3_front_left_side:
+                        screw_feeder_m3_gap:
+                          screw_feeder_m3_outlet_link:
+                            {}
+                      screw_feeder_m3_front_right_side:
+                        {}
+                      screw_feeder_m3_inlet_link:
+                        {}
+                      screw_feeder_m4_base_link:
+                        screw_feeder_m4_front_left_side:
+                          screw_feeder_m4_gap:
+                            screw_feeder_m4_outlet_link:
+                              {}
+                        screw_feeder_m4_front_right_side:
+                          {}
+                        screw_feeder_m4_inlet_link:
+                          {}
+                    tray_1:
+                      tray_1_frame_1:
+                        {}
+                      tray_1_frame_2:
+                        {}
+                    workbench_back_bar:
+                      {}
+                    workbench_center_bar:
+                      {}
+                    workbench_right_bar:
+                      {}
+                    workbench_table_base_link:
+                      workbench_table_leg1:
+                        {}
+                      workbench_table_leg2:
+                        {}
+                      workbench_table_leg3:
+                        {}
+                      workbench_table_top:
+                        workbench_table_top_origin:
+                          base_fixture_base_link:
+                            base_fixture_piston:
+                              base_fixture_piston_head:
+                                base_fixture_head_base_link:
+                                  base_fixture_head_tip_link:
+                                    {}
+                            base_fixture_tip_link:
+                              {}
+                          workbench_front_border:
+                            {}
+                          workbench_holder_link:
+                            {}
+                          workbench_right_border:
+                            {}
+                          workbench_table_top_center:
+                            {}
+              cage_lower_right_bar:
+                {}
+              cage_upper_back_bar:
+                {}
+              cage_upper_front_bar:
+                {}
+              cage_upper_left_bar:
+                {}
+              cage_upper_right_bar:
+                {}
+            workspace_center:
+              a_motioncam_link:
+                {}
+              a_motioncam_sensor:
+                {}
+              live_camera_optical_frame:
+                {}
+              virtual_screen:
+                {}
+            workspace_table_base_link:
+              workspace_table_leg1:
+                {}
+              workspace_table_leg2:
+                {}
+              workspace_table_leg3:
+                {}
+              workspace_table_top:
+                workspace_table_top_origin:
+                  workspace_table_top_center:
+                    {}
+      Update Interval: 0
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -1257,25 +1620,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 2.651470899581909
+      Distance: 1.8069031238555908
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.5071544051170349
-        Y: 0.06733419746160507
-        Z: 0.6786552667617798
+        X: -0.5210866928100586
+        Y: 0.05455828830599785
+        Z: 1.2469381093978882
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.47999998927116394
+      Pitch: 0.02499992772936821
       Target Frame: world
       Value: Orbit (rviz_default_plugins)
-      Yaw: 0.03200700506567955
+      Yaw: 0.02200639806687832
     Saved: ~
 Window Geometry:
   Displays:
@@ -1289,9 +1652,9 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd00000001000000000000022300000375fc0200000004fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004100fffffffc0000003d000003750000019a0100001cfa000000000100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001ee00fffffffb000000100044006900730070006c0061007900730100000000000002b40000015600fffffffb0000000800480065006c0070000000029a0000006e0000006e00fffffffb0000000a0056006900650077007300000002fd000000b5000000a400ffffff000004f40000037500000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd00000001000000000000022300000371fc0200000004fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004400fffffffc0000003f00000371000001b50100001efa000000000100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001ee00fffffffb000000100044006900730070006c0061007900730100000000000002b40000015600fffffffb0000000800480065006c0070000000029a0000006e0000006f00fffffffb0000000a0056006900650077007300000002fd000000b5000000a900ffffff000004f40000037100000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
   Width: 1821
-  X: 474
-  Y: 161
+  X: 6727
+  Y: 70

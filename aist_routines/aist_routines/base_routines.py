@@ -1157,6 +1157,8 @@ class BaseRoutines(Node):
                                        config['parent_link']),
                                    config.get('subframe', 'base_link'),
                                    timeout_sec=timeout_sec)
+            self.com.allow_collision(object_type, config['parent_link'],
+                                     timeout_sec=timeout_sec)
             time.sleep(0.5)
             # if object_type == 'panel_bearing' or object_type == 'panel_motor':
             #     self.com.attach_object(object_type, config['parent_link'])

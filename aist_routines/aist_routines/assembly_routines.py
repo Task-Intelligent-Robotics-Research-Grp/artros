@@ -63,10 +63,6 @@ class AssemblyRoutines(BaseRoutines):
         print('  FB: Release base')
         print('  at: Begin approaching target')
         print('  AT: Cancel approaching target action')
-        print('  I:  Initialize all collision objects')
-        print('  i:  Show infomation on collision objects')
-        print('  ci: Show infomation on child collision object of frame')
-        print('  r:  Remove specified collision objects')
         print('  H:  Move all robots to home')
         print('  B:  Move all robots to back')
 
@@ -109,23 +105,6 @@ class AssemblyRoutines(BaseRoutines):
             self.approach_target(robot_name, pose_name, target_frame)
         elif command == 'AT':
             self.cancel_approach_target(robot_name)
-        elif command == 'I':
-            self._initialize_collision_objects()
-        elif command == 'i':
-            object_id = input('  object ID? ')
-            info = self.com.get_object_info(object_id)
-            if info is not None:
-                self._print_object_info(info)
-        elif command == 'ci':
-            frame_id = input('  parent frame? ')
-            info = self.com.get_child_object_info(frame_id)
-            if info is not None:
-                self._print_object_info(info)
-        elif command == 'r':
-            object_id   = input('  object_id? ')
-            attach_link = input('  attach_link? ') if object_id == '' else\
-                          ''
-            self.com.remove_object(object_id, attach_link)
         elif command == 'H':
             self.go_to_named_pose('all_bots', 'home')
         elif command == 'B':
@@ -141,7 +120,7 @@ class AssemblyRoutines(BaseRoutines):
 
     def pick_tool(self, robot_name, tool_name, *, timeout_sec=None):
         if self.gripper(robot_name).name == tool_name:
-            return True
+            return (GoalStatus.STATUS_SUCCEEDED, None)
         elif self.gripper(robot_name).name != \
              self.default_gripper_name(robot_name):
             self.place_tool(robot_name)
@@ -157,7 +136,7 @@ class AssemblyRoutines(BaseRoutines):
         tool_name            = self.gripper(robot_name).name
         default_gripper_name = self.default_gripper_name(robot_name)
         if tool_name == default_gripper_name:
-            return PickOrPlaceTaskClient.Success
+            return (GoalStatus.STATUS_SUCCEEDED, None)
         self.set_gripper(robot_name, default_gripper_name)
         return self.place_at_frame(robot_name, tool_name,
                                    tool_name + '_holder_link',
