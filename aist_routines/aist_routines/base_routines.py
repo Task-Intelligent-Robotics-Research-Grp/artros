@@ -1006,9 +1006,11 @@ class BaseRoutines(Node):
     # Utility functions
     #
     def print_object_info(self, info):
-        print('    object_id:   %s\n    type:        %s\n    parent_link: %s\n    attach_link: %s\n    touch_links: %s\n    pose:\n%s'
+        print('    object_id:   %s\n    type:        %s\n    parent_link: %s\n    attach_link: %s\n    touch_links: %s\n    pose: %s@%s'
               % (info.object_id, info.object_type, info.parent_link,
-                 info.attach_link, info.touch_links, info.pose))
+                 info.attach_link, info.touch_links,
+                 self.format_pose(info.pose, info.pose.header.frame_id),
+                 info.pose.header.frame_id))
 
     def transform_points_to_target_frame(self, header, points,
                                          target_frame=''):
@@ -1119,7 +1121,7 @@ class BaseRoutines(Node):
                                          pose.orientation, up.vector))
                                 for pose in poses.poses])
 
-    def pose_from_xyzrpy(self, xyzrpy=(), frame_id=''):
+    def pose_from_xyzrpy(self, xyzrpy, frame_id=''):
         if frame_id == '':
             frame_id = self.reference_frame
         t = self._position_from_offset(xyzrpy[0:3])
@@ -1129,8 +1131,9 @@ class BaseRoutines(Node):
                                      orientation=Quaternion(x=q[0], y=q[1],
                                                             z=q[2], w=q[3])))
 
-    def xyzrpy_from_pose(self, pose):
-        transformed_pose = self.transform_pose_to_target_frame(pose).pose
+    def xyzrpy_from_pose(self, pose, target_frame=''):
+        transformed_pose = self.transform_pose_to_target_frame(
+                               pose, target_frame=target_frame).pose
         rpy = tfs.euler_from_quaternion((transformed_pose.orientation.x,
                                          transformed_pose.orientation.y,
                                          transformed_pose.orientation.z,
@@ -1140,9 +1143,9 @@ class BaseRoutines(Node):
                 transformed_pose.position.z,
                 degrees(rpy[0]), degrees(rpy[1]), degrees(rpy[2])]
 
-    def format_pose(self, target_pose):
+    def format_pose(self, target_pose, target_frame=''):
         return '[{:.4f}, {:.4f}, {:.4f}; {:.2f}, {:.2f}. {:.2f}]'.format(
-            *self.xyzrpy_from_pose(target_pose))
+            *self.xyzrpy_from_pose(target_pose, target_frame))
 
     #
     # Private functions

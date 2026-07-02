@@ -116,6 +116,8 @@ class PickOrPlaceTaskServer(ActionServer):
                 gripper.wait()      # Wait for pregrasp completed
                 if object_id != '':
                     com.allow_collision(object_id, gripper.tip_link)
+                    print('### allow %s collision against %s'
+                          % (object_id, gripper.tip_link))
             elif object_id != '':
                 com.append_touch_links(object_id, request.pose.header.frame_id)
 
@@ -135,6 +137,7 @@ class PickOrPlaceTaskServer(ActionServer):
                 if object_id != '':
                     original_object_info = com.attach_object(object_id,
                                                              gripper.tip_link)
+                    print('### original_object_info=%s' % original_object_info)
             else:
                 gripper.release()
                 if object_id != '':
@@ -175,6 +178,7 @@ class PickOrPlaceTaskServer(ActionServer):
                                           original_object_info.parent_link,
                                           self._get_object_id(
                                               gripper.tip_link))
+                        print('### Detach %s' % object_id)
                 raise self._Error('Failed to depart from target',
                                   stage='depart')
 
@@ -201,6 +205,7 @@ class PickOrPlaceTaskServer(ActionServer):
             return PickOrPlace.Result(stage='')
 
         finally:
+            pass
             if object_id != '':
                 #com.disallow_collision(object_id, gripper.tip_link)
                 com.reset_touch_links()

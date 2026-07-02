@@ -128,6 +128,21 @@ def _transform_from_pose(pose):
                                          z=pose.orientation.z,
                                          w=pose.orientation.w))
 
+def _format_transform(transform):
+    return '{}<={}: [{:.4f}, {:.4f}, {:.4f}; {:.4f}, {:.4f}. {:.4f}. {:.4f}]' \
+        .format(transform.header.frame_id, transform.child_frame_id,
+                transform.transform.translation.x,
+                transform.transform.translation.y,
+                transform.transform.translation.z,
+                transform.transform.rotation.x, transform.transform.rotation.y,
+                transform.transform.rotation.z, transform.transform.rotation.w)
+
+def _format_pose(pose):
+    return '[{:.4f}, {:.4f}, {:.4f}; {:.4f}, {:.4f}. {:.4f}. {:.4f}]' \
+        .format(pose.position.x, pose.position.y, pose.position.z,
+                pose.orientation.x, pose.orientation.y,
+                pose.orientation.z, pose.orientation.w)
+
 #************************************************************************
 #  class CollisionObjectManager                                         *
 #************************************************************************
@@ -470,8 +485,10 @@ class CollisionObjectManager(Node):
         # If the object pose is specified as that of subframe other than
         # 'base_link', convert the given pose to that of 'base_link'.
         # Then compute a transform from 'base_link' to the new parent link.
+        self.get_logger().warn('### Before: %s' % _format_pose(pose))
         frame_id, pose = self._find_base_link_and_pose(frame_id, pose,
                                                        co, subframe)
+        self.get_logger().warn('### After:  %s' % _format_pose(pose))
         co.header.frame_id = frame_id
         co.pose            = pose
 
@@ -579,6 +596,7 @@ class CollisionObjectManager(Node):
         Tpo = self._tf2_buffer.lookup_transform(parent_link,
                                                 co.id + '/base_link', Time())
         self._instance_props_dict[co.id].subframe_transforms[0] = Tpo
+        self.get_logger().warn('### Tpo: %s' % _format_transform(Tpo))
 
         # If 'parent_link' is a 'base_link' of another object, find its
         # attach link and compute pose of 'co' w.r.t. it.
@@ -611,13 +629,13 @@ class CollisionObjectManager(Node):
         # to the parent link.
         self._instance_props_dict[aco.object.id].subframe_transforms[0] \
             = self._tf2_buffer.lookup_transform(_get_base_link(parent_link),
-                                            aco.object.id + '/base_link',
-                                            Time())
+                                                aco.object.id + '/base_link',
+                                                Time())
 
         # Detach 'aco' from its attach link.
-        self._psi.remove_attached_object(name=aco.object.id)
         self.get_logger().info("detached '%s' from '%s'"
-                               %(aco.object.id, aco.link_name))
+                               % (aco.object.id, aco.link_name))
+        self._psi.remove_attached_object(name=aco.object.id)
 
         # Since all child attached objects are connected to the current
         # object 'co', we have to switch their attach links to 'link'.
@@ -662,18 +680,21 @@ class CollisionObjectManager(Node):
                                        Time()).transform) @ \
                                tfs.inverse_matrix(_pose_matrix(co.pose)))
 
-    def _append_or_remove_touch_links(self, object_id, link, append):
-        self.get_logger().info("*%s_TOUCH_LINKS*: object_id='%s', link='%s'"
+    def _append_or_remove_touch_links(self, object_id, frame_id, append):
+        self.get_logger().info("*%s_TOUCH_LINKS*: object_id='%s', frame_id='%s'"
                                % ('APPEND' if append else 'REMOVE',
-                                  object_id, link))
+                                  object_id, frame_id))
 
         aco = self._get_attached_object(object_id)
         if aco is None:
+            self.get_logger().warn('attached collision object[%s] not found'
+                                   % object_id)
             return
         touch_links = list(set(aco.touch_links) |
-                           set(self._get_touch_links(link))) if append else \
+                           set(self._get_touch_links(frame_id))) \
+                      if append else \
                       list(set(aco.touch_links) -
-                           set(self._get_touch_links(link)))
+                           set(self._get_touch_links(frame_id)))
         self._psi.attach_object(aco, touch_links=touch_links)
         self.get_logger().info(
             "protect '%s' attached to '%s' with touch links%s"
@@ -950,7 +971,6 @@ def main():
         rclpy.init(args=sys.argv)
 
         node = CollisionObjectManager('collision_object_manager')
-        # rclpy.spin(node)
         executor = MultiThreadedExecutor()
         executor.add_node(node)
         executor.spin()
