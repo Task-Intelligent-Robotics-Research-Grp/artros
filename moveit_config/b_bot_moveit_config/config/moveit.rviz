@@ -4,9 +4,13 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /MotionPlanning1
         - /MotionPlanning1/Scene Robot1
-        - /MotionPlanning1/Planning Request1
+        - /TF1
         - /TF1/Frames1
+        - /TF1/Frames1/screw_tool_m4/base_link1
+        - /CollisionObjects1
+        - /Contacts1
       Splitter Ratio: 0.5
     Tree Height: 716
   - Class: rviz_common/Help
@@ -73,6 +77,10 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          a_motioncam_reference:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           a_motioncam_sensor:
             Alpha: 1
             Show Axes: false
@@ -90,11 +98,31 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          b_bot_camera_color_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           b_bot_camera_color_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
           b_bot_camera_connector_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_depth_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_depth_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_left_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_left_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -109,6 +137,14 @@ Visualization Manager:
             Show Trail: false
             Value: true
           b_bot_camera_mount_flange:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_right_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_right_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -386,10 +422,6 @@ Visualization Manager:
             Show Trail: false
             Value: true
           ground:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          live_camera_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -620,7 +652,7 @@ Visualization Manager:
         TextHeight: 0.07999999821186066
       Planning Request:
         Colliding Link Color: 255; 0; 0
-        Goal State Alpha: 1
+        Goal State Alpha: 0.5
         Goal State Color: 250; 128; 0
         Interactive Marker Size: 0.10000000149011612
         Joint Violation Color: 255; 0; 255
@@ -652,6 +684,10 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          a_motioncam_reference:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           a_motioncam_sensor:
             Alpha: 1
             Show Axes: false
@@ -669,11 +705,31 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          b_bot_camera_color_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           b_bot_camera_color_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
           b_bot_camera_connector_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_depth_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_depth_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_left_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_left_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -688,6 +744,14 @@ Visualization Manager:
             Show Trail: false
             Value: true
           b_bot_camera_mount_flange:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_right_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_right_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -968,10 +1032,6 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          live_camera_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           screw_feeder_m3_base_link:
             Alpha: 1
             Show Axes: false
@@ -1180,7 +1240,7 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-        Robot Alpha: 0.5
+        Robot Alpha: 1
         Show Robot Collision: false
         Show Robot Visual: true
       Value: true
@@ -1194,6 +1254,8 @@ Visualization Manager:
         All Enabled: false
         a_motioncam_link:
           Value: false
+        a_motioncam_reference:
+          Value: true
         a_motioncam_sensor:
           Value: false
         b_bot_base:
@@ -1202,15 +1264,29 @@ Visualization Manager:
           Value: false
         b_bot_base_link_inertia:
           Value: false
+        b_bot_camera_color_frame:
+          Value: false
         b_bot_camera_color_optical_frame:
           Value: false
         b_bot_camera_connector_link:
+          Value: false
+        b_bot_camera_depth_frame:
+          Value: false
+        b_bot_camera_depth_optical_frame:
+          Value: false
+        b_bot_camera_left_ir_frame:
+          Value: false
+        b_bot_camera_left_ir_optical_frame:
           Value: false
         b_bot_camera_link:
           Value: false
         b_bot_camera_mount:
           Value: false
         b_bot_camera_mount_flange:
+          Value: false
+        b_bot_camera_right_ir_frame:
+          Value: false
+        b_bot_camera_right_ir_optical_frame:
           Value: false
         b_bot_flange:
           Value: false
@@ -1266,8 +1342,6 @@ Visualization Manager:
           Value: false
         b_bot_tool0:
           Value: false
-        b_bot_tool0_controller:
-          Value: false
         b_bot_upper_arm_link:
           Value: false
         b_bot_usb_repeater_base_link:
@@ -1287,6 +1361,46 @@ Visualization Manager:
         b_bot_wrist_2_link:
           Value: false
         b_bot_wrist_3_link:
+          Value: false
+        base/base_link:
+          Value: false
+        base/big_hole_1:
+          Value: false
+        base/big_hole_2:
+          Value: false
+        base/big_hole_3:
+          Value: false
+        base/big_hole_4:
+          Value: false
+        base/cable_pin1:
+          Value: false
+        base/cable_pin2:
+          Value: false
+        base/cable_pin3:
+          Value: false
+        base/cable_pin4:
+          Value: false
+        base/corner_1:
+          Value: false
+        base/corner_2:
+          Value: false
+        base/corner_3:
+          Value: false
+        base/corner_4:
+          Value: false
+        base/default_grasp:
+          Value: false
+        base/fixture_grasp:
+          Value: false
+        base/panel_bearing_screw_hole_1:
+          Value: true
+        base/panel_bearing_screw_hole_2:
+          Value: true
+        base/panel_motor_screw_hole_1:
+          Value: true
+        base/panel_motor_screw_hole_2:
+          Value: true
+        base/terminal_top:
           Value: false
         base_fixture_base_link:
           Value: false
@@ -1330,7 +1444,89 @@ Visualization Manager:
           Value: false
         ground:
           Value: false
-        live_camera_optical_frame:
+        panel_bearing/base_link:
+          Value: false
+        panel_bearing/base_screw_hole_1:
+          Value: false
+        panel_bearing/base_screw_hole_2:
+          Value: false
+        panel_bearing/base_screw_hole_aligner_1:
+          Value: false
+        panel_bearing/base_screw_hole_aligner_2:
+          Value: false
+        panel_bearing/bearing_screw_hole_1:
+          Value: false
+        panel_bearing/bearing_screw_hole_2:
+          Value: false
+        panel_bearing/bearing_screw_hole_3:
+          Value: false
+        panel_bearing/bearing_screw_hole_4:
+          Value: false
+        panel_bearing/bottom_corner_1:
+          Value: false
+        panel_bearing/bottom_corner_2:
+          Value: false
+        panel_bearing/default_grasp:
+          Value: false
+        panel_bearing/front_hole:
+          Value: false
+        panel_bearing/pulley_ridge_bottom:
+          Value: false
+        panel_bearing/pulley_ridge_middle:
+          Value: false
+        panel_bearing/pulley_ridge_top:
+          Value: false
+        panel_motor/back_hole:
+          Value: false
+        panel_motor/back_hole_bottom:
+          Value: false
+        panel_motor/base_link:
+          Value: false
+        panel_motor/base_screw_hole_1:
+          Value: false
+        panel_motor/base_screw_hole_2:
+          Value: false
+        panel_motor/base_screw_hole_aligner_1:
+          Value: false
+        panel_motor/base_screw_hole_aligner_2:
+          Value: false
+        panel_motor/bottom_corner_1:
+          Value: false
+        panel_motor/bottom_corner_2:
+          Value: false
+        panel_motor/center:
+          Value: false
+        panel_motor/default_grasp:
+          Value: false
+        panel_motor/motor_screw_hole_1:
+          Value: false
+        panel_motor/motor_screw_hole_2:
+          Value: false
+        panel_motor/motor_screw_hole_3:
+          Value: false
+        panel_motor/motor_screw_hole_4:
+          Value: false
+        panel_motor/motor_screw_hole_5:
+          Value: false
+        panel_motor/motor_screw_hole_6:
+          Value: false
+        panel_motor/motor_screw_hole_aligner_1:
+          Value: false
+        panel_motor/motor_screw_hole_aligner_2:
+          Value: false
+        panel_motor/motor_screw_hole_aligner_3:
+          Value: false
+        panel_motor/motor_screw_hole_aligner_4:
+          Value: false
+        panel_motor/motor_screw_hole_aligner_5:
+          Value: false
+        panel_motor/motor_screw_hole_aligner_6:
+          Value: false
+        precision_tool/base_link:
+          Value: false
+        precision_tool/tip_link:
+          Value: false
+        precision_tool_holder_link:
           Value: false
         screw_feeder_m3_base_link:
           Value: false
@@ -1356,14 +1552,26 @@ Visualization Manager:
           Value: false
         screw_feeder_m4_outlet_link:
           Value: false
+        screw_tool_m3/base_link:
+          Value: true
+        screw_tool_m3/tip_link:
+          Value: true
         screw_tool_m3_holder_base_link:
           Value: false
         screw_tool_m3_holder_link:
           Value: false
+        screw_tool_m4/base_link:
+          Value: true
+        screw_tool_m4/tip_link:
+          Value: true
         screw_tool_m4_holder_base_link:
           Value: false
         screw_tool_m4_holder_link:
           Value: false
+        suction_tool/base_link:
+          Value: false
+        suction_tool/tip_link:
+          Value: true
         suction_tool_holder_base_link:
           Value: false
         suction_tool_holder_link:
@@ -1422,7 +1630,7 @@ Visualization Manager:
           Value: false
         world:
           Value: false
-      Marker Scale: 0.15000000596046448
+      Marker Scale: 0.20000000298023224
       Name: TF
       Show Arrows: false
       Show Axes: true
@@ -1442,8 +1650,7 @@ Visualization Manager:
                   b_bot_table_top_center:
                     b_bot_base_link:
                       b_bot_base:
-                        b_bot_tool0_controller:
-                          {}
+                        {}
                       b_bot_base_link_inertia:
                         b_bot_shoulder_link:
                           b_bot_upper_arm_link:
@@ -1469,10 +1676,19 @@ Visualization Manager:
                                               b_bot_camera_mount_flange:
                                                 b_bot_camera_connector_link:
                                                   b_bot_camera_link:
-                                                    {}
+                                                    b_bot_camera_depth_frame:
+                                                      b_bot_camera_color_frame:
+                                                        b_bot_camera_color_optical_frame:
+                                                          {}
+                                                      b_bot_camera_depth_optical_frame:
+                                                        {}
+                                                      b_bot_camera_left_ir_frame:
+                                                        b_bot_camera_left_ir_optical_frame:
+                                                          {}
+                                                      b_bot_camera_right_ir_frame:
+                                                        b_bot_camera_right_ir_optical_frame:
+                                                          {}
                                             b_bot_gripper_base_link:
-                                              b_bot_camera_color_optical_frame:
-                                                {}
                                               b_bot_gripper_robotiq_arg2f_base_link:
                                                 b_bot_gripper_left_inner_knuckle:
                                                   {}
@@ -1508,13 +1724,19 @@ Visualization Manager:
                   cage_tool_bar:
                     screw_tool_m3_holder_base_link:
                       screw_tool_m3_holder_link:
-                        {}
+                        screw_tool_m3/base_link:
+                          screw_tool_m3/tip_link:
+                            {}
                     screw_tool_m4_holder_base_link:
                       screw_tool_m4_holder_link:
-                        {}
+                        screw_tool_m4/base_link:
+                          screw_tool_m4/tip_link:
+                            {}
                     suction_tool_holder_base_link:
                       suction_tool_holder_link:
-                        {}
+                        suction_tool/base_link:
+                          suction_tool/tip_link:
+                            {}
                   workbench_base_link:
                     screw_feeder_m3_base_link:
                       screw_feeder_m3_front_left_side:
@@ -1538,7 +1760,37 @@ Visualization Manager:
                       tray_1_frame_1:
                         {}
                       tray_1_frame_2:
-                        {}
+                        panel_bearing/base_link:
+                          panel_bearing/base_screw_hole_1:
+                            {}
+                          panel_bearing/base_screw_hole_2:
+                            {}
+                          panel_bearing/base_screw_hole_aligner_1:
+                            {}
+                          panel_bearing/base_screw_hole_aligner_2:
+                            {}
+                          panel_bearing/bearing_screw_hole_1:
+                            {}
+                          panel_bearing/bearing_screw_hole_2:
+                            {}
+                          panel_bearing/bearing_screw_hole_3:
+                            {}
+                          panel_bearing/bearing_screw_hole_4:
+                            {}
+                          panel_bearing/bottom_corner_1:
+                            {}
+                          panel_bearing/bottom_corner_2:
+                            {}
+                          panel_bearing/default_grasp:
+                            {}
+                          panel_bearing/front_hole:
+                            {}
+                          panel_bearing/pulley_ridge_bottom:
+                            {}
+                          panel_bearing/pulley_ridge_middle:
+                            {}
+                          panel_bearing/pulley_ridge_top:
+                            {}
                     workbench_back_bar:
                       {}
                     workbench_center_bar:
@@ -1555,17 +1807,95 @@ Visualization Manager:
                       workbench_table_top:
                         workbench_table_top_origin:
                           base_fixture_base_link:
-                            base_fixture_piston:
-                              base_fixture_piston_head:
-                                base_fixture_head_base_link:
-                                  base_fixture_head_tip_link:
-                                    {}
                             base_fixture_tip_link:
                               {}
                           workbench_front_border:
                             {}
                           workbench_holder_link:
-                            {}
+                            base/base_link:
+                              base/big_hole_1:
+                                {}
+                              base/big_hole_2:
+                                {}
+                              base/big_hole_3:
+                                {}
+                              base/big_hole_4:
+                                {}
+                              base/cable_pin1:
+                                {}
+                              base/cable_pin2:
+                                {}
+                              base/cable_pin3:
+                                {}
+                              base/cable_pin4:
+                                {}
+                              base/corner_1:
+                                {}
+                              base/corner_2:
+                                {}
+                              base/corner_3:
+                                {}
+                              base/corner_4:
+                                {}
+                              base/default_grasp:
+                                {}
+                              base/fixture_grasp:
+                                {}
+                              base/panel_bearing_screw_hole_1:
+                                {}
+                              base/panel_bearing_screw_hole_2:
+                                {}
+                              base/panel_motor_screw_hole_1:
+                                {}
+                              base/panel_motor_screw_hole_2:
+                                {}
+                              base/terminal_top:
+                                {}
+                              panel_motor/base_link:
+                                panel_motor/back_hole:
+                                  {}
+                                panel_motor/back_hole_bottom:
+                                  {}
+                                panel_motor/base_screw_hole_1:
+                                  {}
+                                panel_motor/base_screw_hole_2:
+                                  {}
+                                panel_motor/base_screw_hole_aligner_1:
+                                  {}
+                                panel_motor/base_screw_hole_aligner_2:
+                                  {}
+                                panel_motor/bottom_corner_1:
+                                  {}
+                                panel_motor/bottom_corner_2:
+                                  {}
+                                panel_motor/center:
+                                  {}
+                                panel_motor/default_grasp:
+                                  {}
+                                panel_motor/motor_screw_hole_1:
+                                  {}
+                                panel_motor/motor_screw_hole_2:
+                                  {}
+                                panel_motor/motor_screw_hole_3:
+                                  {}
+                                panel_motor/motor_screw_hole_4:
+                                  {}
+                                panel_motor/motor_screw_hole_5:
+                                  {}
+                                panel_motor/motor_screw_hole_6:
+                                  {}
+                                panel_motor/motor_screw_hole_aligner_1:
+                                  {}
+                                panel_motor/motor_screw_hole_aligner_2:
+                                  {}
+                                panel_motor/motor_screw_hole_aligner_3:
+                                  {}
+                                panel_motor/motor_screw_hole_aligner_4:
+                                  {}
+                                panel_motor/motor_screw_hole_aligner_5:
+                                  {}
+                                panel_motor/motor_screw_hole_aligner_6:
+                                  {}
                           workbench_right_border:
                             {}
                           workbench_table_top_center:
@@ -1582,11 +1912,9 @@ Visualization Manager:
                 {}
             workspace_center:
               a_motioncam_link:
-                {}
-              a_motioncam_sensor:
-                {}
-              live_camera_optical_frame:
-                {}
+                a_motioncam_reference:
+                  a_motioncam_sensor:
+                    {}
               virtual_screen:
                 {}
             workspace_table_base_link:
@@ -1602,6 +1930,30 @@ Visualization Manager:
                     {}
       Update Interval: 0
       Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: CollisionObjects
+      Namespaces:
+        "": true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /collision_object_manager/collision_marker
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: Contacts
+      Namespaces:
+        {}
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /display_contacts
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -1613,6 +1965,7 @@ Visualization Manager:
       Hide Inactive Objects: true
     - Class: rviz_default_plugins/MoveCamera
     - Class: rviz_default_plugins/Select
+    - Class: rviz_default_plugins/FocusCamera
   Transformation:
     Current:
       Class: rviz_default_plugins/TF
@@ -1620,25 +1973,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 1.8069031238555908
+      Distance: 1.1201965808868408
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.5210866928100586
-        Y: 0.05455828830599785
-        Z: 1.2469381093978882
+        X: -0.517451286315918
+        Y: 0.04571013152599335
+        Z: 1.009020447731018
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.02499992772936821
+      Pitch: 0.43537718057632446
       Target Frame: world
       Value: Orbit (rviz_default_plugins)
-      Yaw: 0.02200639806687832
+      Yaw: 6.279652118682861
     Saved: ~
 Window Geometry:
   Displays:
@@ -1652,9 +2005,9 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd00000001000000000000022300000371fc0200000004fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004400fffffffc0000003f00000371000001b50100001efa000000000100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001ee00fffffffb000000100044006900730070006c0061007900730100000000000002b40000015600fffffffb0000000800480065006c0070000000029a0000006e0000006f00fffffffb0000000a0056006900650077007300000002fd000000b5000000a900ffffff000004f40000037100000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd00000001000000000000022300000371fc0200000004fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004400fffffffc0000003f00000371000001b50100001efa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001ee00fffffffb000000100044006900730070006c0061007900730100000000000002b40000015600fffffffb0000000800480065006c0070000000029a0000006e0000006f00fffffffb0000000a0056006900650077007300000002fd000000b5000000a900ffffff000004f40000037100000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
   Width: 1821
-  X: 6727
-  Y: 70
+  X: 6760
+  Y: 108

@@ -35,7 +35,7 @@
 #
 # Author: Toshio Ueshiba
 #
-import os, sys, yaml, copy, rclpy, threading
+import os, sys, yaml, copy, rclpy, threading, time
 import numpy as np
 import tf_transformations as tfs
 import pyassimp
@@ -129,7 +129,7 @@ def _transform_from_pose(pose):
                                          w=pose.orientation.w))
 
 def _format_transform(transform):
-    return '{}<={}: [{:.4f}, {:.4f}, {:.4f}; {:.4f}, {:.4f}. {:.4f}. {:.4f}]' \
+    return '{} <= {}: [{:.4f}, {:.4f}, {:.4f}; {:.4f}, {:.4f}. {:.4f}. {:.4f}]' \
         .format(transform.header.frame_id, transform.child_frame_id,
                 transform.transform.translation.x,
                 transform.transform.translation.y,
@@ -192,9 +192,6 @@ class CollisionObjectManager(Node):
                         'SPHERE':   SolidPrimitive.SPHERE,
                         'CYLINDER': SolidPrimitive.CYLINDER,
                         'CONE':     SolidPrimitive.CONE}
-        STR_ARY_DESC = ParameterDescriptor(
-                           type=ParameterType.PARAMETER_STRING_ARRAY)
-        self._psi = None
 
         # Create a dictionary of object properties loaded from database.
         self._obj_props_dict = {}
@@ -259,32 +256,30 @@ class CollisionObjectManager(Node):
         if not self._get_planning_scene.wait_for_service(timeout_sec=5.0):
             raise RuntimeError('failed to establish connection to the service[get_planning_scene]')
 
-        self._instance_props_dict   = {}
-        self._touch_links           = self._load_databases(
-                                          self.declare_parameter(
+        self._instance_props_dict = {}
+        self._instance_props_lock = threading.Lock()
+        self._touch_links         = self._load_databases(
+                                        self.declare_parameter(
                                               'touch_links_urls', ['']).value)
-        self._marker_id_min         = 0
-        self._marker_id_lists       = {}
-        self._marker_pub            = self.create_publisher(
-                                          MarkerArray, '~/collision_marker',
-                                          10)
-        self._tf2_buffer            = Buffer()
-        self._tf2_listener          = TransformListener(self._tf2_buffer, self)
-        self._broadcaster           = TransformBroadcaster(self)
-        self._lock                  = threading.Lock()
-        self._timer_cbg             = MutuallyExclusiveCallbackGroup()
-        self._timer                 = self.create_timer(
-                                          0.1, self._subframes_and_markers_cb,
-                                          self._timer_cbg)
+        self._marker_id_min       = 0
+        self._marker_id_lists     = {}
+        self._marker_pub          = self.create_publisher(MarkerArray,
+                                                          '~/collision_marker',
+                                                          10)
+        self._tf2_buffer          = Buffer()
+        self._tf2_listener        = TransformListener(self._tf2_buffer, self)
+        self._broadcaster         = TransformBroadcaster(self)
+        self._timer_cbg           = MutuallyExclusiveCallbackGroup()
+        self._timer               = self.create_timer(
+                                        0.1, self._subframes_and_markers_cb,
+                                        self._timer_cbg)
         self._get_collision_object \
             = self.create_service(GetCollisionObject, '~/get_collision_object',
                                   self._get_collision_object_cb)
-        self._manage_collision_object_cbg = MutuallyExclusiveCallbackGroup()
         self._manage_collision_object \
             = self.create_service(
                   ManageCollisionObject, '~/manage_collision_object',
-                  self._manage_collision_object_cb,
-                  callback_group=self._manage_collision_object_cbg)
+                  self._manage_collision_object_cb)
 
     #
     # File loaders
@@ -335,14 +330,17 @@ class CollisionObjectManager(Node):
 
         Publish subframes and visual markers periodically.
         """
-        with self._lock:
+        transforms = []
+        markers = []
+        with self._instance_props_lock:
             for instance_props in self._instance_props_dict.values():
                 for subframe_transform in instance_props.subframe_transforms:
                     subframe_transform.header.stamp \
                         = self.get_clock().now().to_msg()
-                    self._broadcaster.sendTransform(subframe_transform)
-                self._marker_pub.publish(
-                    MarkerArray(markers=instance_props.markers))
+                    transforms.append(subframe_transform)
+                markers += instance_props.markers
+        self._broadcaster.sendTransform(transforms)
+        self._marker_pub.publish(MarkerArray(markers=markers))
 
     def _get_collision_object_cb(self, req, res):
         """ Service callback for GetCollisionObject.
@@ -360,16 +358,16 @@ class CollisionObjectManager(Node):
             return
 
         try:
-            res.visual_array = [self._create_link_geometry(mesh_url, mesh_pose,
-                                                           mesh_scale)
+            res.visual_array = [self._create_link_mesh(mesh_url,
+                                                       mesh_pose, mesh_scale)
                                 for mesh_url, mesh_pose, mesh_scale
                                 in zip(obj_props.visual_mesh_urls,
                                        obj_props.visual_mesh_poses,
                                        obj_props.visual_mesh_scales)]
             if not obj_props.primitives:
-                res.collision_array = [self._create_link_geometry(mesh_url,
-                                                                  mesh_pose,
-                                                                  mesh_scale)
+                res.collision_array = [self._create_link_mesh(mesh_url,
+                                                              mesh_pose,
+                                                              mesh_scale)
                                        for mesh_url, mesh_pose, mesh_scale
                                        in zip(obj_props.collision_mesh_urls,
                                               obj_props.collision_mesh_poses,
@@ -380,15 +378,11 @@ class CollisionObjectManager(Node):
                                        for primitive, primitive_pose
                                        in zip(obj_props.primitives,
                                               obj_props.primitive_poses)]
-            res.material_array = [self._create_material(mesh_color)
+            res.material_array = [self._create_link_material(mesh_color)
                                   for mesh_color
                                   in obj_props.visual_mesh_colors]
         except Exception as e:
             self.get_logger().error('_get_collision_object_cb(): %s' % e)
-
-        # self.get_logger().info(
-        #     'returned GetCollisionObject service response[object_type=%s]'
-        #     % req.object_type)
 
         return res
 
@@ -438,9 +432,6 @@ class CollisionObjectManager(Node):
             self.get_logger().error('_manage_collision_object_cb(): %s' % e)
             res.success = False
 
-        # self.get_logger().info(
-        #     '--- returned ManageCollisionObject service response ---')
-
         return res
 
     #
@@ -472,23 +463,19 @@ class CollisionObjectManager(Node):
         # Setup a new collision object.
         co = CollisionObject()
         co.id = object_id
-        if obj_props.collision_meshes != []:
-            co.meshes     = obj_props.collision_meshes
-            co.mesh_poses = obj_props.collision_mesh_poses
-        else:
-            co.primitives      = obj_props.primitives
-            co.primitive_poses = obj_props.primitive_poses
-        co.subframe_names = obj_props.subframe_names
-        co.subframe_poses = obj_props.subframe_poses
-        co.operation      = CollisionObject.ADD
+        co.primitives      = obj_props.primitives
+        co.primitive_poses = obj_props.primitive_poses
+        co.meshes          = obj_props.collision_meshes
+        co.mesh_poses      = obj_props.collision_mesh_poses
+        co.subframe_names  = obj_props.subframe_names
+        co.subframe_poses  = obj_props.subframe_poses
+        co.operation       = CollisionObject.ADD
 
         # If the object pose is specified as that of subframe other than
         # 'base_link', convert the given pose to that of 'base_link'.
         # Then compute a transform from 'base_link' to the new parent link.
-        self.get_logger().warn('### Before: %s' % _format_pose(pose))
         frame_id, pose = self._find_base_link_and_pose(frame_id, pose,
                                                        co, subframe)
-        self.get_logger().warn('### After:  %s' % _format_pose(pose))
         co.header.frame_id = frame_id
         co.pose            = pose
 
@@ -539,7 +526,7 @@ class CollisionObjectManager(Node):
             instance_props.markers.append(marker)
 
         # Store object info.
-        with self._lock:
+        with self._instance_props_lock:
             self._instance_props_dict[object_id] = instance_props
 
         # Add object to AllowedCollisionMatrix(acm)
@@ -593,10 +580,11 @@ class CollisionObjectManager(Node):
 
         # Lookup transform from 'base_link' of the current collision object
         # to the parent link.
+        now = self.get_clock().now()
         Tpo = self._tf2_buffer.lookup_transform(parent_link,
                                                 co.id + '/base_link', Time())
-        self._instance_props_dict[co.id].subframe_transforms[0] = Tpo
-        self.get_logger().warn('### Tpo: %s' % _format_transform(Tpo))
+        with self._instance_props_lock:
+            self._instance_props_dict[co.id].subframe_transforms[0] = Tpo
 
         # If 'parent_link' is a 'base_link' of another object, find its
         # attach link and compute pose of 'co' w.r.t. it.
@@ -627,10 +615,11 @@ class CollisionObjectManager(Node):
 
         # Lookup transform from 'base_link' of the current collision object
         # to the parent link.
-        self._instance_props_dict[aco.object.id].subframe_transforms[0] \
-            = self._tf2_buffer.lookup_transform(_get_base_link(parent_link),
-                                                aco.object.id + '/base_link',
-                                                Time())
+        with self._instance_props_lock:
+            self._instance_props_dict[aco.object.id].subframe_transforms[0] \
+                = self._tf2_buffer.lookup_transform(
+                      _get_base_link(parent_link),
+                       aco.object.id + '/base_link', Time())
 
         # Detach 'aco' from its attach link.
         self.get_logger().info("detached '%s' from '%s'"
@@ -646,7 +635,7 @@ class CollisionObjectManager(Node):
                                          _pose_matrix(co.pose) @
                                          tfs.inverse_matrix(
                                              _pose_matrix(aco.object.pose)))
-        self._append_or_remove_touch_links(old_root_id, old_parent_link, True)
+        #self._append_or_remove_touch_links(old_root_id, old_parent_link, True)
 
     def _move_object(self, object_id, frame_id, pose, subframe):
         self.get_logger().info(
@@ -669,10 +658,11 @@ class CollisionObjectManager(Node):
         # described w.r.t. 'parent_link' which is a parent link of 'object_id'.
         parent_link, pose = self._find_base_link_and_pose(parent_link, pose,
                                                           co, subframe)
-        self._instance_props_dict[co.id].subframe_transforms[0] \
-            = TransformStamped(header=Header(frame_id=parent_link),
-                               child_frame_id=co.id + '/base_link',
-                               transform=_transform_from_pose(pose))
+        with self._instance_props_lock:
+            self._instance_props_dict[co.id].subframe_transforms[0] \
+                = TransformStamped(header=Header(frame_id=parent_link),
+                                   child_frame_id=co.id + '/base_link',
+                                   transform=_transform_from_pose(pose))
         self._move_descendants(co,
                                _transform_matrix(
                                    self._tf2_buffer.lookup_transform(
@@ -774,7 +764,7 @@ class CollisionObjectManager(Node):
     #
     # Utilities
     #
-    def _create_link_geometry(self, mesh_url, mesh_pose, mesh_scale):
+    def _create_link_mesh(self, mesh_url, mesh_pose, mesh_scale):
         link_geometry = LinkGeometry()
         link_geometry.origin = mesh_pose
         link_geometry.primitive.type = 0  # Mesh
@@ -787,7 +777,7 @@ class CollisionObjectManager(Node):
     def _create_link_primitive(self, primitive, primitive_pose):
         return LinkGeometry(origin=primitive_pose, primitive=primitive)
 
-    def _create_material(self, color):
+    def _create_link_material(self, color):
         return Material(color=color, texture_height=0, texture_width=0)
 
     def _rotate_tree(self, co, leaf_id):
@@ -814,9 +804,10 @@ class CollisionObjectManager(Node):
 
         # Reverse parent-child relation between 'co' and its parent.
         old_root_id, old_parent_link = self._rotate_tree(parent_co, leaf_id)
-        self._instance_props_dict[parent_co.id].subframe_transforms[0] \
-            = _inverse_transform(
-                    self._instance_props_dict[co.id].subframe_transforms[0])
+        with self._instance_props_dict:
+            self._instance_props_dict[parent_co.id].subframe_transforms[0] \
+                = _inverse_transform(
+                      self._instance_props_dict[co.id].subframe_transforms[0])
         return old_root_id, old_parent_link
 
     def _attach_descendants(self, co, attach_link, T):
@@ -825,8 +816,9 @@ class CollisionObjectManager(Node):
         co.pose = _pose_from_matrix(T @ _pose_matrix(co.pose))
         touch_links = self._get_parent_touch_links(co.id)
         self._psi.attach_object(co, attach_link, touch_links)
-        self.get_logger().info("attached '%s' to '%s' with touch_links%s"
-                               %(co.id, attach_link, touch_links))
+        self.get_logger().info("attached '%s' to '%s'@%s with touch_links%s"
+                               %(co.id, attach_link, _format_pose(co.pose),
+                                 touch_links))
 
         # Since all child attached objects are connected to the current
         # object 'co', we have to switch their attach links to 'attach_link'.
@@ -889,12 +881,19 @@ class CollisionObjectManager(Node):
                 _pose_from_matrix(_pose_matrix(co.pose) @ _pose_matrix(pose)))
 
     def _get_object(self, object_id):
+        """ Find non-attached collision object with specified object ID.
+        """
         return self._psi.get_objects([object_id]).get(object_id)
 
     def _get_attached_object(self, object_id):
+        """ Find attached collision object with specified object ID.
+        """
         return self._psi.get_attached_objects([object_id]).get(object_id)
 
     def _get_any_object(self, object_id):
+        """ Find attached or non-attached collision object
+        with specified object ID.
+        """
         aco = self._get_attached_object(object_id)
         return self._get_object(object_id) if aco is None else aco.object
 
@@ -927,7 +926,7 @@ class CollisionObjectManager(Node):
         self._marker_pub.publish(
             MarkerArray(markers=[Marker(id=marker.id, action=Marker.DELETE)
                                  for marker in instance_props.markers]))
-        with self._lock:
+        with self._instance_props_lock:
             del self._instance_props_dict[object_id]
         self.get_logger().info("removed '%s'" % object_id)
 
@@ -941,18 +940,18 @@ class CollisionObjectManager(Node):
         self._apply_acm(acm)
 
         if others is None:
-            self.get_logger().info("%s collision against '%s' in default"
+            self.get_logger().info("%s '%s' collision by default"
                                    % ('allow' if allow else 'disallow',
                                       object_id))
         else:
-            self.get_logger().info("%s collision between '%s' and %s"
+            self.get_logger().info("%s '%s' collision against %s"
                                    % ('allow' if allow else 'disallow',
                                       object_id, str(others)))
 
     def _get_acm(self):
         return self._get_planning_scene.call(
-                   GetPlanningScene.Request(
-                       component=PlanningSceneComponents.ALLOWED_COLLISION_MATRIX)) \
+                   GetPlanningScene.Request(component=PlanningSceneComponents \
+                                            .ALLOWED_COLLISION_MATRIX)) \
                    .scene.allowed_collision_matrix
 
     def _apply_acm(self, acm):

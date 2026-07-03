@@ -197,10 +197,10 @@
       </plugin>
 
       <!-- Launch controller manager for grippers -->
-      <!-- <plugin filename="gz_ros2_control-system" -->
-      <!-- 	      name="gz_ros2_control::GazeboSimROS2ControlPlugin"> -->
-      <!-- 	<parameters>/tmp/a_bot_gripper_controllers.yaml</parameters> -->
-      <!-- </plugin> -->
+      <plugin filename="gz_ros2_control-system"
+	      name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+	<parameters>/tmp/a_bot_gripper_controllers.yaml</parameters>
+      </plugin>
 
       <!-- Simulate cameras -->
       <!-- <plugin filename="gz-sim-sensors-system" -->
