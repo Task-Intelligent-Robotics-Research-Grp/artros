@@ -116,8 +116,6 @@ class PickOrPlaceTaskServer(ActionServer):
                 gripper.wait()      # Wait for pregrasp completed
                 if object_id != '':
                     com.allow_collision(object_id, gripper.tip_link)
-                    print('### allow %s collision against %s'
-                          % (object_id, gripper.tip_link))
             elif object_id != '':
                 com.append_touch_links(object_id, request.pose.header.frame_id)
 
@@ -137,14 +135,20 @@ class PickOrPlaceTaskServer(ActionServer):
                 if object_id != '':
                     original_object_info = com.attach_object(object_id,
                                                              gripper.tip_link)
-                    print('### original_object_info=%s' % original_object_info)
             else:
+                self.logger.warn('### OK0')
                 gripper.release()
+                self.logger.warn('### OK1')
                 if object_id != '':
+                    self.logger.warn('### OK1.0')
                     inhand_pose = node.lookup_pose(request.subframe_link,
                                                    gripper.tip_link)
+                    self.logger.warn('### inhand_pose=%s' % inhand_pose)
                     com.detach_object(object_id, request.pose.header.frame_id,
                                       self._get_object_id(gripper.tip_link))
+                    self.logger.warn('### %s detached and placed at %s'
+                                     % (inhand_pose,
+                                        request.pose.header.frame_id))
 
             # [4] Depart stage: Go back to departure(pick) or approach(place)
             #     pose.
@@ -178,7 +182,7 @@ class PickOrPlaceTaskServer(ActionServer):
                                           original_object_info.parent_link,
                                           self._get_object_id(
                                               gripper.tip_link))
-                        print('### Detach %s' % object_id)
+                        self.logger.warn('### Detach %s' % object_id)
                 raise self._Error('Failed to depart from target',
                                   stage='depart')
 

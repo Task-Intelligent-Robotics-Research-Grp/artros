@@ -35,7 +35,7 @@
 #
 # Author: Toshio Ueshiba
 #
-import os, sys, yaml, copy, rclpy, threading, time
+import rclpy, sys, yaml, threading
 import numpy as np
 import tf_transformations as tfs
 import pyassimp
@@ -271,7 +271,9 @@ class CollisionObjectManager(Node):
         self._broadcaster         = TransformBroadcaster(self)
         self._timer_cbg           = MutuallyExclusiveCallbackGroup()
         self._timer               = self.create_timer(
-                                        0.1, self._subframes_and_markers_cb,
+                                        self.declare_parameter('period',
+                                                               0.1).value,
+                                        self._subframes_and_markers_cb,
                                         self._timer_cbg)
         self._get_collision_object \
             = self.create_service(GetCollisionObject, '~/get_collision_object',
@@ -580,7 +582,6 @@ class CollisionObjectManager(Node):
 
         # Lookup transform from 'base_link' of the current collision object
         # to the parent link.
-        now = self.get_clock().now()
         Tpo = self._tf2_buffer.lookup_transform(parent_link,
                                                 co.id + '/base_link', Time())
         with self._instance_props_lock:
@@ -804,7 +805,7 @@ class CollisionObjectManager(Node):
 
         # Reverse parent-child relation between 'co' and its parent.
         old_root_id, old_parent_link = self._rotate_tree(parent_co, leaf_id)
-        with self._instance_props_dict:
+        with self._instance_props_lock:
             self._instance_props_dict[parent_co.id].subframe_transforms[0] \
                 = _inverse_transform(
                       self._instance_props_dict[co.id].subframe_transforms[0])

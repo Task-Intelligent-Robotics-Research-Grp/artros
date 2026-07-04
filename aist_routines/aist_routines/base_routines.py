@@ -179,6 +179,7 @@ class BaseRoutines(Node):
                          for name, props in config.get('cameras', {}).items()}
 
         # Load setting parameters
+        self.declare_parameter('setting_urls', [''])
         self.load_settings()
 
         # CollisionObjectManager wrapping MoveIt PlanningSceneInterface
@@ -276,7 +277,8 @@ class BaseRoutines(Node):
 
         # Load setting parameters
         self._settings = {}
-        for url in self.declare_parameter('setting_urls', ['']).value:
+        for url in self.get_parameter('setting_urls') \
+                       .get_parameter_value().string_array_value:
             try:
                 with open(filepath_from_url(url), 'r') as f:
                     self._settings = recursive_merge(self._settings,
@@ -293,7 +295,7 @@ class BaseRoutines(Node):
         """
         print('=== General commands ===')
         print('  quit:        quit this program')
-        print('  reload:      reload settingsselect')
+        print('  reload:      reload settings')
         print('  robot:       select robot')
         print('  ?|help:      print help messages')
         print('=== Arm commands ===')
@@ -880,7 +882,10 @@ class BaseRoutines(Node):
         return self._default_gripper_names[robot_name]
 
     def set_gripper(self, robot_name, gripper_name):
-        self._active_grippers[robot_name] = self._grippers[gripper_name]
+        gripper = self._grippers.get(gripper_name)
+        if gripper is None:
+            raise RuntimeError('unknown gripper[%s]' % gripper_name)
+        self._active_grippers[robot_name] = gripper
 
     def gripper(self, robot_name):
         return self._active_grippers[robot_name]
@@ -956,27 +961,27 @@ class BaseRoutines(Node):
 
     def place(self, robot_name, part_id, target_pose,
               *, subframe_link='', timeout_sec=None):
-        picking_params = self.settings.get('picking_parameters', {})
-        params = picking_params.get(part_id)
-        if params is None:
-            params = picking_params[
-                         self.com.get_object_info(part_id).object_type]
-        placing_params = self.settings.get('placing_parameters', {}) \
-                                      .get(target_pose.header.frame_id,
-                                           params)
+        picking_parameters = self.settings.get('picking_parameters', {})
+        picking_params     = picking_parameters.get(part_id)
+        if picking_params is None:
+            pickin_params = picking_parameters[
+                                self.com.get_object_info(part_id).object_type]
+        placing_parameters = self.settings.get('placing_parameters', {})
+        placing_params     = placing_parameters.get(
+                                 target_pose.header.frame_id, picking_params)
         if not placing_params.get('place_offset'):
-            placing_params = placing_params['default']
-        if 'gripper_name' in params:
+            placing_params = placing_parameters['default']
+        if 'gripper_name' in picking_params:
             self.set_gripper(robot_name, params['gripper_name'])
-        if 'gripper_parameters' in params:
+        if 'gripper_parameters' in picking_params:
             self.set_gripper_parameters(robot_name,
-                                        params['gripper_parameters'])
+                                        picking_params['gripper_parameters'])
         return self._pick_or_place.send_goal(robot_name, False, target_pose,
                                              placing_params['place_offset'],
                                              placing_params['approach_offset'],
                                              placing_params['departure_offset'],
-                                             params['speed_fast'],
-                                             params['speed_slow'],
+                                             picking_params['speed_fast'],
+                                             picking_params['speed_slow'],
                                              subframe_link=subframe_link,
                                              timeout_sec=timeout_sec)
 
@@ -1162,11 +1167,10 @@ class BaseRoutines(Node):
                                    timeout_sec=timeout_sec)
             self.com.allow_collision(object_type, config['parent_link'],
                                      timeout_sec=timeout_sec)
+            if config.get('attach', False):
+                self.com.attach_object(object_type, config['parent_link'],
+                                       timeout_sec=timeout_sec)
             time.sleep(0.5)
-            # if object_type == 'panel_bearing' or object_type == 'panel_motor':
-            #     self.com.attach_object(object_type, config['parent_link'])
-            # if object_type == 'base':
-            #     self.com.attach_object(object_type, config['parent_link'])
 
     def _position_from_offset(self, offset):
         return np.array((0.0, 0.0, 0.0) if len(offset) < 3 else offset[0:3])

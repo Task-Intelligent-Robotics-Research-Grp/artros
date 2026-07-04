@@ -1,5 +1,6 @@
 collision_object_manager:
   ros__parameters:
+    period:      0.1
     namespace:   ""
     synchronous: true
     object_properties_urls:

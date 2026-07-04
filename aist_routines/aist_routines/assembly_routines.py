@@ -160,7 +160,7 @@ class AssemblyRoutines(BaseRoutines):
     def place_screw(self, robot_name, *, timeout_sec=None):
         screw_id = self._grasped_object_id(robot_name)
         if screw_id is None:
-            return False
+            return (GoalStatus.STATUS_ABORTED, None)
         screw_type  = screw_id.rsplit('_', 1)[0]
         feeder_name = 'screw_feeder_' + screw_type[-2:]
         status, result = self.place_at_frame(robot_name, screw_id,
@@ -183,7 +183,7 @@ class AssemblyRoutines(BaseRoutines):
                    *, timeout_sec=None):
         if self.gripper(robot_name).name != \
            self.default_gripper_name(robot_name):
-            return False
+            return (GoalStatus.STATUS_ABORTED, None)
         return self.place_at_frame(robot_name, part_id, place_frame,
                                    subframe_link=part_id + '/' + subframe,
                                    timeout_sec=timeout_sec)
