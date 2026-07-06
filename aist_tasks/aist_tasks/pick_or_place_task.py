@@ -51,9 +51,8 @@ class PickOrPlaceTaskClient(GroupedSimpleActionClient):
     Success = (GoalStatus.STATUS_SUCCEEDED, PickOrPlace.Result(stage=''))
 
     def __init__(self, node, server_ns='pick_or_place'):
-        self._client_cbg = MutuallyExclusiveCallbackGroup()
         super().__init__(node, PickOrPlace, server_ns,
-                         callback_group=self._client_cbg,
+                         callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
         self.wait_for_server()
 
@@ -78,9 +77,8 @@ class PickOrPlaceTaskClient(GroupedSimpleActionClient):
 #************************************************************************
 class PickOrPlaceTaskServer(ActionServer):
     def __init__(self, node, server_ns='pick_or_place'):
-        self._server_cbg = MutuallyExclusiveCallbackGroup()
         super().__init__(node, PickOrPlace, server_ns, self._user_execute_cb,
-                         callback_group=self._server_cbg,
+                         callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
 
     def _user_execute_cb(self, goal_handle):
@@ -140,7 +138,6 @@ class PickOrPlaceTaskServer(ActionServer):
                 gripper.release()
                 self.logger.warn('### OK1')
                 if object_id != '':
-                    self.logger.warn('### OK1.0')
                     inhand_pose = node.lookup_pose(request.subframe_link,
                                                    gripper.tip_link)
                     self.logger.warn('### inhand_pose=%s' % inhand_pose)

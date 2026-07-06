@@ -34,24 +34,22 @@
 #
 # Author: Toshio Ueshiba
 #
-import rclpy, sys, threading
 import tf_transformations as tfs
 import numpy as np
 
-from rclpy.executors            import MultiThreadedExecutor
-from aist_graspability.client   import GraspabilityClient
-from aist_graspability_msgs.msg import Border, Point2D
-from math                       import pi, radians, degrees, cos, sin, sqrt
-from geometry_msgs.msg          import Quaternion
-# from aist_routines.AssemblyRoutines import AssemblyRoutines
-# from aist_routines.AttemptBinAction import AttemptBin
-from aist_utility.fileio        import filepath_from_url
-from .base_routines             import BaseRoutines
+from math                        import pi, radians, degrees, cos, sin, sqrt
+from geometry_msgs.msg           import Quaternion
+from aist_graspability.client    import GraspabilityClient
+from aist_graspability_msgs.msg  import Border, Point2D
+from aist_utility.fileio         import filepath_from_url
+
+from aist_tasks.attempt_bin_task import AttemptBinTask
+from .assembly_routines          import AssemblyRoutines
 
 #************************************************************************
 #  class KittingRoutines                                                *
 #************************************************************************
-class KittingRoutines(BaseRoutines):
+class KittingRoutines(AssemblyRoutines):
     """Implements kitting routines for aist robot system."""
 
     def __init__(self, name: str):

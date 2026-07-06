@@ -39,30 +39,39 @@ from geometry_msgs.msg              import (PoseStamped, QuaternionStamped,
                                             Transform, Vector3, Quaternion)
 from action_msgs.msg                import GoalStatus
 from aist_msgs.action               import PickOrPlace, AttemptBin
-from task_wrappers.task_client      import GroupedSimpleTaskClient
-from task_wrappers.task_server      import TaskServer
 from aist_skills.pick_or_place_task import PickOrPlaceTaskClient
 from aist_graspability.client       import GraspabilityClient
+from task_wrappers.task_client      import GroupedSimpleActionClient
+from task_wrappers.task_server      import ActionServer
 
 #*********************************************************************
 #  class AttemptBinTaskClient                                        *
 #*********************************************************************
-class AttemptBinTaskClient(GroupedSimpleTaskClient):
+class AttemptBinTaskClient(GroupedSimpleActionClient):
+    Success = (GoalStatus.STATUS_SUCCEEDED, AttemptBin.Result(stage=''))
+
     def __init__(self, node: Node, server_ns: str='attempt_bin'):
-        super().__init__(node, AttemptBin, server_ns, group_field='robot_name')
+        super().__init__(node, AttemptBin, server_ns,
+                         callback_group=MutuallyExclusiveCallbackGroup(),
+                         group_field='robot_name')
         self.wait_for_server()
 
-    def send_goal(self, bin_id, pick_all, max_attempts):
-        super().send_goal(AttemptBinGoal(bin_id=bin_id, pick_all=pick_all,
-                                         max_attempts=max_attempts))
+    def send_goal(self, robot_name, bin_id, pick_all, max_attempts,
+                  *, timeout_sec=None):
+        return super().send_goal(AttemptBin.Goal(robot_name=robot_name,
+                                                 bin_id=bin_id,
+                                                 pick_all=pick_all,
+                                                 max_attempts=max_attempts),
+                                 feedback_callback=self.stage_feedback_cb,
+                                 timeout_sec=timeout_sec)
 
 #*********************************************************************
 #  class AttemptBinTaskServer                                        *
 #*********************************************************************
-class AttemptBinTaskServer(TaskServer):
+class AttemptBinTaskServer(ActionServer):
     def __init__(self, node: Node, server_ns: str='attempt_bin',
-                 kitting_params: dict={},
-                 do_error_recovery=None, cancel_error_recovery=None):
+                 kitting_params: dict={}):
+        self._server_cbg = MutuallyExclusiceCallbackGroup()
         super().__init__(node, AttemptBin, server_ns, self._execute_cb,
                          group_field='robot_name')
         self._graspability   = GraspabilityClient(node)

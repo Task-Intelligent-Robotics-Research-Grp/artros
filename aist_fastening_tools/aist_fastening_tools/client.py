@@ -59,7 +59,6 @@ class SuctionTool(SimpleActionClient):
         controller_ns    = name + '_controller'
         self._name       = name
         self._client_cbg = MutuallyExclusiveCallbackGroup()
-
         super().__init__(node, SuctionToolCommand,
                          controller_ns + '/gripper_cmd',
                          callback_group=self._client_cbg)
@@ -69,12 +68,12 @@ class SuctionTool(SimpleActionClient):
         #         'failed to establish connection to the actionserver[%s]' \
         #         % (controller_ns + '/gripper_cmd'))
 
-        self._suctioned     = None
-        self._suctioned_cbg = MutuallyExclusiveCallbackGroup()
-        self._suctioned_sub = node.create_subscription(
-                                  Bool, controller_ns + '/suctioned',
-                                  self._suctioned_cb, 10,
-                                  callback_group=self._suctioned_cbg)
+        self._suctioned  = None
+        self._suctioned_sub \
+                         = node.create_subscription(
+                               Bool, controller_ns + '/suctioned',
+                               self._suctioned_cb, 10,
+                               callback_group=MutuallyExclusiveCallbackGroup())
         self._parameters = {'suck_min_period': suck_min_period,
                             'blow_min_period': blow_min_period}
 
@@ -287,10 +286,9 @@ class PrecisionTool(SimpleActionClient):
         self._name = name
 
         # Create action client for gripper command.
-        self._cbg = MutuallyExclusiveCallbackGroup()
         super().__init__(node, GripperCommand,
                          name + '_controller/gripper_cmd',
-                         callback_group=self._cbg)
+                         callback_group=MutuallyExclusiveCallbackGroup())
 
         self._parameters = {'grasp_position':   min_position,
                             'release_position': max_position,
