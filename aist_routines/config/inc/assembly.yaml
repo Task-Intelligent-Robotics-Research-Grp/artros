@@ -1,8 +1,8 @@
 picking_parameters:
   base:
     approach_offset:  [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
-    pick_offset:      [0.000, 0.000, -0.014, 0.0, 0.0, 0.0]
-    #pick_offset:      [0.000, 0.000,  0.000, 0.0, 0.0, 0.0]
+    #pick_offset:      [0.000, 0.000, -0.014, 0.0, 0.0, 0.0]
+    pick_offset:      [0.000, 0.000,  0.000, 0.0, 0.0, 0.0]
     departure_offset: [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
     speed_fast:       0.05
     speed_slow:       0.01

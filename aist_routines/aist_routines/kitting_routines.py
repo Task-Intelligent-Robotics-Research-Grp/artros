@@ -44,12 +44,12 @@ from aist_graspability_msgs.msg  import Border, Point2D
 from aist_utility.fileio         import filepath_from_url
 
 from aist_tasks.attempt_bin_task import AttemptBinTask
-from .assembly_routines          import AssemblyRoutines
+from .base_routines              import BaseRoutines
 
 #************************************************************************
 #  class KittingRoutines                                                *
 #************************************************************************
-class KittingRoutines(AssemblyRoutines):
+class KittingRoutines(BaseRoutines):
     """Implements kitting routines for aist robot system."""
 
     def __init__(self, name: str):

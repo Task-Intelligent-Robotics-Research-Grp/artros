@@ -97,6 +97,11 @@ class SuctionTool(SimpleActionClient):
     def parameters(self):
         return self._parameters
 
+    def set_parameters(self, params: dict):
+        self._parameters |= dict(filter(lambda item: item[0]
+                                        in self._parameters,
+                                        params.items()))
+
     def pregrasp(self):
         # Set goal.min_period to zero so that the goal succeeds immediately.
         self._suck_command(True, min_period=0.0, timeout_sec=0.0)
@@ -313,6 +318,11 @@ class PrecisionTool(SimpleActionClient):
     @property
     def parameters(self):
         return self._parameters
+
+    def set_parameters(self, params: dict):
+        self._parameters |= dict(filter(lambda item: item[0]
+                                        in self._parameters,
+                                        params.items()))
 
     def pregrasp(self):
         self.release(timeout_sec=0.0)

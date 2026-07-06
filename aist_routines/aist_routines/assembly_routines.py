@@ -53,8 +53,6 @@ class AssemblyRoutines(BaseRoutines):
     def print_help_messages(self):
         super().print_help_messages()
         print('=== Assembly commands ===')
-        print('  pt: Pick tool')
-        print('  PT: Place tool')
         print('  ps: Pick screw')
         print('  PS: Place screw')
         print('  pp: Pick part')
@@ -67,12 +65,7 @@ class AssemblyRoutines(BaseRoutines):
         print('  B:  Move all robots to back')
 
     def process_command(self, command, robot_name, axis, speed):
-        if command == 'pt':
-            tool_name = input('  tool name? ')
-            self.pick_tool(robot_name, tool_name)
-        elif command == 'PT':
-            self.place_tool(robot_name)
-        elif command == 'ps':
+        if command == 'ps':
             screw_type = input('  screw type? ')
             self.pick_screw(robot_name, screw_type)
         elif command == 'PS':
@@ -95,6 +88,7 @@ class AssemblyRoutines(BaseRoutines):
             self.fix_part('base')
         elif command == 'FB':
             self.release_part('base')
+
         elif command == 'at':
             pose_name = input('  viewing pose? ')
             if pose_name == '':
@@ -118,31 +112,7 @@ class AssemblyRoutines(BaseRoutines):
         self.camera(current_robot_name + '_camera').laser_power = 0
         self.camera(new_robot_name + '_camera').laser_power = laser_power
 
-    def pick_tool(self, robot_name, tool_name, *, timeout_sec=None):
-        if self.gripper(robot_name).name == tool_name:
-            return (GoalStatus.STATUS_SUCCEEDED, None)
-        elif self.gripper(robot_name).name != \
-             self.default_gripper_name(robot_name):
-            self.place_tool(robot_name)
-        status, result = self.pick_at_frame(robot_name, tool_name,
-                                            tool_name + '/base_link',
-                                            timeout_sec=timeout_sec)
-        if status == GoalStatus.STATUS_SUCCEEDED:
-            self.set_gripper(robot_name, tool_name)
-            #self.ftsensor_reset_bias(robot_name)
-        return (status, result)
-
-    def place_tool(self, robot_name, *, timeout_sec=None):
-        tool_name            = self.gripper(robot_name).name
-        default_gripper_name = self.default_gripper_name(robot_name)
-        if tool_name == default_gripper_name:
-            return (GoalStatus.STATUS_SUCCEEDED, None)
-        self.set_gripper(robot_name, default_gripper_name)
-        return self.place_at_frame(robot_name, tool_name,
-                                   tool_name + '_holder_link',
-                                   subframe_link=tool_name + '/base_link',
-                                   timeout_sec=timeout_sec)
-
+    # Assembly stuffs
     def pick_screw(self, robot_name, screw_type, *, timeout_sec=None):
         tool_name = 'screw_tool_' + screw_type[-2:]
         status, result = self.pick_tool(robot_name, tool_name)
@@ -213,8 +183,10 @@ class AssemblyRoutines(BaseRoutines):
         feature_names = [gripper_tip_link, target_frame]
         target_wrench = WrenchStamped()
         target_wrench.header.frame_id = robot_name + '_base_link'
-        target_wrench.wrench.force  = Vector3(*target_force)
-        target_wrench.wrench.torque = Vector3(0, 0, 0)
+        target_wrench.wrench.force  = Vector3(x=target_force[0],
+                                              y=target_force[1],
+                                              z=target_force[2])
+        target_wrench.wrench.torque = Vector3(x=0, y=0, z=0)
         self._feature_trackers[robot_name].send_goal(pose_name, feature_names,
                                                      target_wrench)
 
@@ -228,12 +200,13 @@ class AssemblyRoutines(BaseRoutines):
             self.go_to_named_pose(robot_name, result.pose_name)
         self.com.reset_touch_links()
 
-    # def _initialize_collision_objects(self, *, timeout_sec=None):
-    #     super()._initialize_collision_objects(timeout_sec=timeout_sec)
-    #     self._screw_m3_id = 0
-    #     self._screw_m4_id = 0
-    #     self._generate_screw('screw_m3')
-    #     self._generate_screw('screw_m4')
+    # Utilities
+    def _initialize_collision_objects(self, *, timeout_sec=None):
+        super()._initialize_collision_objects(timeout_sec=timeout_sec)
+        self._screw_m3_id = 0
+        self._screw_m4_id = 0
+        self._generate_screw('screw_m3', timeout_sec=timeout_sec)
+        self._generate_screw('screw_m4', timeout_sec=timeout_sec)
 
     def _grasped_object_id(self, robot_name):
         gripper_name = self.gripper(robot_name).name
@@ -244,7 +217,7 @@ class AssemblyRoutines(BaseRoutines):
         info = self.com.get_child_object_info(gripper_link)
         return info.object_id if info is not None else None
 
-    def _generate_screw(self, screw_type):
+    def _generate_screw(self, screw_type, *, timeout_sec=None):
         if screw_type == 'screw_m3':
             self._screw_m3_id += 1
             screw_name  = screw_type + '_' + str(self._screw_m3_id)
@@ -254,19 +227,15 @@ class AssemblyRoutines(BaseRoutines):
         feeder_name = 'screw_feeder_' + screw_type[-2:]
         self.com.create_object(screw_type,
                                self.pose_from_xyzrpy(
-                                   frame_id=feeder_name + '_outlet_link'),
-                               object_id=self._screw_id(screw_type))
+                                   (), frame_id=feeder_name + '_outlet_link'),
+                               object_id=self._screw_id(screw_type),
+                               timeout_sec=timeout_sec)
         return screw_name
 
     def _screw_id(self, screw_type):
         return screw_type + '_' + str(self._screw_m3_id) \
                if screw_type == 'screw_m3' else \
                screw_type + '_' + str(self._screw_m4_id)
-
-    def _print_object_info(self, info):
-        print('    object_id:   %s\n    type:        %s\n    parent_link: %s\n    attach_link: %s\n    touch_links: %s\n    pose:\n%s'
-              % (info.object_id, info.object_type, info.parent_link,
-                 info.attach_link, info.touch_links, info.pose))
 
     @staticmethod
     def _get_object_id(link_name):

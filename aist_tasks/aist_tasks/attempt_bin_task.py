@@ -57,7 +57,7 @@ class AttemptBinTaskClient(GroupedSimpleActionClient):
         self.wait_for_server()
 
     def send_goal(self, robot_name, bin_id, pick_all, max_attempts,
-                  *, timeout_sec=None):
+                  *, timeout_sec=0.0):
         return super().send_goal(AttemptBin.Goal(robot_name=robot_name,
                                                  bin_id=bin_id,
                                                  pick_all=pick_all,

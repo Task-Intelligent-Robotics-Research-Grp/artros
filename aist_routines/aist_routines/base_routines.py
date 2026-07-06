@@ -58,6 +58,7 @@ from trajectory_msgs.msg                  import (JointTrajectoryPoint,
                                                   JointTrajectory)
 from controller_manager_msgs.srv          import (ListControllers,
                                                   SwitchController)
+from action_msgs.msg                      import GoalStatus
 from aist_utility.fileio                  import filepath_from_url
 from aist_tasks.pick_or_place_task        import PickOrPlaceTask
 from aist_collision_object_manager.client import CollisionObjectManagerClient
@@ -323,7 +324,9 @@ class BaseRoutines(Node):
         print('  gvel:        set gripper velocity')
         print('  tighten:     tighten screw')
         print('  loosen:      loosen screw')
-        print('  gcancel:     cancel tighten/loosen action')
+        print('  gcancel:     cancel gripper action')
+        print('  pt:          pick tool')
+        print('  PT:          place tool')
         print('=== Collision object commands ===')
         print('  I:  Initialize all collision objects')
         print('  i:  Show infomation on collision objects')
@@ -511,6 +514,11 @@ class BaseRoutines(Node):
             self.loosen(robot_name)
         elif command == 'gcancel':
             self.gripper_cancel(robot_name)
+        elif command == 'pt':
+            tool_name = input('  tool name? ')
+            self.pick_tool(robot_name, tool_name)
+        elif command == 'PT':
+            self.place_tool(robot_name)
 
         # Collision objects stuffs
         elif command == 'I':
@@ -923,6 +931,34 @@ class BaseRoutines(Node):
     def gripper_cancel(self, robot_name):
         self.gripper(robot_name).cancel_goal()
 
+    def pick_tool(self, robot_name, tool_name, *, timeout_sec=None):
+        if tool_name not in self._grippers:
+            self.get_logger().error('Unknown tool name[%s]' % tool_name)
+            return (GoalStatus.STATUS_ABORTED, None)
+        if self.gripper(robot_name).name == tool_name:
+            return (GoalStatus.STATUS_SUCCEEDED, None)
+        if self.gripper(robot_name).name != \
+             self.default_gripper_name(robot_name):
+            self.place_tool(robot_name)
+        status, result = self.pick_at_frame(robot_name, tool_name,
+                                            tool_name + '/base_link',
+                                            timeout_sec=timeout_sec)
+        if status == GoalStatus.STATUS_SUCCEEDED:
+            self.set_gripper(robot_name, tool_name)
+            #self.ftsensor_reset_bias(robot_name)
+        return (status, result)
+
+    def place_tool(self, robot_name, *, timeout_sec=None):
+        tool_name            = self.gripper(robot_name).name
+        default_gripper_name = self.default_gripper_name(robot_name)
+        if tool_name == default_gripper_name:
+            return (GoalStatus.STATUS_SUCCEEDED, None)
+        self.set_gripper(robot_name, default_gripper_name)
+        return self.place_at_frame(robot_name, tool_name,
+                                   tool_name + '_holder_link',
+                                   subframe_link=tool_name + '/base_link',
+                                   timeout_sec=timeout_sec)
+
     #
     # Camera stuffs
     #
@@ -938,7 +974,7 @@ class BaseRoutines(Node):
     #
     # Pick and place action stuffs
     #
-    def pick(self, robot_name, part_id, target_pose, *, timeout_sec=None):
+    def pick(self, robot_name, part_id, target_pose, *, timeout_sec=0.0):
         picking_params = self.settings.get('picking_parameters', {})
         params = picking_params.get(part_id)
         #self.get_logger().info('### [%s] %s' % (part_id, picking_params))
@@ -960,7 +996,7 @@ class BaseRoutines(Node):
                                              timeout_sec=timeout_sec)
 
     def place(self, robot_name, part_id, target_pose,
-              *, subframe_link='', timeout_sec=None):
+              *, subframe_link='', timeout_sec=0.0):
         picking_parameters = self.settings.get('picking_parameters', {})
         picking_params     = picking_parameters.get(part_id)
         if picking_params is None:
@@ -986,19 +1022,20 @@ class BaseRoutines(Node):
                                              timeout_sec=timeout_sec)
 
     def pick_at_frame(self, robot_name, part_id, target_frame,
-                      *, offset=(), timeout_sec=None):
+                      *, offset=(), timeout_sec=0.0):
         return self.pick(robot_name, part_id,
                          self.pose_from_xyzrpy(offset, target_frame),
                          timeout_sec=timeout_sec)
 
     def place_at_frame(self, robot_name, part_id, target_frame,
-                       *, offset=(), subframe_link='', timeout_sec=None):
+                       *, offset=(), subframe_link='', timeout_sec=0.0):
         return self.place(robot_name, part_id,
                           self.pose_from_xyzrpy(offset, target_frame),
                           subframe_link=subframe_link, timeout_sec=timeout_sec)
 
     def pick_or_place_wait_for_stage(self, stage, timeout_sec=None):
-        return self._pick_or_place.wait_for_stage(stage, timeout_sec=None)
+        return self._pick_or_place.wait_for_stage(stage,
+                                                  timeout_sec=timeout_sec)
 
     def pick_or_place_wait_for_result(self, timeout_sec=None):
         status, result = self._pick_or_place.wait(timeout_sec=timeout_sec)

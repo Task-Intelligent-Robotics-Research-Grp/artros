@@ -587,8 +587,10 @@ class CollisionObjectManager(Node):
         # to the parent link. Don't lookup within the block locking
         # _instance_props_dict because _subframes_and_markers_cb would be
         # blocked and prevents looking-up subframes.
-        Tpo = self._lookup_transform(parent_link, co.id + '/base_link',
-                                     self.get_clock().now(), timeout_sec=2.0)
+        Tpo = self._tf2_buffer.lookup_transform(parent_link,
+                                                co.id + '/base_link',
+                                                self.get_clock().now(),
+                                                Duration(seconds=2.0))
         with self._instance_props_lock:
             self._instance_props_dict[co.id].subframe_transforms[0] = Tpo
 
@@ -623,9 +625,10 @@ class CollisionObjectManager(Node):
         # to the parent link. Don't lookup within the block locking
         # _instance_props_dict because _subframes_and_markers_cb would be
         # blocked and prevents looking-up subframes.
-        Tpo = self._lookup_transform(_get_base_link(parent_link),
-                                     aco.object.id + '/base_link',
-                                     self.get_clock().now(), timeout_sec=2.0)
+        Tpo = self._tf2_buffer.lookup_transform(_get_base_link(parent_link),
+                                                aco.object.id + '/base_link',
+                                                self.get_clock().now(),
+                                                Duration(seconds=2.0))
         with self._instance_props_lock:
             self._instance_props_dict[aco.object.id].subframe_transforms[0] \
                 = Tpo
@@ -660,8 +663,9 @@ class CollisionObjectManager(Node):
         now = self.get_clock().now()
         pose = _pose_from_matrix(
                    _transform_matrix(
-                       self._lookup_transform(parent_link, frame_id, now,
-                                              timeout_sec=2.0).transform) @
+                       self._tf2_buffer.lookup_transform(
+                           parent_link, frame_id,
+                           now, Duration(seconds=2.0)).transform) @
                    _pose_matrix(pose))
 
         # Transform the given pose of subframe to that of 'base_link'
@@ -675,9 +679,9 @@ class CollisionObjectManager(Node):
                                    transform=_transform_from_pose(pose))
         self._move_descendants(co,
                                _transform_matrix(
-                                   self._lookup__transform(
+                                   self._tf2_buffer.lookup__transform(
                                        co.header.frame_id, parent_link, now,
-                                       timeout_sec=2.0).transform) @ \
+                                       Duration(seconds=2.0)).transform) @ \
                                tfs.inverse_matrix(_pose_matrix(co.pose)))
 
     def _append_or_remove_touch_links(self, object_id, frame_id, append):
@@ -792,12 +796,6 @@ class CollisionObjectManager(Node):
     @staticmethod
     def _create_link_material(color):
         return Material(color=color, texture_height=0, texture_width=0)
-
-    def _lookup_transform(self, target_frame, source_frame, target_time,
-                          *, timeout_sec):
-        return self._tf2_buffer.lookup_transform(target_frame, source_frame,
-                                                 target_time,
-                                                 Duration(seconds=timeout_sec))
 
     def _rotate_tree(self, co, leaf_id):
         def _inverse_transform(transform):
@@ -978,9 +976,9 @@ class CollisionObjectManager(Node):
         self._psi.apply_planning_scene(scene)
 
 
-#########################################################################
-#  Entry point                                                          #
-#########################################################################
+#************************************************************************
+#  Entry point                                                          *
+#************************************************************************
 def main():
     try:
         rclpy.init(args=sys.argv)

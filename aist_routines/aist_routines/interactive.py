@@ -35,8 +35,7 @@
 # Author: Toshio Ueshiba
 #
 import rclpy, sys, threading
-from rclpy.executors             import MultiThreadedExecutor
-from aist_routines.base_routines import BaseRoutines
+from rclpy.executors import MultiThreadedExecutor
 
 
 def _command_line_interface(node):
@@ -71,6 +70,8 @@ def _main(name, routines):
 #  entry points                                                      *
 #*********************************************************************
 def base():
+    from aist_routines.base_routines import BaseRoutines
+
     _main('base', BaseRoutines)
 
 def assembly():
