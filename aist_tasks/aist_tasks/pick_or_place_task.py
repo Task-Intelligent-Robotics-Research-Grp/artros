@@ -77,11 +77,11 @@ class PickOrPlaceTaskClient(GroupedSimpleActionClient):
 #************************************************************************
 class PickOrPlaceTaskServer(ActionServer):
     def __init__(self, node, server_ns='pick_or_place'):
-        super().__init__(node, PickOrPlace, server_ns, self._user_execute_cb,
+        super().__init__(node, PickOrPlace, server_ns, self._execute_cb,
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
 
-    def _user_execute_cb(self, goal_handle):
+    def _execute_cb(self, goal_handle):
         request = goal_handle.request
         self.logger.info('### Do %s ###'
                          % ('picking' if request.pick else 'placing'))
@@ -97,18 +97,18 @@ class PickOrPlaceTaskServer(ActionServer):
 
         try:
             # [1] Move stage: Go to approach pose.
-            self.enter_stage(goal_handle, 'move')
+            stage   = self.enter_stage(goal_handle, 'move')
             speed   = request.speed_fast if request.pick else \
                       request.speed_slow
             success = node.go_to_pose_goal(request.robot_name, request.pose,
                                            request.approach_offset, speed,
                                            end_effector_link=eef_link)
             if not success:
-                raise self._Error('Failed to go to approach pose',
-                                  stage='move')
+                raise ActionServer._Error('Failed to go to approach pose',
+                                          stage=stage)
 
             # [2] Approach stage: Go to pick/place pose.
-            self.enter_stage(goal_handle, 'approach', 'move')
+            stage = self.enter_stage(goal_handle, 'approach', stage)
             if request.pick:
                 gripper.pregrasp()  # Pregrasp (not wait)
                 gripper.wait()      # Wait for pregrasp completed
@@ -123,33 +123,27 @@ class PickOrPlaceTaskServer(ActionServer):
             if not success:
                 if request.pick:
                     gripper.release()
-                raise self._Error('Failed to approach target',
-                                  stage='approach')
+                raise ActionServer._Error('Failed to approach target',
+                                          stage=stage)
 
             # [3] Grasp/release stage: Grasp or release at pick/place pose.
-            self.enter_stage(goal_handle, 'grasp/release', 'approach')
+            stage = self.enter_stage(goal_handle, 'grasp/release', stage)
             if request.pick:
                 gripper.grasp()
                 if object_id != '':
                     original_object_info = com.attach_object(object_id,
                                                              gripper.tip_link)
             else:
-                self.logger.warn('### OK0')
                 gripper.release()
-                self.logger.warn('### OK1')
                 if object_id != '':
                     inhand_pose = node.lookup_pose(request.subframe_link,
                                                    gripper.tip_link)
-                    self.logger.warn('### inhand_pose=%s' % inhand_pose)
                     com.detach_object(object_id, request.pose.header.frame_id,
                                       self._get_object_id(gripper.tip_link))
-                    self.logger.warn('### %s detached and placed at %s'
-                                     % (inhand_pose,
-                                        request.pose.header.frame_id))
 
             # [4] Depart stage: Go back to departure(pick) or approach(place)
             #     pose.
-            self.enter_stage(goal_handle, 'depart', 'grasp/release')
+            stage = self.enter_stage(goal_handle, 'depart', stage)
             if request.pick:
                 gripper.postgrasp()                 # Postgrasp (not wait)
                 speed  = request.speed_slow
@@ -180,11 +174,11 @@ class PickOrPlaceTaskServer(ActionServer):
                                           self._get_object_id(
                                               gripper.tip_link))
                         self.logger.warn('### Detach %s' % object_id)
-                raise self._Error('Failed to depart from target',
-                                  stage='depart')
+                raise ActionServer._Error('Failed to depart from target',
+                                          stage=current_stage)
 
             # [5] Verify stage: Verify success of postgrasp.
-            self.enter_stage(goal_handle, 'verify', 'depart')
+            stage = self.enter_stage(goal_handle, 'verify', stage)
             if request.pick and \
                not node.get_parameter('use_sim_time') \
                        .get_parameter_value().bool_value and \
@@ -197,16 +191,15 @@ class PickOrPlaceTaskServer(ActionServer):
                     com.move_object(object_id, original_object_info.pose,
                                     self._get_subframe(
                                         request.pose.header.frame_id))
-                raise self._Error('Failed to grasp', stage='verify')
+                raise ActionServer._Error('Failed to grasp', stage=stage)
 
             # [Final] Goal succeeded.
             goal_handle.succeed()
             self.logger.info('### %s succeeded. ###'
                              % 'Pick' if request.pick else 'Place')
-            return PickOrPlace.Result(stage='')
+            return PickOrPlace.Result(stage=stage)
 
         finally:
-            pass
             if object_id != '':
                 #com.disallow_collision(object_id, gripper.tip_link)
                 com.reset_touch_links()

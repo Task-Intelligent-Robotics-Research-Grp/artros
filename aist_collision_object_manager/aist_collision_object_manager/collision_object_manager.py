@@ -590,7 +590,7 @@ class CollisionObjectManager(Node):
         Tpo = self._tf2_buffer.lookup_transform(parent_link,
                                                 co.id + '/base_link',
                                                 self.get_clock().now(),
-                                                Duration(seconds=2.0))
+                                                Duration(seconds=2))
         with self._instance_props_lock:
             self._instance_props_dict[co.id].subframe_transforms[0] = Tpo
 
@@ -628,7 +628,7 @@ class CollisionObjectManager(Node):
         Tpo = self._tf2_buffer.lookup_transform(_get_base_link(parent_link),
                                                 aco.object.id + '/base_link',
                                                 self.get_clock().now(),
-                                                Duration(seconds=2.0))
+                                                Duration(seconds=2))
         with self._instance_props_lock:
             self._instance_props_dict[aco.object.id].subframe_transforms[0] \
                 = Tpo
@@ -665,7 +665,7 @@ class CollisionObjectManager(Node):
                    _transform_matrix(
                        self._tf2_buffer.lookup_transform(
                            parent_link, frame_id,
-                           now, Duration(seconds=2.0)).transform) @
+                           now, Duration(seconds=2)).transform) @
                    _pose_matrix(pose))
 
         # Transform the given pose of subframe to that of 'base_link'
@@ -681,7 +681,7 @@ class CollisionObjectManager(Node):
                                _transform_matrix(
                                    self._tf2_buffer.lookup__transform(
                                        co.header.frame_id, parent_link, now,
-                                       Duration(seconds=2.0)).transform) @ \
+                                       Duration(seconds=2)).transform) @ \
                                tfs.inverse_matrix(_pose_matrix(co.pose)))
 
     def _append_or_remove_touch_links(self, object_id, frame_id, append):

@@ -124,6 +124,8 @@ class BaseRoutines(Node):
                                                        0.0005).value
         self._reference_frame = self.declare_parameter('reference_frame',
                                                        'world').value
+        self._move_lin        = self.declare_parameter('move_lin',
+                                                       True).value
 
         # MoveIt RobotCommander and MoveGroup
         moveit_commander.roscpp_initialize(sys.argv)
@@ -231,6 +233,14 @@ class BaseRoutines(Node):
         return self._eef_step
 
     @property
+    def move_lin(self) -> bool:
+        return self._move_lin
+
+    @move_lin.setter
+    def move_lin(self, enable):
+        self._move_lin = enable
+
+    @property
     def group_names(self) -> list[str]:
         """ Name list of MoveIt groups.
         """
@@ -311,9 +321,11 @@ class BaseRoutines(Node):
         print('  speed:       set speed')
         print('  stop:        stop arm immediately')
         print('  jvalues:     get current joint values')
-        print('  switch:      Switch controller')
-        print('  toggle:      Toggle motion control handle')
-        print('  ftreset:     Reset bias of ft-sensor')
+        print('  switch:      switch controller')
+        print('  toggle:      toggle motion control handle')
+        print('  ftreset:     reset bias of ft-sensor')
+        print('  lin:         enforce linear path')
+        print('  LIN:         not enforce linear path')
         print('=== Gripper commands ===')
         print('  gripper:     assign gripper to current robot')
         print('  pregrasp:    pregrasp with the current gripper')
@@ -486,6 +498,10 @@ class BaseRoutines(Node):
             self.toggle_control_handle(robot_name)
         elif command == 'ftreset':
             self.ftsensor_reset_bias(robot_name)
+        elif command == 'lin':
+            self.move_lin = True
+        elif command == 'LIN':
+            self.move_lin = False
 
         # Gripper stuffs
         elif command == 'gripper':
@@ -659,22 +675,6 @@ class BaseRoutines(Node):
                                                 x=0.0, y=0.0, z=0.0, w=1.0))),
                                     offset, speed, accel, end_effector_link)
 
-    # def go_to_pose_goal(self, robot_name, target_pose, offset=(),
-    #                     speed=1.0, accel=1.0, end_effector_link=''):
-    #     if end_effector_link == '':
-    #         end_effector_link = self.gripper(robot_name).tip_link
-    #     transformed_pose = self.transform_pose_to_target_frame(target_pose,
-    #                                                            offset)
-    #     group = self._cmd.get_group(robot_name)
-    #     group.set_pose_target(transformed_pose, end_effector_link)
-    #     success, path, planning_time, err = group.plan()
-
-    #     if not success:
-    #         self.get_logger.error('### Failed to plan!')
-    #         group.clear_pose_target(end_effector_link)
-    #         return False
-    #     return self.execute_path(robot_name, path)
-
     def go_to_pose_goal(self, robot_name, target_pose, offset=(),
                         speed=1.0, accel=1.0, end_effector_link=''):
         return self.go_along_poses(robot_name,
@@ -712,6 +712,21 @@ class BaseRoutines(Node):
         group.set_max_velocity_scaling_factor(np.clip(speed, 0.0, 1.0))
         group.set_max_acceleration_scaling_factor(np.clip(accel, 0.0, 1.0))
         transformed_poses = self.transform_poses_to_target_frame(poses, offset)
+
+        if not self.move_lin:
+            group.set_start_state_to_current_state()
+            group.set_pose_target(transformed_poses.poses[-1],
+                                  end_effector_link)
+            success, path, planning_time, error_code = group.plan()
+            if success:
+                self.get_logger().info('Computed non-linear path: planning_time=%f.'
+                                       % planning_time)
+                return path[0]
+            else:
+                self.get_logger().error('Failed to compute non-linear path: planning_time=%f, error=%s@%s[%d]]'
+                                        % (planning_time, error_code.message,
+                                           error_code.source, error_code.val))
+                return None
 
         try:
             path, fraction = group.compute_cartesian_path(
@@ -931,6 +946,76 @@ class BaseRoutines(Node):
     def gripper_cancel(self, robot_name):
         self.gripper(robot_name).cancel_goal()
 
+    #
+    # Camera stuffs
+    #
+    def camera(self, camera_name):
+        return self._cameras[camera_name]
+
+    def continuous_shot(self, camera_name, enable):
+        return self.camera(camera_name).continuous_shot(enable)
+
+    def trigger_frame(self, camera_name):
+        return self.camera(camera_name).trigger_frame()
+
+    #
+    # Pick and place action stuffs
+    #
+    def pick(self, robot_name, part_id, target_pose, *, timeout_sec=None):
+        picking_parameters = self.settings.get('picking_parameters', {})
+        params             = picking_parameters.get(part_id)
+        #self.get_logger().info('### [%s] %s' % (part_id, picking_params))
+        if params is None:
+            params = picking_parameters[
+                         self.com.get_object_info(part_id).object_type]
+        if 'gripper_parameters' in params:
+            self.set_gripper_parameters(robot_name,
+                                        params['gripper_parameters'])
+        return self._pick_or_place.send_goal(robot_name, True, target_pose,
+                                             params['pick_offset'],
+                                             params['approach_offset'],
+                                             params['departure_offset'],
+                                             params['speed_fast'],
+                                             params['speed_slow'],
+                                             subframe_link='',
+                                             timeout_sec=timeout_sec)
+
+    def place(self, robot_name, part_id, target_pose,
+              *, subframe_link='', timeout_sec=None):
+        picking_parameters = self.settings.get('picking_parameters', {})
+        picking_params     = picking_parameters.get(part_id)
+        if picking_params is None:
+            pickin_params = picking_parameters[
+                                self.com.get_object_info(part_id).object_type]
+        placing_parameters = self.settings.get('placing_parameters', {})
+        placing_params     = placing_parameters.get(
+                                 target_pose.header.frame_id, picking_params)
+        if not placing_params.get('place_offset'):
+            placing_params = placing_parameters['default']
+        if 'gripper_parameters' in picking_params:
+            self.set_gripper_parameters(robot_name,
+                                        picking_params['gripper_parameters'])
+        return self._pick_or_place.send_goal(robot_name, False, target_pose,
+                                             placing_params['place_offset'],
+                                             placing_params['approach_offset'],
+                                             placing_params['departure_offset'],
+                                             picking_params['speed_fast'],
+                                             picking_params['speed_slow'],
+                                             subframe_link=subframe_link,
+                                             timeout_sec=timeout_sec)
+
+    def pick_at_frame(self, robot_name, part_id, target_frame,
+                      *, offset=(), timeout_sec=None):
+        return self.pick(robot_name, part_id,
+                         self.pose_from_xyzrpy(offset, target_frame),
+                         timeout_sec=timeout_sec)
+
+    def place_at_frame(self, robot_name, part_id, target_frame,
+                       *, offset=(), subframe_link='', timeout_sec=None):
+        return self.place(robot_name, part_id,
+                          self.pose_from_xyzrpy(offset, target_frame),
+                          subframe_link=subframe_link, timeout_sec=timeout_sec)
+
     def pick_tool(self, robot_name, tool_name, *, timeout_sec=None):
         if tool_name not in self._grippers:
             self.get_logger().error('Unknown tool name[%s]' % tool_name)
@@ -959,87 +1044,9 @@ class BaseRoutines(Node):
                                    subframe_link=tool_name + '/base_link',
                                    timeout_sec=timeout_sec)
 
-    #
-    # Camera stuffs
-    #
-    def camera(self, camera_name):
-        return self._cameras[camera_name]
-
-    def continuous_shot(self, camera_name, enable):
-        return self.camera(camera_name).continuous_shot(enable)
-
-    def trigger_frame(self, camera_name):
-        return self.camera(camera_name).trigger_frame()
-
-    #
-    # Pick and place action stuffs
-    #
-    def pick(self, robot_name, part_id, target_pose, *, timeout_sec=0.0):
-        picking_params = self.settings.get('picking_parameters', {})
-        params = picking_params.get(part_id)
-        #self.get_logger().info('### [%s] %s' % (part_id, picking_params))
-        if params is None:
-            params = picking_params[
-                         self.com.get_object_info(part_id).object_type]
-        if 'gripper_name' in params:
-            self.set_gripper(robot_name, params['gripper_name'])
-        if 'gripper_parameters' in params:
-            self.set_gripper_parameters(robot_name,
-                                        params['gripper_parameters'])
-        return self._pick_or_place.send_goal(robot_name, True, target_pose,
-                                             params['pick_offset'],
-                                             params['approach_offset'],
-                                             params['departure_offset'],
-                                             params['speed_fast'],
-                                             params['speed_slow'],
-                                             subframe_link='',
-                                             timeout_sec=timeout_sec)
-
-    def place(self, robot_name, part_id, target_pose,
-              *, subframe_link='', timeout_sec=0.0):
-        picking_parameters = self.settings.get('picking_parameters', {})
-        picking_params     = picking_parameters.get(part_id)
-        if picking_params is None:
-            pickin_params = picking_parameters[
-                                self.com.get_object_info(part_id).object_type]
-        placing_parameters = self.settings.get('placing_parameters', {})
-        placing_params     = placing_parameters.get(
-                                 target_pose.header.frame_id, picking_params)
-        if not placing_params.get('place_offset'):
-            placing_params = placing_parameters['default']
-        if 'gripper_name' in picking_params:
-            self.set_gripper(robot_name, params['gripper_name'])
-        if 'gripper_parameters' in picking_params:
-            self.set_gripper_parameters(robot_name,
-                                        picking_params['gripper_parameters'])
-        return self._pick_or_place.send_goal(robot_name, False, target_pose,
-                                             placing_params['place_offset'],
-                                             placing_params['approach_offset'],
-                                             placing_params['departure_offset'],
-                                             picking_params['speed_fast'],
-                                             picking_params['speed_slow'],
-                                             subframe_link=subframe_link,
-                                             timeout_sec=timeout_sec)
-
-    def pick_at_frame(self, robot_name, part_id, target_frame,
-                      *, offset=(), timeout_sec=0.0):
-        return self.pick(robot_name, part_id,
-                         self.pose_from_xyzrpy(offset, target_frame),
-                         timeout_sec=timeout_sec)
-
-    def place_at_frame(self, robot_name, part_id, target_frame,
-                       *, offset=(), subframe_link='', timeout_sec=0.0):
-        return self.place(robot_name, part_id,
-                          self.pose_from_xyzrpy(offset, target_frame),
-                          subframe_link=subframe_link, timeout_sec=timeout_sec)
-
-    def pick_or_place_wait_for_stage(self, stage, timeout_sec=None):
-        return self._pick_or_place.wait_for_stage(stage,
-                                                  timeout_sec=timeout_sec)
-
-    def pick_or_place_wait_for_result(self, timeout_sec=None):
-        status, result = self._pick_or_place.wait(timeout_sec=timeout_sec)
-        return result
+    def pick_or_place_wait(self, *, target_stage=None, timeout_sec=None):
+        return self._pick_or_place.wait(target_stage=target_stage,
+                                        timeout_sec=timeout_sec)
 
     def pick_or_place_cancel_goal(self):
         self._pick_or_place.cancel_goal()

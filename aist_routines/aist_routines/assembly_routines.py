@@ -67,9 +67,9 @@ class AssemblyRoutines(BaseRoutines):
     def process_command(self, command, robot_name, axis, speed):
         if command == 'ps':
             screw_type = input('  screw type? ')
-            self.pick_screw(robot_name, screw_type)
+            self.pick_screw(robot_name, screw_type, timeout_sec=0.0)
         elif command == 'PS':
-            self.place_screw(robot_name)
+            self.place_screw(robot_name, timeout_sec=0.0)
         elif command == 'pp':
             part_id  = input('  part ID? ')
             subframe = input('  subframe? ')
