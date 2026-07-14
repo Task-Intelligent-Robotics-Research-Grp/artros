@@ -640,7 +640,41 @@ class BaseRoutines(Node):
         Returns:
           PoseStamped: Current pose of the robot.
         """
-        return self._cmd.get_group(robot_name).get_current_pose()
+        group    = self._cmd.get_group(robot_name)
+        eef_link = self.gripper(robot_name).tip_link
+        if eef_link in self._cmd.get_link_names():
+            return group.get_current_pose()
+
+        default_eef_link = self.default_gripper(robot_name).tip_link
+        pose = group.get_current_pose(default_eef_link)
+        try:
+            tfm = self._tf2_buffer.lookup_transform(default_eef_link, eef_link,
+                                                    Time(),
+                                                    Duration(seconds=10)) \
+                                  .transform
+        except Exception as e:
+            self.get_logger().error(
+                'BaseRoutines._transform_points_to_target_frame(): %s' % e)
+            raise e
+
+        T = tfs.translation_matrix((pose.pose.position.x,
+                                    pose.pose.position.y,
+                                    pose.pose.position.z)) \
+          @ tfs.quaternion_matrix((pose.pose.orientation.x,
+                                   pose.pose.orientation.y,
+                                   pose.pose.orientation.z,
+                                   pose.pose.orientation.w)) \
+          @ tfs.translation_matrix((tfm.translation.x,
+                                    tfm.translation.y,
+                                    tfm.translation.z)) \
+          @ tfs.quaternion_matrix((tfm.rotation.x, tfm.rotation.y,
+                                   tfm.rotation.z, tfm.rotation.w))
+        t = tfs.translation_from_matrix(T)
+        q = tfs.quaternion_from_matrix(T)
+        pose.pose = Pose(position=Point(x=t[0], y=t[1], z=t[2]),
+                         orientation=Quaternion(x=q[0], y=q[1],
+                                                z=q[2], w=q[3]))
+        return pose
 
     def move_relative(self, robot_name: str, offset,
                       speed: float=1.0, accel: float=1.0,
@@ -903,6 +937,9 @@ class BaseRoutines(Node):
 
     def default_gripper_name(self, robot_name):
         return self._default_gripper_names[robot_name]
+
+    def default_gripper(self, robot_name):
+        return self._grippers[self.default_gripper_name(robot_name)]
 
     def set_gripper(self, robot_name, gripper_name):
         gripper = self._grippers.get(gripper_name)
