@@ -67,12 +67,13 @@ def launch_setup(context):
                          parameters=[
                              moveit_configs.to_dict(),
                              {
-                                 'warehouse_plugin':
+                               'warehouse_plugin':
                                  'warehouse_ros_sqlite::DatabaseConnection',
-                                 'warehouse_host':
+                               'warehouse_host':
                                  LaunchConfiguration('warehouse_sqlite_path'),
-                                 'use_sim_time': LaunchConfiguration('sim'),
-                                 'publish_robot_description_semantic':
+                               'use_sim_time':
+                                 LaunchConfiguration('sim'),
+                               'publish_robot_description_semantic':
                                  LaunchConfiguration(
                                      'publish_robot_description_semantic'),
                              }

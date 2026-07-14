@@ -722,12 +722,13 @@ class BaseRoutines(Node):
                                 speed, accel, end_effector_link)
         if path is None:
             return False
-        group = self._cmd.get_group(robot_name)
-        return self.execute_path(robot_name,
-                                 group.retime_trajectory(
-                                     self._cmd.get_current_state(), path,
-                                     velocity_scaling_factor=speed,
-                                     acceleration_scaling_factor=accel))
+        # group = self._cmd.get_group(robot_name)
+        # return self.execute_path(robot_name,
+        #                          group.retime_trajectory(
+        #                              self._cmd.get_current_state(), path,
+        #                              velocity_scaling_factor=speed,
+        #                              acceleration_scaling_factor=accel))
+        return self.execute_path(robot_name, path)
 
     def execute_path(self, robot_name, path):
         success = self._cmd.get_group(robot_name).execute(path, wait=True)
@@ -752,15 +753,12 @@ class BaseRoutines(Node):
             group.set_pose_target(transformed_poses.poses[-1],
                                   end_effector_link)
             success, path, planning_time, error_code = group.plan()
-            if success:
-                self.get_logger().info('Computed non-linear path: planning_time=%f.'
-                                       % planning_time)
-                return path[0]
-            else:
+            if not success:
                 self.get_logger().error('Failed to compute non-linear path: planning_time=%f, error=%s@%s[%d]]'
                                         % (planning_time, error_code.message,
                                            error_code.source, error_code.val))
                 return None
+            return path[0]
 
         try:
             path, fraction = group.compute_cartesian_path(
