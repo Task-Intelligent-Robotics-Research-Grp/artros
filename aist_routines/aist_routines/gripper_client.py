@@ -45,3 +45,41 @@ def create_gripper(node, name, gripper_type, client_args):
         raise RuntimeError('unknown type[%s] of the gripper[%s]'
                                % (gripper_type, name))
     return gripper_client_class(node, name, **client_args)
+
+
+#************************************************************************
+#  class DummyGripper                                                   *
+#************************************************************************
+class DummyGripper(object):
+    def __init__(self, name):
+        super().__init__()
+
+        self._name = name
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def type(self):
+        return self._type
+
+    @property
+    def base_link(self):
+        return self._name + '/base_link'
+
+    @property
+    def tip_link(self):
+        return self._name + '/tip_link'
+
+    def set_parameters(self, params: dict):
+        pass
+
+    def pregrasp(self):
+        pass
+
+    def grasp(self):
+        pass
+
+    def postgrasp(self):
+        pass

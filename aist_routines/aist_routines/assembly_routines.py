@@ -230,6 +230,8 @@ class AssemblyRoutines(BaseRoutines):
                                    (), frame_id=feeder_name + '_outlet_link'),
                                object_id=self._screw_id(screw_type),
                                timeout_sec=timeout_sec)
+        self.com.allow_collision(screw_type, feeder_name + '_outlet_link',
+                                 timeout_sec=timeout_sec)
         return screw_name
 
     def _screw_id(self, screw_type):

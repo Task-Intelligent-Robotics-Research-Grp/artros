@@ -83,8 +83,7 @@ class PickOrPlaceTaskServer(ActionServer):
 
     def _execute_cb(self, goal_handle):
         request = goal_handle.request
-        self.logger.info('### Do %s ###'
-                         % ('picking' if request.pick else 'placing'))
+        self.logger.info('### %s ###' % ('Pick' if request.pick else 'Place'))
         node    = self.node
         com     = node.com
         gripper = node.gripper(request.robot_name)
@@ -111,7 +110,7 @@ class PickOrPlaceTaskServer(ActionServer):
             stage = self.enter_stage(goal_handle, 'approach', stage)
             if request.pick:
                 gripper.pregrasp()  # Pregrasp (not wait)
-                gripper.wait()      # Wait for pregrasp completed
+                # gripper.wait()      # Wait for pregrasp completed
                 if object_id != '':
                     com.allow_collision(object_id, gripper.tip_link)
             elif object_id != '':
@@ -196,7 +195,7 @@ class PickOrPlaceTaskServer(ActionServer):
             # [Final] Goal succeeded.
             goal_handle.succeed()
             self.logger.info('### %s succeeded. ###'
-                             % 'Pick' if request.pick else 'Place')
+                             % ('Pick' if request.pick else 'Place'))
             return PickOrPlace.Result(stage=stage)
 
         finally:
