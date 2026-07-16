@@ -38,9 +38,9 @@ ament_auto_add_executable(
     src/test_calibrator.cpp
 )
 
-ament_target_dependencies(
+target_link_libraries(
   test_calibrator
-    YAML-CPP
+    ${YAML-CPP_LIBRARIES}
 )
 
 ########################

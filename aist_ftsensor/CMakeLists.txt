@@ -50,11 +50,6 @@ ament_auto_add_library(
     src/aist_ftsensor_broadcaster.cpp
 )
 
-ament_target_dependencies(
-  ${PROJECT_NAME}_broadcaster
-    YAML-CPP
-)
-
 #############
 #  Install  #
 #############

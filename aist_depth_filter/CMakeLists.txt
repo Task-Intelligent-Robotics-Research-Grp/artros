@@ -27,9 +27,9 @@ ament_auto_add_library(
     src/DepthFilter.cpp
 )
 
-ament_target_dependencies(
+target_link_libraries(
   ${PROJECT_NAME}
-    OpenCV
+    ${OpenCV_LIBRARIES}
 )
 
 rclcpp_components_register_nodes(

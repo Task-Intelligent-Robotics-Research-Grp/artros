@@ -5,7 +5,7 @@
 #include <aist_utility/fileio.hpp>
 
 int
-main(int argc, char* argv[])
+main()
 {
     std::cerr << "URL>> ";
     for (std::string url; std::cin >> url; )

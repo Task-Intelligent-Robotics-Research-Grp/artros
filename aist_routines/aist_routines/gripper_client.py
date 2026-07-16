@@ -33,6 +33,7 @@
 #
 # Author: Toshio Ueshiba
 #
+from action_msgs.msg             import GoalStatus
 from aist_robotiq.client         import RobotiqGripper, RobotiqSuction
 from aist_fastening_tools.client import (SuctionTool, SuctionGripper,
                                          ScrewTool, PrecisionTool)
@@ -44,6 +45,9 @@ def create_gripper(node, name, gripper_type, client_args):
     if gripper_client_class is None:
         raise RuntimeError('unknown type[%s] of the gripper[%s]'
                                % (gripper_type, name))
+    if gripper_client_class != RobotiqGripper and \
+       node.get_parameter('use_sim_time').get_parameter_value().bool_value:
+        return DummyGripper(name, gripper_type)
     return gripper_client_class(node, name, **client_args)
 
 
@@ -51,10 +55,11 @@ def create_gripper(node, name, gripper_type, client_args):
 #  class DummyGripper                                                   *
 #************************************************************************
 class DummyGripper(object):
-    def __init__(self, name):
+    def __init__(self, name, gripper_type):
         super().__init__()
 
         self._name = name
+        self._type = gripper_type
 
     @property
     def name(self):
@@ -78,8 +83,20 @@ class DummyGripper(object):
     def pregrasp(self):
         pass
 
-    def grasp(self):
-        pass
+    def grasp(self, *, timeout_sec=0.0):
+        if timeout_sec is not None or timeout_sec <= 0.0:
+            return (GoalStatus.STATUS_UNKNOWN, None)
+        else:
+            return wait(self, timeout_sec)
 
     def postgrasp(self):
         pass
+
+    def release(self, *, timeout_sec=0.0):
+        if timeout_sec is not None or timeout_sec <= 0.0:
+            return (GoalStatus.STATUS_UNKNOWN, None)
+        else:
+            return wait(self, timeout_sec)
+
+    def wait(self, *, timeout_sec=None):
+        return (GoalStatus.STATUS_SUCCEEDED, None)

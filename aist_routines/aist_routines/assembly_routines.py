@@ -67,9 +67,9 @@ class AssemblyRoutines(BaseRoutines):
     def process_command(self, command, robot_name, axis, speed):
         if command == 'ps':
             screw_type = input('  screw type? ')
-            self.pick_screw(robot_name, screw_type, timeout_sec=0.0)
+            self.pick_screw(robot_name, screw_type)
         elif command == 'PS':
-            self.place_screw(robot_name, timeout_sec=0.0)
+            self.place_screw(robot_name)
         elif command == 'pp':
             part_id  = input('  part ID? ')
             subframe = input('  subframe? ')
@@ -113,7 +113,7 @@ class AssemblyRoutines(BaseRoutines):
         self.camera(new_robot_name + '_camera').laser_power = laser_power
 
     # Assembly stuffs
-    def pick_screw(self, robot_name, screw_type, *, timeout_sec=None):
+    def pick_screw(self, robot_name, screw_type):
         tool_name = 'screw_tool_' + screw_type[-2:]
         status, result = self.pick_tool(robot_name, tool_name)
         if status != GoalStatus.STATUS_SUCCEEDED:
@@ -121,13 +121,12 @@ class AssemblyRoutines(BaseRoutines):
         feeder_name = 'screw_feeder_' + screw_type[-2:]
         screw_id    = self._screw_id(screw_type)
         status, result = self.pick_at_frame(robot_name, screw_id,
-                                            screw_id + '/head',
-                                            timeout_sec=timeout_sec)
+                                            screw_id + '/head')
         if status == GoalStatus.STATUS_SUCCEEDED:
             self._generate_screw(screw_type)
         return (status, result)
 
-    def place_screw(self, robot_name, *, timeout_sec=None):
+    def place_screw(self, robot_name):
         screw_id = self._grasped_object_id(robot_name)
         if screw_id is None:
             return (GoalStatus.STATUS_ABORTED, None)
@@ -135,8 +134,7 @@ class AssemblyRoutines(BaseRoutines):
         feeder_name = 'screw_feeder_' + screw_type[-2:]
         status, result = self.place_at_frame(robot_name, screw_id,
                                              feeder_name + '_inlet_link',
-                                             subframe_link=screw_id + '/tip_link',
-                                             timeout_sec=timeout_sec)
+                                             subframe_link=screw_id + '/tip_link')
         if status == GoalStatus.STATUS_SUCCEEDED:
             self.com.remove_object(screw_id)
         return (status, result)

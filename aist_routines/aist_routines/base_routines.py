@@ -1020,8 +1020,8 @@ class BaseRoutines(Node):
         picking_parameters = self.settings.get('picking_parameters', {})
         picking_params     = picking_parameters.get(part_id)
         if picking_params is None:
-            pickin_params = picking_parameters[
-                                self.com.get_object_info(part_id).object_type]
+            picking_params = picking_parameters[
+                                 self.com.get_object_info(part_id).object_type]
         placing_parameters = self.settings.get('placing_parameters', {})
         placing_params     = placing_parameters.get(
                                  target_pose.header.frame_id, picking_params)

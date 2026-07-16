@@ -110,7 +110,7 @@ class PickOrPlaceTaskServer(ActionServer):
             stage = self.enter_stage(goal_handle, 'approach', stage)
             if request.pick:
                 gripper.pregrasp()  # Pregrasp (not wait)
-                # gripper.wait()      # Wait for pregrasp completed
+                gripper.wait()      # Wait for pregrasp completed
                 if object_id != '':
                     com.allow_collision(object_id, gripper.tip_link)
             elif object_id != '':
@@ -174,14 +174,14 @@ class PickOrPlaceTaskServer(ActionServer):
                                               gripper.tip_link))
                         self.logger.warn('### Detach %s' % object_id)
                 raise ActionServer._Error('Failed to depart from target',
-                                          stage=current_stage)
+                                          stage=stage)
 
             # [5] Verify stage: Verify success of postgrasp.
             stage = self.enter_stage(goal_handle, 'verify', stage)
             if request.pick and \
                not node.get_parameter('use_sim_time') \
                        .get_parameter_value().bool_value and \
-               not gripper.grasped():  # Wait for postgrasp completed
+               not gripper.grasped():
                 gripper.release()
                 if object_id != '':
                     com.detach_object(object_id,

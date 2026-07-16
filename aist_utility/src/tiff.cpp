@@ -76,10 +76,10 @@ saveTiff(const sensor_msgs::msg::Image& image, const std::string& file)
     TIFFSetField(tiff, TIFFTAG_YRESOLUTION,	72.0);
     TIFFSetField(tiff, TIFFTAG_RESOLUTIONUNIT,	RESUNIT_INCH);
 
-    for (int n = 0, offset = 0; n < image.height; ++n)
+    for (size_t n = 0, offset = 0; n < image.height; ++n)
     {
 	TIFFWriteEncodedStrip(tiff, n,
-			      const_cast<uint8*>(image.data.data() + offset),
+			      const_cast<uint8_t*>(image.data.data() + offset),
 			      image.step);
 	offset += image.step;
     }
@@ -96,8 +96,8 @@ loadTiff(const std::string& file)
     if (!tiff)
 	throw std::runtime_error("loadTiff(): cannot open file[" + file + ']');
 
-    uint32	width, height;
-    uint16	bitsPerSample, samplesPerPixel, photometric;
+    uint32_t	width, height;
+    uint16_t	bitsPerSample, samplesPerPixel, photometric;
 
     if (!TIFFGetField(tiff, TIFFTAG_IMAGEWIDTH,	     &width)		||
 	!TIFFGetField(tiff, TIFFTAG_IMAGELENGTH,     &height)		||
@@ -202,7 +202,7 @@ loadTiff(const std::string& file)
     const auto	nBytesPerStrip = TIFFStripSize(tiff);
     const auto	nStrips        = TIFFNumberOfStrips(tiff);
 
-    for (int n = 0, offset = 0; n < nStrips; ++n)
+    for (size_t n = 0, offset = 0; n < nStrips; ++n)
     {
 	const auto nBytes = TIFFReadEncodedStrip(tiff, n,
 						 image->data.data() + offset,

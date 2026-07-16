@@ -23,9 +23,7 @@ pkg_check_modules(LIBTIFF REQUIRED libtiff-4)
 find_package(OpenCV REQUIRED)
 
 include_directories(
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-  $<INSTALL_INTERFACE:include>
 )
 
 ########################################
@@ -40,11 +38,11 @@ ament_auto_add_library(
     src/rply/rply.c
 )
 
-ament_target_dependencies(
+target_link_libraries(
   ${PROJECT_NAME}
-    YAML-CPP
-    LIBTIFF
-    OpenCV
+    ${YAML-CPP_LIBRARIES}
+    ${LIBTIFF_LIBRARIES}
+    ${OpenCV_LIBRARIES}
 )
 
 #############
