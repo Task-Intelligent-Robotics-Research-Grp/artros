@@ -1,14 +1,14 @@
-name: jazzy-build
+name: lyrical-build
 on:
   push:
   workflow_dispatch:
 
 jobs:
-  jazzy-build:
+  lyrical-build:
     uses: ./.github/workflows/build.yaml
     with:
-      os: ubuntu-24.04
-      ros_distro: jazzy
+      os: ubuntu-26.04
+      ros_distro: lyrical
 
 permissions:
   contents: write
