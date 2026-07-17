@@ -123,7 +123,7 @@
         $(var arm_name)_wrist_2_joint: { trajectory: 0.2, goal: 0.1 }
         $(var arm_name)_wrist_3_joint: { trajectory: 0.2, goal: 0.1 }
       speed_scaling:
-        state_interface: $(var arm_name)_speed_scaling/speed_scaling_factor
+        state_interface: $(var speed_scaling_interface_name)
         # Setting the command interface currently would clash with the io_and_status_controller
         # This will probably be changed in the future.
         # command_interface: $(var arm_name)_speed_scaling/target_speed_fraction_cmd
