@@ -34,14 +34,14 @@
 // Author: Toshio Ueshiba
 //
 /*!
- *  \file	tf2.h
+ *  \file	tf2.hpp
  *  \author	Toshio Ueshiba
  *  \brief	Utilities
  */
 #pragma once
 
-#include <tf2/transform_datatypes.h>
-#include <tf2/LinearMath/Transform.h>
+#include <tf2/transform_datatypes.hpp>
+#include <tf2/LinearMath/Transform.hpp>
 
 namespace aist_utility
 {

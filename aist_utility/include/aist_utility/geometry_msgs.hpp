@@ -47,7 +47,7 @@
 #include <geometry_msgs/msg/quaternion_stamped.hpp>
 #include <geometry_msgs/msg/point_stamped.hpp>
 #include <geometry_msgs/msg/pose_array.hpp>
-#include <tf2/convert.h>
+#include <tf2/convert.hpp>
 #include <aist_utility/tf2.hpp>
 #include <yaml-cpp/yaml.h>
 
