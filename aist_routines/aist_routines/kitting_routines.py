@@ -43,7 +43,7 @@ from aist_graspability.client    import GraspabilityClient
 from aist_graspability_msgs.msg  import Border, Point2D
 from aist_utility.fileio         import filepath_from_url
 
-from aist_tasks.attempt_bin_task import AttemptBinTask
+#from aist_tasks.attempt_bin_task import AttemptBinTask
 from .base_routines              import BaseRoutines
 
 #************************************************************************
