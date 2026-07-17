@@ -3,7 +3,7 @@ arms:
     type:            URe
     default_gripper: a_bot_gripper
     active_controllers:
-      - scaled_joint_trajectory_controller
+      - joint_trajectory_controller
       - motion_control_handle
     consistent_controllers:
       - joint_state_broadcaster
@@ -15,12 +15,12 @@ arms:
       - ur_configuration_controller
     inactive_controllers:
       - forward_velocity_controller
+      - forward_effort_controller
       - forward_position_controller
       - cartesian_compliance_controller
       - cartesian_force_controller
       - cartesian_motion_controller
     real_inactive_controllers:
-      - joint_trajectory_controller
       - force_mode_controller
       - passthrough_trajectory_controller
       - freedrive_mode_controller

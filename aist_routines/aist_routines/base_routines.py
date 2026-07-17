@@ -98,9 +98,7 @@ class BaseRoutines(Node):
     """
     ControllerTypes = (
         'joint_trajectory_controller/JointTrajectoryController',
-        'ur_controllers/ScaledJointTrajectoryController',
-        'position_controllers/JointGroupPositionController',
-        'velocity_controllers/JointGroupVelocityController',
+        'forward_command_controller/ForwardCommandController',
         'cartesian_motion_controller/CartesianMotionController',
         'cartesian_force_controller/CartesianForceController',
         'cartesian_compliance_controller/CartesianComplianceController',

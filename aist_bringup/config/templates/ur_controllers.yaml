@@ -18,14 +18,14 @@
       joint_trajectory_controller:
         type: joint_trajectory_controller/JointTrajectoryController
 
-      scaled_joint_trajectory_controller:
-        type: ur_controllers/ScaledJointTrajectoryController
-
       forward_velocity_controller:
-        type: velocity_controllers/JointGroupVelocityController
+        type: forward_command_controller/ForwardCommandController
+
+      forward_effort_controller:
+        type: forward_command_controller/ForwardCommandController
 
       forward_position_controller:
-        type: position_controllers/JointGroupPositionController
+        type: forward_command_controller/ForwardCommandController
 
       force_mode_controller:
         type: ur_controllers/ForceModeController
@@ -44,6 +44,9 @@
 
       tool_contact_controller:
         type: ur_controllers/ToolContactController
+
+      motion_primitive_forward_controller:
+        type: motion_primitives_controllers/MotionPrimitivesForwardController
 
       cartesian_compliance_controller:
         type: cartesian_compliance_controller/CartesianComplianceController
@@ -90,7 +93,7 @@
         - torque.x
         - torque.y
         - torque.z
-      frame_id: $(var arm_name)_tool0
+      frame_id: $(var arm_name)_tool0_controller
       topic_name: ft_data
 
   joint_trajectory_controller:
@@ -119,34 +122,11 @@
         $(var arm_name)_wrist_1_joint: { trajectory: 0.2, goal: 0.1 }
         $(var arm_name)_wrist_2_joint: { trajectory: 0.2, goal: 0.1 }
         $(var arm_name)_wrist_3_joint: { trajectory: 0.2, goal: 0.1 }
-
-  scaled_joint_trajectory_controller:
-    ros__parameters:
-      joints:
-        - $(var arm_name)_shoulder_pan_joint
-        - $(var arm_name)_shoulder_lift_joint
-        - $(var arm_name)_elbow_joint
-        - $(var arm_name)_wrist_1_joint
-        - $(var arm_name)_wrist_2_joint
-        - $(var arm_name)_wrist_3_joint
-      command_interfaces:
-        - position
-      state_interfaces:
-        - position
-        - velocity
-      state_publish_rate: 100.0
-      action_monitor_rate: 20.0
-      allow_partial_joints_goal: false
-      constraints:
-        stopped_velocity_tolerance: 0.2
-        goal_time: 0.0
-        $(var arm_name)_shoulder_pan_joint: { trajectory: 0.2, goal: 0.1 }
-        $(var arm_name)_shoulder_lift_joint: { trajectory: 0.2, goal: 0.1 }
-        $(var arm_name)_elbow_joint: { trajectory: 0.2, goal: 0.1 }
-        $(var arm_name)_wrist_1_joint: { trajectory: 0.2, goal: 0.1 }
-        $(var arm_name)_wrist_2_joint: { trajectory: 0.2, goal: 0.1 }
-        $(var arm_name)_wrist_3_joint: { trajectory: 0.2, goal: 0.1 }
-      speed_scaling_interface_name: $(var speed_scaling_interface_name)
+      speed_scaling:
+        state_interface: $(var arm_name)_speed_scaling/speed_scaling_factor
+        # Setting the command interface currently would clash with the io_and_status_controller
+        # This will probably be changed in the future.
+        # command_interface: $(var arm_name)_speed_scaling/target_speed_fraction_cmd
 
   passthrough_trajectory_controller:
     ros__parameters:
@@ -174,6 +154,17 @@
         - $(var arm_name)_wrist_3_joint
       interface_name: velocity
 
+  forward_effort_controller:
+    ros__parameters:
+      joints:
+        - $(var arm_name)_shoulder_pan_joint
+        - $(var arm_name)_shoulder_lift_joint
+        - $(var arm_name)_elbow_joint
+        - $(var arm_name)_wrist_1_joint
+        - $(var arm_name)_wrist_2_joint
+        - $(var arm_name)_wrist_3_joint
+      interface_name: effort
+
   forward_position_controller:
     ros__parameters:
       joints:
@@ -183,6 +174,7 @@
         - $(var arm_name)_wrist_1_joint
         - $(var arm_name)_wrist_2_joint
         - $(var arm_name)_wrist_3_joint
+      interface_name: position
 
   force_mode_controller:
     ros__parameters:
@@ -200,6 +192,10 @@
         child_frame_id: $(var arm_name)_tool0_controller
 
   tool_contact_controller:
+    ros__parameters:
+      tf_prefix: "$(var arm_name)_"
+
+  motion_primitive_forward_controller:
     ros__parameters:
       tf_prefix: "$(var arm_name)_"
 
