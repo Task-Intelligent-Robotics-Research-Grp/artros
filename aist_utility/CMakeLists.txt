@@ -70,16 +70,16 @@ rclcpp_components_register_node(
 #################
 #  capture_pcd  #
 #################
-ament_auto_add_library(
-  capture_pcd SHARED
-    src/capture_pcd.cpp
-)
+# ament_auto_add_library(
+#   capture_pcd SHARED
+#     src/capture_pcd.cpp
+# )
 
-rclcpp_components_register_node(
-  capture_pcd
-    PLUGIN "${PROJECT_NAME}::PCDCapturer"
-    EXECUTABLE capture_pcd_node
-)
+# rclcpp_components_register_node(
+#   capture_pcd
+#     PLUGIN "${PROJECT_NAME}::PCDCapturer"
+#     EXECUTABLE capture_pcd_node
+# )
 
 ##########################
 #  butterworth_lpf_test  #
