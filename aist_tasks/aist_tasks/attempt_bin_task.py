@@ -112,12 +112,12 @@ class AttemptBinTaskServer(ActionServer):
             # [1] Move camera stage: Go to pose for capturing bin.
             #   Move to 0.15m above the bin if the camera is mounted
             #   on the robot.
-            self.enter_stage(goal_handle, 'move_camera')
+            stage = self.enter_stage(goal_handle, 'move_camera')
             self.node.go_to_frame(robot_name, bin_props['name'], (0, 0, 0.15))
 
         if pick_poses is None:
             # [2] Search stage: Search for graspabilities.
-            self.enter_stage(goal_handle, 'search')
+            stage = self.enter_stage(goal_handle, 'search', stage)
             status, result = self.node.search_bin(goal_handle.request.bin_id)
             if status != GoalStatus.STATUS_SUCCEEDED:
                 raise self._Error('failed to search graspabilities',

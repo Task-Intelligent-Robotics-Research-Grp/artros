@@ -73,12 +73,40 @@ from aist_utility.fileio           import filepath_from_url
 #  local functions                                                      *
 #************************************************************************
 def _decompose_link_name(link_name):
+    """ Decompose the given link name into object_id and subframe.
+
+    Args:
+      link_name: name of the link
+
+    Returns:
+      A tuple of object ID and subframe name of the collision object,
+      if `link_name` is a fullname of subframe of any collision object.
+      A tuple ('', `link_name`), otherwise.
+
+    Examples:
+      * 'panel_bearing/base_link` => ('panel_bearing', 'base_link')
+      * 'a_bot_gripper_tip_link'  => ('', 'a_bot_gripper_tip_link')
+    """
     tokens = link_name.rsplit('/', 1)
     return tokens if len(tokens) == 2 else ('', link_name)
 
-def _get_base_link(frame_id):
-    parent_id, _ = _decompose_link_name(frame_id)
-    return frame_id if parent_id == '' else parent_id + '/base_link'
+def _get_base_link(link_name):
+    """ Convert the given link name to the fullname of the base subframe.
+
+    Args:
+      link_name: name of the link
+
+    Returns:
+      A tuple of object ID and subframe name of the collision object,
+      if `link_name` is a fullname of subframe of any collision object.
+      A tuple ('', `link_name`), otherwise.
+
+    Examples:
+      * 'panel_bearing/base_screw_hole_1` => 'panel_bearing/base_link'
+      * 'a_bot_gripper_tip_link' => 'a_bot_gripper_tip_link'
+    """
+    object_id, _ = _decompose_link_name(link_name)
+    return link_name if object_id == '' else object_id + '/base_link'
 
 def _vector3_from_xyz(xyz):
     return Vector3(x=xyz[0], y=xyz[1], z=xyz[2])
@@ -450,11 +478,11 @@ class CollisionObjectManager(Node):
         with respect to the 'frame_id'.
 
         Args:
-          object_type: type of object to be created
-          object_id:   unique ID of object to identification
-          frame_id:    reference frame for specifying pose of the object
-          pose:        pose of 'subframe' w.r.t. 'frame_id'
-          subframe:    subframe name with which the pose of the object
+          object_type: Type of object to be created
+          object_id:   Unique ID of object to identification
+          frame_id:    Reference frame for specifying pose of the object
+          pose:        Pose of 'subframe' w.r.t. 'frame_id'
+          subframe:    Subframe name with which the pose of the object
                        is specified
         """
         self.get_logger().info(
@@ -492,10 +520,10 @@ class CollisionObjectManager(Node):
 
         # Create subframe transforms.
         base_link = object_id + '/base_link'
-        instance_props.subframe_transforms.append(
-            TransformStamped(header=Header(frame_id=frame_id),
-                             child_frame_id=base_link,
-                             transform=_transform_from_pose(pose)))
+        instance_props.subframe_transforms \
+            = [TransformStamped(header=Header(frame_id=frame_id),
+                                child_frame_id=base_link,
+                                transform=_transform_from_pose(pose))]
         for subframe_name, subframe_pose in zip(obj_props.subframe_names,
                                                 obj_props.subframe_poses):
             if subframe_name != 'base_link':
@@ -541,6 +569,18 @@ class CollisionObjectManager(Node):
                                %(co.id, object_type))
 
     def _remove_object(self, object_id, frame_id):
+        """ Remove attached or non-attached collision object.
+
+        Args:
+          object_id: Unique ID of the object to be removed. All non-attached
+                     collision objects as well as collision_objects
+                     attached to `frame_id` will be removed, if an empty
+                     string, in default, is given.
+          frame_id:  Frame ID to which attached collision objects to be removed
+                     are attached to. All attached-collision object attached
+                     to any frames will be removed, if an empty string
+                     is given.
+        """
         self.get_logger().info("*REMOVE_OBJECT*: object_id='%s', frame_id='%s'"
                                % (object_id, frame_id))
 
@@ -562,11 +602,11 @@ class CollisionObjectManager(Node):
         self._psi.remove_world_object(object_id)
 
     def _attach_object(self, object_id, parent_link, leaf_id):
-        """ Attach collision object
+        """ Attach collision object to
 
         Args:
-          object_id:   unique ID of the object to be attached
-          parent_link: name of link to be parent of the object
+          object_id:   Unique ID of the object to be attached.
+          parent_link: Name of link to which the object will be connected to.
         """
         self.get_logger().info(
             "*ATTACH_OBJECT*: object_id='%s', parent_link='%s', leaf_id='%s'"
@@ -580,7 +620,7 @@ class CollisionObjectManager(Node):
         old_root_id, old_parent_link = self._rotate_tree(co, leaf_id)
 
         # If 'parent_link' is a subframe of another collision object,
-        # get frame ID its 'base_link'.
+        # get fullname of its 'base_link'.
         parent_link = _get_base_link(parent_link)
 
         # Lookup transform from 'base_link' of the current collision object
@@ -685,6 +725,14 @@ class CollisionObjectManager(Node):
                                tfs.inverse_matrix(_pose_matrix(co.pose)))
 
     def _append_or_remove_touch_links(self, object_id, frame_id, append):
+        """ Append or remove touch links to the attached collision object.
+
+        Args:
+          object_id: Unique ID of object to identification.
+          frame_id:  Frame ID whose touch links to be appended to/removed from
+                     the object spedified with `object_id`.
+          append:    Append touch links, if `True`. Remove, if `False`.
+        """
         self.get_logger().info("*%s_TOUCH_LINKS*: object_id='%s', frame_id='%s'"
                                % ('APPEND' if append else 'REMOVE',
                                   object_id, frame_id))
@@ -705,6 +753,8 @@ class CollisionObjectManager(Node):
             % (aco.object.id, aco.link_name, aco.touch_links))
 
     def _reset_touch_links(self):
+        """ Reset touch links for all attached collision objects.
+        """
         self.get_logger().info("*RESET_TOUCH_LINKS*")
 
         for aco in self._psi.get_attached_objects().values():
@@ -809,9 +859,7 @@ class CollisionObjectManager(Node):
         # If 'co' is not attached to any links, we have reached root!
         if self._get_attached_object(co.id) is None:
             self._psi.attach_object(co, co.header.frame_id)
-            parent = self._get_parent_link(co.id)
-            return co.id, parent
-        #return co.id, self._get_parent_link(co.id)
+            return co.id, self._get_parent_link(co.id)
 
         # If 'co' is not attached to any other collision object or attached
         # to an object with ID of 'leaf_id', we have reached root!
@@ -904,12 +952,27 @@ class CollisionObjectManager(Node):
 
     def _get_attached_object(self, object_id):
         """ Find attached collision object with specified object ID.
+
+        Args:
+          object_id: ID of the object to be searched for.
+
+        Returns:
+          * Attached collision object, if found.
+          * `None`, if not found.
         """
         return self._psi.get_attached_objects([object_id]).get(object_id)
 
     def _get_any_object(self, object_id):
         """ Find attached or non-attached collision object
         with specified object ID.
+
+        Args:
+          object_id: ID of the object to be searched for.
+
+        Returns:
+          * Collision object, if attached or non-attached collision object
+            found.
+          * `None`, if neighter found.
         """
         aco = self._get_attached_object(object_id)
         return self._get_object(object_id) if aco is None else aco.object

@@ -33,19 +33,33 @@
 #
 # Author: Toshio Ueshiba
 #
-import rclpy, time
+import rclpy
 
-from rclpy.node                   import Node
 from rclpy.callback_groups        import MutuallyExclusiveCallbackGroup
 from aist_msgs.srv                import ManageCollisionObject
 from task_wrappers.service_client import ServiceClient
+
+from typing                       import Optional
+from rclpy.node                   import Node
+from geometry_msgs.msg            import PoseStamped
+from aist_msgs.msg                import CollisionObjectInfo
 
 #########################################################################
 #  class CollisionObjectManagerClient                                   #
 #########################################################################
 class CollisionObjectManagerClient(object):
-    def __init__(self, node,
-                 server='collision_object_manager', timeout_sec=5.0):
+    """ Client of CollisionObjectManager.
+    """
+
+    def __init__(self, node: Node, server: str='collision_object_manager',
+                 timeout_sec: Optional[float]=5.0):
+        """ Create a client for CollisionObjectManger server.
+        Args:
+          node:        The ROS node to add the client to.
+          server:      Name of the server to be connected to.
+          timeout_sec: Timeout time waiting for the server available.
+                       Seconds to wait, if positive. Wait forever, if `None`.
+        """
         super().__init__()
 
         service_ns = server + '/manage_collision_object'
@@ -56,8 +70,23 @@ class CollisionObjectManagerClient(object):
             raise TimeoutError('timeout expired before conneted to service[%s]'
                                % service_ns)
 
-    def create_object(self, object_type, pose,
-                      subframe='base_link', object_id='', *, timeout_sec=None):
+    def create_object(self, object_type: str, pose: PoseStamped,
+                      subframe: str='base_link', object_id: str='',
+                      *, timeout_sec: Optional[float]=None) \
+                      -> Optional[CollisionObjectInfo]:
+        """ Create a new collision object at specified pose.
+
+        Args:
+          object_type: Type of the object to be created.
+          pose:        Pose of `subframe` of the created object.
+          subframe:    Subframe name with which the pose of the object
+                       is specified.
+          object_id:   Unique ID of the object to be created. Same string as
+                       `object_type` will be assigned, if an empty string,
+                       in default, is given.
+          timeout_sec: Seconds to wait for the response.
+                       If `None`, then wait forever.
+        """
         req = ManageCollisionObject.Request()
         req.op          = ManageCollisionObject.Request.CREATE_OBJECT
         req.object_type = object_type
@@ -68,7 +97,23 @@ class CollisionObjectManagerClient(object):
         res = self._send(req, timeout_sec)
         return res.info if res and res.success else None
 
-    def remove_object(self, object_id='', frame_id='', *, timeout_sec=None):
+    def remove_object(self, object_id: str='', frame_id: str='',
+                      *, timeout_sec: Optional[float]=None) \
+                      -> Optional[CollisionObjectInfo]:
+        """ Remove attached or non-attached collision object.
+
+        Args:
+          object_id:   Unique ID of the object to be removed. All non-attached
+                       collision objects as well as collision_objects
+                       attached to `frame_id` will be removed, if an empty
+                       string, in default, is given.
+          frame_id:    Frame ID to which attached collision objects
+                       are attached to. All attached-collision object attached
+                       to any frames will be removed, if an empty string,
+                       in default, is given.
+          timeout_sec: Seconds to wait for the response.
+                       If `None`, then wait forever.
+        """
         req = ManageCollisionObject.Request()
         req.op        = ManageCollisionObject.Request.REMOVE_OBJECT
         req.object_id = object_id
@@ -76,8 +121,9 @@ class CollisionObjectManagerClient(object):
         res = self._send(req, timeout_sec)
         return res.info if res and res.success else None
 
-    def attach_object(self, object_id, parent_link, leaf_id='',
-                      *, timeout_sec=None):
+    def attach_object(self, object_id: str, parent_link: str, leaf_id: str='',
+                      *, timeout_sec: Optional[float]=None) \
+                      -> Optional[CollisionObjectInfo]:
         req = ManageCollisionObject.Request()
         req.op        = ManageCollisionObject.Request.ATTACH_OBJECT
         req.object_id = object_id
@@ -86,8 +132,8 @@ class CollisionObjectManagerClient(object):
         res = self._send(req, timeout_sec)
         return res.info if res and res.success else None
 
-    def detach_object(self, object_id, parent_link, leaf_id='',
-                      *, timeout_sec=None):
+    def detach_object(self, object_id: str, parent_link: str, leaf_id: str='',
+                      *, timeout_sec: Optional[float]=None):
         req = ManageCollisionObject.Request()
         req.op        = ManageCollisionObject.Request.DETACH_OBJECT
         req.object_id = object_id
@@ -96,8 +142,10 @@ class CollisionObjectManagerClient(object):
         res = self._send(req, timeout_sec)
         return res.info if res and res.success else None
 
-    def move_object(self, object_id, pose, subframe='base_link',
-                    *, timeout_sec=None):
+    def move_object(self, object_id: str, pose: PoseStamped,
+                    subframe: str='base_link',
+                    *, timeout_sec: Optional[float]=None) \
+                    -> Optional[CollisionObjectInfo]:
         req = ManageCollisionObject.Request()
         req.op        = ManageCollisionObject.Request.MOVE_OBJECT
         req.object_id = object_id
@@ -107,7 +155,9 @@ class CollisionObjectManagerClient(object):
         res = self._send(req, timeout_sec)
         return res.info if res and res.success else None
 
-    def append_touch_links(self, object_id, frame_id, *, timeout_sec=None):
+    def append_touch_links(self, object_id: str, frame_id: str,
+                           *, timeout_sec: Optional[float]=None) \
+                           -> Optional[CollisionObjectInfo]:
         req = ManageCollisionObject.Request()
         req.op        = ManageCollisionObject.Request.APPEND_TOUCH_LINKS
         req.object_id = object_id
@@ -115,7 +165,9 @@ class CollisionObjectManagerClient(object):
         res = self._send(req, timeout_sec)
         return res.info if res and res.success else None
 
-    def remove_touch_links(self, object_id, frame_id, *, timeout_sec=None):
+    def remove_touch_links(self, object_id: str, frame_id: str,
+                           *, timeout_sec: Optional[float]=None) \
+                           -> Optional[CollisionObjectInfo]:
         req = ManageCollisionObject.Request()
         req.op        = ManageCollisionObject.Request.REMOVE_TOUCH_LINKS
         req.object_id = object_id
@@ -123,19 +175,23 @@ class CollisionObjectManagerClient(object):
         res = self._send(req, timeout_sec)
         return res.info if res and res.success else None
 
-    def reset_touch_links(self, *, timeout_sec=None):
+    def reset_touch_links(self, *, timeout_sec: Optional[float]=None)-> bool:
         req = ManageCollisionObject.Request()
         req.op = ManageCollisionObject.Request.RESET_TOUCH_LINKS
         return self._send(req, timeout_sec).success
 
-    def get_object_info(self, object_id, *, timeout_sec=None):
+    def get_object_info(self, object_id: str,
+                        *, timeout_sec: Optional[float]=None) \
+                        -> Optional[CollisionObjectInfo]:
         req           = ManageCollisionObject.Request()
         req.op        = ManageCollisionObject.Request.GET_OBJECT_INFO
         req.object_id = object_id
         res = self._send(req, timeout_sec)
         return res.info if res and res.success else None
 
-    def get_child_object_info(self, frame_id, *, timeout_sec=None):
+    def get_child_object_info(self, frame_id: str,
+                              *, timeout_sec: Optional[float]=None) \
+                              -> Optional[CollisionObjectInfo]:
         req          = ManageCollisionObject.Request()
         req.op       = ManageCollisionObject.Request \
                       .GET_ATTACHED_CHILD_OBJECT_INFO
@@ -143,7 +199,8 @@ class CollisionObjectManagerClient(object):
         res = self._send(req, timeout_sec)
         return res.info if res and res.success else None
 
-    def allow_collision(self, object_id, frame_id, *, timeout_sec=None):
+    def allow_collision(self, object_id, frame_id,
+                        *, timeout_sec: Optional[float]=None)-> Optional[bool]:
         req           = ManageCollisionObject.Request()
         req.op        = ManageCollisionObject.Request.ALLOW_COLLISION
         req.object_id = object_id
@@ -151,7 +208,9 @@ class CollisionObjectManagerClient(object):
         res = self._send(req, timeout_sec)
         return res.success if res else None
 
-    def disallow_collision(self, object_id, frame_id, *, timeout_sec=None):
+    def disallow_collision(self, object_id: str, frame_id: str,
+                           *, timeout_sec: Optional[float]=None) \
+                           -> Optional[bool]:
         req           = ManageCollisionObject.Request()
         req.op        = ManageCollisionObject.Request.DISALLOW_COLLISION
         req.object_id = object_id
