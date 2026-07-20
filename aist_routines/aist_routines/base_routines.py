@@ -1088,9 +1088,9 @@ class BaseRoutines(Node):
     # Utility functions
     #
     def print_object_info(self, info):
-        print('    object_id:   %s\n    type:        %s\n    parent_link: %s\n    attach_link: %s\n    touch_links: %s\n    pose: %s@%s'
+        print('    object_id:   %s\n    type:        %s\n    parent_link: %s\n    attach_link: %s\n    touch_links: %s\n    acm_allowed: %s\n    pose: %s@%s'
               % (info.object_id, info.object_type, info.parent_link,
-                 info.attach_link, info.touch_links,
+                 info.attach_link, info.touch_links, info.acm_allowed,
                  self.format_pose(info.pose, info.pose.header.frame_id),
                  info.pose.header.frame_id))
 

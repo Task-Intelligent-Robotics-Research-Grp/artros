@@ -218,17 +218,17 @@ class AssemblyRoutines(BaseRoutines):
     def _generate_screw(self, screw_type, *, timeout_sec=None):
         if screw_type == 'screw_m3':
             self._screw_m3_id += 1
-            screw_name  = screw_type + '_' + str(self._screw_m3_id)
+            screw_name = screw_type + '_' + str(self._screw_m3_id)
         else:
             self._screw_m4_id += 1
-            screw_name  = screw_type + '_' + str(self._screw_m4_id)
+            screw_name = screw_type + '_' + str(self._screw_m4_id)
         feeder_name = 'screw_feeder_' + screw_type[-2:]
         self.com.create_object(screw_type,
                                self.pose_from_xyzrpy(
                                    (), frame_id=feeder_name + '_outlet_link'),
                                object_id=self._screw_id(screw_type),
                                timeout_sec=timeout_sec)
-        self.com.allow_collision(screw_type, feeder_name + '_outlet_link',
+        self.com.allow_collision(screw_name, feeder_name + '_outlet_link',
                                  timeout_sec=timeout_sec)
         return screw_name
 

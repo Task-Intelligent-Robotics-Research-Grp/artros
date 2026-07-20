@@ -40,7 +40,6 @@ import numpy as np
 import tf_transformations as tfs
 import pyassimp
 
-from collections                   import namedtuple
 from rclpy.node                    import Node
 from rclpy.executors               import MultiThreadedExecutor
 from rclpy.callback_groups         import MutuallyExclusiveCallbackGroup
@@ -185,16 +184,29 @@ class CollisionObjectManager(Node):
       as visual markers
     """
 
-    ObjectProperties = namedtuple('ObjectProperties',
-                                  ['primitives', 'primitive_poses',
-                                   'visual_mesh_urls', 'visual_mesh_poses',
-                                   'visual_mesh_scales', 'visual_mesh_colors',
-                                   'collision_mesh_urls',
-                                   'collision_mesh_poses',
-                                   'collision_mesh_scales', 'collision_meshes',
-                                   'subframe_names', 'subframe_poses'])
+    class ObjectProperties(object):
+        def __init__(self):
+            super().__init__()
+
+            self.primitives            = []
+            self.primitive_poses       = []
+            self.visual_mesh_urls      = []
+            self.visual_mesh_poses     = []
+            self.visual_mesh_scales    = []
+            self.visual_mesh_colors    = []
+            self.collision_mesh_urls   = []
+            self.collision_mesh_poses  = []
+            self.collision_mesh_scales = []
+            self.collision_meshes      = []
+            self.subframe_names = ['base_link']
+            self.subframe_poses = [Pose(position=Point(x=0.0, y=0.0, z=0.0),
+                                        orientation=Quaternion(x=0.0, y=0.0,
+                                                               z=0.0, w=1.0))]
+
     class InstanceProperties(object):
         def __init__(self, type):
+            super().__init__()
+
             self.type                = type
             self.subframe_transforms = []
             self.markers             = []
@@ -226,14 +238,7 @@ class CollisionObjectManager(Node):
         for type, props in self._load_databases(
                                self.declare_parameter('object_properties_urls',
                                                       ['']).value).items():
-            obj_props = CollisionObjectManager.ObjectProperties(
-                            [], [],          # collision primitives
-                            [], [], [], [],  # visual mesh properties
-                            [], [], [], [],  # collision mesh properties
-                            ['base_link'],   # subframe names
-                            [Pose(position=Point(x=0.0, y=0.0, z=0.0),
-                                  orientation=Quaternion(x=0.0, y=0.0,
-                                                         z=0.0, w=1.0))])
+            obj_props = CollisionObjectManager.ObjectProperties()
             for primitive in props.get('primitives', []):
                 obj_props.primitives.append(
                     SolidPrimitive(type=PRIMITIVES[primitive['type']],
