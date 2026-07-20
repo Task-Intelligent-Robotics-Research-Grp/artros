@@ -617,7 +617,7 @@ class CollisionObjectManager(Node):
             "*ATTACH_OBJECT*: object_id='%s', parent_link='%s', leaf_id='%s'"
             % (object_id, parent_link, leaf_id))
 
-        co = self._get_any_object(object_id)
+        co = self._find_object(object_id)
         if co is None:
             raise RuntimeError("unknown collision object '%s'" % object_id)
 
@@ -658,7 +658,7 @@ class CollisionObjectManager(Node):
             "*DETACH_OBJECT*: object_id='%s', parent_link='%s', leaf_id='%s'"
             % (object_id, parent_link, leaf_id))
 
-        aco = self._get_attached_object(object_id)
+        aco = self._find_attached_collision_object(object_id)
         if aco is None:
             raise RuntimeError("unknown attached collision object '%s'"
                                % object_id)
@@ -685,7 +685,7 @@ class CollisionObjectManager(Node):
 
         # Since all child attached objects are connected to the current
         # object 'co', we have to switch their attach links to 'link'.
-        co = self._get_object(aco.object.id)
+        co = self._find_collision_object(aco.object.id)
         for child_aco in self._psi.get_attached_objects().values():
             if self._get_parent_id(child_aco.object.id) == co.id:
                 self._attach_descendants(child_aco.object, co.header.frame_id,
@@ -699,7 +699,7 @@ class CollisionObjectManager(Node):
             "*MOVE_OBJECT*: object_id='%s', frame_id='%s', subframe='%s'"
             % (object_id, frame_id, subframe))
 
-        co = self._get_any_object(object_id)
+        co = self._find_object(object_id)
         if co is None:
             raise RuntimeError("unknown collision object '%s'" % object_id)
 
@@ -742,7 +742,7 @@ class CollisionObjectManager(Node):
                                % ('APPEND' if append else 'REMOVE',
                                   object_id, frame_id))
 
-        aco = self._get_attached_object(object_id)
+        aco = self._find_attached_collision_object(object_id)
         if aco is None:
             self.get_logger().warn('attached collision object[%s] not found'
                                    % object_id)
@@ -774,9 +774,9 @@ class CollisionObjectManager(Node):
 
         info = CollisionObjectInfo()
         info.object_id = object_id
-        co = self._get_object(object_id)
+        co = self._find_collision_object(object_id)
         if co is None:
-            aco = self._get_attached_object(object_id)
+            aco = self._find_attached_collision_object(object_id)
             if aco is None:
                 raise RuntimeError("unknown collision object '%s'" % object_id)
             info.attach_link = aco.link_name
@@ -862,13 +862,13 @@ class CollisionObjectManager(Node):
                                _transform_matrix(transform.transform))))
 
         # If 'co' is not attached to any links, we have reached root!
-        if self._get_attached_object(co.id) is None:
+        if self._find_attached_collision_object(co.id) is None:
             self._psi.attach_object(co, co.header.frame_id)
             return co.id, self._get_parent_link(co.id)
 
         # If 'co' is not attached to any other collision object or attached
         # to an object with ID of 'leaf_id', we have reached root!
-        parent_co = self._get_any_object(self._get_parent_id(co.id))
+        parent_co = self._find_object(self._get_parent_id(co.id))
         if parent_co is None or parent_co.id == leaf_id:
             return co.id, self._get_parent_link(co.id)
 
@@ -898,7 +898,7 @@ class CollisionObjectManager(Node):
 
     def _move_descendants(self, co, T):
         co.pose = _pose_from_matrix(T @ _pose_matrix(co.pose))
-        aco = self._get_attached_object(co.id)
+        aco = self._find_attached_collision_object(co.id)
         if aco is None:
             self._psi.add_object(co)
         else:
@@ -937,7 +937,7 @@ class CollisionObjectManager(Node):
                (parent_id + '/base_link',
                 _pose_from_matrix(
                        _pose_matrix(
-                           _subframe_pose(self._get_any_object(parent_id),
+                           _subframe_pose(self._find_object(parent_id),
                                           parent_subframe)) @
                        _pose_matrix(pose)))
 
@@ -945,17 +945,17 @@ class CollisionObjectManager(Node):
         # If 'frame_id' is the 'base_link' of any collision object,
         # return its attach link and convert the given pose from 'frame_id'
         # to the attach link.
-        co = self._get_any_object(_decompose_link_name(frame_id)[0])
+        co = self._find_object(_decompose_link_name(frame_id)[0])
         return (frame_id, pose) if co is None else \
                (co.header.frame_id,
                 _pose_from_matrix(_pose_matrix(co.pose) @ _pose_matrix(pose)))
 
-    def _get_object(self, object_id):
+    def _find_collision_object(self, object_id):
         """ Find non-attached collision object with specified object ID.
         """
         return self._psi.get_objects([object_id]).get(object_id)
 
-    def _get_attached_object(self, object_id):
+    def _find_attached_collision_object(self, object_id):
         """ Find attached collision object with specified object ID.
 
         Args:
@@ -967,7 +967,7 @@ class CollisionObjectManager(Node):
         """
         return self._psi.get_attached_objects([object_id]).get(object_id)
 
-    def _get_any_object(self, object_id):
+    def _find_object(self, object_id):
         """ Find attached or non-attached collision object
         with specified object ID.
 
@@ -979,8 +979,9 @@ class CollisionObjectManager(Node):
             found.
           * `None`, if neighter found.
         """
-        aco = self._get_attached_object(object_id)
-        return self._get_object(object_id) if aco is None else aco.object
+        aco = self._find_attached_collision_object(object_id)
+        return self._find_collision_object(object_id) if aco is None else \
+               aco.object
 
     def _get_parent_link(self, object_id):
         return self._instance_props_dict[object_id].parent_link
