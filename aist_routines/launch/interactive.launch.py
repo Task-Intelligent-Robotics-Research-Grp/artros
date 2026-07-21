@@ -49,7 +49,7 @@ def launch_setup(context):
                      'use_sim_time': LaunchConfiguration('sim'),
                  }
              ],
-             prefix=['gnome-terminal --tab --wait --active --'],
+#             prefix=['gnome-terminal --tab --wait --active --'],
              output='screen')
     ]
 

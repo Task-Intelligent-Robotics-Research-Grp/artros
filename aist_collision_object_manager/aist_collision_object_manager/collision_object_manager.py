@@ -41,12 +41,9 @@ import tf_transformations as tfs
 import pyassimp
 
 from rclpy.node                    import Node
-from rclpy.executors               import MultiThreadedExecutor
 from rclpy.callback_groups         import MutuallyExclusiveCallbackGroup
 from rclpy.duration                import Duration
 from rclpy.time                    import Time
-from tf2_ros.buffer                import Buffer
-from tf2_ros.transform_listener    import TransformListener
 from tf2_ros.transform_broadcaster import TransformBroadcaster
 from rcl_interfaces.msg            import ParameterDescriptor, ParameterType
 from std_msgs.msg                  import Header, ColorRGBA
@@ -56,8 +53,7 @@ from geometry_msgs.msg             import (Point, Vector3, Quaternion, Pose,
 from shape_msgs.msg                import (Mesh, MeshTriangle, Plane,
                                            SolidPrimitive)
 from visualization_msgs.msg        import Marker, MarkerArray
-from aist_msgs.srv                 import (ManageCollisionObject,
-                                           GetCollisionObject)
+from aist_msgs.srv                 import GetCollisionObject
 from aist_msgs.msg                 import (CollisionObjectInfo, LinkGeometry,
                                            Material)
 from moveit_msgs.msg               import (CollisionObject,
@@ -173,7 +169,7 @@ def _format_pose(pose):
 #************************************************************************
 #  class CollisionObjectManager                                         *
 #************************************************************************
-class CollisionObjectManager(Node):
+class CollisionObjectManager(object):
     """ Python interface for managing collision objects.
 
     * Maintain tree structure of collision objects
@@ -215,7 +211,7 @@ class CollisionObjectManager(Node):
         def parent_link(self):
             return self.subframe_transforms[0].header.frame_id
 
-    def __init__(self, name):
+    def __init__(self, node: Node, ns: str=''):
         """ Create collision object manager.
 
         * Load object properties from parameter '~object_properties'
@@ -223,7 +219,7 @@ class CollisionObjectManager(Node):
         * Setup marker publisher '~collision_marker' as well as services
           '~get_collision_object' and '~manage_collision_object'
         """
-        super().__init__(name)
+        super().__init__()
 
         def ns_join(ns, name):
             return '/'.join([ns, name]) if ns else name
@@ -233,10 +229,12 @@ class CollisionObjectManager(Node):
                         'CYLINDER': SolidPrimitive.CYLINDER,
                         'CONE':     SolidPrimitive.CONE}
 
+        self._logger = node.get_logger()
+
         # Create a dictionary of object properties loaded from database.
         self._obj_props_dict = {}
         for type, props in self._load_databases(
-                               self.declare_parameter('object_properties_urls',
+                               node.declare_parameter('object_properties_urls',
                                                       ['']).value).items():
             obj_props = CollisionObjectManager.ObjectProperties()
 
@@ -272,18 +270,16 @@ class CollisionObjectManager(Node):
                     self._load_mesh(mesh['url'], mesh['scale']))
 
             self._obj_props_dict[type] = obj_props
-            self.get_logger().info('loaded properties of type[%s]' % type)
-
-        ns = self.declare_parameter('namespace', '').value
+            self._logger.info('loaded properties of type[%s]' % type)
 
         # Create an instance of PlanningSceneInterface.
-        self._psi = psi.PlanningSceneInterface(self, ns,
+        self._psi = psi.PlanningSceneInterface(self, '',
                                                self.declare_parameter(
                                                    'synchronous', True).value)
 
         # Create a client of GetPlanningScene service.
         self._get_planning_scene \
-            = self.create_client(
+            = node.create_client(
                 GetPlanningScene, ns_join(ns, 'get_planning_scene'),
                 callback_group=MutuallyExclusiveCallbackGroup())
         if not self._get_planning_scene.wait_for_service(timeout_sec=5.0):
@@ -292,30 +288,24 @@ class CollisionObjectManager(Node):
         self._instance_props_dict = {}
         self._instance_props_lock = threading.Lock()
         self._touch_links         = self._load_databases(
-                                        self.declare_parameter(
+                                        node.declare_parameter(
                                             'touch_links_urls', ['']).value)
         self._marker_id_min       = 0
         self._marker_id_lists     = {}
-        self._marker_pub          = self.create_publisher(MarkerArray,
+        self._marker_pub          = node.create_publisher(MarkerArray,
                                                           '~/collision_marker',
                                                           1)
-        self._tf2_buffer          = Buffer()
-        self._tf2_listener        = TransformListener(self._tf2_buffer, self)
+        self._tf2_buffer          = node._tf2_buffer
         self._broadcaster         = TransformBroadcaster(self)
-        self._timer               = self.create_timer(
-                                        self.declare_parameter('period',
+        self._timer               = node.create_timer(
+                                        node.declare_parameter('period',
                                                                0.1).value,
                                         self._subframes_and_markers_cb,
                                         MutuallyExclusiveCallbackGroup())
         self._service_cbg         = MutuallyExclusiveCallbackGroup()
         self._get_collision_object \
-            = self.create_service(GetCollisionObject, '~/get_collision_object',
+            = node.create_service(GetCollisionObject, '~/get_collision_object',
                                   self._get_collision_object_cb,
-                                  callback_group=self._service_cbg)
-        self._manage_collision_object \
-            = self.create_service(ManageCollisionObject,
-                                  '~/manage_collision_object',
-                                  self._manage_collision_object_cb,
                                   callback_group=self._service_cbg)
 
     #
@@ -387,12 +377,12 @@ class CollisionObjectManager(Node):
         Send response with binary mesh data according to the requested URL
         of mesh resource.
         """
-        self.get_logger().info('GetCollisionObject[object_type=%s]'
+        self._logger.info('GetCollisionObject[object_type=%s]'
                                % req.object_type)
 
         obj_props = self._obj_props_dict.get(req.object_type)
         if not obj_props:
-            self.get_logger().error('Unknown obejct type[%s]'
+            self._logger.error('Unknown obejct type[%s]'
                                     % req.object_type)
             return
 
@@ -421,56 +411,15 @@ class CollisionObjectManager(Node):
                                   for mesh_color
                                   in obj_props.visual_mesh_colors]
         except Exception as e:
-            self.get_logger().error('_get_collision_object_cb(): %s' % e)
-
-        return res
-
-    def _manage_collision_object_cb(self, req, res):
-        """Service callback for ManageCollisionObject
-
-        Execute various operations on collision objects requested by clients
-        """
-        res.success = True
-
-        try:
-            if req.op == ManageCollisionObject.Request.CREATE_OBJECT:
-                self._create_object(req.object_type, req.object_id,
-                                    req.frame_id, req.pose, req.subframe)
-            elif req.op == ManageCollisionObject.Request.REMOVE_OBJECT:
-                self._remove_object(req.object_id, req.frame_id)
-            elif req.op == ManageCollisionObject.Request.ATTACH_OBJECT:
-                res.info = self._get_object_info(req.object_id)
-                self._attach_object(req.object_id, req.frame_id, req.leaf_id)
-            elif req.op == ManageCollisionObject.Request.DETACH_OBJECT:
-                res.info = self._get_object_info(req.object_id)
-                self._detach_object(req.object_id, req.frame_id, req.leaf_id)
-            elif req.op == ManageCollisionObject.Request.MOVE_OBJECT:
-                res.info = self._get_object_info(req.object_id)
-                self._move_object(req.object_id,
-                                  req.frame_id, req.pose, req.subframe)
-            elif req.op == ManageCollisionObject.Request.ALLOW_COLLISION:
-                self._set_collision_allowed(req.object_id, req.frame_id, True)
-            elif req.op == ManageCollisionObject.Request.DISALLOW_COLLISION:
-                self._set_collision_allowed(req.object_id, req.frame_id, False)
-            elif req.op == ManageCollisionObject.Request.RESET_COLLISION:
-                self._reset_collision(req.object_id)
-            elif req.op == ManageCollisionObject.Request.GET_OBJECT_INFO:
-                res.info = self._get_object_info(req.object_id)
-            elif req.op == ManageCollisionObject.Request \
-                          .GET_ATTACHED_CHILD_OBJECT_INFO:
-                res.info = self._get_attached_child_object_info(req.frame_id)
-            else:
-                raise RuntimeError('unknown operation[%d]' % req.op)
-        except Exception as e:
-            self.get_logger().error('_manage_collision_object_cb(): %s' % e)
-            res.success = False
+            self._logger.error('_get_collision_object_cb(): %s' % e)
 
         return res
 
     #
     # Operations
     #
-    def _create_object(self, object_type, object_id, frame_id, pose, subframe):
+    def create_object(self, object_type: str, pose: PoseStamped,
+                      subframe: str='base_link', object_id: str='')-> None:
         """ Create a new collision object.
 
         The created new collision object is not attached to any links
@@ -478,14 +427,15 @@ class CollisionObjectManager(Node):
         with respect to the 'frame_id'.
 
         Args:
-          object_type: Type of object to be created
-          object_id:   Unique ID of object to identification
-          frame_id:    Reference frame for specifying pose of the object
-          pose:        Pose of 'subframe' w.r.t. 'frame_id'
+          object_type: Type of the object to be created.
+          pose:        Pose of `subframe` of the created object.
           subframe:    Subframe name with which the pose of the object
-                       is specified
+                       is specified.
+          object_id:   Unique ID of the object to be created. Same string as
+                       `object_type` will be assigned, if an empty string is
+                       given (in default).
         """
-        self.get_logger().info(
+        self._logger.info(
             "*CREATE_OBJECT*: object_type='%s', object_id='%s', frame_id='%s', subframe='%s'"
             % (object_type, object_id, frame_id, subframe))
 
@@ -566,23 +516,23 @@ class CollisionObjectManager(Node):
         # against any other objects in default.
         self._set_acm_allowed(object_id, None, False, reset=False)
 
-        self.get_logger().info("created '%s' of type[%s]"
+        self._logger.info("created '%s' of type[%s]"
                                %(co.id, object_type))
 
-    def _remove_object(self, object_id, frame_id):
+    def remove_object(self, object_id: str='', frame_id: str='')-> None:
         """ Remove attached or non-attached collision object.
 
         Args:
-          object_id: Unique ID of the object to be removed. All non-attached
-                     collision objects as well as collision_objects
-                     attached to `frame_id` will be removed, if an empty
-                     string, in default, is given.
-          frame_id:  Frame ID to which attached collision objects to be removed
-                     are attached to. All attached-collision object attached
-                     to any frames will be removed, if an empty string
-                     is given.
+          object_id:   Unique ID of the object to be removed. All non-attached
+                       collision objects as well as collision_objects
+                       attached to `frame_id` will be removed, if an empty
+                       string, in default, is given.
+          frame_id:    Frame ID to which attached collision objects
+                       are attached to. All attached-collision object attached
+                       to any frames will be removed, if an empty string,
+                       in default, is given.
         """
-        self.get_logger().info("*REMOVE_OBJECT*: object_id='%s', frame_id='%s'"
+        self._logger.info("*REMOVE_OBJECT*: object_id='%s', frame_id='%s'"
                                % (object_id, frame_id))
 
         if object_id != '':
@@ -602,14 +552,16 @@ class CollisionObjectManager(Node):
         self._psi.remove_attached_object(frame_id, object_id)
         self._psi.remove_world_object(object_id)
 
-    def _attach_object(self, object_id, parent_link, leaf_id):
+    def attach_object(self, object_id: str, parent_link: str,
+                      leaf_id: str='')-> None:
         """ Attach collision object to
 
         Args:
           object_id:   Unique ID of the object to be attached.
           parent_link: Name of link to which the object will be connected to.
+          leaf_id:
         """
-        self.get_logger().info(
+        self._logger.info(
             "*ATTACH_OBJECT*: object_id='%s', parent_link='%s', leaf_id='%s'"
             % (object_id, parent_link, leaf_id))
 
@@ -649,8 +601,9 @@ class CollisionObjectManager(Node):
                                  tfs.inverse_matrix(_pose_matrix(co.pose)))
         self._set_collision_allowed(old_root_id, old_parent_link, True)
 
-    def _detach_object(self, object_id, parent_link, leaf_id):
-        self.get_logger().info(
+    def detach_object(self, object_id: str, parent_link: str,
+                      leaf_id: str)-> None:
+        self._logger.info(
             "*DETACH_OBJECT*: object_id='%s', parent_link='%s', leaf_id='%s'"
             % (object_id, parent_link, leaf_id))
 
@@ -675,7 +628,7 @@ class CollisionObjectManager(Node):
                 = Tpo
 
         # Detach 'aco' from its attach link.
-        self.get_logger().info("detached '%s' from '%s'"
+        self._logger.info("detached '%s' from '%s'"
                                % (aco.object.id, aco.link_name))
         self._psi.remove_attached_object(name=aco.object.id)
 
@@ -690,8 +643,9 @@ class CollisionObjectManager(Node):
                                              _pose_matrix(aco.object.pose)))
         #self._append_or_remove_touch_links(old_root_id, old_parent_link, True)
 
-    def _move_object(self, object_id, frame_id, pose, subframe):
-        self.get_logger().info(
+    def move_object(self, object_id: str, frame_id: str, pose: Pose,
+                    subframe: str='base_link')-> None:
+        self._logger.info(
             "*MOVE_OBJECT*: object_id='%s', frame_id='%s', subframe='%s'"
             % (object_id, frame_id, subframe))
 
@@ -725,10 +679,11 @@ class CollisionObjectManager(Node):
                                        Duration(seconds=2)).transform) @ \
                                tfs.inverse_matrix(_pose_matrix(co.pose)))
 
-    def _set_collision_allowed(self, object_id, frame_id, allow):
-        self.get_logger().info("*%s_COLLISION*: object_id='%s', frame_id='%s'"
-                               % ('ALLOW' if allow else 'DISALLOW',
-                                  object_id, frame_id))
+    def set_collision_allowed(self, object_id: str, frame_id: str,
+                              allow: bool)-> None:
+        self._logger.info("*%s_COLLISION*: object_id='%s', frame_id='%s'"
+                          % ('ALLOW' if allow else 'DISALLOW',
+                             object_id, frame_id))
 
         touch_links = self._get_touch_links(frame_id)
         aco = self._find_attached_collision_object(object_id)
@@ -740,10 +695,10 @@ class CollisionObjectManager(Node):
         else:
             self._set_acm_allowed(object_id, touch_links, allow, reset=False)
 
-    def _reset_collision(self, object_id):
+    def reset_collision(self, object_id: str)-> None:
         """ Reset ACM and optionally touch links for the specified object.
         """
-        self.get_logger().info("*RESET_COLLISION*: object_id='%s'" % object_id)
+        self._logger.info("*RESET_COLLISION*: object_id='%s'" % object_id)
 
         touch_links = self._get_parent_touch_links(object_id)
         self._set_acm_allowed(object_id, touch_links, True, reset=True)
@@ -751,8 +706,8 @@ class CollisionObjectManager(Node):
         if aco is not None:
             self._psi.attach_object(aco, touch_links=touch_links)
 
-    def _get_object_info(self, object_id):
-        self.get_logger().info("*GET_OBJECT_INFO*: object_id='%s'" % object_id)
+    def get_object_info(self, object_id: str)-> CollisionObjectInfo:
+        self._logger.info("*GET_OBJECT_INFO*: object_id='%s'" % object_id)
 
         info = CollisionObjectInfo()
         info.object_id = object_id
@@ -772,8 +727,9 @@ class CollisionObjectManager(Node):
         info.acm_allowed = self._get_acm_allowed_entries(object_id)
         return info
 
-    def _get_attached_child_object_info(self, frame_id):
-        self.get_logger().info("*GET_ATTACHED_CHILD_OBJECT_INFO*: frame_id='%s'"
+    def get_attached_child_object_info(self,
+                                       frame_id: str)-> CollisionObjectInfo:
+        self._logger.info("*GET_ATTACHED_CHILD_OBJECT_INFO*: frame_id='%s'"
                                % frame_id)
 
         for aco in self._psi.get_attached_objects().values():
@@ -846,9 +802,9 @@ class CollisionObjectManager(Node):
         co.pose = _pose_from_matrix(T @ _pose_matrix(co.pose))
         touch_links = self._get_parent_touch_links(co.id)
         self._psi.attach_object(co, attach_link, touch_links)
-        self.get_logger().info("attached '%s' to '%s'@%s with touch_links%s"
-                               %(co.id, attach_link, _format_pose(co.pose),
-                                 touch_links))
+        self._logger.info("attached '%s' to '%s'@%s with touch_links%s"
+                          %(co.id, attach_link, _format_pose(co.pose),
+                            touch_links))
 
         # Since all child attached objects are connected to the current
         # object 'co', we have to switch their attach links to 'attach_link'.
@@ -1004,14 +960,14 @@ class CollisionObjectManager(Node):
     def _delete_markers_and_subframes(self, object_id):
         instance_props = self._instance_props_dict.get(object_id)
         if instance_props is None:
-            self.get_logger().error('unknown object[%s]' % object_id)
+            self._logger.error('unknown object[%s]' % object_id)
             return
         self._marker_pub.publish(
             MarkerArray(markers=[Marker(id=marker.id, action=Marker.DELETE)
                                  for marker in instance_props.markers]))
         with self._instance_props_lock:
             del self._instance_props_dict[object_id]
-        self.get_logger().info("removed '%s'" % object_id)
+        self._logger.info("removed '%s'" % object_id)
 
     def _set_acm_allowed(self, object_id, other_links, allow, *, reset):
         # Create a new ACM by modifying the existing one.
@@ -1021,18 +977,17 @@ class CollisionObjectManager(Node):
                   .scene.allowed_collision_matrix
         if other_links is None:
             acm.set_default(object_id, allow)
-            self.get_logger().info("%s '%s' collision by default"
-                                   % ('allow' if allow else 'disallow',
-                                      object_id))
+            self._logger.info("%s '%s' collision by default"
+                              % ('allow' if allow else 'disallow', object_id))
         else:
             if reset:
                 for other_link in acm.entry_names:
                     acm.set_allowed(object_id, other_link, False)
             for other_link in other_links:
                 acm.set_allowed(object_id, other_link, allow)
-            self.get_logger().info("%s '%s' collision against %s"
-                                   % ('allow' if allow else 'disallow',
-                                      object_id, other_links))
+            self._logger.info("%s '%s' collision against %s"
+                              % ('allow' if allow else 'disallow',
+                                 object_id, other_links))
 
         # Apply the created ACM to the planning scene.
         scene = PlanningScene()
@@ -1058,21 +1013,3 @@ class CollisionObjectManager(Node):
             return ['ANY']
         else:
             return []
-
-
-#************************************************************************
-#  Entry point                                                          *
-#************************************************************************
-def main():
-    try:
-        rclpy.init(args=sys.argv)
-
-        node = CollisionObjectManager('collision_object_manager')
-        executor = MultiThreadedExecutor()
-        executor.add_node(node)
-        executor.spin()
-    except Exception as e:
-        print('*** Terminate the node due to exception: %s' % e)
-
-if __name__ == '__main__':
-    main()

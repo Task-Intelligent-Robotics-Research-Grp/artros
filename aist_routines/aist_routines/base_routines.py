@@ -38,33 +38,31 @@ import numpy as np
 import moveit_commander
 import tf_transformations as tfs
 
-from math                                 import degrees, sqrt, pi
-from rclpy.node                           import Node
-from rclpy.duration                       import Duration
-from rclpy.time                           import Time
-from rclpy.parameter                      import Parameter
-from rclpy.callback_groups                import MutuallyExclusiveCallbackGroup
-from tf2_ros.buffer                       import Buffer
-from tf2_ros.transform_listener           import TransformListener
-from std_msgs.msg                         import Header
-from geometry_msgs.msg                    import (PoseStamped, Pose, Point,
-                                                  Quaternion, PoseArray,
-                                                  Vector3, Vector3Stamped)
-from moveit_msgs.msg                      import (RobotTrajectory,
-                                                  PositionIKRequest,
-                                                  MoveItErrorCodes)
-from moveit_msgs.srv                      import GetPositionIK
-from trajectory_msgs.msg                  import (JointTrajectoryPoint,
-                                                  JointTrajectory)
-from controller_manager_msgs.srv          import (ListControllers,
-                                                  SwitchController)
-from action_msgs.msg                      import GoalStatus
-from aist_utility.fileio                  import filepath_from_url
-from aist_tasks.pick_or_place_task        import PickOrPlaceTask
-from aist_collision_object_manager.client import CollisionObjectManagerClient
-from ddynamic_reconfigure2.utils          import declare_read_only_parameter
-from .gripper_client                      import create_gripper
-from .camera_client                       import CameraClient
+from math                          import degrees, sqrt, pi
+from rclpy.node                    import Node
+from rclpy.duration                import Duration
+from rclpy.time                    import Time
+from rclpy.parameter               import Parameter
+from rclpy.callback_groups         import MutuallyExclusiveCallbackGroup
+from tf2_ros.buffer                import Buffer
+from tf2_ros.transform_listener    import TransformListener
+from std_msgs.msg                  import Header
+from geometry_msgs.msg             import (PoseStamped, Pose, Point,
+                                           Quaternion, PoseArray,
+                                           Vector3, Vector3Stamped)
+from moveit_msgs.msg               import (RobotTrajectory, PositionIKRequest,
+                                           MoveItErrorCodes)
+from moveit_msgs.srv               import GetPositionIK
+from trajectory_msgs.msg           import JointTrajectoryPoint, JointTrajectory
+from controller_manager_msgs.srv   import ListControllers, SwitchController
+from action_msgs.msg               import GoalStatus
+from aist_utility.fileio           import filepath_from_url
+from aist_tasks.pick_or_place_task import PickOrPlaceTask
+from aist_collision_object_manager \
+    .collision_object_manager      import CollisionObjectManager
+from ddynamic_reconfigure2.utils   import declare_read_only_parameter
+from .gripper_client               import create_gripper
+from .camera_client                import CameraClient
 
 #*********************************************************************
 #  global functions                                                  *
@@ -186,7 +184,7 @@ class BaseRoutines(Node):
         # CollisionObjectManager wrapping MoveIt PlanningSceneInterface
         if 'initial_object_config' in self.settings:
             try:
-                self._com = CollisionObjectManagerClient(self)
+                self._com = CollisionObjectManager(self)
 
                 # This call should be asynchronous because the executor has yet
                 # been started in this constructor.
@@ -263,7 +261,7 @@ class BaseRoutines(Node):
         return self._cameras.keys()
 
     @property
-    def com(self) -> CollisionObjectManagerClient:
+    def com(self) -> CollisionObjectManager:
         """ Client of collision object manager associated with this class.
         """
         return self._com

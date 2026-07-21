@@ -70,6 +70,10 @@ base:
     moveit_eef_step: 0.002
     setting_urls:
       - package://aist_routines/config/inc/base.yaml
+    object_properties_urls:
+      - package://aist_fastening_tools/config/fastening_tools_properties.yaml
+    touch_links_urls:
+      - package://aist_routines/config/inc/touch_links.yaml
 
 kitting:
   ros__parameters:
@@ -79,6 +83,10 @@ kitting:
       - package://aist_routines/config/inc/base.yaml
       - package://aist_routines/config/inc/kitting-camera.yaml
       - package://aist_routines/config/inc/borders-camera.yaml
+    object_properties_urls:
+      - package://aist_fastening_tools/config/fastening_tools_properties.yaml
+    touch_links_urls:
+      - package://aist_routines/config/inc/touch_links.yaml
     marker_lifetime: 0      # in seconds. Zero means forever.
     marker_scale:    0.004
 
@@ -89,3 +97,8 @@ assembly:
     setting_urls:
       - package://aist_routines/config/inc/base.yaml
       - package://aist_routines/config/inc/assembly.yaml
+    object_properties_urls:
+      - package://aist_fastening_tools/config/fastening_tools_properties.yaml
+      - package://aist_description/parts/config/parts_properties.yaml
+    touch_links_urls:
+      - package://aist_routines/config/inc/touch_links.yaml
