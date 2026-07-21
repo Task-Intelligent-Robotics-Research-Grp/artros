@@ -20,7 +20,7 @@ uint8 ATTACH_OBJECT=3
 
 # - Detach the existing collision object with 'object_id' from the link
 #   currently attached to.
-# - Make 'base_link' of the detached object a child of 'frame_id'
+# - Make 'base_link' of the detached object a child of 'frame_id'.
 #
 uint8 DETACH_OBJECT=4
 
@@ -29,19 +29,20 @@ uint8 DETACH_OBJECT=4
 #
 uint8 MOVE_OBJECT=5
 
-# - Append touch links associated with the link specified by 'frame_id'
-#   to the existing touch links of the object specified by 'object_id'.
+# - Allow the existing collision object with 'object_id' to collide against
+#   the link specified by 'frame_id'.
 #
-uint8 APPEND_TOUCH_LINKS=6
+uint8 ALLOW_COLLISION=6
 
-# - Remove touch links associated with the link specified by 'frame_id'
-#   from the existing touch links of the object specified by 'object_id'.
+# - Disallow the existing collision object with 'object_id' to collide against
+#   the link specified by 'frame_id'.
 #
-uint8 REMOVE_TOUCH_LINKS=7
+uint8 DISALLOW_COLLISION=7
 
-# - Set touch_links to the parent link for all attached collision object
+# - Reset ACM and touch_links, if attached, of the existing collision object
+#   with 'object_id'
 #
-uint8 RESET_TOUCH_LINKS=8
+uint8 RESET_COLLISION=8
 
 # - Return infomation of the object specified by 'object_id' in 'info'.
 #
@@ -51,14 +52,6 @@ uint8 GET_OBJECT_INFO=9
 #   specified by 'frame_id' in 'info'.
 #
 uint8 GET_ATTACHED_CHILD_OBJECT_INFO=10
-
-# - Allow collision against the link specified by 'frame_id'
-#
-uint8 ALLOW_COLLISION=11
-
-# - Disallow collision against the link specified by 'frame_id'
-#
-uint8 DISALLOW_COLLISION=12
 
 uint8                         op
 string                        object_type

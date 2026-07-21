@@ -196,7 +196,6 @@ class AssemblyRoutines(BaseRoutines):
         if tracker.wait_for_result():
             result = tracker.get_result()
             self.go_to_named_pose(robot_name, result.pose_name)
-        self.com.reset_touch_links()
 
     # Utilities
     def _initialize_collision_objects(self, *, timeout_sec=None):

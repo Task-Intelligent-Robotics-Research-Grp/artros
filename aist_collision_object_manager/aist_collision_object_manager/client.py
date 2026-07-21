@@ -155,30 +155,32 @@ class CollisionObjectManagerClient(object):
         res = self._send(req, timeout_sec)
         return res.info if res and res.success else None
 
-    # def append_touch_links(self, object_id: str, frame_id: str,
-    #                        *, timeout_sec: Optional[float]=None) \
-    #                        -> Optional[CollisionObjectInfo]:
-    #     req = ManageCollisionObject.Request()
-    #     req.op        = ManageCollisionObject.Request.APPEND_TOUCH_LINKS
-    #     req.object_id = object_id
-    #     req.frame_id  = frame_id
-    #     res = self._send(req, timeout_sec)
-    #     return res.info if res and res.success else None
+    def allow_collision(self, object_id: str, frame_id: str,
+                        *, timeout_sec: Optional[float]=None)-> Optional[bool]:
+        req           = ManageCollisionObject.Request()
+        req.op        = ManageCollisionObject.Request.ALLOW_COLLISION
+        req.object_id = object_id
+        req.frame_id  = frame_id
+        res = self._send(req, timeout_sec)
+        return res.success if res else None
 
-    # def remove_touch_links(self, object_id: str, frame_id: str,
-    #                        *, timeout_sec: Optional[float]=None) \
-    #                        -> Optional[CollisionObjectInfo]:
-    #     req = ManageCollisionObject.Request()
-    #     req.op        = ManageCollisionObject.Request.REMOVE_TOUCH_LINKS
-    #     req.object_id = object_id
-    #     req.frame_id  = frame_id
-    #     res = self._send(req, timeout_sec)
-    #     return res.info if res and res.success else None
+    def disallow_collision(self, object_id: str, frame_id: str,
+                           *, timeout_sec: Optional[float]=None) \
+                           -> Optional[bool]:
+        req           = ManageCollisionObject.Request()
+        req.op        = ManageCollisionObject.Request.DISALLOW_COLLISION
+        req.object_id = object_id
+        req.frame_id  = frame_id
+        res = self._send(req, timeout_sec)
+        return res.success if res else None
 
-    def reset_touch_links(self, *, timeout_sec: Optional[float]=None)-> bool:
-        req = ManageCollisionObject.Request()
-        req.op = ManageCollisionObject.Request.RESET_TOUCH_LINKS
-        return self._send(req, timeout_sec).success
+    def reset_collision(self, object_id: str,
+                        *, timeout_sec: Optional[float]=None)-> Optional[bool]:
+        req           = ManageCollisionObject.Request()
+        req.op        = ManageCollisionObject.Request.RESET_COLLISION
+        req.object_id = object_id
+        res = self._send(req, timeout_sec)
+        return res.success if res else None
 
     def get_object_info(self, object_id: str,
                         *, timeout_sec: Optional[float]=None) \
@@ -198,25 +200,6 @@ class CollisionObjectManagerClient(object):
         req.frame_id = frame_id
         res = self._send(req, timeout_sec)
         return res.info if res and res.success else None
-
-    def allow_collision(self, object_id: str, frame_id: str,
-                        *, timeout_sec: Optional[float]=None)-> Optional[bool]:
-        req           = ManageCollisionObject.Request()
-        req.op        = ManageCollisionObject.Request.ALLOW_COLLISION
-        req.object_id = object_id
-        req.frame_id  = frame_id
-        res = self._send(req, timeout_sec)
-        return res.success if res else None
-
-    def disallow_collision(self, object_id: str, frame_id: str,
-                           *, timeout_sec: Optional[float]=None) \
-                           -> Optional[bool]:
-        req           = ManageCollisionObject.Request()
-        req.op        = ManageCollisionObject.Request.DISALLOW_COLLISION
-        req.object_id = object_id
-        req.frame_id  = frame_id
-        res = self._send(req, timeout_sec)
-        return res.success if res else None
 
     def _send(self, req, timeout_sec):
         return self._client.call(req, timeout_sec=timeout_sec)

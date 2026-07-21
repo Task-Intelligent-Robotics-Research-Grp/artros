@@ -158,8 +158,6 @@ class PickOrPlaceTaskServer(ActionServer):
             if not success:
                 if request.pick:
                     gripper.release()
-                    if object_id != '':
-                        com.disallow_collision(object_id, gripper.tip_link)
                 raise ActionServer._Error('Failed to approach target',
                                           stage=stage)
 
@@ -211,7 +209,6 @@ class PickOrPlaceTaskServer(ActionServer):
                                           original_object_info.parent_link,
                                           _decompose_link_name(
                                               gripper.tip_link)[0])
-                        com.disallow_collision(object_id, gripper.tip_link)
                         self.logger.warn('### Detach %s' % object_id)
                 raise ActionServer._Error('Failed to depart from target',
                                           stage=stage)
@@ -231,7 +228,6 @@ class PickOrPlaceTaskServer(ActionServer):
                     com.move_object(object_id, original_object_info.pose,
                                     _decompose_link_name(
                                         request.pose.header.frame_id)[1])
-                    com.disallow_collision(object_id, gripper.tip_link)
                 raise ActionServer._Error('Failed to grasp', stage=stage)
 
             # [Final] Goal succeeded.
@@ -242,8 +238,7 @@ class PickOrPlaceTaskServer(ActionServer):
 
         finally:
             if object_id != '':
-                com.disallow_collision(object_id, gripper.tip_link)
-                com.reset_touch_links()
+                com.reset_collision(object_id)
                 self.logger.info('reset touch links')
 
 #************************************************************************

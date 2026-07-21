@@ -239,6 +239,7 @@ class CollisionObjectManager(Node):
                                self.declare_parameter('object_properties_urls',
                                                       ['']).value).items():
             obj_props = CollisionObjectManager.ObjectProperties()
+
             for primitive in props.get('primitives', []):
                 obj_props.primitives.append(
                     SolidPrimitive(type=PRIMITIVES[primitive['type']],
@@ -447,23 +448,17 @@ class CollisionObjectManager(Node):
                 res.info = self._get_object_info(req.object_id)
                 self._move_object(req.object_id,
                                   req.frame_id, req.pose, req.subframe)
-            elif req.op == ManageCollisionObject.Request.APPEND_TOUCH_LINKS:
-                self._append_or_remove_touch_links(req.object_id,
-                                                   req.frame_id, True)
-            elif req.op == ManageCollisionObject.Request.REMOVE_TOUCH_LINKS:
-                self._append_or_remove_touch_links(req.object_id,
-                                                   req.frame_id, False)
-            elif req.op == ManageCollisionObject.Request.RESET_TOUCH_LINKS:
-                self._reset_touch_links()
+            elif req.op == ManageCollisionObject.Request.ALLOW_COLLISION:
+                self._set_collision_allowed(req.object_id, req.frame_id, True)
+            elif req.op == ManageCollisionObject.Request.DISALLOW_COLLISION:
+                self._set_collision_allowed(req.object_id, req.frame_id, False)
+            elif req.op == ManageCollisionObject.Request.RESET_COLLISION:
+                self._reset_collision(req.object_id)
             elif req.op == ManageCollisionObject.Request.GET_OBJECT_INFO:
                 res.info = self._get_object_info(req.object_id)
             elif req.op == ManageCollisionObject.Request \
                           .GET_ATTACHED_CHILD_OBJECT_INFO:
                 res.info = self._get_attached_child_object_info(req.frame_id)
-            elif req.op == ManageCollisionObject.Request.ALLOW_COLLISION:
-                self._set_collision_allowed(req.object_id, req.frame_id, True)
-            elif req.op == ManageCollisionObject.Request.DISALLOW_COLLISION:
-                self._set_collision_allowed(req.object_id, req.frame_id, False)
             else:
                 raise RuntimeError('unknown operation[%d]' % req.op)
         except Exception as e:
@@ -567,8 +562,9 @@ class CollisionObjectManager(Node):
         with self._instance_props_lock:
             self._instance_props_dict[object_id] = instance_props
 
-        # Add object to AllowedCollisionMatrix(acm)
-        self._set_acm_allowed(object_id, None, False)
+        # Add the object to AllowedCollisionMatrix(acm) and disallow collision
+        # against any other objects in default.
+        self._set_acm_allowed(object_id, None, False, reset=False)
 
         self.get_logger().info("created '%s' of type[%s]"
                                %(co.id, object_type))
@@ -651,7 +647,7 @@ class CollisionObjectManager(Node):
         self._attach_descendants(co, attach_link,
                                  _pose_matrix(pose) @
                                  tfs.inverse_matrix(_pose_matrix(co.pose)))
-        self._append_or_remove_touch_links(old_root_id, old_parent_link, True)
+        self._set_collision_allowed(old_root_id, old_parent_link, True)
 
     def _detach_object(self, object_id, parent_link, leaf_id):
         self.get_logger().info(
@@ -729,45 +725,31 @@ class CollisionObjectManager(Node):
                                        Duration(seconds=2)).transform) @ \
                                tfs.inverse_matrix(_pose_matrix(co.pose)))
 
-    def _append_or_remove_touch_links(self, object_id, frame_id, append):
-        """ Append or remove touch links to the attached collision object.
-
-        Args:
-          object_id: Unique ID of object to identification.
-          frame_id:  Frame ID whose touch links to be appended to/removed from
-                     the object spedified with `object_id`.
-          append:    Append touch links, if `True`. Remove, if `False`.
-        """
-        self.get_logger().info("*%s_TOUCH_LINKS*: object_id='%s', frame_id='%s'"
-                               % ('APPEND' if append else 'REMOVE',
+    def _set_collision_allowed(self, object_id, frame_id, allow):
+        self.get_logger().info("*%s_COLLISION*: object_id='%s', frame_id='%s'"
+                               % ('ALLOW' if allow else 'DISALLOW',
                                   object_id, frame_id))
 
+        touch_links = self._get_touch_links(frame_id)
         aco = self._find_attached_collision_object(object_id)
-        if aco is None:
-            self.get_logger().warn('attached collision object[%s] not found'
-                                   % object_id)
-            return
-        touch_links = list(set(aco.touch_links) |
-                           set(self._get_touch_links(frame_id))) \
-                      if append else \
-                      list(set(aco.touch_links) -
-                           set(self._get_touch_links(frame_id)))
-        self._psi.attach_object(aco, touch_links=touch_links)
-        self.get_logger().info(
-            "protect '%s' attached to '%s' with touch links%s"
-            % (aco.object.id, aco.link_name, aco.touch_links))
+        if aco is not None:
+            touch_links = list(set(aco.touch_links) | set(touch_links)) \
+                          if allow else \
+                          list(set(aco.touch_links) - set(touch_links))
+            self._psi.attach_object(aco, touch_links=touch_links)
+        else:
+            self._set_acm_allowed(object_id, touch_links, allow, reset=False)
 
-    def _reset_touch_links(self):
-        """ Reset touch links for all attached collision objects.
+    def _reset_collision(self, object_id):
+        """ Reset ACM and optionally touch links for the specified object.
         """
-        self.get_logger().info("*RESET_TOUCH_LINKS*")
+        self.get_logger().info("*RESET_COLLISION*: object_id='%s'" % object_id)
 
-        for aco in self._psi.get_attached_objects().values():
-            self._psi.attach_object(aco,
-                                    touch_links=self._get_parent_touch_links(
-                                                    aco.object.id))
-        self.get_logger().info(
-            'reset touch links for all attached collision objects')
+        touch_links = self._get_parent_touch_links(object_id)
+        self._set_acm_allowed(object_id, touch_links, True, reset=True)
+        aco = self._find_attached_collision_object(object_id)
+        if aco is not None:
+            self._psi.attach_object(aco, touch_links=touch_links)
 
     def _get_object_info(self, object_id):
         self.get_logger().info("*GET_OBJECT_INFO*: object_id='%s'" % object_id)
@@ -787,6 +769,7 @@ class CollisionObjectManager(Node):
             info.pose = PoseStamped(header=co.header, pose=co.pose)
         info.object_type = self._instance_props_dict[object_id].type
         info.parent_link = self._get_parent_link(object_id)
+        info.acm_allowed = self._get_acm_allowed_entries(object_id)
         return info
 
     def _get_attached_child_object_info(self, frame_id):
@@ -806,29 +789,6 @@ class CollisionObjectManager(Node):
                 info.parent_link = self._get_parent_link(info.object_id)
                 return info
         return None
-
-    def _set_collision_allowed(self, object_id, frame_id, allow):
-        self.get_logger().info("*%s_COLLISION*: object_id='%s', frame_id='%s'"
-                               % ('ALLOW' if allow else 'DISALLOW',
-                                  object_id, frame_id))
-
-        if frame_id is None:
-            others = None
-        else:
-            other_id, _ = _decompose_link_name(frame_id)
-            others = [other_id] if other_id != '' else \
-                     self._get_touch_links(frame_id)
-        self._set_acm_allowed(object_id, others, allow=allow)
-
-        # acm = self._psi.get_planning_scene(
-        #            PlanningSceneComponents.ALLOWED_COLLISION_MATRIX) \
-        #           .allowed_collision_matrix
-        # for entry_name, entry_value in zip(acm.entry_names, acm.entry_values):
-        #     print('--- %s ---' % entry_name)
-        #     for other_name, enabled in zip(acm.entry_names,
-        #                                    entry_value.enabled):
-        #         if enabled:
-        #             print('%s <-> %s' % (entry_name, other_name))
 
     #
     # Utilities
@@ -952,6 +912,13 @@ class CollisionObjectManager(Node):
 
     def _find_collision_object(self, object_id):
         """ Find non-attached collision object with specified object ID.
+
+        Args:
+          object_id: ID of the object to be searched for.
+
+        Returns:
+          * Collision object with `object_id`, if found.
+          * `None`, if not found.
         """
         return self._psi.get_objects([object_id]).get(object_id)
 
@@ -962,7 +929,7 @@ class CollisionObjectManager(Node):
           object_id: ID of the object to be searched for.
 
         Returns:
-          * Attached collision object, if found.
+          * Attached collision object with `object_id`, if found.
           * `None`, if not found.
         """
         return self._psi.get_attached_objects([object_id]).get(object_id)
@@ -975,8 +942,8 @@ class CollisionObjectManager(Node):
           object_id: ID of the object to be searched for.
 
         Returns:
-          * Collision object, if attached or non-attached collision object
-            found.
+          * Collision object part of the attached collision object or
+            collision object with `object_id`, if found.
           * `None`, if neighter found.
         """
         aco = self._find_attached_collision_object(object_id)
@@ -984,12 +951,42 @@ class CollisionObjectManager(Node):
                aco.object
 
     def _get_parent_link(self, object_id):
+        """ Get parent link of the attached or non-attached collision object.
+
+        Args:
+          object_id: ID of the object to be searched for.
+
+        Returns:
+          Parent link of the object specified by `object_id`.
+        """
         return self._instance_props_dict[object_id].parent_link
 
     def _get_parent_id(self, object_id):
+        """ Get object ID of the parent of attached or non-attached collision
+        object with specified object ID.
+
+        Args:
+          object_id: ID of the object to be searched for.
+
+        Returns:
+          * ID of the parent of `object_id`, if it is an attached or
+            non-attached collision object.
+          * An empty string, if not.
+        """
         return _decompose_link_name(self._get_parent_link(object_id))[0]
 
     def _get_touch_links(self, link):
+        """ Get touch links associated with the specified link.
+
+        Args:
+          link: Name of the link with which touch links are searched for.
+
+        Returns:
+          * A list with only one element, fullname of the base link, if `link`
+            represents either an attached or a non-attached collision object.
+          * Touch links associated with `link`, if `link` represents neither
+            an attached nor a non-attached collision object.
+        """
         object_id, _ = _decompose_link_name(link)
         return self._touch_links.get(link, []) if object_id == '' else \
                [object_id + '/base_link']
@@ -1016,33 +1013,51 @@ class CollisionObjectManager(Node):
             del self._instance_props_dict[object_id]
         self.get_logger().info("removed '%s'" % object_id)
 
-    def _set_acm_allowed(self, object_id, others, allow):
+    def _set_acm_allowed(self, object_id, other_links, allow, *, reset):
+        # Create a new ACM by modifying the existing one.
         acm = self._get_planning_scene.call(
                   GetPlanningScene.Request(component=PlanningSceneComponents \
                                            .ALLOWED_COLLISION_MATRIX)) \
                   .scene.allowed_collision_matrix
-        if others is None:
-            acm.set_allowed(object_id, None, allow=allow)
-        else:
-            for other in others:
-                acm.set_allowed(object_id, other, allow=allow)
-        self._apply_acm(acm)
-
-        if others is None:
+        if other_links is None:
+            acm.set_default(object_id, allow)
             self.get_logger().info("%s '%s' collision by default"
                                    % ('allow' if allow else 'disallow',
                                       object_id))
         else:
+            if reset:
+                for other_link in acm.entry_names:
+                    acm.set_allowed(object_id, other_link, False)
+            for other_link in other_links:
+                acm.set_allowed(object_id, other_link, allow)
             self.get_logger().info("%s '%s' collision against %s"
                                    % ('allow' if allow else 'disallow',
-                                      object_id, str(others)))
+                                      object_id, other_links))
 
-    def _apply_acm(self, acm):
+        # Apply the created ACM to the planning scene.
         scene = PlanningScene()
         scene.allowed_collision_matrix = acm
         scene.is_diff = True
         scene.robot_state.is_diff = True
         self._psi.apply_planning_scene(scene)
+
+        return acm
+
+    def _get_acm_allowed_entries(self, object_id):
+        acm = self._get_planning_scene.call(
+                  GetPlanningScene.Request(component=PlanningSceneComponents \
+                                           .ALLOWED_COLLISION_MATRIX)) \
+                  .scene.allowed_collision_matrix
+        if object_id in acm.entry_names:
+            entry_values = acm.entry_values[acm.entry_names.index(object_id)]
+            return [name for j, name in enumerate(acm.entry_names)
+                    if entry_values.enabled[j]]
+        elif object_id in acm.default_entry_names and \
+             acm.default_entry_values[acm.default_entry_names \
+                                      .index(object_id)]:
+            return ['ANY']
+        else:
+            return []
 
 
 #************************************************************************
