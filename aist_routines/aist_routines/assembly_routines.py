@@ -198,12 +198,12 @@ class AssemblyRoutines(BaseRoutines):
             self.go_to_named_pose(robot_name, result.pose_name)
 
     # Utilities
-    def _initialize_collision_objects(self, *, timeout_sec=None):
-        super()._initialize_collision_objects(timeout_sec=timeout_sec)
+    def _initialize_collision_objects(self):
+        super()._initialize_collision_objects()
         self._screw_m3_id = 0
         self._screw_m4_id = 0
-        self._generate_screw('screw_m3', timeout_sec=timeout_sec)
-        self._generate_screw('screw_m4', timeout_sec=timeout_sec)
+        self._generate_screw('screw_m3')
+        self._generate_screw('screw_m4')
 
     def _grasped_object_id(self, robot_name):
         gripper_name = self.gripper(robot_name).name
@@ -211,10 +211,10 @@ class AssemblyRoutines(BaseRoutines):
             = gripper_name + '_tip_link' \
               if gripper_name == self.default_gripper_name(robot_name) else \
               gripper_name + '/base_link'
-        info = self.com.get_child_object_info(gripper_link)
+        info = self.com.get_attached_child_object_info(gripper_link)
         return info.object_id if info is not None else None
 
-    def _generate_screw(self, screw_type, *, timeout_sec=None):
+    def _generate_screw(self, screw_type):
         if screw_type == 'screw_m3':
             self._screw_m3_id += 1
             screw_name = screw_type + '_' + str(self._screw_m3_id)
@@ -225,10 +225,8 @@ class AssemblyRoutines(BaseRoutines):
         self.com.create_object(screw_type,
                                self.pose_from_xyzrpy(
                                    (), frame_id=feeder_name + '_outlet_link'),
-                               object_id=self._screw_id(screw_type),
-                               timeout_sec=timeout_sec)
-        self.com.allow_collision(screw_name, feeder_name + '_outlet_link',
-                                 timeout_sec=timeout_sec)
+                               object_id=self._screw_id(screw_type))
+        self.com.allow_collision(screw_name, feeder_name + '_outlet_link')
         return screw_name
 
     def _screw_id(self, screw_type):

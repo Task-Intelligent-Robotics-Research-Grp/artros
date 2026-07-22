@@ -6,12 +6,11 @@ Panels:
       Expanded:
         - /MotionPlanning1
         - /MotionPlanning1/Scene Robot1
-        - /TF1
         - /TF1/Frames1
         - /CollisionObjects1
         - /Contacts1
       Splitter Ratio: 0.5
-    Tree Height: 725
+    Tree Height: 716
   - Class: rviz_common/Help
     Name: Help
   - Class: rviz_common/Views
@@ -1521,12 +1520,6 @@ Visualization Manager:
           Value: false
         panel_motor/motor_screw_hole_aligner_6:
           Value: false
-        precision_tool/base_link:
-          Value: false
-        precision_tool/tip_link:
-          Value: false
-        precision_tool_holder_link:
-          Value: false
         screw_feeder_m3_base_link:
           Value: false
         screw_feeder_m3_front_left_side:
@@ -1551,6 +1544,18 @@ Visualization Manager:
           Value: false
         screw_feeder_m4_outlet_link:
           Value: false
+        screw_m3_1/base_link:
+          Value: true
+        screw_m3_1/head:
+          Value: true
+        screw_m3_1/tip_link:
+          Value: true
+        screw_m4_1/base_link:
+          Value: true
+        screw_m4_1/head:
+          Value: true
+        screw_m4_1/tip_link:
+          Value: true
         screw_tool_m3/base_link:
           Value: true
         screw_tool_m3/tip_link:
@@ -1741,7 +1746,11 @@ Visualization Manager:
                       screw_feeder_m3_front_left_side:
                         screw_feeder_m3_gap:
                           screw_feeder_m3_outlet_link:
-                            {}
+                            screw_m3_1/base_link:
+                              screw_m3_1/head:
+                                {}
+                              screw_m3_1/tip_link:
+                                {}
                       screw_feeder_m3_front_right_side:
                         {}
                       screw_feeder_m3_inlet_link:
@@ -1750,7 +1759,11 @@ Visualization Manager:
                         screw_feeder_m4_front_left_side:
                           screw_feeder_m4_gap:
                             screw_feeder_m4_outlet_link:
-                              {}
+                              screw_m4_1/base_link:
+                                screw_m4_1/head:
+                                  {}
+                                screw_m4_1/tip_link:
+                                  {}
                         screw_feeder_m4_front_right_side:
                           {}
                         screw_feeder_m4_inlet_link:
@@ -1933,13 +1946,13 @@ Visualization Manager:
       Enabled: true
       Name: CollisionObjects
       Namespaces:
-        "": true
+        {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /collision_object_manager/collision_marker
+        Value: /collision_marker
       Value: true
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
@@ -2004,9 +2017,9 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd00000001000000000000022300000375fc0200000004fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004100fffffffc0000003d000003750000019a0100001cfa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001ee00fffffffb000000100044006900730070006c0061007900730100000000000002b40000015600fffffffb0000000800480065006c0070000000029a0000006e0000006e00fffffffb0000000a0056006900650077007300000002fd000000b5000000a400ffffff000004f40000037500000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd00000001000000000000022300000371fc0200000004fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004400fffffffc0000003f00000371000001b50100001efa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001ee00fffffffb000000100044006900730070006c0061007900730100000000000002b40000015600fffffffb0000000800480065006c0070000000029a0000006e0000006f00fffffffb0000000a0056006900650077007300000002fd000000b5000000a900ffffff000004f40000037100000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
   Width: 1821
-  X: 737
-  Y: 121
+  X: 7029
+  Y: 308

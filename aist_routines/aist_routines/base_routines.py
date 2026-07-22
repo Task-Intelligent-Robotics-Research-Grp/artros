@@ -188,7 +188,7 @@ class BaseRoutines(Node):
 
                 # This call should be asynchronous because the executor has yet
                 # been started in this constructor.
-                self._initialize_collision_objects(timeout_sec=0.0)
+                # self._initialize_collision_objects()
             except Exception as e:
                 self.get_logger().error(str(e))
                 self._com = None
@@ -1230,22 +1230,18 @@ class BaseRoutines(Node):
     #
     # Private functions
     #
-    def _initialize_collision_objects(self, *, timeout_sec=None):
-        self.com.remove_object(timeout_sec=timeout_sec)
+    def _initialize_collision_objects(self):
+        self.com.remove_object()
         for object_type, config in self.settings.get('initial_object_config',
                                                      {}).items():
             self.com.create_object(object_type,
                                    self.pose_from_xyzrpy(
                                        config.get('offset', ()),
                                        config['parent_link']),
-                                   config.get('subframe', 'base_link'),
-                                   timeout_sec=timeout_sec)
-            self.com.allow_collision(object_type, config['parent_link'],
-                                     timeout_sec=timeout_sec)
+                                   config.get('subframe', 'base_link'))
+            self.com.allow_collision(object_type, config['parent_link'])
             if config.get('attach', False):
-                self.com.attach_object(object_type, config['parent_link'],
-                                       timeout_sec=timeout_sec)
-            time.sleep(0.5)
+                self.com.attach_object(object_type, config['parent_link'])
 
     def _position_from_offset(self, offset):
         return np.array((0.0, 0.0, 0.0) if len(offset) < 3 else offset[0:3])
