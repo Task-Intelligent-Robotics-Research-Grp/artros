@@ -32,6 +32,11 @@ grippers:
     grippers:
       b_bot_gripper:
         type: RobotiqGripper
+  precision_tools:
+    type: DynamixelDevices
+    grippers:
+      precision_tool:
+        type: PrecisionTool
   screw_tools:
     type: DynamixelDevices
     grippers:

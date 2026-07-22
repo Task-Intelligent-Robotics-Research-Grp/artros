@@ -11,19 +11,12 @@ setup(
         ("share/ament_index/resource_index/packages",
          ["resource/" + package_name]),
         ("share/" + package_name, ["package.xml"]),
-        ("share/" + package_name + "/config", glob("config/*")),
-        ("share/" + package_name + "/launch", glob("launch/*")),
     ],
     install_requires=["setuptools"],
     zip_safe=True,
     maintainer="Toshio Ueshiba",
     maintainer_email="t.ueshiba@aist.go.jp",
-    description="Node for managing collision objects in MoveIt",
+    description="Python interface for managing collision objects in MoveIt",
     license="BSD",
     tests_require=["pytest"],
-    entry_points={
-        'console_scripts': [
-            'collision_object_manager = ' + package_name + '.collision_object_manager:main'
-        ],
-    },
 )

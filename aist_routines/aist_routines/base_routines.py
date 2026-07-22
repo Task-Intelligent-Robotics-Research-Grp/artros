@@ -185,10 +185,6 @@ class BaseRoutines(Node):
         if 'initial_object_config' in self.settings:
             try:
                 self._com = CollisionObjectManager(self)
-
-                # This call should be asynchronous because the executor has yet
-                # been started in this constructor.
-                # self._initialize_collision_objects()
             except Exception as e:
                 self.get_logger().error(str(e))
                 self._com = None
@@ -534,7 +530,7 @@ class BaseRoutines(Node):
 
         # Collision objects stuffs
         elif command == 'I':
-            self._initialize_collision_objects()
+            self.initialize_collision_objects()
         elif command == 'i':
             object_id = input('  object ID? ')
             info = self.com.get_object_info(object_id)
@@ -1085,6 +1081,19 @@ class BaseRoutines(Node):
     #
     # Utility functions
     #
+    def initialize_collision_objects(self):
+        self.com.remove_object()
+        for object_type, config in self.settings.get('initial_object_config',
+                                                     {}).items():
+            self.com.create_object(object_type,
+                                   self.pose_from_xyzrpy(
+                                       config.get('offset', ()),
+                                       config['parent_link']),
+                                   config.get('subframe', 'base_link'))
+            self.com.allow_collision(object_type, config['parent_link'])
+            if config.get('attach', False):
+                self.com.attach_object(object_type, config['parent_link'])
+
     def print_object_info(self, info):
         print('    object_id:   %s\n    type:        %s\n    parent_link: %s\n    attach_link: %s\n    touch_links: %s\n    acm_allowed: %s\n    pose: %s@%s'
               % (info.object_id, info.object_type, info.parent_link,
@@ -1230,19 +1239,6 @@ class BaseRoutines(Node):
     #
     # Private functions
     #
-    def _initialize_collision_objects(self):
-        self.com.remove_object()
-        for object_type, config in self.settings.get('initial_object_config',
-                                                     {}).items():
-            self.com.create_object(object_type,
-                                   self.pose_from_xyzrpy(
-                                       config.get('offset', ()),
-                                       config['parent_link']),
-                                   config.get('subframe', 'base_link'))
-            self.com.allow_collision(object_type, config['parent_link'])
-            if config.get('attach', False):
-                self.com.attach_object(object_type, config['parent_link'])
-
     def _position_from_offset(self, offset):
         return np.array((0.0, 0.0, 0.0) if len(offset) < 3 else offset[0:3])
 

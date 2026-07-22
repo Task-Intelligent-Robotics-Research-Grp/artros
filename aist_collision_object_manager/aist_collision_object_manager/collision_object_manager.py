@@ -64,48 +64,12 @@ from moveit_msgs.srv               import GetPlanningScene
 from moveit_commander              import planning_scene_interface as psi
 from aist_utility.fileio           import filepath_from_url
 
+from typing                        import List, Dict, Tuple
+
 #************************************************************************
 #  local functions                                                      *
 #************************************************************************
-def _load_databases(urls):
-    databases = {}
-    for url in urls:
-        with open(filepath_from_url(url), 'r') as f:
-            databases |= yaml.safe_load(f)
-    return databases
-
-def _load_mesh(url, scale=(0.001, 0.001, 0.001)):
-    with pyassimp.load(filepath_from_url(url)) as scene:
-        if not scene.meshes or len(scene.meshes) == 0:
-            raise RuntimeError("no meshes in the file")
-        if len(scene.meshes[0].faces) == 0:
-            raise RuntimeError("no faces in the mesh")
-
-        mesh = Mesh()
-        first_face = scene.meshes[0].faces[0]
-        if hasattr(first_face, '__len__'):
-            for face in scene.meshes[0].faces:
-                if len(face) == 3:
-                    triangle = MeshTriangle()
-                    triangle.vertex_indices = [face[0], face[1], face[2]]
-                    mesh.triangles.append(triangle)
-        elif hasattr(first_face, 'indices'):
-            for face in scene.meshes[0].faces:
-                if len(face.indices) == 3:
-                    triangle = MeshTriangle()
-                    triangle.vertex_indices = [face.indices[0],
-                                               face.indices[1],
-                                               face.indices[2]]
-                    mesh.triangles.append(triangle)
-        else:
-            raise RuntimeError("unable to build triangles from mesh due to mesh object structure")
-    for vertex in scene.meshes[0].vertices:
-        mesh.vertices.append(Point(x=vertex[0]*scale[0],
-                                   y=vertex[1]*scale[1],
-                                   z=vertex[2]*scale[2]))
-    return mesh
-
-def _decompose_link_name(link_name):
+def _decompose_link_name(link_name: str)-> Tuple[str, str]:
     """ Decompose the given link name into object_id and subframe.
 
     Args:
@@ -123,7 +87,7 @@ def _decompose_link_name(link_name):
     tokens = link_name.rsplit('/', 1)
     return tokens if len(tokens) == 2 else ('', link_name)
 
-def _get_base_link(link_name):
+def _get_base_link(link_name: str)-> str:
     """ Convert the given link name to the fullname of the base subframe.
 
     Args:
@@ -141,10 +105,10 @@ def _get_base_link(link_name):
     object_id, _ = _decompose_link_name(link_name)
     return link_name if object_id == '' else object_id + '/base_link'
 
-def _vector3_from_xyz(xyz):
+def _vector3_from_xyz(xyz: Tuple[float, float, float])-> Vector3:
     return Vector3(x=xyz[0], y=xyz[1], z=xyz[2])
 
-def _color_from_rgba(rgba):
+def _color_from_rgba(rgba: Tuple[float, float, float, float])-> ColorRGBA:
     return ColorRGBA(r=rgba[0], g=rgba[1], b=rgba[2], a=rgba[3])
 
 def _pose_from_xyzrpy(xyzrpy):
@@ -171,7 +135,7 @@ def _transform_matrix(transform):
 def _transform_from_matrix(T):
     return _transform_from_pose(_pose_from_matrix(T))
 
-def _pose_from_transform(transform):
+def _pose_from_transform(transform: Transform)-> Pose:
     return Pose(position=Point(x=transform.translation.x,
                                y=transform.translation.y,
                                z=transform.translation.z),
@@ -180,7 +144,7 @@ def _pose_from_transform(transform):
                                        z=transform.rotation.z,
                                        w=transform.rotation.w))
 
-def _transform_from_pose(pose):
+def _transform_from_pose(pose: Pose)-> Transform:
     return Transform(translation=Vector3(x=pose.position.x,
                                          y=pose.position.y,
                                          z=pose.position.z),
@@ -189,7 +153,7 @@ def _transform_from_pose(pose):
                                          z=pose.orientation.z,
                                          w=pose.orientation.w))
 
-def _format_transform(transform):
+def _format_transform(transform: Transform)-> str:
     return '{} <= {}: [{:.4f}, {:.4f}, {:.4f}; {:.4f}, {:.4f}. {:.4f}. {:.4f}]' \
         .format(transform.header.frame_id, transform.child_frame_id,
                 transform.transform.translation.x,
@@ -198,7 +162,7 @@ def _format_transform(transform):
                 transform.transform.rotation.x, transform.transform.rotation.y,
                 transform.transform.rotation.z, transform.transform.rotation.w)
 
-def _format_pose(pose):
+def _format_pose(pose: Pose)-> str:
     return '[{:.4f}, {:.4f}, {:.4f}; {:.4f}, {:.4f}. {:.4f}. {:.4f}]' \
         .format(pose.position.x, pose.position.y, pose.position.z,
                 pose.orientation.x, pose.orientation.y,
@@ -271,7 +235,7 @@ class CollisionObjectManager(object):
 
         # Create a dictionary of object properties loaded from database.
         self._obj_props_dict = {}
-        for type, props in _load_databases(
+        for type, props in self._load_databases(
                                node.declare_parameter('object_properties_urls',
                                                       ['']).value).items():
             obj_props = CollisionObjectManager.ObjectProperties()
@@ -305,7 +269,7 @@ class CollisionObjectManager(object):
                 obj_props.collision_mesh_scales.append(
                     _vector3_from_xyz(mesh['scale']))
                 obj_props.collision_meshes.append(
-                    _load_mesh(mesh['url'], mesh['scale']))
+                    self._load_mesh(mesh['url'], mesh['scale']))
 
             self._obj_props_dict[type] = obj_props
             self.logger.info('loaded properties of type[%s]' % type)
@@ -325,7 +289,7 @@ class CollisionObjectManager(object):
 
         self._instance_props_dict = {}
         self._instance_props_lock = threading.Lock()
-        self._touch_links         = _load_databases(
+        self._touch_links         = self._load_databases(
                                         node.declare_parameter(
                                             'touch_links_urls', ['']).value)
         self._marker_id_min       = 0
@@ -355,74 +319,6 @@ class CollisionObjectManager(object):
         return self.node.get_logger()
 
     #
-    # File loaders
-    #
-    #
-    # Callbacks
-    #
-    def _subframes_and_markers_cb(self):
-        """ Timer callback.
-
-        Publish subframes and visual markers periodically.
-        """
-        now = self.node.get_clock().now().to_msg()
-        transforms = []
-        markers = []
-        with self._instance_props_lock:
-            for instance_props in self._instance_props_dict.values():
-                for subframe_transform in instance_props.subframe_transforms:
-                    subframe_transform.header.stamp = now
-                    transforms.append(subframe_transform)
-                for marker in instance_props.markers:
-                    marker.header.stamp = now
-                    markers.append(marker)
-        self._broadcaster.sendTransform(transforms)
-        self._marker_pub.publish(MarkerArray(markers=markers))
-
-    def _get_collision_object_cb(self, req, res):
-        """ Service callback for GetCollisionObject.
-
-        Send response with binary mesh data according to the requested URL
-        of mesh resource.
-        """
-        self.logger.info('GetCollisionObject[object_type=%s]'
-                         % req.object_type)
-
-        obj_props = self._obj_props_dict.get(req.object_type)
-        if not obj_props:
-            self.logger.error('Unknown obejct type[%s]' % req.object_type)
-            return
-
-        try:
-            res.visual_array = [self._create_link_mesh(mesh_url,
-                                                       mesh_pose, mesh_scale)
-                                for mesh_url, mesh_pose, mesh_scale
-                                in zip(obj_props.visual_mesh_urls,
-                                       obj_props.visual_mesh_poses,
-                                       obj_props.visual_mesh_scales)]
-            if not obj_props.primitives:
-                res.collision_array = [self._create_link_mesh(mesh_url,
-                                                              mesh_pose,
-                                                              mesh_scale)
-                                       for mesh_url, mesh_pose, mesh_scale
-                                       in zip(obj_props.collision_mesh_urls,
-                                              obj_props.collision_mesh_poses,
-                                              obj_props.collision_mesh_scales)]
-            else:
-                res.collision_array = [self._create_link_primitive(
-                                           primitive, primitive_pose)
-                                       for primitive, primitive_pose
-                                       in zip(obj_props.primitives,
-                                              obj_props.primitive_poses)]
-            res.material_array = [self._create_link_material(mesh_color)
-                                  for mesh_color
-                                  in obj_props.visual_mesh_colors]
-        except Exception as e:
-            self.logger.error('_get_collision_object_cb(): %s' % e)
-
-        return res
-
-    #
     # Operations
     #
     def create_object(self, object_type: str, pose: PoseStamped,
@@ -430,8 +326,7 @@ class CollisionObjectManager(object):
         """ Create a new collision object.
 
         The created new collision object is not attached to any links
-        and its pose is specified as that of subframe of the object
-        with respect to the 'frame_id'.
+        and its pose is specified as that of subframe.
 
         Args:
           object_type: Type of the object to be created.
@@ -439,19 +334,21 @@ class CollisionObjectManager(object):
           subframe:    Subframe name with which the pose of the object
                        is specified.
           object_id:   Unique ID of the object to be created. Same string as
-                       `object_type` will be assigned, if an empty string is
-                       given (in default).
+                       `object_type` will be assigned, if an empty string
+                       (default) is given.
         """
-        if object_id == '':
-            object_id = object_type
-
         self.logger.info(
-            "*CREATE_OBJECT*: object_type='%s', object_id='%s', frame_id='%s', subframe='%s'"
-            % (object_type, object_id, pose.header.frame_id, subframe))
+            "*CREATE_OBJECT*: object_type='%s', object_id='%s', pose=%s@'%s', subframe='%s'"
+            % (object_type, object_id,
+               self.node.format_pose(pose, pose.header.frame_id),
+               pose.header.frame_id, subframe))
 
         obj_props = self._obj_props_dict.get(object_type)
         if obj_props is None:
             raise RuntimeError('unknown object type[%s]' % object_type)
+
+        if object_id == '':
+            object_id = object_type
 
         # Setup a new collision object.
         co = CollisionObject()
@@ -562,7 +459,7 @@ class CollisionObjectManager(object):
 
     def attach_object(self, object_id: str, parent_link: str,
                       leaf_id: str='')-> None:
-        """ Attach collision object to
+        """ Attach collision object to the specified link.
 
         Args:
           object_id:   Unique ID of the object to be attached.
@@ -654,8 +551,9 @@ class CollisionObjectManager(object):
     def move_object(self, object_id: str, pose: PoseStamped,
                     subframe: str='base_link')-> None:
         self.logger.info(
-            "*MOVE_OBJECT*: object_id='%s', frame_id='%s', subframe='%s'"
-            % (object_id, pose.header.frame_id, subframe))
+            "*MOVE_OBJECT*: object_id='%s', pose=%s@'%s', subframe='%s'"
+            % (object_id, self.node.format_pose(pose, pose.header.frame_id),
+               pose.header.frame_id, subframe))
 
         co = self._find_object(object_id)
         if co is None:
@@ -712,7 +610,15 @@ class CollisionObjectManager(object):
             self._psi.attach_object(aco, touch_links=touch_links)
 
     def reset_collision(self, object_id: str)-> None:
-        """ Reset ACM and optionally touch links for the specified object.
+        """ Reset ACM entries and touch links of the specified object.
+
+        Update ACM entries of the specified object so that collision
+        against only touch links associated with the parent link of it
+        is allowed. If the object is an attached collision object,
+        its touch links are also updated.
+
+        Args:
+          object_id: Unique ID of object whose ACM and touch links to be reset.
         """
         self.logger.info("*RESET_COLLISION*: object_id='%s'" % object_id)
 
@@ -724,6 +630,14 @@ class CollisionObjectManager(object):
             self._psi.attach_object(aco, touch_links=touch_links)
 
     def get_object_info(self, object_id: str)-> CollisionObjectInfo:
+        """ Get information on attached or non-attached collision object.
+
+        Args:
+          object_id: Unique ID of object.
+
+        Returns:
+          Information on the object specified by `object_id`.
+        """
         self.logger.info("*GET_OBJECT_INFO*: object_id='%s'" % object_id)
 
         info = CollisionObjectInfo()
@@ -764,8 +678,115 @@ class CollisionObjectManager(object):
         return None
 
     #
+    # Callbacks
+    #
+    def _subframes_and_markers_cb(self):
+        """ Timer callback.
+
+        Publish subframes and visual markers periodically.
+        """
+        now = self.node.get_clock().now().to_msg()
+        transforms = []
+        markers = []
+        with self._instance_props_lock:
+            for instance_props in self._instance_props_dict.values():
+                for subframe_transform in instance_props.subframe_transforms:
+                    subframe_transform.header.stamp = now
+                    transforms.append(subframe_transform)
+                for marker in instance_props.markers:
+                    marker.header.stamp = now
+                    markers.append(marker)
+        self._broadcaster.sendTransform(transforms)
+        self._marker_pub.publish(MarkerArray(markers=markers))
+
+    def _get_collision_object_cb(self, req, res):
+        """ Service callback for GetCollisionObject.
+
+        Send response with binary mesh data according to the requested URL
+        of mesh resource.
+        """
+        self.logger.info('GetCollisionObject[object_type=%s]'
+                         % req.object_type)
+
+        obj_props = self._obj_props_dict.get(req.object_type)
+        if not obj_props:
+            self.logger.error('Unknown obejct type[%s]' % req.object_type)
+            return
+
+        try:
+            res.visual_array = [self._create_link_mesh(mesh_url,
+                                                       mesh_pose, mesh_scale)
+                                for mesh_url, mesh_pose, mesh_scale
+                                in zip(obj_props.visual_mesh_urls,
+                                       obj_props.visual_mesh_poses,
+                                       obj_props.visual_mesh_scales)]
+            if not obj_props.primitives:
+                res.collision_array = [self._create_link_mesh(mesh_url,
+                                                              mesh_pose,
+                                                              mesh_scale)
+                                       for mesh_url, mesh_pose, mesh_scale
+                                       in zip(obj_props.collision_mesh_urls,
+                                              obj_props.collision_mesh_poses,
+                                              obj_props.collision_mesh_scales)]
+            else:
+                res.collision_array = [self._create_link_primitive(
+                                           primitive, primitive_pose)
+                                       for primitive, primitive_pose
+                                       in zip(obj_props.primitives,
+                                              obj_props.primitive_poses)]
+            res.material_array = [self._create_link_material(mesh_color)
+                                  for mesh_color
+                                  in obj_props.visual_mesh_colors]
+        except Exception as e:
+            self.logger.error('_get_collision_object_cb(): %s' % e)
+
+        return res
+
+    #
     # Utilities
     #
+    @staticmethod
+    def _load_databases(urls: List[str])-> Dict:
+        databases = {}
+        for url in urls:
+            with open(filepath_from_url(url), 'r') as f:
+                databases |= yaml.safe_load(f)
+        return databases
+
+    @staticmethod
+    def _load_mesh(url: str,
+                   scale: Tuple[float, float, float]=(0.001, 0.001, 0.001)) \
+                   -> Mesh:
+        with pyassimp.load(filepath_from_url(url)) as scene:
+            if not scene.meshes or len(scene.meshes) == 0:
+                raise RuntimeError("no meshes in the file")
+            if len(scene.meshes[0].faces) == 0:
+                raise RuntimeError("no faces in the mesh")
+
+        mesh = Mesh()
+        first_face = scene.meshes[0].faces[0]
+        if hasattr(first_face, '__len__'):
+            for face in scene.meshes[0].faces:
+                if len(face) == 3:
+                    triangle = MeshTriangle()
+                    triangle.vertex_indices = [face[0], face[1], face[2]]
+                    mesh.triangles.append(triangle)
+        elif hasattr(first_face, 'indices'):
+            for face in scene.meshes[0].faces:
+                if len(face.indices) == 3:
+                    triangle = MeshTriangle()
+                    triangle.vertex_indices = [face.indices[0],
+                                               face.indices[1],
+                                               face.indices[2]]
+                    mesh.triangles.append(triangle)
+        else:
+            raise RuntimeError("unable to build triangles from mesh due to mesh object structure")
+        for vertex in scene.meshes[0].vertices:
+            mesh.vertices.append(Point(x=vertex[0]*scale[0],
+                                       y=vertex[1]*scale[1],
+                                       z=vertex[2]*scale[2]))
+        return mesh
+
     @staticmethod
     def _create_link_mesh(mesh_url, mesh_pose, mesh_scale):
         link_geometry = LinkGeometry()
@@ -964,14 +985,14 @@ class CollisionObjectManager(object):
           link: Name of the link with which touch links are searched for.
 
         Returns:
-          * A list with only one element, fullname of the base link, if `link`
+          * A list with only one element, unique ID of the object, if `link`
             represents either an attached or a non-attached collision object.
           * Touch links associated with `link`, if `link` represents neither
             an attached nor a non-attached collision object.
         """
         object_id, _ = _decompose_link_name(link)
         return self._touch_links.get(link, []) if object_id == '' else \
-               [object_id + '/base_link']
+               [object_id]
 
     def _get_parent_touch_links(self, object_id):
         return self._get_touch_links(self._get_parent_link(object_id))
@@ -995,7 +1016,7 @@ class CollisionObjectManager(object):
             del self._instance_props_dict[object_id]
         self.logger.info("removed '%s'" % object_id)
 
-    def _set_acm_allowed(self, object_id: str, other_links,
+    def _set_acm_allowed(self, object_id: str, other_links: List[str],
                          *, allow: bool, reset: bool):
         # Create a new ACM by modifying the existing one.
         acm = self._get_planning_scene.call(
@@ -1004,8 +1025,6 @@ class CollisionObjectManager(object):
                   .scene.allowed_collision_matrix
         if reset:
             for other_link in acm.entry_names:
-                self.logger.warn('### Disable %s <=> %s'
-                                 % (object_id, other_link))
                 acm.set_allowed(object_id, other_link, False)
 
         if other_links is None:

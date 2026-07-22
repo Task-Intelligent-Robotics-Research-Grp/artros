@@ -43,6 +43,9 @@ def _command_line_interface(node):
     axis     = 'Y'
     speed    = 1.0
 
+    if node.com:
+        node.initialize_collision_objects()
+
     # Reset pose
     node.go_to_named_pose(arm_name, "home")
     node.print_help_messages()

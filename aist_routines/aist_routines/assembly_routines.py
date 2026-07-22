@@ -113,6 +113,13 @@ class AssemblyRoutines(BaseRoutines):
         self.camera(new_robot_name + '_camera').laser_power = laser_power
 
     # Assembly stuffs
+    def initialize_collision_objects(self):
+        super().initialize_collision_objects()
+        self._screw_m3_id = 0
+        self._screw_m4_id = 0
+        self._generate_screw('screw_m3')
+        self._generate_screw('screw_m4')
+
     def pick_screw(self, robot_name, screw_type):
         tool_name = 'screw_tool_' + screw_type[-2:]
         status, result = self.pick_tool(robot_name, tool_name)
@@ -198,13 +205,6 @@ class AssemblyRoutines(BaseRoutines):
             self.go_to_named_pose(robot_name, result.pose_name)
 
     # Utilities
-    def _initialize_collision_objects(self):
-        super()._initialize_collision_objects()
-        self._screw_m3_id = 0
-        self._screw_m4_id = 0
-        self._generate_screw('screw_m3')
-        self._generate_screw('screw_m4')
-
     def _grasped_object_id(self, robot_name):
         gripper_name = self.gripper(robot_name).name
         gripper_link \
