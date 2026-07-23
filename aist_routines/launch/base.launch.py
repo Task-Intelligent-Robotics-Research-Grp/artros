@@ -14,13 +14,6 @@ launch_arguments = [
         'description': 'Name of the hardware configuration'
     },
     {
-        'name':        'settings_file',
-        'default':     PathJoinSubstitution([
-                           FindPackageShare('aist_routines'), 'config',
-                           'default.yaml']),
-        'description': 'Name of the hardware configuration'
-    },
-    {
         'name':        'sim',
         'default':     'false',
         'description': 'Do not launch cameras if true',
@@ -41,13 +34,6 @@ def launch_setup(context):
                 [FindPackageShare('aist_bringup'),
                  'launch', 'cameras.launch.py']),
             condition=UnlessCondition(LaunchConfiguration('sim'))),
-        IncludeLaunchDescription(
-            PathJoinSubstitution(
-                [FindPackageShare('aist_collision_object_manager'),
-                 'launch', 'launch.py']),
-            launch_arguments=[
-                ('param_file', LaunchConfiguration('settings_file')),
-            ]),
         IncludeLaunchDescription(
             PathJoinSubstitution(
                 [FindPackageShare([LaunchConfiguration('config'),
