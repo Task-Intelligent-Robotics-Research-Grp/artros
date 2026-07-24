@@ -211,8 +211,8 @@ class AssemblyRoutines(BaseRoutines):
             = gripper_name + '_tip_link' \
               if gripper_name == self.default_gripper_name(robot_name) else \
               gripper_name + '/base_link'
-        info = self.com.get_attached_child_object_info(gripper_link)
-        return info.object_id if info is not None else None
+        info_list = self.com.get_attached_child_objects_info(gripper_link)
+        return info_list[0].object_id if info_list else None
 
     def _generate_screw(self, screw_type):
         if screw_type == 'screw_m3':

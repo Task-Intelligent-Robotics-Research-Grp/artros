@@ -538,9 +538,10 @@ class BaseRoutines(Node):
                 self.print_object_info(info)
         elif command == 'ci':
             frame_id = input('  parent frame? ')
-            info = self.com.get_child_object_info(frame_id)
-            if info is not None:
+            info_list = self.com.get_attached_child_objects_info(frame_id)
+            for info in info_list:
                 self.print_object_info(info)
+                print('----------------')
         elif command == 'r':
             object_id   = input('  object_id? ')
             attach_link = input('  attach_link? ') if object_id == '' else ''
@@ -639,16 +640,8 @@ class BaseRoutines(Node):
 
         default_eef_link = self.default_gripper(robot_name).tip_link
         pose = group.get_current_pose(default_eef_link)
-        try:
-            tfm = self._tf2_buffer.lookup_transform(default_eef_link, eef_link,
-                                                    Time(),
-                                                    Duration(seconds=10)) \
-                                  .transform
-        except Exception as e:
-            self.get_logger().error(
-                'BaseRoutines._transform_points_to_target_frame(): %s' % e)
-            raise e
-
+        tfm = self.lookup_transform(default_eef_link, eef_link, Time(),
+                                    Duration(seconds=10)).transform
         T = tfs.translation_matrix((pose.pose.position.x,
                                     pose.pose.position.y,
                                     pose.pose.position.z)) \
@@ -1095,28 +1088,43 @@ class BaseRoutines(Node):
                 self.com.attach_object(object_type, config['parent_link'])
 
     def print_object_info(self, info):
-        print('    object_id:   %s\n    type:        %s\n    parent_link: %s\n    attach_link: %s\n    touch_links: %s\n    acm_allowed: %s\n    pose: %s@%s'
+        print('    object_id:   %s\n    type:        %s\n    parent_link: %s\n    attach_link: %s\n    touch_links: %s\n    acm_allowed: %s\n    pose:        %s@%s'
               % (info.object_id, info.object_type, info.parent_link,
                  info.attach_link, info.touch_links, info.acm_allowed,
                  self.format_pose(info.pose, info.pose.header.frame_id),
                  info.pose.header.frame_id))
+
+    def lookup_transform(self, target_frame, source_frame,
+                         time=Time(), timeout=Duration()):
+        try:
+            return self._tf2_buffer.lookup_transform(target_frame,
+                                                     source_frame,
+                                                     time, timeout)
+        except Exception as e:
+            self.get_logger().error('BaseRoutines.lookup_transform(): %s' % e)
+            raise e
+
+    def lookup_pose(self, target_frame, source_frame,
+                    time=Time(), timeout=Duration()):
+        tfm = self.lookup_transform(target_frame, source_frame,
+                                    time, timeout).transform
+        return PoseStamped(header=Header(frame_id=target_frame),
+                           pose=Pose(position=Point(x=tfm.translation.x,
+                                                    y=tfm.translation.y,
+                                                    z=tfm.translation.z),
+                                     orientation=Quaternion(x=tfm.rotation.x,
+                                                            y=tfm.rotation.y,
+                                                            z=tfm.rotation.z,
+                                                            w=tfm.rotation.w)))
 
     def transform_points_to_target_frame(self, header, points,
                                          target_frame=''):
         if target_frame == '':
             target_frame = self._reference_frame
 
-        try:
-            tfm = self._tf2_buffer.lookup_transform(target_frame,
-                                                    header.frame_id,
-                                                    header.stamp,
-                                                    Duration(seconds=10)) \
-                                  .transform
-        except Exception as e:
-            self.get_logger().error(
-                'BaseRoutines._transform_points_to_target_frame(): %s' % e)
-            raise e
-
+        tfm = self.lookup_transform(target_frame, header.frame_id,
+                                    header.stamp,
+                                    Duration(seconds=10)).transform
         transformed_points = []
         for point in points:
             p = tfs.translation_matrix((tfm.translation.x,
@@ -1139,16 +1147,9 @@ class BaseRoutines(Node):
         if target_frame == '':
             target_frame = self.reference_frame
 
-        try:
-            tfm = self._tf2_buffer.lookup_transform(target_frame,
-                                                    poses.header.frame_id,
-                                                    poses.header.stamp,
-                                                    Duration(seconds=10)) \
-                                  .transform
-        except Exception as e:
-            self.get_logger().error('BaseRoutines.transform_poses_to_target_frame(): %s' % e)
-            raise e
-
+        tfm = self.lookup_transform(target_frame, poses.header.frame_id,
+                                    poses.header.stamp,
+                                    Duration(seconds=10)).transform
         transformed_poses = PoseArray(header=Header(frame_id=target_frame,
                                                     stamp=poses.header.stamp),
                                       poses=[])
@@ -1175,23 +1176,6 @@ class BaseRoutines(Node):
                 Pose(position=Point(x=t[0], y=t[1], z=t[2]),
                      orientation=Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])))
         return transformed_poses
-
-    def lookup_pose(self, target_frame, source_frame):
-        try:
-            tfm = self._tf2_buffer.lookup_transform(target_frame,
-                                                    source_frame, Time()) \
-                                  .transform
-        except Exception as e:
-            self.get_logger().error('BaseRoutines.lookup_pose(): %s' % e)
-            return None
-        return PoseStamped(header=Header(frame_id=target_frame),
-                           pose=Pose(position=Point(x=tfm.translation.x,
-                                                    y=tfm.translation.y,
-                                                    z=tfm.translation.z),
-                                     orientation=Quaternion(x=tfm.rotation.x,
-                                                            y=tfm.rotation.y,
-                                                            z=tfm.rotation.z,
-                                                            w=tfm.rotation.w)))
 
     def correct_orientation(self, pose):
         poses = self.correct_orientations(PoseArray(header=pose.header,
