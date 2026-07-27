@@ -141,7 +141,7 @@ class AssemblyRoutines(BaseRoutines):
         feeder_name = 'screw_feeder_' + screw_type[-2:]
         status, result = self.place_at_frame(robot_name, screw_id,
                                              feeder_name + '_inlet_link',
-                                             subframe_link=screw_id + '/tip_link')
+                                             subframe='tip_link')
         if status == GoalStatus.STATUS_SUCCEEDED:
             self.com.remove_object(screw_id)
         return (status, result)
@@ -160,8 +160,7 @@ class AssemblyRoutines(BaseRoutines):
            self.default_gripper_name(robot_name):
             return (GoalStatus.STATUS_ABORTED, None)
         return self.place_at_frame(robot_name, part_id, place_frame,
-                                   subframe_link=part_id + '/' + subframe,
-                                   timeout_sec=timeout_sec)
+                                   subframe=subframe, timeout_sec=timeout_sec)
 
     def fix_part(self, part_id, offset=(), subframe='base_link'):
         gripper = self._grippers['base_fixture']

@@ -1001,7 +1001,7 @@ class BaseRoutines(Node):
                                              timeout_sec=timeout_sec)
 
     def place(self, robot_name, part_id, target_pose,
-              *, subframe_link='', timeout_sec=None):
+              *, subframe='base_link', timeout_sec=None):
         picking_parameters = self.settings.get('picking_parameters', {})
         picking_params     = picking_parameters.get(part_id)
         if picking_params is None:
@@ -1015,6 +1015,7 @@ class BaseRoutines(Node):
         if 'gripper_parameters' in picking_params:
             self.set_gripper_parameters(robot_name,
                                         picking_params['gripper_parameters'])
+        subframe_link = part_id + '/' + subframe if part_id != '' else ''
         return self._pick_or_place.send_goal(robot_name, False, target_pose,
                                              placing_params['place_offset'],
                                              placing_params['approach_offset'],
@@ -1031,10 +1032,10 @@ class BaseRoutines(Node):
                          timeout_sec=timeout_sec)
 
     def place_at_frame(self, robot_name, part_id, target_frame,
-                       *, offset=(), subframe_link='', timeout_sec=None):
+                       *, offset=(), subframe='base_link', timeout_sec=None):
         return self.place(robot_name, part_id,
                           self.pose_from_xyzrpy(offset, target_frame),
-                          subframe_link=subframe_link, timeout_sec=timeout_sec)
+                          subframe=subframe, timeout_sec=timeout_sec)
 
     def pick_tool(self, robot_name, tool_name, *, timeout_sec=None):
         if tool_name not in self._grippers:
@@ -1061,7 +1062,6 @@ class BaseRoutines(Node):
         self.set_gripper(robot_name, default_gripper_name)
         return self.place_at_frame(robot_name, tool_name,
                                    tool_name + '_holder_link',
-                                   subframe_link=tool_name + '/base_link',
                                    timeout_sec=timeout_sec)
 
     def pick_or_place_wait(self, *, target_stage=None, timeout_sec=None):
@@ -1103,19 +1103,6 @@ class BaseRoutines(Node):
         except Exception as e:
             self.get_logger().error('BaseRoutines.lookup_transform(): %s' % e)
             raise e
-
-    def lookup_pose(self, target_frame, source_frame,
-                    time=Time(), timeout=Duration()):
-        tfm = self.lookup_transform(target_frame, source_frame,
-                                    time, timeout).transform
-        return PoseStamped(header=Header(frame_id=target_frame),
-                           pose=Pose(position=Point(x=tfm.translation.x,
-                                                    y=tfm.translation.y,
-                                                    z=tfm.translation.z),
-                                     orientation=Quaternion(x=tfm.rotation.x,
-                                                            y=tfm.rotation.y,
-                                                            z=tfm.rotation.z,
-                                                            w=tfm.rotation.w)))
 
     def transform_points_to_target_frame(self, header, points,
                                          target_frame=''):

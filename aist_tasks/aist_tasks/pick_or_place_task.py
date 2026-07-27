@@ -65,6 +65,12 @@ def _decompose_link_name(link_name):
     tokens = link_name.rsplit('/', 1)
     return tokens if len(tokens) == 2 else ('', link_name)
 
+def _get_object_id(link_name):
+    return _decompose_link_name(link_name)[0]
+
+def _get_subframe(link_name):
+    return _decompose_link_name(link_name)[1]
+
 def _concatenate_poses(*poses):
     T = np.identity(4)
     for pose in poses:
@@ -124,10 +130,10 @@ class PickOrPlaceTaskServer(ActionServer):
         com     = node.com
         gripper = node.gripper(request.robot_name)
         if request.pick:
-            object_id = _decompose_link_name(request.pose.header.frame_id)[0]
+            object_id = _get_object_id(request.pose.header.frame_id)
             eef_link  = ''
         else:
-            object_id = _decompose_link_name(request.subframe_link)[0]
+            object_id = _get_object_id(request.subframe_link)
             eef_link  = request.subframe_link
 
         try:
@@ -166,16 +172,15 @@ class PickOrPlaceTaskServer(ActionServer):
             if request.pick:
                 gripper.grasp()
                 if object_id != '':
-                    original_object_info = com.attach_object(object_id,
-                                                             gripper.tip_link)
+                    old_root_id, old_root_pose \
+                        = com.attach_object(object_id, gripper.tip_link)
             else:
                 gripper.release()
                 if object_id != '':
-                    inhand_pose = node.lookup_pose(request.subframe_link,
-                                                   gripper.tip_link)
-                    com.detach_object(object_id, request.pose.header.frame_id,
-                                      _decompose_link_name(
-                                          gripper.tip_link)[0])
+                    old_root_id, old_root_pose \
+                        = com.detach_object(object_id,
+                                            request.pose.header.frame_id,
+                                            _get_object_id(gripper.tip_link))
 
             # [4] Depart stage: Go back to departure(pick) or approach(place)
             #     pose.
@@ -186,7 +191,7 @@ class PickOrPlaceTaskServer(ActionServer):
                 pose   = request.pose
                 offset = request.departure_offset
             else:
-                speed = request.speed_fast
+                speed  = request.speed_fast
                 if object_id != '':
                     pose = PoseStamped(header=request.pose.header,
                                        pose=_concatenate_poses(
@@ -194,7 +199,9 @@ class PickOrPlaceTaskServer(ActionServer):
                                                 node.pose_from_xyzrpy(
                                                     request.departure_offset) \
                                                 .pose,
-                                                inhand_pose.pose))
+                                                com.relative_object_pose(
+                                                    old_root_id,
+                                                    object_id).pose))
                     offset = ()
                 else:
                     pose   = request.pose
@@ -205,11 +212,10 @@ class PickOrPlaceTaskServer(ActionServer):
                 if request.pick:
                     gripper.release()
                     if object_id != '':
-                        com.detach_object(object_id,
-                                          original_object_info.parent_link,
-                                          _decompose_link_name(
-                                              gripper.tip_link)[0])
-                        self.logger.warn('### Detach %s' % object_id)
+                        com.detach_object(old_root_id,
+                                          old_root_pose.header.frame_id,
+                                          _get_object_id(gripper.tip_link))
+                        com.move_object(old_root_id, old_root_pose)
                 raise ActionServer._Error('Failed to depart from target',
                                           stage=stage)
 
@@ -221,13 +227,10 @@ class PickOrPlaceTaskServer(ActionServer):
                not gripper.grasped():
                 gripper.release()
                 if object_id != '':
-                    com.detach_object(object_id,
-                                      original_object_info.parent_link,
-                                      _decompose_link_name(
-                                          gripper.tip_link)[0])
-                    com.move_object(object_id, original_object_info.pose,
-                                    _decompose_link_name(
-                                        request.pose.header.frame_id)[1])
+                    com.detach_object(old_root_id,
+                                      old_root_pose.header.frame_id,
+                                      _get_object_id(gripper.tip_link))
+                    com.move_object(old_root_id, old_root_pose)
                 raise ActionServer._Error('Failed to grasp', stage=stage)
 
             # [Final] Goal succeeded.

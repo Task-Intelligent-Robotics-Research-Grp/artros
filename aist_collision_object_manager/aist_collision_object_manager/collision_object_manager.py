@@ -335,7 +335,7 @@ class CollisionObjectManager(object):
         Args:
           object_type: Type of the object to be created.
           pose:        Pose of `subframe` of the created object.
-          subframe:    Subframe name with which the pose of the object
+          subframe:    ID of subframe with which the pose of the object
                        is specified.
           object_id:   ID of the object to be created. Same string as
                        `object_type` will be assigned, if an empty string
@@ -347,8 +347,7 @@ class CollisionObjectManager(object):
         self.logger.info(
             "*CREATE_OBJECT*: object_type='%s', object_id='%s', pose=%s@'%s', subframe='%s'"
             % (object_type, object_id,
-               self.node.format_pose(pose, pose.header.frame_id),
-               pose.header.frame_id, subframe))
+               _format_pose(pose.pose), pose.header.frame_id, subframe))
 
         obj_props = self._obj_props_dict.get(object_type)
         if obj_props is None:
@@ -466,7 +465,7 @@ class CollisionObjectManager(object):
         self._psi.remove_world_object(object_id)
 
     def attach_object(self, object_id: str, parent_link: str,
-                      leaf_id: str='')-> bool:
+                      leaf_id: str='')-> Optional[Tuple[str, PoseStamped]]:
         """ Attach collision object to the specified link.
 
         Args:
@@ -475,7 +474,8 @@ class CollisionObjectManager(object):
           leaf_id:     ID of the past-of-last object to be attached.
 
         Returns:
-          `True` on success, `False` on failure.
+          * Tuple with two elements, ID of old root object and its pose.
+          * `None`, otherwise.
         """
         self.logger.info(
             "*ATTACH_OBJECT*: object_id='%s', parent_link='%s', leaf_id='%s'"
@@ -484,7 +484,7 @@ class CollisionObjectManager(object):
         co = self._find_object(object_id)
         if co is None:
             self.logger.error("unknown object '%s'" % object_id)
-            return False
+            return None
 
         # If 'parent_link' is a subframe of another collision object,
         # get fullname of its 'base_link'.
@@ -500,11 +500,10 @@ class CollisionObjectManager(object):
                                              Duration(seconds=2))
         except Exception as e:
             self.logger.error('CollisionObjectManager.attach_object(): %s' % e)
-            return False
-
+            return None
 
         # Make this object root of the tree to be attached.
-        old_root_id, old_parent_link = self._rotate_tree(co, leaf_id)
+        old_root_id, old_root_pose = self._rotate_tree(co, leaf_id)
 
         # Set the parent of 'co' to 'parent_link'.
         with self._instance_props_lock:
@@ -527,21 +526,24 @@ class CollisionObjectManager(object):
         # Attach 'co' and its descendants to 'attach_link' with 'pose'
         # described w.r.t. 'attach_link'.
         self._attach_or_detach_descendants(co, attach_link, Tao)
-        self.allow_collision(old_root_id, old_parent_link)
-        return True
+
+        self.allow_collision(old_root_id, old_root_pose.header.frame_id)
+        return old_root_id, old_root_pose
 
     def detach_object(self, object_id: str, parent_link: str,
-                      leaf_id: str)-> bool:
+                      leaf_id: str)-> Optional[Tuple[str, PoseStamped]]:
         """ Detach collision object and make it contact with the specified
             link.
 
         Args:
           object_id:   ID of the first object to be detached.
-          parent_link: Name of link with which the object will be made contact.
+          parent_link: ID of link with which the object will be made contact
+                       after detached.
           leaf_id:     ID of the past-of-last object to be detached.
 
         Returns:
-          `True` on success, `False` on failure.
+          * Tuple with two elements, ID of old root object and its pose.
+          * `None`, otherwise.
         """
         self.logger.info(
             "*DETACH_OBJECT*: object_id='%s', parent_link='%s', leaf_id='%s'"
@@ -551,7 +553,7 @@ class CollisionObjectManager(object):
         if aco is None:
             self.logger.error("unknown attached collision object '%s'"
                               % object_id)
-            return False
+            return None
 
         # If 'parent_link' is a subframe of another collision object,
         # get fullname of its 'base_link'.
@@ -568,10 +570,10 @@ class CollisionObjectManager(object):
                                              Duration(seconds=2))
         except Exception as e:
             self.logger.error('CollisionObjectManager.detach_object(): %s' % e)
-            return False
+            return None
 
         # Make this object root of the tree to be detached.
-        old_root_id, old_parent_link = self._rotate_tree(aco.object, leaf_id)
+        old_root_id, old_root_pose = self._rotate_tree(aco.object, leaf_id)
 
         # Set the parent of 'aco' to 'parent_link'.
         with self._instance_props_lock:
@@ -580,46 +582,52 @@ class CollisionObjectManager(object):
         # Since all child attached objects have contacts with the current
         # object 'co', we have to switch their attach links to 'link'.
         self._attach_or_detach_descendants(aco.object, '', None)
-        #self._append_or_remove_touch_links(old_root_id, old_parent_link, True)
-        return True
+
+        return old_root_id, old_root_pose
 
     def move_object(self, object_id: str, pose: PoseStamped,
                     subframe: str='base_link')-> bool:
+        """ Move object to the specified pose.
+        Other objects connected to the specified object also moved accordingly.
+        Transformation tree and attach links remain unchanged.
+
+        Args:
+          object_id: ID of the object to be moved.
+          pose:      Pose to which the object is moved.
+          subframe:  ID of subframe with which the pose of the object
+                     is specified.
+        """
         self.logger.info(
             "*MOVE_OBJECT*: object_id='%s', pose=%s@'%s', subframe='%s'"
-            % (object_id, self.node.format_pose(pose, pose.header.frame_id),
-               pose.header.frame_id, subframe))
+            % (object_id, _format_pose(pose.pose), pose.header.frame_id,
+               subframe))
 
         co = self._find_object(object_id)
         if co is None:
             self.logger.error("unknown collision object '%s'" % object_id)
             return False
 
-        # Transform the given pose from 'frame_id' to parent link of 'co'.
-        parent_link = self._get_parent_link(co.id)
-        now = self.node.get_clock().now()
-        pose.pose = _pose_from_matrix(
-                         _transform_matrix(
-                             self.node.lookup_transform(
-                                 parent_link, pose.header.frame_id,
-                                 now, Duration(seconds=2)).transform) @
-                         _pose_matrix(pose.pose))
-        pose.header.frame_id = parent_link
+        # Transform the given pose to that w.r.t. parent link of 'co'.
+        pose.header.stamp = self.node.get_clock().now()
+        pose = self.node.transform_pose_to_target_frame(
+                   pose, target_frame=self._get_parent_link(co.id))
 
         # Transform the given pose of subframe to that of 'base_link'
         # described w.r.t. 'parent_link' which is a parent link of 'object_id'.
         pose = self._get_base_link_pose_from_subframe_pose(pose, co, subframe)
         with self._instance_props_lock:
             self._instance_props_dict[co.id].base_link_transform \
-                = TransformStamped(header=Header(frame_id=parent_link),
+                = TransformStamped(header=pose.header,
                                    child_frame_id=co.id + '/base_link',
                                    transform=_transform_from_pose(pose.pose))
         self._move_descendants(co,
                                _transform_matrix(
                                    self.node.lookup_transform(
-                                       co.header.frame_id, parent_link, now,
-                                       Duration(seconds=2)).transform) @ \
-                               tfs.inverse_matrix(_pose_matrix(co.pose)))
+                                       co.header.frame_id,
+                                       pose.header.frame_id,
+                                       pose.header.stamp,
+                                       Duration(seconds=2)).transform) @
+                               _pose_matrix(pose.pose))
         return True
 
     def allow_collision(self, object_id: str, frame_id: str)-> None:
@@ -669,10 +677,11 @@ class CollisionObjectManager(object):
         """ Get information on attached or non-attached collision object.
 
         Args:
-          object_id: ID of the object.
+          object_id: ID of object whose infomation will be searched for.
 
         Returns:
-          Information on the object specified by `object_id`.
+          * Information on the object specified by `object_id`, if found.
+          * `None`, otherwise.
         """
         self.logger.info("*GET_OBJECT_INFO*: object_id='%s'" % object_id)
 
@@ -697,6 +706,16 @@ class CollisionObjectManager(object):
 
     def get_attached_child_objects_info(self, frame_id: str) \
             -> List[CollisionObjectInfo]:
+        """ Get information on attached or non-attached collision objects
+            having contact with the specified frame.
+
+        Args:
+          frmae_id: ID of frame with which the searched objects are made
+                    contact.
+
+        Returns:
+          List of information on the objects having contact with `object_id`.
+        """
         self.logger.info("*GET_ATTACHED_CHILD_OBJECTS_INFO*: frame_id='%s'"
                          % frame_id)
 
@@ -714,6 +733,41 @@ class CollisionObjectManager(object):
                 info.parent_link = self._get_parent_link(info.object_id)
                 info_list.append(info)
         return info_list
+
+    def relative_object_pose(self, object_id: str, reference_id: str) \
+            -> PoseStamped:
+        """ Get pose of the specified object relative to the reference object.
+
+        Both objects must be non-attached collision objects or attached
+        collision objects sharing a common attach link.
+
+        Args:
+          object_id:    ID of object whose pose to be obtained.
+          reference_id: ID of object w.r.t. which pose of `object_id`
+                        is described.
+
+        Returns:
+          Pose of 'base_link' of `object_id` w.r.t. 'base_link'
+          of `reference_id`.
+
+        Raises:
+          ValueError: if attached and non-attaced collision objects are
+                      specified or two attached collision objects with
+                      different attach links are given.
+        """
+        co  = self._find_object(object_id)
+        if co is None:
+            raise ValueError('unknown object[%s]' % object_id)
+        rco = self._find_object(reference_id)
+        if rco is None:
+            raise ValueError('unknown object[%s]' % reference_id)
+        if co.header.frame_id != rco.header.frame_id:
+            raise ValueError('different attach links[%s != %s]'
+                             % (co.header.frame_id, rco.header.frame_id))
+        return PoseStamped(header=Header(frame_id=rco.header.frame_id),
+                           pose=_pose_from_matrix(_pose_matrix(co.pose) @
+                                                  tfs.inverse_matrix(
+                                                      _pose_matrix(rco.pose))))
 
     #
     # Callbacks
@@ -842,8 +896,8 @@ class CollisionObjectManager(object):
     def _create_link_material(color):
         return Material(color=color, texture_height=0, texture_width=0)
 
-    def _rotate_tree(self,
-                     co: CollisionObject, leaf_id: str)-> Tuple[str, str]:
+    def _rotate_tree(self, co: CollisionObject, leaf_id: str) \
+            -> Tuple[str, PoseStamped]:
         """ Rotate transformation tree so that the given collision object
         become root.
         Starting at the given collision object, this functions ascends the
@@ -858,7 +912,17 @@ class CollisionObjectManager(object):
         Args:
           co:      Attached or non-attached collision object to be root.
           leaf_id: ID of the past-of-last object to be rotated.
+
+        Returns:
+          Tuple with two elements, ID of old root object and its pose.
         """
+        def _decompose_transform(transform: TransformStamped) \
+                -> Tuple[str, PoseStamped]:
+            return (_decompose_link_name(transform.child_frame_id)[0],
+                    PoseStamped(
+                        header=transform.header,
+                        pose=_pose_from_transform(transform.transform)))
+
         def _inverse_transform(transform: TransformStamped)-> TransformStamped:
             return TransformStamped(
                        header=Header(frame_id=transform.child_frame_id),
@@ -870,16 +934,18 @@ class CollisionObjectManager(object):
         # If 'co' is non-attached collision object, we have reached root!
         if self._find_attached_collision_object(co.id) is None:
             self._psi.attach_object(co, co.header.frame_id)
-            return co.id, self._get_parent_link(co.id)
+            return _decompose_transform(
+                       self._instance_props_dict[co.id].base_link_transform)
 
         # If parent of 'co' is not a any type of collision object
         # or is an object with 'leaf_id', we have reached root!
         parent_co = self._find_object(self._get_parent_id(co.id))
         if parent_co is None or parent_co.id == leaf_id:
-            return co.id, self._get_parent_link(co.id)
+            return _decompose_transform(
+                       self._instance_props_dict[co.id].base_link_transform)
 
         # Ascend transformation tree until reached the root.
-        old_root_id, old_parent_link = self._rotate_tree(parent_co, leaf_id)
+        old_root_id, old_root_pose = self._rotate_tree(parent_co, leaf_id)
 
         # Reverse parent-child relation between 'co' and 'parent_co'
         # in the transformation tree. However, touch links are kept unchanged.
@@ -887,7 +953,7 @@ class CollisionObjectManager(object):
             self._instance_props_dict[parent_co.id].base_link_transform \
                 = _inverse_transform(
                       self._instance_props_dict[co.id].base_link_transform)
-        return old_root_id, old_parent_link
+        return old_root_id, old_root_pose
 
     def _attach_or_detach_descendants(self, co: CollisionObject,
                                       attach_link: str, Tao)-> None:
@@ -933,8 +999,14 @@ class CollisionObjectManager(object):
                         self._instance_props_dict[child_aco.object.id] \
                         .base_link_transform.transform))
 
-    def _move_descendants(self, co: CollisionObject, T)-> None:
-        co.pose = _pose_from_matrix(T @ _pose_matrix(co.pose))
+    def _move_descendants(self, co: CollisionObject, Tao)-> None:
+        """ Move collision of objects specified and its descendants.
+
+        Args:
+          co:  Root collision object to be moved.
+          Tao: Transformation matrix from `co` to attach link after moved.
+        """
+        co.pose = _pose_from_matrix(Tao)
         aco = self._find_attached_collision_object(co.id)
         if aco is None:
             self._psi.add_object(co)
@@ -944,7 +1016,12 @@ class CollisionObjectManager(object):
         # Set poses for all child attached objects.
         for child_aco in self._psi.get_attached_objects().values():
             if self._get_parent_id(child_aco.object.id) == co.id:
-                self._move_descendants(child_aco.object, T)
+                self._move_descendants(
+                    child_aco.object,
+                    Tao @
+                    _transform_matrix(
+                        self._instance_props_dict[child_aco.object.id] \
+                        .base_link_transform.transform))
 
     def _get_base_link_pose_from_subframe_pose(self, pose: PoseStamped,
                                                co: CollisionObject,
@@ -1057,7 +1134,7 @@ class CollisionObjectManager(object):
         """ Get touch links associated with the specified link.
 
         Args:
-          link: Name of the link whose touch links are searched for.
+          link: ID of link whose touch links are searched for.
 
         Returns:
           * A list with only one element, unique ID of the object, if `link`
