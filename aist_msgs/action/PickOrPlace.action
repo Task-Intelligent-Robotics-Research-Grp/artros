@@ -1,13 +1,13 @@
 # Goal
 string                    robot_name
 bool                      pick
-string                    subframe_link
 geometry_msgs/PoseStamped pose
 float64[]                 offset
 float64[]                 approach_offset
 float64[]                 departure_offset
 float64                   speed_fast
 float64                   speed_slow
+string                    end_effector_link
 ---
 # Result
 string stage  # 'move', 'approach', 'grasp/release', 'depart', 'verify'

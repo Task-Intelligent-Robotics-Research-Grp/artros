@@ -57,6 +57,7 @@ from trajectory_msgs.msg           import JointTrajectoryPoint, JointTrajectory
 from controller_manager_msgs.srv   import ListControllers, SwitchController
 from action_msgs.msg               import GoalStatus
 from aist_utility.fileio           import filepath_from_url
+from aist_utility.geometry_msgs    import transform_matrix, pose_matrix
 from aist_tasks.pick_or_place_task import PickOrPlaceTask
 from aist_collision_object_manager \
     .collision_object_manager      import CollisionObjectManager
@@ -74,18 +75,6 @@ def get_grippers(config, name=''):
             grippers |= get_grippers(gripper_config, gripper_name)
         return grippers
     return {} if name == '' else {name: config}
-
-def paramtuples(d):
-    fields = set()
-    for params in d.values():
-        for field in params.keys():
-            fields.add(field)
-    ParamTuple = collections.namedtuple('ParamTuple', ' '.join(fields))
-
-    params = {}
-    for key, param in d.items():
-        params[key] = ParamTuple(**param)
-    return params
 
 #*********************************************************************
 #  class BaseRoutines                                                *
@@ -988,16 +977,15 @@ class BaseRoutines(Node):
         if params is None:
             params = picking_parameters[
                          self.com.get_object_info(part_id).object_type]
-        if 'gripper_parameters' in params:
-            self.set_gripper_parameters(robot_name,
-                                        params['gripper_parameters'])
+        self.set_gripper_parameters(robot_name,
+                                    params.get('gripper_parameters', {}))
         return self._pick_or_place.send_goal(robot_name, True, target_pose,
                                              params['pick_offset'],
                                              params['approach_offset'],
                                              params['departure_offset'],
                                              params['speed_fast'],
                                              params['speed_slow'],
-                                             subframe_link='',
+                                             end_effector_link='',
                                              timeout_sec=timeout_sec)
 
     def place(self, robot_name, part_id, target_pose,
@@ -1012,17 +1000,17 @@ class BaseRoutines(Node):
                                  target_pose.header.frame_id, picking_params)
         if not placing_params.get('place_offset'):
             placing_params = placing_parameters['default']
-        if 'gripper_parameters' in picking_params:
-            self.set_gripper_parameters(robot_name,
-                                        picking_params['gripper_parameters'])
-        subframe_link = part_id + '/' + subframe if part_id != '' else ''
+        self.set_gripper_parameters(robot_name,
+                                    picking_params.get('gripper_parameters',
+                                                       {}))
+        eef_link = part_id + '/' + subframe if part_id != '' else ''
         return self._pick_or_place.send_goal(robot_name, False, target_pose,
                                              placing_params['place_offset'],
                                              placing_params['approach_offset'],
                                              placing_params['departure_offset'],
                                              picking_params['speed_fast'],
                                              picking_params['speed_slow'],
-                                             subframe_link=subframe_link,
+                                             end_effector_link=eef_link,
                                              timeout_sec=timeout_sec)
 
     def pick_at_frame(self, robot_name, part_id, target_frame,
@@ -1141,18 +1129,7 @@ class BaseRoutines(Node):
                                                     stamp=poses.header.stamp),
                                       poses=[])
         for pose in poses.poses:
-            T = tfs.translation_matrix((tfm.translation.x,
-                                        tfm.translation.y,
-                                        tfm.translation.z)) \
-              @ tfs.quaternion_matrix((tfm.rotation.x, tfm.rotation.y,
-                                       tfm.rotation.z, tfm.rotation.w)) \
-              @ tfs.translation_matrix((pose.position.x,
-                                        pose.position.y,
-                                        pose.position.z)) \
-              @ tfs.quaternion_matrix((pose.orientation.x,
-                                       pose.orientation.y,
-                                       pose.orientation.z,
-                                       pose.orientation.w)) \
+            T = transform_matrix(tfm) @ pose_matrix(pose) \
               @ tfs.translation_matrix(self._position_from_offset(
                                            offset[0:3])) \
               @ tfs.quaternion_matrix(self._orientation_from_offset(
@@ -1215,7 +1192,8 @@ class BaseRoutines(Node):
 
     def _orientation_from_offset(self, offset):
         return np.array((0.0, 0.0, 0.0, 1.0)) if len(offset) < 3 else \
-               tfs.quaternion_from_euler(*np.radians(offset[0:3])) if len(offset) == 3 else \
+               tfs.quaternion_from_euler(
+                   *np.radians(offset[0:3])) if len(offset) == 3 else \
                np.array(offset[0:4])
 
     def _correct_orientation(self, orientation, up):

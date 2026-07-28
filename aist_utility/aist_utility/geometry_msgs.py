@@ -35,7 +35,79 @@
 #
 import cv2
 import numpy as np
-from geometry_msgs.msg import Point, Vector3, Quaternion, Transform
+import tf_transformations as tfs
+from geometry_msgs.msg import (Point, Vector3, Quaternion, Pose, Transform,
+                               PoseStamped, TransformStamped)
+
+
+def pose_matrix(pose: Pose)-> np.array:
+    return tfs.translation_matrix((pose.position.x,
+                                   pose.position.y,
+                                   pose.position.z)) \
+         @ tfs.quaternion_matrix((pose.orientation.x, pose.orientation.y,
+                                  pose.orientation.z, pose.orientation.w))
+
+def pose_from_matrix(T: np.array)-> Pose:
+    t = tfs.translation_from_matrix(T)
+    q = tfs.quaternion_from_matrix(T)
+    return Pose(position=Point(x=t[0], y=t[1], z=t[2]),
+                orientation=Quaternion(x=q[0], y=q[1], z=q[2], w=q[3]))
+
+def transform_matrix(transform: Transform)-> np.array:
+    return pose_matrix(pose_from_transform(transform))
+
+def transform_from_matrix(T: np.array)-> Transform:
+    return transform_from_pose(pose_from_matrix(T))
+
+def pose_from_transform(transform: Transform)-> Pose:
+    return Pose(position=Point(x=transform.translation.x,
+                               y=transform.translation.y,
+                               z=transform.translation.z),
+                orientation=Quaternion(x=transform.rotation.x,
+                                       y=transform.rotation.y,
+                                       z=transform.rotation.z,
+                                       w=transform.rotation.w))
+
+def transform_from_pose(pose: Pose)-> Transform:
+    return Transform(translation=Vector3(x=pose.position.x,
+                                         y=pose.position.y,
+                                         z=pose.position.z),
+                     rotation=Quaternion(x=pose.orientation.x,
+                                         y=pose.orientation.y,
+                                         z=pose.orientation.z,
+                                         w=pose.orientation.w))
+
+def format_transform(transform: Transform|TransformStamped)-> str:
+    def _xyzrpy(tfm):
+        return (tfm.translation.x, tfm.translation.y, tfm.translation.z,
+                *np.degrees(tfs.euler_from_quaternion((tfm.rotation.x,
+                                                       tfm.rotation.y,
+                                                       tfm.rotation.z,
+                                                       tfm.rotation.w))))
+
+    if isinstance(transform, TransformStamped):
+        return '{} <= {}: [{:.4f}, {:.4f}, {:.4f}; {:.4f}, {:.4f}. {:.4f}]' \
+            .format(transform.header.frame_id, transform.child_frame_id,
+                    *_xyzrpy(transform.transform))
+    else:
+        return '[{:.4f}, {:.4f}, {:.4f}; {:.4f}, {:.4f}. {:.4f}]' \
+            .format(*_xyzrpy(transform))
+
+
+def format_pose(pose: Pose|PoseStamped)-> str:
+    def _xyzrpy(pose):
+        return (pose.position.x, pose.position.y, pose.position.z,
+                *np.degrees(tfs.euler_from_quaternion((pose.orientation.x,
+                                                       pose.orientation.y,
+                                                       pose.orientation.z,
+                                                       pose.orientation.w))))
+
+    if isinstance(pose, PoseStamped):
+        return "[{:.4f}, {:.4f}, {:.4f}; {:.4f}, {:.4f}. {:.4f}]@'{}'" \
+            .format(*_xyzrpy(pose.pose), pose.header.frame_id)
+    else:
+        return '[{:.4f}, {:.4f}, {:.4f}; {:.4f}, {:.4f}. {:.4f}]' \
+            .format(*_xyzrpy(pose))
 
 def depths_to_points(camera_info, u, v, d):
     """

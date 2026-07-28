@@ -48,8 +48,7 @@ from tf2_ros.transform_broadcaster import TransformBroadcaster
 from rcl_interfaces.msg            import ParameterDescriptor, ParameterType
 from std_msgs.msg                  import Header, ColorRGBA
 from geometry_msgs.msg             import (Point, Vector3, Quaternion, Pose,
-                                           Transform, TransformStamped,
-                                           PoseStamped)
+                                           PoseStamped, TransformStamped)
 from shape_msgs.msg                import (Mesh, MeshTriangle, Plane,
                                            SolidPrimitive)
 from visualization_msgs.msg        import Marker, MarkerArray
@@ -63,7 +62,12 @@ from moveit_msgs.msg               import (CollisionObject,
 from moveit_msgs.srv               import GetPlanningScene
 from moveit_commander              import planning_scene_interface as psi
 from aist_utility.fileio           import filepath_from_url
-
+from aist_utility.geometry_msgs    import (pose_matrix, pose_from_matrix,
+                                           transform_matrix,
+                                           transform_from_matrix,
+                                           pose_from_transform,
+                                           transform_from_pose,
+                                           format_pose)
 from typing                        import List, Dict, Tuple, Optional
 
 #************************************************************************
@@ -104,69 +108,6 @@ def _get_base_link(link_name: str)-> str:
     """
     object_id, _ = _decompose_link_name(link_name)
     return link_name if object_id == '' else object_id + '/base_link'
-
-def _vector3_from_xyz(xyz: Tuple[float, float, float])-> Vector3:
-    return Vector3(x=xyz[0], y=xyz[1], z=xyz[2])
-
-def _color_from_rgba(rgba: Tuple[float, float, float, float])-> ColorRGBA:
-    return ColorRGBA(r=rgba[0], g=rgba[1], b=rgba[2], a=rgba[3])
-
-def _pose_from_xyzrpy(xyzrpy):
-    q = tfs.quaternion_from_euler(*np.radians(xyzrpy[3:6]))
-    return Pose(position=Point(x=xyzrpy[0], y=xyzrpy[1], z=xyzrpy[2]),
-                orientation=Quaternion(x=q[0], y=q[1], z=q[2], w=q[3]))
-
-def _pose_matrix(pose):
-    return tfs.translation_matrix((pose.position.x,
-                                   pose.position.y,
-                                   pose.position.z)) \
-         @ tfs.quaternion_matrix((pose.orientation.x, pose.orientation.y,
-                                  pose.orientation.z, pose.orientation.w))
-
-def _pose_from_matrix(T):
-    t = tfs.translation_from_matrix(T)
-    q = tfs.quaternion_from_matrix(T)
-    return Pose(position=Point(x=t[0], y=t[1], z=t[2]),
-                orientation=Quaternion(x=q[0], y=q[1], z=q[2], w=q[3]))
-
-def _transform_matrix(transform):
-    return _pose_matrix(_pose_from_transform(transform))
-
-def _transform_from_matrix(T):
-    return _transform_from_pose(_pose_from_matrix(T))
-
-def _pose_from_transform(transform: Transform)-> Pose:
-    return Pose(position=Point(x=transform.translation.x,
-                               y=transform.translation.y,
-                               z=transform.translation.z),
-                orientation=Quaternion(x=transform.rotation.x,
-                                       y=transform.rotation.y,
-                                       z=transform.rotation.z,
-                                       w=transform.rotation.w))
-
-def _transform_from_pose(pose: Pose)-> Transform:
-    return Transform(translation=Vector3(x=pose.position.x,
-                                         y=pose.position.y,
-                                         z=pose.position.z),
-                     rotation=Quaternion(x=pose.orientation.x,
-                                         y=pose.orientation.y,
-                                         z=pose.orientation.z,
-                                         w=pose.orientation.w))
-
-def _format_transform(transform: Transform)-> str:
-    return '{} <= {}: [{:.4f}, {:.4f}, {:.4f}; {:.4f}, {:.4f}. {:.4f}. {:.4f}]' \
-        .format(transform.header.frame_id, transform.child_frame_id,
-                transform.transform.translation.x,
-                transform.transform.translation.y,
-                transform.transform.translation.z,
-                transform.transform.rotation.x, transform.transform.rotation.y,
-                transform.transform.rotation.z, transform.transform.rotation.w)
-
-def _format_pose(pose: Pose)-> str:
-    return '[{:.4f}, {:.4f}, {:.4f}; {:.4f}, {:.4f}. {:.4f}. {:.4f}]' \
-        .format(pose.position.x, pose.position.y, pose.position.z,
-                pose.orientation.x, pose.orientation.y,
-                pose.orientation.z, pose.orientation.w)
 
 #************************************************************************
 #  class CollisionObjectManager                                         *
@@ -231,6 +172,17 @@ class CollisionObjectManager(object):
 
         def ns_join(ns, name):
             return '/'.join([ns, name]) if ns else name
+
+        def _vector3_from_xyz(xyz):
+            return Vector3(x=xyz[0], y=xyz[1], z=xyz[2])
+
+        def _color_from_rgba(rgba):
+            return ColorRGBA(r=rgba[0], g=rgba[1], b=rgba[2], a=rgba[3])
+
+        def _pose_from_xyzrpy(xyzrpy):
+            q = tfs.quaternion_from_euler(*np.radians(xyzrpy[3:6]))
+            return Pose(position=Point(x=xyzrpy[0], y=xyzrpy[1], z=xyzrpy[2]),
+                        orientation=Quaternion(x=q[0], y=q[1], z=q[2], w=q[3]))
 
         PRIMITIVES = {'BOX':      SolidPrimitive.BOX,
                       'SPHERE':   SolidPrimitive.SPHERE,
@@ -347,7 +299,7 @@ class CollisionObjectManager(object):
         self.logger.info(
             "*CREATE_OBJECT*: object_type='%s', object_id='%s', pose=%s@'%s', subframe='%s'"
             % (object_type, object_id,
-               _format_pose(pose.pose), pose.header.frame_id, subframe))
+               format_pose(pose.pose), pose.header.frame_id, subframe))
 
         obj_props = self._obj_props_dict.get(object_type)
         if obj_props is None:
@@ -386,7 +338,7 @@ class CollisionObjectManager(object):
         instance_props.subframe_transforms \
             = [TransformStamped(header=Header(frame_id=pose.header.frame_id),
                                 child_frame_id=base_link,
-                                transform=_transform_from_pose(pose.pose))]
+                                transform=transform_from_pose(pose.pose))]
         for subframe_name, subframe_pose in zip(obj_props.subframe_names,
                                                 obj_props.subframe_poses):
             if subframe_name != 'base_link':
@@ -394,7 +346,7 @@ class CollisionObjectManager(object):
                     TransformStamped(
                         header=Header(frame_id=base_link),
                         child_frame_id=object_id + '/' + subframe_name,
-                        transform=_transform_from_pose(subframe_pose)))
+                        transform=transform_from_pose(subframe_pose)))
 
         # Create new marker IDs if not existing for this object.
         if object_id not in self._marker_id_lists:
@@ -517,11 +469,10 @@ class CollisionObjectManager(object):
         parent_co = self._find_object(_decompose_link_name(parent_link)[0])
         if parent_co is None:
             attach_link = parent_link
-            Tao = _transform_matrix(Tpo.transform)
+            Tao = transform_matrix(Tpo.transform)
         else:
             attach_link = parent_co.header.frame_id  # attach link of parent
-            Tao = _pose_matrix(parent_co.pose) \
-                @ _transform_matrix(Tpo.transform)
+            Tao = pose_matrix(parent_co.pose) @ transform_matrix(Tpo.transform)
 
         # Attach 'co' and its descendants to 'attach_link' with 'pose'
         # described w.r.t. 'attach_link'.
@@ -599,7 +550,7 @@ class CollisionObjectManager(object):
         """
         self.logger.info(
             "*MOVE_OBJECT*: object_id='%s', pose=%s@'%s', subframe='%s'"
-            % (object_id, _format_pose(pose.pose), pose.header.frame_id,
+            % (object_id, format_pose(pose.pose), pose.header.frame_id,
                subframe))
 
         co = self._find_object(object_id)
@@ -619,15 +570,15 @@ class CollisionObjectManager(object):
             self._instance_props_dict[co.id].base_link_transform \
                 = TransformStamped(header=pose.header,
                                    child_frame_id=co.id + '/base_link',
-                                   transform=_transform_from_pose(pose.pose))
+                                   transform=transform_from_pose(pose.pose))
         self._move_descendants(co,
-                               _transform_matrix(
+                               transform_matrix(
                                    self.node.lookup_transform(
                                        co.header.frame_id,
                                        pose.header.frame_id,
                                        pose.header.stamp,
                                        Duration(seconds=2)).transform) @
-                               _pose_matrix(pose.pose))
+                               pose_matrix(pose.pose))
         return True
 
     def allow_collision(self, object_id: str, frame_id: str)-> None:
@@ -764,10 +715,10 @@ class CollisionObjectManager(object):
         if co.header.frame_id != rco.header.frame_id:
             raise ValueError('different attach links[%s != %s]'
                              % (co.header.frame_id, rco.header.frame_id))
-        return PoseStamped(header=Header(frame_id=rco.header.frame_id),
-                           pose=_pose_from_matrix(_pose_matrix(co.pose) @
-                                                  tfs.inverse_matrix(
-                                                      _pose_matrix(rco.pose))))
+        return PoseStamped(header=Header(frame_id=reference_id + '/base_link'),
+                           pose=pose_from_matrix(tfs.inverse_matrix(
+                                                     pose_matrix(rco.pose)) @
+                                                 pose_matrix(co.pose)))
 
     #
     # Callbacks
@@ -921,15 +872,15 @@ class CollisionObjectManager(object):
             return (_decompose_link_name(transform.child_frame_id)[0],
                     PoseStamped(
                         header=transform.header,
-                        pose=_pose_from_transform(transform.transform)))
+                        pose=pose_from_transform(transform.transform)))
 
         def _inverse_transform(transform: TransformStamped)-> TransformStamped:
             return TransformStamped(
                        header=Header(frame_id=transform.child_frame_id),
                        child_frame_id=transform.header.frame_id,
-                       transform=_transform_from_matrix(
+                       transform=transform_from_matrix(
                            tfs.inverse_matrix(
-                               _transform_matrix(transform.transform))))
+                               transform_matrix(transform.transform))))
 
         # If 'co' is non-attached collision object, we have reached root!
         if self._find_attached_collision_object(co.id) is None:
@@ -972,21 +923,21 @@ class CollisionObjectManager(object):
         if attach_link != '':
             # Attach 'co' to 'attach_link'.
             co.header.frame_id = attach_link
-            co.pose = _pose_from_matrix(Tao)
+            co.pose = pose_from_matrix(Tao)
             touch_links = self._get_parent_touch_links(co.id)
             self._psi.attach_object(co, attach_link, touch_links)
             self.logger.info("attached '%s' to '%s'@%s with touch_links%s"
-                             % (co.id, attach_link, _format_pose(co.pose),
+                             % (co.id, attach_link, format_pose(co.pose),
                                 touch_links))
         else:
             # Detach 'co' from its current attach link.
             self._psi.remove_attached_object(name=co.id)
             self.logger.info("detached '%s' from '%s'@%s"
                              % (co.id, co.header.frame_id,
-                                _format_pose(co.pose)))
+                                format_pose(co.pose)))
             co = self._find_collision_object(co.id)
             attach_link = co.header.frame_id
-            Tao = _pose_matrix(co.pose)
+            Tao = pose_matrix(co.pose)
 
         # Since all child attached objects are connected to the current
         # object 'co', we have to switch their attach links to 'attach_link'.
@@ -995,7 +946,7 @@ class CollisionObjectManager(object):
                 self._attach_or_detach_descendants(
                     child_aco.object, attach_link,
                     Tao @
-                    _transform_matrix(
+                    transform_matrix(
                         self._instance_props_dict[child_aco.object.id] \
                         .base_link_transform.transform))
 
@@ -1006,7 +957,7 @@ class CollisionObjectManager(object):
           co:  Root collision object to be moved.
           Tao: Transformation matrix from `co` to attach link after moved.
         """
-        co.pose = _pose_from_matrix(Tao)
+        co.pose = pose_from_matrix(Tao)
         aco = self._find_attached_collision_object(co.id)
         if aco is None:
             self._psi.add_object(co)
@@ -1019,7 +970,7 @@ class CollisionObjectManager(object):
                 self._move_descendants(
                     child_aco.object,
                     Tao @
-                    _transform_matrix(
+                    transform_matrix(
                         self._instance_props_dict[child_aco.object.id] \
                         .base_link_transform.transform))
 
@@ -1042,10 +993,10 @@ class CollisionObjectManager(object):
             return co.subframe_poses[co.subframe_names.index(subframe)]
 
         # Convert the given pose of 'subframe' of 'co' to that of 'base_link'.
-        pose.pose = _pose_from_matrix(_pose_matrix(pose.pose) @
-                                      tfs.inverse_matrix(
-                                          _pose_matrix(
-                                              _subframe_pose(co, subframe))))
+        pose.pose = pose_from_matrix(pose_matrix(pose.pose) @
+                                     tfs.inverse_matrix(
+                                         pose_matrix(
+                                             _subframe_pose(co, subframe))))
 
         # Separate the parent link 'pose.header.frame_id' into object ID
         # and subframe name.
@@ -1056,11 +1007,11 @@ class CollisionObjectManager(object):
         # w.r.t. it.
         if parent_id != '':
             pose.header.frame_id = parent_id + '/base_link'
-            pose.pose = _pose_from_matrix(
-                            _pose_matrix(
+            pose.pose = pose_from_matrix(
+                            pose_matrix(
                                 _subframe_pose(self._find_object(parent_id),
                                                parent_subframe)) @
-                            _pose_matrix(pose.pose))
+                            pose_matrix(pose.pose))
         return pose
 
     def _find_collision_object(self, object_id: str) \

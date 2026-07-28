@@ -43,49 +43,11 @@ from aist_msgs.action            import PickOrPlace
 from geometry_msgs.msg           import Point, Quaternion, Pose, PoseStamped
 from task_wrappers.action_server import ActionServer
 from task_wrappers.action_client import GroupedSimpleActionClient
+from aist_utility.geometry_msgs  import pose_matrix, pose_from_matrix
 
 #************************************************************************
 #  local functions                                                      *
 #************************************************************************
-def _decompose_link_name(link_name):
-    """ Decompose the given link name into object_id and subframe.
-
-    Args:
-      link_name: name of the link
-
-    Returns:
-      A tuple of object ID and subframe name of the collision object,
-      if `link_name` is a fullname of subframe of any collision object.
-      A tuple ('', `link_name`), otherwise.
-
-    Examples:
-      * 'panel_bearing/base_link` => ('panel_bearing', 'base_link')
-      * 'a_bot_gripper_tip_link'  => ('', 'a_bot_gripper_tip_link')
-    """
-    tokens = link_name.rsplit('/', 1)
-    return tokens if len(tokens) == 2 else ('', link_name)
-
-def _get_object_id(link_name):
-    return _decompose_link_name(link_name)[0]
-
-def _get_subframe(link_name):
-    return _decompose_link_name(link_name)[1]
-
-def _concatenate_poses(*poses):
-    T = np.identity(4)
-    for pose in poses:
-        T = T @ tfs.translation_matrix((pose.position.x,
-                                        pose.position.y,
-                                        pose.position.z)) \
-              @ tfs.quaternion_matrix((pose.orientation.x,
-                                       pose.orientation.y,
-                                       pose.orientation.z,
-                                       pose.orientation.w))
-    t = tfs.translation_from_matrix(T)
-    q = tfs.quaternion_from_matrix(T)
-    return Pose(position=Point(x=t[0], y=t[1], z=t[2]),
-                orientation=Quaternion(x=q[0], y=q[1], z=q[2], w=q[3]))
-
 #************************************************************************
 #  class PickOrPlaceTaskClient                                          *
 #************************************************************************
@@ -100,17 +62,17 @@ class PickOrPlaceTaskClient(GroupedSimpleActionClient):
 
     def send_goal(self, robot_name, pick, pose, offset,
                   approach_offset, departure_offset, speed_fast, speed_slow,
-                  *, subframe_link='', timeout_sec=0.0):
+                  *, end_effector_link='', timeout_sec=0.0):
         return super().send_goal(PickOrPlace.Goal(
                                      robot_name=robot_name,
                                      pick=pick,
-                                     subframe_link=subframe_link,
                                      pose=pose,
                                      offset=offset,
                                      approach_offset=approach_offset,
                                      departure_offset=departure_offset,
                                      speed_fast=speed_fast,
-                                     speed_slow=speed_slow),
+                                     speed_slow=speed_slow,
+                                     end_effector_link=end_effector_link),
                                  feedback_callback=self.stage_feedback_cb,
                                  timeout_sec=timeout_sec)
 
@@ -124,6 +86,10 @@ class PickOrPlaceTaskServer(ActionServer):
                          group_field='robot_name')
 
     def _execute_cb(self, goal_handle):
+        def _get_object_id(link_name):
+            tokens = link_name.rsplit('/', 1)
+            return tokens[0] if len(tokens) == 2 else ''
+
         request = goal_handle.request
         self.logger.info('### %s ###' % ('Pick' if request.pick else 'Place'))
         node    = self.node
@@ -133,8 +99,8 @@ class PickOrPlaceTaskServer(ActionServer):
             object_id = _get_object_id(request.pose.header.frame_id)
             eef_link  = ''
         else:
-            object_id = _get_object_id(request.subframe_link)
-            eef_link  = request.subframe_link
+            object_id = _get_object_id(request.end_effector_link)
+            eef_link  = request.end_effector_link
 
         try:
             # [1] Move stage: Go to approach pose.
@@ -193,15 +159,19 @@ class PickOrPlaceTaskServer(ActionServer):
             else:
                 speed  = request.speed_fast
                 if object_id != '':
-                    pose = PoseStamped(header=request.pose.header,
-                                       pose=_concatenate_poses(
-                                                request.pose.pose,
-                                                node.pose_from_xyzrpy(
-                                                    request.departure_offset) \
-                                                .pose,
-                                                com.relative_object_pose(
-                                                    old_root_id,
-                                                    object_id).pose))
+                    pose = PoseStamped(
+                               header=request.pose.header,
+                               pose=pose_from_matrix(
+                                        pose_matrix(request.pose.pose) @
+                                        pose_matrix(
+                                            node.pose_from_xyzrpy(
+                                                request.departure_offset)
+                                            .pose) @
+                                        pose_matrix(
+                                            com.relative_object_pose(
+                                                old_root_id, object_id).pose) @
+                                        tfs.inverse_matrix(
+                                            pose_matrix(old_root_pose.pose))))
                     offset = ()
                 else:
                     pose   = request.pose
