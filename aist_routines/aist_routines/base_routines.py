@@ -57,7 +57,8 @@ from trajectory_msgs.msg           import JointTrajectoryPoint, JointTrajectory
 from controller_manager_msgs.srv   import ListControllers, SwitchController
 from action_msgs.msg               import GoalStatus
 from aist_utility.fileio           import filepath_from_url
-from aist_utility.geometry_msgs    import transform_matrix, pose_matrix
+from aist_utility.geometry_msgs    import (transform_matrix, pose_matrix,
+                                           pose_from_matrix)
 from aist_tasks.pick_or_place_task import PickOrPlaceTask
 from aist_collision_object_manager \
     .collision_object_manager      import CollisionObjectManager
@@ -1032,7 +1033,7 @@ class BaseRoutines(Node):
         if self.gripper(robot_name).name == tool_name:
             return (GoalStatus.STATUS_SUCCEEDED, None)
         if self.gripper(robot_name).name != \
-             self.default_gripper_name(robot_name):
+           self.default_gripper_name(robot_name):
             self.place_tool(robot_name)
         status, result = self.pick_at_frame(robot_name, tool_name,
                                             tool_name + '/base_link',
@@ -1122,24 +1123,16 @@ class BaseRoutines(Node):
         if target_frame == '':
             target_frame = self.reference_frame
 
-        tfm = self.lookup_transform(target_frame, poses.header.frame_id,
-                                    poses.header.stamp,
-                                    Duration(seconds=10)).transform
-        transformed_poses = PoseArray(header=Header(frame_id=target_frame,
-                                                    stamp=poses.header.stamp),
-                                      poses=[])
-        for pose in poses.poses:
-            T = transform_matrix(tfm) @ pose_matrix(pose) \
-              @ tfs.translation_matrix(self._position_from_offset(
-                                           offset[0:3])) \
-              @ tfs.quaternion_matrix(self._orientation_from_offset(
-                                          offset[3:]))
-            t = tfs.translation_from_matrix(T)
-            q = tfs.quaternion_from_matrix(T)
-            transformed_poses.poses.append(
-                Pose(position=Point(x=t[0], y=t[1], z=t[2]),
-                     orientation=Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])))
-        return transformed_poses
+        T = transform_matrix(self.lookup_transform(
+                                 target_frame, poses.header.frame_id,
+                                 poses.header.stamp,
+                                 Duration(seconds=10)).transform)
+        S = tfs.translation_matrix(self._position_from_offset(offset[0:3])) \
+          @ tfs.quaternion_matrix(self._orientation_from_offset(offset[3:]))
+        return PoseArray(header=Header(frame_id=target_frame,
+                                       stamp=poses.header.stamp),
+                         poses=[pose_from_matrix(T @ pose_matrix(pose) @ S)
+                                for pose in poses.poses])
 
     def correct_orientation(self, pose):
         poses = self.correct_orientations(PoseArray(header=pose.header,

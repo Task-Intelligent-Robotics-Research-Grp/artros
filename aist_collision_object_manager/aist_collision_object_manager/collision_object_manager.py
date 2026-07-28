@@ -746,6 +746,22 @@ class CollisionObjectManager(object):
         Send response with binary mesh data according to the requested URL
         of mesh resource.
         """
+        def _create_link_mesh(mesh_url, mesh_pose, mesh_scale):
+            link_geometry = LinkGeometry()
+            link_geometry.origin = mesh_pose
+            link_geometry.primitive.type = 0  # Mesh
+            link_geometry.primitive.dimensions = [mesh_scale.x, mesh_scale.y,
+                                                  mesh_scale.z]
+            with open(filepath_from_url(mesh_url), 'rb') as f:
+                link_geometry.data = f.read()
+            return link_geometry
+
+        def _create_link_primitive(primitive, primitive_pose):
+            return LinkGeometry(origin=primitive_pose, primitive=primitive)
+
+        def _create_link_material(color):
+            return Material(color=color, texture_height=0, texture_width=0)
+
         self.logger.info('GetCollisionObject[object_type=%s]'
                          % req.object_type)
 
@@ -827,25 +843,6 @@ class CollisionObjectManager(object):
                                        y=vertex[1]*scale[1],
                                        z=vertex[2]*scale[2]))
         return mesh
-
-    @staticmethod
-    def _create_link_mesh(mesh_url, mesh_pose, mesh_scale):
-        link_geometry = LinkGeometry()
-        link_geometry.origin = mesh_pose
-        link_geometry.primitive.type = 0  # Mesh
-        link_geometry.primitive.dimensions = [mesh_scale.x, mesh_scale.y,
-                                              mesh_scale.z]
-        with open(filepath_from_url(mesh_url), 'rb') as f:
-            link_geometry.data = f.read()
-        return link_geometry
-
-    @staticmethod
-    def _create_link_primitive(primitive, primitive_pose):
-        return LinkGeometry(origin=primitive_pose, primitive=primitive)
-
-    @staticmethod
-    def _create_link_material(color):
-        return Material(color=color, texture_height=0, texture_width=0)
 
     def _rotate_tree(self, co: CollisionObject, leaf_id: str) \
             -> Tuple[str, PoseStamped]:
