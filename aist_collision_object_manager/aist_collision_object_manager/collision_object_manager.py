@@ -173,16 +173,16 @@ class CollisionObjectManager(object):
         def ns_join(ns, name):
             return '/'.join([ns, name]) if ns else name
 
+        def _pose_from_xyzrpy(xyzrpy):
+            q = tfs.quaternion_from_euler(*np.radians(xyzrpy[3:6]))
+            return Pose(position=Point(x=xyzrpy[0], y=xyzrpy[1], z=xyzrpy[2]),
+                        orientation=Quaternion(x=q[0], y=q[1], z=q[2], w=q[3]))
+
         def _vector3_from_xyz(xyz):
             return Vector3(x=xyz[0], y=xyz[1], z=xyz[2])
 
         def _color_from_rgba(rgba):
             return ColorRGBA(r=rgba[0], g=rgba[1], b=rgba[2], a=rgba[3])
-
-        def _pose_from_xyzrpy(xyzrpy):
-            q = tfs.quaternion_from_euler(*np.radians(xyzrpy[3:6]))
-            return Pose(position=Point(x=xyzrpy[0], y=xyzrpy[1], z=xyzrpy[2]),
-                        orientation=Quaternion(x=q[0], y=q[1], z=q[2], w=q[3]))
 
         PRIMITIVES = {'BOX':      SolidPrimitive.BOX,
                       'SPHERE':   SolidPrimitive.SPHERE,
@@ -685,40 +685,43 @@ class CollisionObjectManager(object):
                 info_list.append(info)
         return info_list
 
-    def relative_object_pose(self, object_id: str, reference_id: str) \
+    def relative_frame_pose(self, frame_id: str, object_id: str) \
             -> PoseStamped:
-        """ Get pose of the specified object relative to the reference object.
-
-        Both objects must be non-attached collision objects or attached
-        collision objects sharing a common attach link.
+        """ Get pose of the specified frame w.r.t. the base link of the
+            specified object.
 
         Args:
-          object_id:    ID of object whose pose to be obtained.
-          reference_id: ID of object w.r.t. which pose of `object_id`
-                        is described.
+          frame_id:  ID of frame whose pose to be obtained.
+          object_id: ID of frame w.r.t. whose base link the pose of `frame_id`
+                     is described.
 
         Returns:
-          Pose of 'base_link' of `object_id` w.r.t. 'base_link'
-          of `reference_id`.
+          Pose of 'base_link' of `object_id` w.r.t. `frame_id`.
 
         Raises:
           ValueError: if attached and non-attaced collision objects are
                       specified or two attached collision objects with
                       different attach links are given.
         """
-        co  = self._find_object(object_id)
+        co_id, subframe = _decompose_link_name(frame_id)
+        co = self._find_object(co_id)
         if co is None:
-            raise ValueError('unknown object[%s]' % object_id)
-        rco = self._find_object(reference_id)
+            raise ValueError('no object associated with specified frame[%s]'
+                             % frame_id)
+        rco = self._find_object(object_id)
         if rco is None:
-            raise ValueError('unknown object[%s]' % reference_id)
+            raise ValueError('unknown object[%s]' % object_id)
         if co.header.frame_id != rco.header.frame_id:
             raise ValueError('different attach links[%s != %s]'
                              % (co.header.frame_id, rco.header.frame_id))
-        return PoseStamped(header=Header(frame_id=reference_id + '/base_link'),
+        return PoseStamped(header=Header(frame_id=object_id + '/base_link'),
                            pose=pose_from_matrix(tfs.inverse_matrix(
                                                      pose_matrix(rco.pose)) @
-                                                 pose_matrix(co.pose)))
+                                                 pose_matrix(co.pose) @
+                                                 pose_matrix(
+                                                     co.subframe_poses[
+                                                         co.subframe_names \
+                                                           .index(subframe)])))
 
     #
     # Callbacks

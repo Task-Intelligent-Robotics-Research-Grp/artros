@@ -43,7 +43,8 @@ from aist_msgs.action            import PickOrPlace
 from geometry_msgs.msg           import Point, Quaternion, Pose, PoseStamped
 from task_wrappers.action_server import ActionServer
 from task_wrappers.action_client import GroupedSimpleActionClient
-from aist_utility.geometry_msgs  import pose_matrix, pose_from_matrix, format_pose
+from aist_utility.geometry_msgs  import (pose_matrix, pose_from_matrix,
+                                         pose_from_xyzrpy)
 
 #************************************************************************
 #  class PickOrPlaceTaskClient                                          *
@@ -156,30 +157,19 @@ class PickOrPlaceTaskServer(ActionServer):
             else:
                 speed  = request.speed_fast
                 if object_id != '':
-                    self.logger.warn('### reqiest.pose=%s'
-                                     % format_pose(request.pose))
-                    self.logger.warn('### departure_offset=%s'
-                                     % format_pose(node.pose_from_xyzrpy(
-                                         request.departure_offset)))
-                    self.logger.warn('### relative_object_pose=%s'
-                                     % format_pose(
-                                         com.relative_object_pose(
-                                             old_root_id, object_id)))
-                    self.logger.warn('### old_root_pose=%s'
-                                     % format_pose(old_root_pose))
-                    tmp = pose_from_matrix(
-                              pose_matrix(request.pose.pose) @
-                              pose_matrix(node.pose_from_xyzrpy(
-                                              request.departure_offset).pose) @
-                              pose_matrix(com.relative_object_pose(
-                                              old_root_id, object_id).pose) @
-                              tfs.inverse_matrix(
-                                  pose_matrix(old_root_pose.pose)))
-                    self.logger.warn('### target_pose=%s'
-                                     % format_pose(tmp))
                     pose = PoseStamped(
                                header=request.pose.header,
-                               pose=tmp)
+                               pose=pose_from_matrix(
+                                        pose_matrix(request.pose.pose) @
+                                        pose_matrix(
+                                            pose_from_xyzrpy(
+                                                request.approach_offset)) @
+                                        tfs.inverse_matrix(
+                                            pose_matrix(old_root_pose.pose) @
+                                            pose_matrix(
+                                                com.relative_frame_pose(
+                                                    eef_link,
+                                                    old_root_id).pose))))
                     offset = ()
                 else:
                     pose   = request.pose

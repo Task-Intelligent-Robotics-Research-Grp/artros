@@ -53,6 +53,19 @@ def pose_from_matrix(T: np.array)-> Pose:
     return Pose(position=Point(x=t[0], y=t[1], z=t[2]),
                 orientation=Quaternion(x=q[0], y=q[1], z=q[2], w=q[3]))
 
+def pose_from_xyzrpy(xyzrpy)-> Pose:
+    t = xyzrpy[0:3]
+    q = tfs.quaternion_from_euler(*np.radians(xyzrpy[3:6]))
+    return Pose(position=Point(x=t[0], y=t[1], z=t[2]),
+                orientation=Quaternion(x=q[0], y=q[1], z=q[2], w=q[3]))
+
+def xyzrpy_from_pose(pose: Pose):
+    return (pose.position.x, pose.position.y, pose.position.z,
+            *np.degrees(tfs.euler_from_quaternion((pose.orientation.x,
+                                                   pose.orientation.y,
+                                                   pose.orientation.z,
+                                                   pose.orientation.w))))
+
 def transform_matrix(transform: Transform)-> np.array:
     return pose_matrix(pose_from_transform(transform))
 
@@ -77,37 +90,29 @@ def transform_from_pose(pose: Pose)-> Transform:
                                          z=pose.orientation.z,
                                          w=pose.orientation.w))
 
-def format_transform(transform: Transform|TransformStamped)-> str:
-    def _xyzrpy(tfm):
-        return (tfm.translation.x, tfm.translation.y, tfm.translation.z,
-                *np.degrees(tfs.euler_from_quaternion((tfm.rotation.x,
-                                                       tfm.rotation.y,
-                                                       tfm.rotation.z,
-                                                       tfm.rotation.w))))
+def transform_from_xyzrpy(xyzrpy)-> Pose:
+    return transform_from_pose(pose_from_xyzrpy(xyzrpy))
 
+def xyzrpy_from_transform(transform: Transform):
+    return xyzrpy_from_pose(pose_from_transform(transform))
+
+def format_transform(transform: Transform|TransformStamped)-> str:
     if isinstance(transform, TransformStamped):
         return '{} <= {}: [{:.4f}, {:.4f}, {:.4f}; {:.4f}, {:.4f}. {:.4f}]' \
             .format(transform.header.frame_id, transform.child_frame_id,
-                    *_xyzrpy(transform.transform))
+                    *xyzrpy_from_transform(transform.transform))
     else:
         return '[{:.4f}, {:.4f}, {:.4f}; {:.4f}, {:.4f}. {:.4f}]' \
-            .format(*_xyzrpy(transform))
+            .format(*xyzrpy_from_transform(transform))
 
 
 def format_pose(pose: Pose|PoseStamped)-> str:
-    def _xyzrpy(pose):
-        return (pose.position.x, pose.position.y, pose.position.z,
-                *np.degrees(tfs.euler_from_quaternion((pose.orientation.x,
-                                                       pose.orientation.y,
-                                                       pose.orientation.z,
-                                                       pose.orientation.w))))
-
     if isinstance(pose, PoseStamped):
         return "[{:.4f}, {:.4f}, {:.4f}; {:.4f}, {:.4f}. {:.4f}]@'{}'" \
-            .format(*_xyzrpy(pose.pose), pose.header.frame_id)
+            .format(*xyzrpy_from_pose(pose.pose), pose.header.frame_id)
     else:
         return '[{:.4f}, {:.4f}, {:.4f}; {:.4f}, {:.4f}. {:.4f}]' \
-            .format(*_xyzrpy(pose))
+            .format(*xyzrpy_from_pose(pose))
 
 def depths_to_points(camera_info, u, v, d):
     """
