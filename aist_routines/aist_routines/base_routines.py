@@ -1098,17 +1098,12 @@ class BaseRoutines(Node):
         if target_frame == '':
             target_frame = self._reference_frame
 
-        tfm = self.lookup_transform(target_frame, header.frame_id,
-                                    header.stamp,
-                                    Duration(seconds=10)).transform
+        T = transform_matrix(self.lookup_transform(
+                                 target_frame, header.frame_id,
+                                 header.stamp, Duration(seconds=10)).transform)
         transformed_points = []
         for point in points:
-            p = tfs.translation_matrix((tfm.translation.x,
-                                        tfm.translation.y,
-                                        tfm.translation.z)) \
-              @ tfs.quaternion_matrix((tfm.rotation.x, tfm.rotation.y,
-                                       tfm.rotation.z, tfm.rotation.w)) \
-              @ (point.x, point.y, point.z, 1.0)
+            p = T @ (point.x, point.y, point.z, 1.0)
             transformed_points.append(Point(x=p[0], y=p[1], z=p[2]))
         return transformed_points
 

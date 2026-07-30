@@ -88,6 +88,10 @@ class PickOrPlaceTaskServer(ActionServer):
             tokens = link_name.rsplit('/', 1)
             return tokens[0] if len(tokens) == 2 else ''
 
+        def _offset_from_matrix(T):
+            return (*tfs.translation_from_matrix(T),
+                    *tfs.quaternion_from_matrix(T))
+
         request = goal_handle.request
         self.logger.info('### %s ###' % ('Pick' if request.pick else 'Place'))
         node    = self.node
@@ -99,6 +103,7 @@ class PickOrPlaceTaskServer(ActionServer):
         else:
             object_id = _get_object_id(request.end_effector_link)
             eef_link  = request.end_effector_link
+        old_root_id = ''
 
         try:
             # [1] Move stage: Go to approach pose.
@@ -152,30 +157,23 @@ class PickOrPlaceTaskServer(ActionServer):
             if request.pick:
                 gripper.postgrasp()                 # Postgrasp (not wait)
                 speed  = request.speed_slow
-                pose   = request.pose
                 offset = request.departure_offset
             else:
-                speed  = request.speed_fast
+                speed = request.speed_fast
                 if object_id != '':
-                    pose = PoseStamped(
-                               header=request.pose.header,
-                               pose=pose_from_matrix(
-                                        pose_matrix(request.pose.pose) @
-                                        pose_matrix(
-                                            pose_from_xyzrpy(
-                                                request.approach_offset)) @
-                                        tfs.inverse_matrix(
-                                            pose_matrix(old_root_pose.pose) @
-                                            pose_matrix(
-                                                com.relative_frame_pose(
-                                                    eef_link,
-                                                    old_root_id).pose))))
-                    offset = ()
+                    offset = _offset_from_matrix(
+                                 pose_matrix(
+                                     pose_from_xyzrpy(
+                                         request.approach_offset)) @
+                                 tfs.inverse_matrix(
+                                     pose_matrix(old_root_pose.pose) @
+                                     pose_matrix(
+                                         com.relative_frame_pose(
+                                             eef_link, old_root_id).pose)))
                 else:
-                    pose   = request.pose
                     offset = request.approach_offset
-            success = node.go_to_pose_goal(request.robot_name,
-                                           pose, offset, speed)
+            success = node.go_to_pose_goal(request.robot_name, request.pose,
+                                           offset, speed)
             if not success:
                 if request.pick:
                     gripper.release()
@@ -208,9 +206,10 @@ class PickOrPlaceTaskServer(ActionServer):
             return PickOrPlace.Result(stage=stage)
 
         finally:
-            if object_id != '':
+            if (object_id != ''):
                 com.reset_collision(object_id)
-                self.logger.info('reset touch links')
+                if (old_root_id != object_id):
+                    com.reset_collision(old_root_id)
 
 #************************************************************************
 #  class PickOrPlaceTask                                                *

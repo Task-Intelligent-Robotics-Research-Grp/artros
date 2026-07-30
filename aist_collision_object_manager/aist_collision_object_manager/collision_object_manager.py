@@ -464,7 +464,7 @@ class CollisionObjectManager(object):
         # Get 'attach_link', i.e. a link to which 'co' will be attached.
         # - It should be 'parent_link', if it is not a 'base_link'
         #   of another object.
-        # - It should be touch link of the parent object, otherwise.
+        # - It should be attach link of the parent object, otherwise.
         # A transform from 'co' to 'attach_link' is also computed.
         parent_co = self._find_object(_decompose_link_name(parent_link)[0])
         if parent_co is None:
@@ -478,7 +478,6 @@ class CollisionObjectManager(object):
         # described w.r.t. 'attach_link'.
         self._attach_or_detach_descendants(co, attach_link, Tao)
 
-        self.allow_collision(old_root_id, old_root_pose.header.frame_id)
         return old_root_id, old_root_pose
 
     def detach_object(self, object_id: str, parent_link: str,
@@ -582,28 +581,52 @@ class CollisionObjectManager(object):
         return True
 
     def allow_collision(self, object_id: str, frame_id: str)-> None:
+        """ Allow the specified object collide againt the specified frame.
+        Add touch links associated with `frame_id` to `object_id`, if it is
+        an attached collision object. If the object is non-attached collision
+        object, the touch links are added to Allowed Collision Matrix(ACM).
+
+        Args:
+          object_id: ID of object collision allowed.
+          frame_id:  ID of frame with which `object_id` is allowed collision.
+        """
         self.logger.info("*ALLOW_COLLISION*: object_id='%s', frame_id='%s'"
                          % (object_id, frame_id))
 
         touch_links = self._get_touch_links(frame_id)
-        self._set_acm_allowed(object_id, touch_links, allow=True, reset=False)
-
         aco = self._find_attached_collision_object(object_id)
         if aco is not None:
-            touch_links = list(set(aco.touch_links) | set(touch_links))
-            self._psi.attach_object(aco, touch_links=touch_links)
+            self._psi.attach_object(aco,
+                                    touch_links=list(set(aco.touch_links) |
+                                                     set(touch_links)))
+        else:
+            self._set_acm_allowed(object_id, touch_links,
+                                  allow=True, reset=False)
 
     def disallow_collision(self, object_id: str, frame_id: str)-> None:
-        self.logger.info("*%DISALLOW_COLLISION*: object_id='%s', frame_id='%s'"
+        """ Disallow the specified object collide againt the specified frame.
+        Remove touch links associated with `frame_id` from `object_id`,
+        if it is an attached collision object. If the object is non-attached
+        collision object, the touch links are removed from
+        Allowed Collision Matrix(ACM).
+
+        Args:
+          object_id: ID of object collision disallowed.
+          frame_id:  ID of frame with which `object_id` is disallowed
+                     collision.
+        """
+        self.logger.info("*DISALLOW_COLLISION*: object_id='%s', frame_id='%s'"
                          % (object_id, frame_id))
 
         touch_links = self._get_touch_links(frame_id)
-        self._set_acm_allowed(object_id, touch_links, allow=False, reset=False)
-
         aco = self._find_attached_collision_object(object_id)
         if aco is not None:
-            touch_links = list(set(aco.touch_links) - set(touch_links))
-            self._psi.attach_object(aco, touch_links=touch_links)
+            self._psi.attach_object(aco,
+                                    touch_links=list(set(aco.touch_links) -
+                                                     set(touch_links)))
+        else:
+            self._set_acm_allowed(object_id, touch_links,
+                                  allow=False, reset=False)
 
     def reset_collision(self, object_id: str)-> None:
         """ Reset ACM entries and touch links of the specified object.
@@ -618,11 +641,13 @@ class CollisionObjectManager(object):
         self.logger.info("*RESET_COLLISION*: object_id='%s'" % object_id)
 
         touch_links = self._get_parent_touch_links(object_id)
-        self._set_acm_allowed(object_id, touch_links, allow=True, reset=True)
-
         aco = self._find_attached_collision_object(object_id)
         if aco is not None:
             self._psi.attach_object(aco, touch_links=touch_links)
+            self._set_acm_allowed(object_id, None, allow=False, reset=True)
+        else:
+            self._set_acm_allowed(object_id, touch_links,
+                                  allow=True, reset=True)
 
     def get_object_info(self, object_id: str)-> Optional[CollisionObjectInfo]:
         """ Get information on attached or non-attached collision object.
@@ -687,16 +712,16 @@ class CollisionObjectManager(object):
 
     def relative_frame_pose(self, frame_id: str, object_id: str) \
             -> PoseStamped:
-        """ Get pose of the specified frame w.r.t. the base link of the
-            specified object.
+        """ Get pose of the specified frame with respect to the base link
+            of the specified object.
 
         Args:
           frame_id:  ID of frame whose pose to be obtained.
-          object_id: ID of frame w.r.t. whose base link the pose of `frame_id`
-                     is described.
+          object_id: ID of frame with respect to whose base link the pose
+                     of `frame_id` is described.
 
         Returns:
-          Pose of 'base_link' of `object_id` w.r.t. `frame_id`.
+          Pose of 'base_link' of `object_id` with respect to `frame_id`.
 
         Raises:
           ValueError: if attached and non-attaced collision objects are
@@ -986,7 +1011,7 @@ class CollisionObjectManager(object):
 
         Returns:
           Pose of 'base_link' of `co`. If 'pose.header.frame_id' is a subframe
-          of any other collision object, the pose is described w.r.t.
+          of any other collision object, the pose is described with respect to
           'base_link' of that object.
         """
         def _subframe_pose(co, subframe):
