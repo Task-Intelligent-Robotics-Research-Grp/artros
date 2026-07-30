@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-#
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2021, National Institute of Advanced Industrial Science and Technology (AIST)
@@ -161,18 +159,13 @@ class CollisionObjectManager(object):
         def parent_link(self):
             return self.base_link_transform.header.frame_id
 
-    def __init__(self, node: Node, ns: str=''):
+    def __init__(self, node: Node):
         """ Create collision object manager.
         * Load object properties from parameter '~object_properties'
           for each type
         * Setup marker publisher '~collision_marker' as well as services
           'get_collision_object' and 'manage_collision_object'
         """
-        super().__init__()
-
-        def ns_join(ns, name):
-            return '/'.join([ns, name]) if ns else name
-
         def _pose_from_xyzrpy(xyzrpy):
             q = tfs.quaternion_from_euler(*np.radians(xyzrpy[3:6]))
             return Pose(position=Point(x=xyzrpy[0], y=xyzrpy[1], z=xyzrpy[2]),
@@ -189,13 +182,15 @@ class CollisionObjectManager(object):
                       'CYLINDER': SolidPrimitive.CYLINDER,
                       'CONE':     SolidPrimitive.CONE}
 
+        super().__init__()
         self._node = node
 
         # Create a dictionary of object properties loaded from database.
         self._obj_props_dict = {}
         for type, props in self._load_databases(
-                               node.declare_parameter('object_properties_urls',
-                                                      ['']).value).items():
+                               node.declare_parameter(
+                                   'collision_object_manager.object_properties_urls',
+                                   ['']).value).items():
             obj_props = CollisionObjectManager.ObjectProperties()
 
             for primitive in props.get('primitives', []):
@@ -233,15 +228,17 @@ class CollisionObjectManager(object):
             self.logger.info('loaded properties of type[%s]' % type)
 
         # Create an instance of PlanningSceneInterface.
-        self._psi = psi.PlanningSceneInterface(self, '',
-                                               node.declare_parameter(
-                                                   'synchronous', True).value)
+        self._psi = psi.PlanningSceneInterface(
+                        self, '',
+                        node.declare_parameter(
+                            'collision_object_manager.synchronous', True) \
+                       .value)
 
         # Create a client of GetPlanningScene service.
         self._get_planning_scene \
             = node.create_client(
-                GetPlanningScene, ns_join(ns, 'get_planning_scene'),
-                callback_group=MutuallyExclusiveCallbackGroup())
+                  GetPlanningScene, 'get_planning_scene',
+                  callback_group=MutuallyExclusiveCallbackGroup())
         if not self._get_planning_scene.wait_for_service(timeout_sec=5.0):
             raise RuntimeError('failed to establish connection to the service[get_planning_scene]')
 
@@ -249,7 +246,8 @@ class CollisionObjectManager(object):
         self._instance_props_lock = threading.Lock()
         self._touch_links         = self._load_databases(
                                         node.declare_parameter(
-                                            'touch_links_urls', ['']).value)
+                                            'collision_object_manager.touch_links_urls',
+                                            ['']).value)
         self._marker_id_min       = 0
         self._marker_id_lists     = {}
         self._marker_pub          = node.create_publisher(MarkerArray,
@@ -257,8 +255,9 @@ class CollisionObjectManager(object):
                                                           1)
         self._broadcaster         = TransformBroadcaster(node)
         self._timer               = node.create_timer(
-                                        node.declare_parameter('period',
-                                                               0.1).value,
+                                        node.declare_parameter(
+                                            'collision_object_manager.period',
+                                            0.1).value,
                                         self._subframes_and_markers_cb,
                                         MutuallyExclusiveCallbackGroup())
         self._service_cbg         = MutuallyExclusiveCallbackGroup()

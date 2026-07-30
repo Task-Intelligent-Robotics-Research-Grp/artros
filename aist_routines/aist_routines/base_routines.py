@@ -172,14 +172,7 @@ class BaseRoutines(Node):
         self.load_settings()
 
         # CollisionObjectManager wrapping MoveIt PlanningSceneInterface
-        if 'initial_object_config' in self.settings:
-            try:
-                self._com = CollisionObjectManager(self)
-            except Exception as e:
-                self.get_logger().error(str(e))
-                self._com = None
-        else:
-            self._com = None
+        self._com = CollisionObjectManager(self)
 
         # Pick and place task
         self._pick_or_place  = PickOrPlaceTask(self)
