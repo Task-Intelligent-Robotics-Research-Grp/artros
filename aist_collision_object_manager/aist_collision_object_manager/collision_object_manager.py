@@ -112,12 +112,12 @@ def _get_base_link(link_name: str)-> str:
 #************************************************************************
 class CollisionObjectManager(object):
     """ Python interface for managing collision objects.
-    * Maintain tree structure of collision objects
-    * Service server for responding to requests for mesh resource
-    * Service server for responding to requests for managing collision objects
-    * Publish subframes of collision objects to TF
-    * Publish shape of collision objects to topic '~collision_marker'
-      as visual markers
+    * Provide methods for manipulating collision objects.
+    * Maintain tree structure of collision objects.
+    * Service server for responding to requests for mesh resource.
+    * Publish subframes of collision objects to TF.
+    * Publish shape of collision objects to topic 'collision_marker'
+      as visual markers.
     """
 
     class ObjectProperties(object):
@@ -161,10 +161,10 @@ class CollisionObjectManager(object):
 
     def __init__(self, node: Node):
         """ Create collision object manager.
-        * Load object properties from parameter '~object_properties'
-          for each type
-        * Setup marker publisher '~collision_marker' as well as services
-          'get_collision_object' and 'manage_collision_object'
+        * Load object properties from parameter 'object_properties'
+          for each type.
+        * Setup marker publisher 'collision_marker' and service
+          'get_collision_object'.
         """
         def _pose_from_xyzrpy(xyzrpy):
             q = tfs.quaternion_from_euler(*np.radians(xyzrpy[3:6]))
@@ -629,10 +629,14 @@ class CollisionObjectManager(object):
 
     def reset_collision(self, object_id: str)-> None:
         """ Reset ACM entries and touch links of the specified object.
-        Update ACM entries of the specified object so that collision
-        against only touch links associated with the parent link of it
-        is allowed. If the object is an attached collision object,
-        its touch links are also updated.
+        * If `object_id` is an attached collision object, its touch links
+          are updated so that only touch links associated with its parent
+          frame are included. In addition, all entries concerning with
+          `object_id` in ACM are cleared.
+        * If `object_id` is an non-attached collision object, entries
+          concerning with `object_id` in ACM are updated so that collision
+          against only touch links associated with its parent frame are
+          allowed.
 
         Args:
           object_id: ID of the object whose ACM and touch links to be reset.
