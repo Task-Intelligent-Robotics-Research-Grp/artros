@@ -208,7 +208,7 @@ class PickOrPlaceTaskServer(ActionServer):
         finally:
             if (object_id != ''):
                 com.reset_collision(object_id)
-                if (old_root_id != object_id):
+                if (old_root_id != '' and old_root_id != object_id):
                     com.reset_collision(old_root_id)
 
 #************************************************************************

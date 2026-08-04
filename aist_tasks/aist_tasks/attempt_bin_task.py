@@ -33,17 +33,18 @@
 #
 # Author: Toshio Ueshiba
 #
-from rclpy.node                     import Node
-from rclpy.action                   import GoalResponse, CancelResponse
-from rclpy.callback_groups          import MutuallyExclusiveCallbackGroup
-from action_msgs.msg                import GoalStatus
-from geometry_msgs.msg              import (PoseStamped, QuaternionStamped,
-                                            Transform, Vector3, Quaternion)
-from aist_msgs.action               import PickOrPlace, AttemptBin
-from aist_skills.pick_or_place_task import PickOrPlaceTaskClient
-from aist_graspability.client       import GraspabilityClient
-from task_wrappers.task_client      import GroupedSimpleActionClient
-from task_wrappers.task_server      import ActionServer
+from rclpy.node                    import Node
+from rclpy.action                  import GoalResponse, CancelResponse
+from rclpy.callback_groups         import MutuallyExclusiveCallbackGroup
+from action_msgs.msg               import GoalStatus
+from geometry_msgs.msg             import (PoseStamped, QuaternionStamped,
+                                           Transform, Vector3, Quaternion)
+from aist_msgs.action              import PickOrPlace, AttemptBin
+from aist_tasks.pick_or_place_task import PickOrPlaceTaskClient
+from aist_graspability.client      import GraspabilityClient
+from task_wrappers.action_client   import GroupedSimpleActionClient
+from task_wrappers.action_server   import ActionServer
+from aist_utility.geometry_msgs    import format_pose
 
 #*********************************************************************
 #  class AttemptBinTaskClient                                        *
@@ -74,7 +75,6 @@ class AttemptBinTaskServer(ActionServer):
         super().__init__(node, AttemptBin, server_ns, self._execute_cb,
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
-        self._graspability.load_borders()
 
     def _execute_cb(self, goal_handle):
         try_next     = True
@@ -98,62 +98,66 @@ class AttemptBinTaskServer(ActionServer):
         return AttemptBin.Result(stage='')
 
     def _attempt_bin(self, goal_handle, pick_poses, place_offset):
+        request = goal_handle.request
+
         # [1] Prepare stage: Get properties of bin and part.
         stage = self.enter_stage(goal_handle, 'prepare')
-        bin_props = self.node.bin_props.get(goal_handle.request.bin_id)
+        bin_props = self.node.bin_props.get(request.bin_id)
         if not bin_props:
-            raise self._Error('unknown bin_id[%s]'
-                              % goal_handle.request.bin_id,
-                              stage=stage)
-        part_props = self.node.part_props.get(bin_props['part_id'])
+            raise ActionServer._Error('unknown bin_id[%s]' % request.bin_id,
+                                      stage=stage)
+        part_id    = bin_props['part_id']
+        part_props = self.node.part_props.get(part_id)
         if not part_props:
-            raise self._Error('unknown part_id[%s]' % bin_props['part_id'],
-                              stage=stage)
+            raise ActionServer._Error('unknown part_id[%s]' % part_id,
+                                      stage=stage)
 
-        if self._is_eye_on_hand(robot_name, part_props['camera_name']):
+        if self._is_eye_on_hand(request.robot_name, part_props['camera_name']):
             # [2] Move camera stage: Go to pose for capturing bin.
             #   Move to 0.15m above the bin if the camera is mounted
             #   on the robot.
             stage = self.enter_stage(goal_handle, 'move_camera', stage)
-            success = self.node.go_to_frame(robot_name, bin_props['name'],
-                                            (0, 0, 0.15))
+            success = self.node.go_to_frame(request.robot_name,
+                                            bin_props['name'], (0, 0, 0.15))
             if not success:
-                raise self._Error('failed to move camera', stage=stage)
+                raise ActionServer._Error('failed to move camera', stage=stage)
 
         if pick_poses is None:
             # [3] Search stage: Search for graspabilities.
             stage = self.enter_stage(goal_handle, 'search', stage)
-            status, result = self.node.search_bin(goal_handle.request.bin_id)
+            status, result = self.node.search_bin(request.bin_id)
             if status != GoalStatus.STATUS_SUCCEEDED:
-                raise self._Error('failed to search graspabilities',
-                                  stage=stage)
-            pick_poses = result.poses
+                raise ActionServer._Error('failed to search graspabilities',
+                                          stage=stage)
+            pick_poses = result.graspabilities.poses
 
         # Attempt to pick the item.
         nattempts = 0
         for p in pick_poses.poses:
-            if nattempts == max_attempts:
+            if nattempts == request.max_attempts:
                 break
 
             pose = PoseStamped(header=pick_poses.header, pose=p)
             if self._is_close_to_fail_poses(pose):
                 continue
 
+            self.logger.warn('### pose=%s' % format_pose(pose))
+
             # Perform picking.
             stage = self.enter_stage(goal_handle, 'pick', stage)
-            status, result = self.node.pick(robot_name, pose, part_id)
+            status, result = self.node.pick(request.robot_name, part_id, pose)
 
-            # A. Pick succeeded
+            # A. Pick succeeded.
             if status == GoalStatus.STATUS_SUCCEEDED:
-                if self._do_error_recovery and \
-                   self.node.using_hmi_graspability_params:
-                    self.node.restore_original_graspability_params(bin_id)
+                # if self._do_error_recovery and \
+                #    self.node.using_hmi_graspability_params:
+                #     self.node.restore_original_graspability_params(bin_id)
 
                 # [4] Place stage: Begin placing and wait until reaching
                 #   approach pose.
                 stage = self.enter_stage(goal_handle, 'place', stage)
-                self.node.place_at_frame(robot_name, part_props['destination'],
-                                         part_id,
+                self.node.place_at_frame(request.robot_name, part_id,
+                                         part_props['destination'],
                                          offset=(0.0, place_offset, 0.0),
                                          timeout_sec=0.0)
                 self.node.pick_or_place_wait(target_stage='approach')
@@ -166,7 +170,7 @@ class AttemptBinTaskServer(ActionServer):
                 status, result = self.node.pick_or_place_wait_for_result()
                 return status == GoalStatus.STATUS_SUCCEEDED, poses
 
-            # B. Pick failed
+            # B. Pick failed.
             elif status == GoalStatus.STATUS_ABORTED:
                 # B-1. Pick failed due to error in moving to approach/pick pose
                 if result.stage in ('move', 'approach'):
@@ -174,34 +178,37 @@ class AttemptBinTaskServer(ActionServer):
 
                 # B-2. Pick failed due to error in departing from pick pose
                 elif result.stage == 'depart':
-                    self._server.set_aborted()
-                    self.logger.error('failed to depart from pick/place pose')
-                    return False, None
+                    raise ActionServer._Error('failed to depart from pick pose',
+                                              stage=stage)
 
                 # B-3. Pick failed due to error in grasping
                 elif result.stage == 'verify':
-                    if self._do_error_recovery and \
-                       self.node.using_hmi_graspability_params and \
-                       self._do_error_recovery(robot_name, pose, part_id):
-                        self.node.restore_original_graspability_params(bin_id)
-                        return True, None
-                    else:
-                        self._fail_poses.append(pose)
-                        nattempts += 1
+                    # if self._do_error_recovery and \
+                    #    self.node.using_hmi_graspability_params and \
+                    #    self._do_error_recovery(robot_name, pose, part_id):
+                    #     self.node.restore_original_graspability_params(bin_id)
+                    #     return True, None
+                    # else:
+                    #     self._fail_poses.append(pose)
+                    #     nattempts += 1
+                    self._fail_poses.append(pose)
+                    nattempts += 1
 
+            # C. Pick canceled.
             elif status == GoalStatus.STATUS_CANCELED:
                 raise ActionServer._Preempted(stage)
 
         # Here, no graspability poses remained or max_attempts attained.
-        if self._do_error_recovery:
-            if self.node.using_hmi_graspability_params:
-                self.node.restore_original_graspability_params(bin_id)
-                return False, None
-            else:
-                self.node.set_hmi_graspability_params(bin_id)
-                return True, None
-        else:
-            return False, None
+        # if self._do_error_recovery:
+        #     if self.node.using_hmi_graspability_params:
+        #         self.node.restore_original_graspability_params(bin_id)
+        #         return False, None
+        #     else:
+        #         self.node.set_hmi_graspability_params(bin_id)
+        #         return True, None
+        # else:
+        #     return False, None
+        return False, None
 
     def _preempt_cb(self):
         self._self.node.pick_or_place_cancel_goal()
@@ -233,3 +240,11 @@ class AttemptBinTaskServer(ActionServer):
            abs(position.z - fail_position.z) > tolerance:
             return False
         return True
+
+#************************************************************************
+#  class AttemptBinTask                                                 *
+#************************************************************************
+class AttemptBinTask(AttemptBinTaskClient):
+    def __init__(self, node, server_ns='attempt_bin'):
+        self._server = AttemptBinTaskServer(node, server_ns)
+        super().__init__(node, server_ns)

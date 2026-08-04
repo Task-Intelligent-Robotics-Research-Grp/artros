@@ -132,8 +132,10 @@ picking_parameters:
     pick_offset: [0.0, 0.0, -0.008]
     place_offset: [0.0, 0.0, 0.05]
     departure_offset: [0.0, 0.0, 0.12]
-    speed_fast: 1.0
-    speed_slow: 1.0
+    # speed_fast: 1.0
+    # speed_slow: 1.0
+    speed_fast: 0.2
+    speed_slow: 0.2
   06_MBT4-400:
     approach_offset: [0.0, 0.0, 0.10]
     pick_offset: [0.0, 0.0, 0.0]

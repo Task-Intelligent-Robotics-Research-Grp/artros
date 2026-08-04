@@ -724,12 +724,11 @@ class CollisionObjectManager(object):
                      of `frame_id` is described.
 
         Returns:
-          Pose of 'base_link' of `object_id` with respect to `frame_id`.
+          Pose of `frame_id` with respect to 'base_link' of `object_id`.
 
         Raises:
-          ValueError: if attached and non-attaced collision objects are
-                      specified or two attached collision objects with
-                      different attach links are given.
+          ValueError: if the attach link of the object to which `frame_id`
+                      belongs is different from that of `object_id`.
         """
         co_id, subframe = _decompose_link_name(frame_id)
         co = self._find_object(co_id)

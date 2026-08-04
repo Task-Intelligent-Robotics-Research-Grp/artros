@@ -14,6 +14,13 @@ launch_arguments = [
         'description': 'Name of the hardware configuration'
     },
     {
+        'name':        'settings_file',
+        'default':     PathJoinSubstitution([
+                           FindPackageShare('aist_routines'), 'config',
+                           'default.yaml']),
+        'description': 'Name of the hardware configuration'
+    },
+    {
         'name':        'sim',
         'default':     'false',
         'description': 'Do not launch cameras if true',

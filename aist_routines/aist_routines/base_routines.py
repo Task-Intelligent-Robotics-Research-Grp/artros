@@ -222,7 +222,7 @@ class BaseRoutines(Node):
         return self._cmd.get_group_names()
 
     @property
-    def arm_names(self) -> list[str]:
+    def robot_names(self) -> list[str]:
         """ Name list of arms.
         """
         return self._list_controllers_srvs.keys()
@@ -358,7 +358,7 @@ class BaseRoutines(Node):
         elif command == 'robot':
             print('  current: %s' % robot_name)
             new_robot_name = input('  robot name? ')
-            if new_robot_name in self.arm_names:
+            if new_robot_name in self.robot_names:
                 robot_name = new_robot_name
             else:
                 self.get_logger().error('Unknown robot name[%s]'

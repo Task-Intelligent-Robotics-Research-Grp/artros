@@ -43,7 +43,7 @@ from aist_graspability.client    import GraspabilityClient
 from aist_graspability_msgs.msg  import Border, Point2D
 from aist_utility.fileio         import filepath_from_url
 
-#from aist_tasks.attempt_bin_task import AttemptBinTask
+from aist_tasks.attempt_bin_task import AttemptBinTask
 from .base_routines              import BaseRoutines
 
 #************************************************************************
@@ -55,9 +55,8 @@ class KittingRoutines(BaseRoutines):
     def __init__(self, name: str):
         super().__init__(name)
 
-        # self._attempt_bin = AttemptBin(self, do_error_recovery,
-        #                                cancel_error_recovery)
         self._graspability_client = GraspabilityClient(self)
+        self._attempt_bin = AttemptBinTask(self)
 
     @property
     def bin_props(self):
@@ -95,12 +94,12 @@ class KittingRoutines(BaseRoutines):
             bin_id = 'bin_' + input('  bin id? ')
             self.pick_tool(robot_name, 'suction_tool')
             self.go_to_named_pose(robot_name, 'home')
-            self._attempt_bin.send_goal(bin_id, False, 5, self._done_cb)
+            self._attempt_bin.send_goal(robot_name, bin_id, False, 5)
         elif command == 'A':
             bin_id = 'bin_' + input('  bin id? ')
             self.pick_tool(robot_name, 'suction_tool')
             self.go_to_named_pose(robot_name, 'home')
-            self._attempt_bin.send_goal(bin_id, True, 5, self._done_cb)
+            self._attempt_bin.send_goal(robot_name, bin_id, True, 5)
         elif command == 'c':
             self._attempt_bin.cancel_goal()
         elif command == 'H':
