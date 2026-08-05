@@ -162,6 +162,7 @@ class KittingRoutines(BaseRoutines):
         graspabilities.poses          = self.transform_poses_to_target_frame(
                                             graspabilities.poses, (),
                                             target_frame)
+
         poses          = []
         gscores        = []
         contact_points = []

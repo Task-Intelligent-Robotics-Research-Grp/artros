@@ -1,9 +1,11 @@
 # Goal
 bool    suck        # True: suck, False: blow
-float64 min_period  # minimum time required for the operation being succeeded
+float64 min_period  # minimum time that actual suction state coincides with
+                    # the desired one so that the operation being succeeded.
                     # If zero, operation succeeds immediately.
                     # If negative, operation never succeeds
                     # and should be terminated by cancel request.
+float64 timeout	    # maximum time required for the operation being succeeded. 
 ---
 # Result
 bool suctioned

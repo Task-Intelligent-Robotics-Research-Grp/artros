@@ -50,7 +50,7 @@ class SuctionTool(SimpleActionClient):
     """Suction tool client of aist_msgs.action.SuctionToolCommand type.
     """
     def __init__(self, node, name, *,
-                 suck_min_period=0.5, blow_min_period=0.2):
+                 suck_min_period=2.0, blow_min_period=2.0, grasp_timeout=5.0):
         """Create SuctionTool
 
         :param node: The ROS node to add the suction tool client to.
@@ -75,7 +75,8 @@ class SuctionTool(SimpleActionClient):
                                self._suctioned_cb, 10,
                                callback_group=MutuallyExclusiveCallbackGroup())
         self._parameters = {'suck_min_period': suck_min_period,
-                            'blow_min_period': blow_min_period}
+                            'blow_min_period': blow_min_period,
+                            'grasp_timeout':   grasp_timeout}
 
     @property
     def name(self):
@@ -106,7 +107,7 @@ class SuctionTool(SimpleActionClient):
         # Set goal.min_period to zero so that the goal succeeds immediately.
         self._suck_command(True, min_period=0.0, timeout_sec=0.0)
 
-    def grasp(self, *, timeout_sec=0.0):
+    def grasp(self, *, timeout_sec=None):
         return self._suck_command(
                    True, min_period=self._parameters['suck_min_period'],
                    timeout_sec=timeout_sec)
@@ -114,7 +115,7 @@ class SuctionTool(SimpleActionClient):
     def postgrasp(self):
         self.pregrasp()
 
-    def release(self, *, timeout_sec=0.0):
+    def release(self, *, timeout_sec=None):
         return self._suck_command(
                    False, min_period=self._parameters['blow_min_period'],
                    timeout_sec=timeout_sec)
@@ -142,12 +143,18 @@ class SuctionTool(SimpleActionClient):
         return (status, result)
 
     def grasped(self, *, timeout_sec: Optional[float]=None):
-        _, result = self.wait(timeout_sec=timeout_sec)
-        return result.stalled
+        # _, result = self.wait(timeout_sec=timeout_sec)
+        # return result.suctioned
+        return self._suctioned
 
     def _suck_command(self, suck, *, min_period, timeout_sec=None):
+        if timeout_sec > 0.0:
+            grasp_timeout = timeout_sec  # Wait same duration as action timeout
+        else:
+            grasp_timeout = self.parameters['grasp_timeout']
         return self.send_goal(SuctionToolCommand.Goal(suck=suck,
-                                                      min_period=min_period),
+                                                      min_period=min_period,
+                                                      timeout=grasp_timeout),
                               timeout_sec=timeout_sec)
 
     def _suctioned_cb(self, msg):

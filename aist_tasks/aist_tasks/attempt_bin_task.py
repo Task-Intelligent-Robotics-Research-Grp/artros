@@ -160,14 +160,20 @@ class AttemptBinTaskServer(ActionServer):
                                          part_props['destination'],
                                          offset=(0.0, place_offset, 0.0),
                                          timeout_sec=0.0)
-                self.node.pick_or_place_wait(target_stage='approach')
+                self.node.pick_or_place_wait(request.robot_name,
+                                             target_stage='approach')
 
                 # [5] Search stage: Search graspabilities for the next try.
                 stage = self.enter_stage(goal_handle, 'search', stage)
-                poses = self.node.search_bin(bin_id).poses
+                status, result = self.node.search_bin(request.bin_id)
+                if status != GoalStatus.STATUS_SUCCEEDED:
+                    raise ActionServer._Error('failed to search graspabilities',
+                                              stage=stage)
+                poses = result.graspabilities.poses
 
                 # [6] Wait until placing finished.
-                status, result = self.node.pick_or_place_wait_for_result()
+                status, result = self.node.pick_or_place_wait(
+                                     request.robot_name)
                 return status == GoalStatus.STATUS_SUCCEEDED, poses
 
             # B. Pick failed.

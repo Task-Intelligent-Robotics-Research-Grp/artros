@@ -135,6 +135,7 @@ class SuctionToolController : public rclcpp::Node
     goal_handle_p<suction_tool_command_t>	_current_goal_handle;
     std::mutex					_current_goal_mtx;
     rclcpp::Time				_start_time;
+    rclcpp::Time				_timeout_time;
 };
 
 SuctionToolController::SuctionToolController(
@@ -181,7 +182,8 @@ SuctionToolController::SuctionToolController(
 				std::placeholders::_1))),
      _current_goal_handle(nullptr),
      _current_goal_mtx(),
-     _start_time(now())
+     _start_time(now()),
+     _timeout_time(now())
 {
     RCLCPP_INFO_STREAM(get_logger(), "controller started: driver_ns="
 		       << _driver_ns << ", in_port=" << _in_port
@@ -238,6 +240,9 @@ SuctionToolController::handle_accepted_cb(
 
     _current_goal_handle = goal_handle;
     _start_time		 = now();
+    _timeout_time        = _start_time
+                         + std::chrono::duration<double>(
+                             _current_goal_handle->get_goal()->timeout)
 }
 
 void
@@ -326,6 +331,19 @@ SuctionToolController::io_states_cb(msg_p<io_states_t> states)
 	RCLCPP_INFO_STREAM(get_logger(), "goal SUCCEEDED["
 			   << (_suctioned ? "suctioned" : "not suctioned")
 			   << ']');
+	return;
+    }
+    else if (current_time >= _timeout_time)
+    {
+        set_out_port(_suck_port, false);        // If sucking, stop it.
+	set_out_port(_blow_port, false);	// If blowing, stop it.
+
+	auto	result = std::make_unique<suction_tool_command_t::Result>();
+	result->suctioned = _suctioned;
+	_current_goal_handle->abort(std::move(result));
+	_current_goal_handle = nullptr;
+
+	RCLCPP_ERROR_STREAM(get_logger(), "goal ABORTED[timeout expired]");
 	return;
     }
 
