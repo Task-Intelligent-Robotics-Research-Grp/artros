@@ -242,7 +242,7 @@ SuctionToolController::handle_accepted_cb(
     _start_time		 = now();
     _timeout_time        = _start_time
                          + std::chrono::duration<double>(
-                             _current_goal_handle->get_goal()->timeout)
+                             _current_goal_handle->get_goal()->timeout);
 }
 
 void
