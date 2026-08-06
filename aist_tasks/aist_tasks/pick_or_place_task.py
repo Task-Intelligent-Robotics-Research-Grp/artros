@@ -44,7 +44,7 @@ from geometry_msgs.msg           import Point, Quaternion, Pose, PoseStamped
 from task_wrappers.action_server import ActionServer
 from task_wrappers.action_client import GroupedSimpleActionClient
 from aist_utility.geometry_msgs  import (pose_matrix, pose_from_matrix,
-                                         pose_from_xyzrpy, format_pose)
+                                         pose_from_xyzrpy)
 
 #************************************************************************
 #  class PickOrPlaceTaskClient                                          *
@@ -127,8 +127,6 @@ class PickOrPlaceTaskServer(ActionServer):
             elif object_id != '':
                 com.allow_collision(object_id, request.pose.header.frame_id)
 
-            self.logger.warn('### request.pose=%s, request.offset=%s'
-                             % (format_pose(request.pose), request.offset))
             success = node.go_to_pose_goal(request.robot_name, request.pose,
                                            request.offset, request.speed_slow,
                                            end_effector_link=eef_link)
