@@ -1,0 +1,11 @@
+# Goal
+string robot_name               # name of the robot, "a_bot" or "b_bot"
+string item_id                  # ID of item to be picked (not used now)
+geometry_msgs/PoseStamped pose  # position/orientation where error happened
+string message                  # error message to the operator (not used now)
+---
+# Result
+string stage
+---
+# Feedback
+string stage

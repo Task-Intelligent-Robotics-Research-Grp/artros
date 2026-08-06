@@ -50,8 +50,6 @@ from aist_utility.geometry_msgs  import (pose_matrix, pose_from_matrix,
 #  class PickOrPlaceTaskClient                                          *
 #************************************************************************
 class PickOrPlaceTaskClient(GroupedSimpleActionClient):
-    Success = (GoalStatus.STATUS_SUCCEEDED, PickOrPlace.Result(stage=''))
-
     def __init__(self, node, server_ns='pick_or_place'):
         super().__init__(node, PickOrPlace, server_ns,
                          callback_group=MutuallyExclusiveCallbackGroup(),

@@ -59,23 +59,27 @@ class HMIRoutines(KittingRoutines):
         'sweep'  : MarkerProps(1, (0.006, 0.014, 0.015), (1.0, 1.0, 0.0, 1.0))
     }
 
-    def __init__(self, server='hmi_server'):
-        super().__init__(self.request_help_and_sweep,
-                         self.cancel_request_help_and_sweep)
+    def __init__(self, name):
+        super().__init__(name)
 
-        self._ground_frame             = rospy.get_param('~ground_frame',
-                                                         'ground')
-        self._hmi_graspability_params  = rospy.get_param(
-                                             '~hmi_graspability_parameters')
+        self._ground_frame = self.declare_parameter('ground_frame',
+                                                    'ground').value
         self._graspability_params_back = None
-        self._sweep_params             = rospy.get_param('~sweep_parameters')
-        self._request_help_clnt        = SimpleActionClient(
-                                             self, RequestHelpAction,
-                                             server + '/request_help')
-        self._sweep_clnt               = Sweep(self)
-        self._marker_pub               = rospy.Publisher('pointing_marker',
-                                                         Marker, queue_size=10)
+        self._request_help = RequestHelpTask(self)
+        self._sweep        = SweepTask(self)
         self._request_help_clnt.wait_for_server()
+
+    @property
+    def hmi_graspability_parameters(self):
+        return self.settings['hmi_graspability_parameters']
+
+    @property
+    def sweep_parameters(self):
+        return self.settings['sweep_parameters']
+
+    @property
+    def using_hmi_graspability_params(self):
+        return self._graspability_params_back is not None
 
     # Interactive stuffs
     def print_help_messages(self):
@@ -87,92 +91,86 @@ class HMIRoutines(KittingRoutines):
 
     def process_command(self, command, robot_name, axis, speed):
         if command == 'sh':
-            bin_id = 'bin_' + raw_input('  bin id? ')
+            bin_id = 'bin_' + input('  bin id? ')
             self.set_hmi_graspability_params(bin_id)
             self.search_bin(bin_id)
             self.restore_original_graspability_params(bin_id)
         elif command == 'sw':
-            bin_id = 'bin_' + raw_input('  bin id? ')
+            bin_id = 'bin_' + input('  bin id? ')
             self._attempt_bin._clear_fail_poses()
             self.sweep_bin(bin_id)
             self.go_to_named_pose(robot_name, 'home')
         elif command == 'rh':
-            bin_id = 'bin_' + raw_input('  bin id? ')
+            bin_id = 'bin_' + input('  bin id? ')
             self.request_help_bin(bin_id)
         else:
             return super().process_command(command, robot_name, axis, speed)
         return robot_name, axis, speed
 
     # Graspability stuffs
-    def search_bin(self, bin_id,
-                   min_height=0.006, max_height=0.045, max_slant=pi/4):
-        return super().search_bin(bin_id, min_height, max_height,
-                                  0 if self.using_hmi_graspability_params else
-                                  max_slant)
-
-    @property
-    def using_hmi_graspability_params(self):
-        return not self._graspability_params_back is None
+    def search_bin(self, bin_id):
+        return super().search_bin(bin_id,
+                                  0.0 if self.using_hmi_graspability_params \
+                                  else max_slant)
 
     def set_hmi_graspability_params(self, bin_id):
         bin_props = self._bin_props[bin_id]
         part_id   = bin_props['part_id']
         if self.using_hmi_graspability_params:
-            rospy.logwarn('(hmi_demo) Already using graspability paramters for HMI demo.')
+            self.logger.warn('already using graspability paramters for HMI demo.')
             return
         self._graspability_params_back \
             = copy.deepcopy(self._graspability_params[part_id])
         self._graspability_params[part_id] \
             = copy.deepcopy(self._hmi_graspability_params[part_id])
-        rospy.loginfo('(hmi_demo) Set graspability paramters for HMI demo.')
+        self.logger.info('set graspability paramters for HMI demo.')
 
     def restore_original_graspability_params(self, bin_id):
         print('*** restore_original_graspability_params')
         bin_props = self._bin_props[bin_id]
         part_id   = bin_props['part_id']
         if not self.using_hmi_graspability_params:
-            rospy.logwarn('(hmi_demo) Already using original graspability paramters.')
+            self.logger.warn('already using original graspability paramters.')
             return
         self._graspability_params[part_id] \
             = copy.deepcopy(self._graspability_params_back)
         self._graspability_params_back = None
-        rospy.loginfo('(hmi_demo) Restore original graspability paramters.')
+        self.logger.info('restore original graspability paramters.')
 
     # Sweep stuffs
-    def sweep_bin(self, bin_id):
-        """
+    def sweep_bin(self, bin_id, *, timeout_sec=None):
+        """ Sweep object in the specified bin.
         Search graspability points from the specified bin and sweep the one
         with the highest score.
 
-        @type  bin_id: str
-        @param bin_id: ID specifying the bin
-        @return:       True if sweep succeeded
-        """
-        bin_props  = self._bin_props[bin_id]
-        part_id    = bin_props['part_id']
-        part_props = self._part_props[part_id]
-        robot_name = part_props['robot_name']
+        Args:
+          bin_id: ID of bin.
 
-        # Move to 0.15m above the bin if the camera is mounted on the robot.
-        # if self._is_eye_on_hand(robot_name, part_props['camera_name']):
-        #     self.go_to_frame(robot_name, bin_props['name'], (0, 0, 0.15))
+        Return:
+          Tuple of GoalStatus and result of sweeping motion.
+        """
+        bin_props  = self.bin_props[bin_id]
+        part_id    = bin_props['part_id']
+        part_props = self.part_props[part_id]
+        robot_name = part_props['robot_name']
 
         # Search for graspabilities.
         self.set_hmi_graspability_params(bin_id)
-        graspabilities = self.search_bin(bin_id)
+        status, result = self.search_bin(bin_id)
         self.restore_original_graspability_params(bin_id)
 
         # Attempt to sweep the item along y-axis.
-        pose = PoseStamped(graspabilities.poses.header,
-                           graspabilities.poses.poses[0])
+        pose = PoseStamped(result.graspabilities.poses.header,
+                           result.graspabilities.poses.poses[0])
         R    = tfs.quaternion_matrix((pose.pose.orientation.x,
                                       pose.pose.orientation.y,
                                       pose.pose.orientation.z,
                                       pose.pose.orientation.w))
-        result = self._sweep(robot_name, pose, R[0:3, 1], part_id)
-        return result == SweepResult.SUCCESS
+        return self._sweep(robot_name, pose, R[0:3, 1], part_id,
+                           timeout_sec=timeout_sec)
 
-    def _sweep(self, robot_name, target_pose, sweep_dir, part_id, wait=True):
+    def _sweep(self, robot_name, target_pose, sweep_dir, part_id,
+               *, timeout_sec=None):
         R = tfs.quaternion_matrix((target_pose.pose.orientation.x,
                                    target_pose.pose.orientation.y,
                                    target_pose.pose.orientation.z,
@@ -181,17 +179,18 @@ class HMIRoutines(KittingRoutines):
         ny = sweep_dir - nz * np.dot(nz, sweep_dir)
         R[0:3, 1] = ny/np.linalg.norm(ny)
         R[0:3, 0] = np.cross(R[0:3, 1], nz)
-        target_pose.pose.orientation = Quaternion(
-                                           *tfs.quaternion_from_matrix(R))
+        q = tfs.quaternion_from_matrix(R)
+        target_pose.pose.orientation = Quaternion(x=q[0], y=q[1],
+                                                  z=q[2], w=q[3])
         params = self._sweep_params[part_id]
-        return self._sweep_clnt.send_goal(robot_name, target_pose,
-                                          params['sweep_length'],
-                                          params['sweep_offset'],
-                                          params['approach_offset'],
-                                          params['departure_offset'],
-                                          params['speed_fast'],
-                                          params['speed_slow'],
-                                          wait)
+        return self._sweep.send_goal(robot_name, target_pose,
+                                     params['sweep_length'],
+                                     params['sweep_offset'],
+                                     params['approach_offset'],
+                                     params['departure_offset'],
+                                     params['speed_fast'],
+                                     params['speed_slow'],
+                                     timeout_sec=timeout_sec)
 
     # Request help stuffs
     def request_help_bin(self, bin_id):
@@ -200,8 +199,8 @@ class HMIRoutines(KittingRoutines):
         finger direction for computing direction to sweep the one with the
         highest score. Computed sweep direction is then visualized.
 
-        @type  bin_id: str
-        @param bin_id: ID specifying the bin
+        Args:
+          bin_id: ID specifying the bin
         """
         bin_props  = self._bin_props[bin_id]
         part_id    = bin_props['part_id']
@@ -219,7 +218,9 @@ class HMIRoutines(KittingRoutines):
         if response.pointing_state == Pointing.SWEEP_RES:
             sweep_dir = self._compute_sweep_dir(pose, response)
             self._publish_marker('sweep', pose.header, pose.pose.position,
-                                 Vector3(*sweep_dir))
+                                 Vector3(x=sweep_dir[0],
+                                         y=sweep_dir[1],
+                                         z=sweep_dir[2]))
         print('*** response=%s' % str(response))
 
     def request_help_and_sweep(self, robot_name, pose, part_id):
@@ -228,24 +229,26 @@ class HMIRoutines(KittingRoutines):
         and perform sweeping the point in the direction computed from
         the received response.
 
-        @type  robot_name: str
-        @param robot_name: name of the robot
-        @type  pose:       geometry_msgs.msg.PoseStamped
-        @param pose:       pose of the graspability point to be sweeped
-        @type  part_id:    str
-        @param part_id:    ID for specifying part
-        @return:           False if picking task should be aborted
+        Args:
+          robot_name: Name of the robot.
+          pose:       Pose of the graspability point to be sweeped.
+          part_id:    ID for specifying part.
+
+        Returns:
+          bool:       `False` if picking task should be aborted.
         """
         self.go_to_named_pose(robot_name, 'sweep_ready')
 
         message  = 'Picking_failed!'
-        response = self._request_help(robot_name, pose, part_id, message)
+        status, result = self._request_help(robot_name, pose, part_id, message)
 
         if response.pointing_state == Pointing.SWEEP_RES:
-            rospy.loginfo('(hmi_demo) Sweep direction given.')
+            self.lobber.info('(hmi_demo) Sweep direction given.')
             sweep_dir = self._compute_sweep_dir(pose, response)
             self._publish_marker('sweep', pose.header, pose.pose.position,
-                                 Vector3(*sweep_dir))
+                                 Vector3(x=sweep_dir[0],
+                                         y=sweep_dir[1],
+                                         z=sweep_dir[2]))
 
             result = self._sweep(robot_name, pose, sweep_dir, part_id)
 
@@ -267,82 +270,11 @@ class HMIRoutines(KittingRoutines):
         self._request_help_clnt.cancel_goal()
         self._sweep_clnt.cancel_goal()
 
-    def _request_help(self, robot_name, pose, part_id, message):
-        """
-        Request finger direction for the specified graspability point
-        and receive response.
-
-        @type  robot_name: str
-        @param robot_name: name of the robot
-        @type  pose:       geometry_msgs.msg.PoseStamped
-        @param pose:       pose of the graspability point to be sweeped
-        @type  part_id:    str
-        @param part_id:    ID for specifying part
-        @type  message:    str
-        @param message:    message to be displayed to the operator of VR side
-        @return:           response with finger direction from VR side
-        """
-        req = RequestHelp()
-        req.robot_name = robot_name
-        req.item_id    = part_id
-        req.pose       = self.listener.transformPose(self._ground_frame, pose)
-        req.request    = RequestHelp.SWEEP_DIR_REQ
-        req.message    = message
-        self._request_help_clnt.send_goal(
-            RequestHelpGoal(req), feedback_cb=self._request_help_feedback_cb)
-        self._request_help_clnt.wait_for_result()
-        return self._request_help_clnt.get_result().response
-
-    def _request_help_feedback_cb(self, feedback):
-        self._publish_marker('finger', feedback.response.header,
-                             feedback.response.point)
-
-    def _compute_sweep_dir(self, pose, response):
+    def _compute_sweep_dir(self, pose: PoseStamped, response: Pointing):
         ppos = pose.pose.position
-        fpos = self.listener.transformPoint(pose.header.frame_id,
-                                            PointStamped(response.header,
-                                                         response.point)).point
+        fpos = self.transform_points_to_target_frame(response.header,
+                                                     [response.point],
+                                                     pose.header.frame_id) \
+              .point
         sdir = (fpos.x - ppos.x, fpos.y - ppos.y, fpos.z - ppos.z)
         return tuple(sdir / np.linalg.norm(sdir))
-
-    # Marker stuffs
-    def _delete_markers(self):
-        """
-        Delete all markers published by _marker_pub.
-        """
-        marker        = Marker()
-        marker.action = Marker.DELETEALL
-        marker.ns     = 'pointing'
-        self._marker_pub.publish(marker)
-
-    def _publish_marker(self, marker_type, header, pos, dir=None, lifetime=15):
-        """
-        Publish arrow marker with specified start point and direction.
-
-        @type  point: geometry_msgs.msg.PointStamped
-        @param pos:   start point of the arrow marker
-        @type  dir:   geometry_msgs.msg.Vector3
-        @param dir:   direction of the arrow marker
-        """
-        marker_prop = HMIRoutines._marker_props[marker_type]
-
-        marker              = Marker()
-        marker.header       = header
-        marker.header.stamp = rospy.Time.now()
-        marker.ns           = 'pointing'
-        marker.id           = marker_prop.id
-        marker.type         = Marker.SPHERE if dir is None else Marker.ARROW
-        marker.action       = Marker.ADD
-        marker.scale        = Vector3(*marker_prop.scale)
-        marker.color        = ColorRGBA(*marker_prop.color)
-        marker.lifetime     = rospy.Duration(lifetime)
-        if dir is None:
-            marker.pose.position = pos
-            marker.pose.orientation = Quaternion(0, 0, 0, 1)
-        else:
-            t = 0.03
-            marker.points.append(pos)
-            marker.points.append(Point(pos.x + t*dir.x,
-                                       pos.y + t*dir.y,
-                                       pos.z + t*dir.z))
-        self._marker_pub.publish(marker)

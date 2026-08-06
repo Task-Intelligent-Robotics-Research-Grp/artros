@@ -38,38 +38,41 @@ from rclpy.callback_groups       import MutuallyExclusiveCallbackGroup
 from task_wrappers.action_server import ActionServer
 from task_wrappers.action_client import GroupedSimpleActionClient
 from aist_msgs.action            import Sweep
+from .request_help_task          import RequestHelpTask
+from .sweep_task                 import SweepTask
 
 #*********************************************************************
-#  class SweepTaskClient                                             *
+#  class ErrorRecoveryBySweepTaskClient                              *
 #*********************************************************************
-class SweepTaskClient(GroupedSimpleActionClient):
-    def __init__(self, node: Node, server_ns: str='sweep'):
-        super().__init__(node, Sweep, server_ns,
+class ErrorRecoveryBySweepTaskClient(GroupedSimpleActionClient):
+    def __init__(self, node: Node, server_ns: str='error_recovery_by_sweep'):
+        super().__init__(node, ErrorRecoveryBySweep, server_ns,
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
         self.wait_for_server()
 
-    def send_goal(self, robot_name, pose, sweep_length, sweep_offset,
-                  approach_offset, departure_offset, speed_fast, speed_slow,
+    def send_goal(self, robot_name, pose, part_id, message,
                   *, timeout_sec=0.0):
-        return super().send_goal(Sweep.Goal(robot_name=robot_name, pose=pose,
-                                            sweep_length=sweep_length,
-                                            sweep_offset=sweep_offset,
-                                            approach_offset=approach_offset,
-                                            departure_offset=departure_offset,
-                                            speed_fast=speed_fast,
-                                            speed_slow=speed_slow),
-                                 feedback_callback=self.stage_feedback_cb,
-                                 timeout_sec=timeout_sec)
+        return super().send_goal(
+                  ErrorRecoveryBySweep.Goal(robot_name=robot_name,
+                                            item_id=part_id,
+                                            pose=pose,
+                                            message=message),
+                  feedback_callback=self.stage_feedback_cb,
+                  timeout_sec=timeout_sec)
 
 #*********************************************************************
-#  class SweepTaskServer                                             *
+#  class ErrorRecoveryBySweepTaskServer                              *
 #*********************************************************************
-class SweepTaskServer(ActionServer):
-    def __init__(self, node, server_ns='sweep'):
-        super().__init__(node, Sweep, server_ns, self._execute_cb,
+class ErrorRecoveryBySweepTaskServer(ActionServer):
+    def __init__(self, node, server_ns='error_recovery_by_sweep'):
+        super().__init__(node, ErrorRecoveryBySweep, server_ns,
+                         self._execute_cb,
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
+
+        self._request_help = RequestHelpTask(self)
+        self._sweep        = SweepTask(self)
 
     def _execute_cb(self, goal_handle):
         self.logger.info("*** Do sweeping ***")
@@ -77,8 +80,11 @@ class SweepTaskServer(ActionServer):
         request = goal_handle.request
         node    = self.node
 
+        # [1] Sweep ready stage: Go to approach pose.
+        stage = self.enter_stage(goal_handle, 'sweep_ready')
+        success = self.go_to_named_pose(robot_name, 'sweep_ready')
+
         # [1] Move stage: Go to approach pose.
-        stage   = self.enter_stage(goal_handle, 'move')
         success = node.go_to_pose_goal(request.robot_name, request.pose,
                                        request.approach_offset,
                                        request.speed_fast)
@@ -119,9 +125,9 @@ class SweepTaskServer(ActionServer):
         return Sweep.Result(stage=stage)
 
 #************************************************************************
-#  class SweepTask                                                      *
+#  class ErrorRecoveryBySweepTask                                       *
 #************************************************************************
-class SweepTask(SweepTaskClient):
-    def __init__(self, node, server_ns='sweep'):
-        self._server = SweepTaskServer(node, server_ns)
+class ErrorRecoveryBySweepTask(SweepTaskClient):
+    def __init__(self, node, server_ns='error_recovery_by_sweep'):
+        self._server = ErrorRecoveryBySweepTaskServer(node, server_ns)
         super().__init__(node, server_ns)

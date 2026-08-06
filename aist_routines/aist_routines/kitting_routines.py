@@ -111,7 +111,7 @@ class KittingRoutines(BaseRoutines):
         return robot_name, axis, speed
 
     # Commands
-    def search_bin(self, bin_id):
+    def search_bin(self, bin_id, *, max_slant=45.0):
         try:
             bin_props  = self.bin_props[bin_id]
             border     = self.borders[bin_props['border_id']]
@@ -124,14 +124,14 @@ class KittingRoutines(BaseRoutines):
 
         self._graspability_client.set_parameters(params)
 
-        if 'min_height' in bin_props and 'max_height' in bin_props and \
-           'max_slant' in bin_props:
+        if 'min_height' in bin_props and 'max_height' in bin_props:
+            max_slant = bin_props.get('max_slant', max_slant)
             self._graspability_client.set_graspability_filter(
                 lambda graspabilities, \
                        target_frame=bin_props['name'], \
                        min_height=bin_props['min_height'], \
                        max_height=bin_props['max_height'], \
-                       max_slant =bin_props['max_slant']:
+                       max_slant =max_slant:
                 self._graspability_filter(graspabilities, target_frame,
                                           min_height, max_height, max_slant))
         else:

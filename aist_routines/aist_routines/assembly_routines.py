@@ -34,14 +34,14 @@
 #
 # Author: Toshio Ueshiba
 #
-from geometry_msgs.msg import (PoseStamped, WrenchStamped, Vector3)
+from geometry_msgs.msg import PoseStamped, WrenchStamped, Vector3
 from action_msgs.msg   import GoalStatus
 from .base_routines    import BaseRoutines
 #from cuda_feature_tracker_3d          import FeatureTrackerClient
 
-######################################################################
-#  class AssemblyRoutines                                            #
-######################################################################
+#*********************************************************************
+#  class AssemblyRoutines                                            *
+#*********************************************************************
 class AssemblyRoutines(BaseRoutines):
     """Implements assembly routines for aist robot system."""
 

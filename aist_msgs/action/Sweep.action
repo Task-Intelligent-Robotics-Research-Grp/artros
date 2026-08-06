@@ -9,20 +9,7 @@ float64                   speed_fast
 float64                   speed_slow
 ---
 # Result
-int32 SUCCESS=0
-int32 MOVE_FAILURE=1
-int32 APPROACH_FAILURE=2
-int32 SWEEP_FAILURE=3
-int32 DEPARTURE_FAILURE=4
-int32 PREEMPTED=10
-
-int32 result
+string stage  # 'move', 'approach', 'sweep', 'depart'
 ---
 # Feedback
-int32 IDLING=0
-int32 MOVING=1
-int32 APPROACHING=2
-int32 SWEEPING=3
-int32 DEPARTING=4
-
-int32 stage
+string stage  # 'move', 'approach', 'sweep', 'depart'

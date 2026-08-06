@@ -46,20 +46,20 @@ from task_wrappers.action_client   import GroupedSimpleActionClient
 from task_wrappers.action_server   import ActionServer
 from aist_utility.geometry_msgs    import format_pose
 
+from typing                        import Optional
+
 #*********************************************************************
 #  class AttemptBinTaskClient                                        *
 #*********************************************************************
 class AttemptBinTaskClient(GroupedSimpleActionClient):
-    Success = (GoalStatus.STATUS_SUCCEEDED, AttemptBin.Result(stage=''))
-
     def __init__(self, node: Node, server_ns: str='attempt_bin'):
         super().__init__(node, AttemptBin, server_ns,
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
         self.wait_for_server()
 
-    def send_goal(self, robot_name, bin_id, pick_all, max_attempts,
-                  *, timeout_sec=0.0):
+    def send_goal(self, robot_name: str, bin_id: str, pick_all: bool,
+                  max_attempts: int, *, timeout_sec: Optional[float]=0.0):
         return super().send_goal(AttemptBin.Goal(robot_name=robot_name,
                                                  bin_id=bin_id,
                                                  pick_all=pick_all,
