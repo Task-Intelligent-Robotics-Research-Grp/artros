@@ -99,3 +99,23 @@ assembly:
         - package://aist_description/parts/config/parts_properties.yaml
       touch_links_urls:
         - package://aist_routines/config/inc/touch_links.yaml
+
+hmi_demo:
+  ros__parameters:
+    reference_frame: workspace_center
+    moveit_eef_step: 0.002
+    setting_urls:
+      - package://aist_routines/config/inc/base.yaml
+      - package://aist_routines/config/inc/kitting-camera.yaml
+      - package://aist_routines/config/inc/borders-camera.yaml
+      - package://aist_routines/config/inc/hmi_demo.yaml
+    collision_object_manager:
+      synchronous: true
+      period:      0.1
+      object_properties_urls:
+        - package://aist_fastening_tools/config/fastening_tools_properties.yaml
+      touch_links_urls:
+        - package://aist_routines/config/inc/touch_links.yaml
+    graspability_client:
+      marker_lifetime: 0      # in seconds. Zero means forever.
+      marker_scale:    0.004

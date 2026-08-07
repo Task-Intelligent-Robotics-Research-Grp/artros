@@ -12,7 +12,7 @@ launch_arguments = [
         'name':        'task',
         'default':     'base',
         'description': 'Name of the client',
-        'choices':     ['base', 'assembly', 'kitting']
+        'choices':     ['base', 'assembly', 'kitting', 'hmi_demo']
     },
     {
         'name':        'config',

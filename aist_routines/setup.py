@@ -28,6 +28,7 @@ setup(
             'base     = ' + package_name + '.interactive:base',
             'assembly = ' + package_name + '.interactive:assembly',
             'kitting  = ' + package_name + '.interactive:kitting',
+            'hmi_demo = ' + package_name + '.interactive:hmi_demo',
         ],
     },
 )

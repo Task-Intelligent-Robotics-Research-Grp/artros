@@ -86,3 +86,8 @@ def kitting():
     from aist_routines.kitting_routines  import KittingRoutines
 
     _main('kitting', KittingRoutines)
+
+def hmi_demo():
+    from aist_routines.hmi_routines  import HMIRoutines
+
+    _main('hmi_demo', HMIRoutines)

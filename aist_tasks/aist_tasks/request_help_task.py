@@ -35,23 +35,22 @@
 #
 # Author: Toshio Ueshiba
 #
-import rclpy, sys, threading
-from rclpy.node            import Node
-from rclpy.experimental    import EventsExecutor
-from rclpy.action          import GoalResponse, CancelResponse
-from rclpy.callback_groups import (MutuallyExclusiveCallbackGroup,
-                                   ReentrantCallbackGroup)
-from aist_msgs.msg         import RequestHelp as RequestHelpMsg, Pointing
-from aist_msgs.action      import RequestHelp
-from geometry_msgs.msg     import (QuaternionStamped, PoseStamped,
-                                   PointStamped, Vector3Stamped,
-                                   Point, Quaternion, Vector3)
-from task_wrappers         import GroupedActionClient, ActionServer
+import threading, collections
+from rclpy.node                  import Node
+from rclpy.callback_groups       import MutuallyExclusiveCallbackGroup
+from task_wrappers.action_client import GroupedSimpleActionClient
+from task_wrappers.action_server import ActionServer
+from aist_msgs.action            import RequestHelp
+from aist_msgs.msg               import RequestHelp as RequestHelpMsg, Pointing
+from geometry_msgs.msg           import (QuaternionStamped, PoseStamped,
+                                         PointStamped, Vector3Stamped,
+                                         Point, Quaternion, Vector3)
+from visualization_msgs.msg      import Marker
 
 #*********************************************************************
 #  class RequestHelpTaskClient                                       *
 #*********************************************************************
-class RequestHelpTaskClient(GroupedActionClient):
+class RequestHelpTaskClient(GroupedSimpleActionClient):
     MarkerProps = collections.namedtuple('MarkerProps', 'id, scale, color')
     _marker_props = {
         'finger' : MarkerProps(0, (0.008, 0.008, 0.008), (1.0, 0.0, 0.0, 1.0)),
@@ -61,10 +60,10 @@ class RequestHelpTaskClient(GroupedActionClient):
 
     def __init__(self, node, server_ns='request_help'):
         super().__init__(node, RequestHelp, server_ns,
-                         callback_group=MutuallyExculusiveCallbackGroup(),
+                         callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
         self.wait_for_server()
-        self._marker_pub = node.create_publisher('pointing_marker', Marker, 10)
+        self._marker_pub = node.create_publisher(Marker, 'pointing_marker', 1)
 
     def send_goal(self, robot_name, pose, part_id, message,
                   *, timeout_sec=0.0):
@@ -87,7 +86,7 @@ class RequestHelpTaskClient(GroupedActionClient):
         req.item_id    = part_id
         req.pose       = self.node.transform_pose_to_target_frame(
                              pose, target_frame=self._ground_frame)
-        req.request    = RequestHelp.SWEEP_DIR_REQ
+        req.request    = RequestHelpMsg.SWEEP_DIR_REQ
         req.message    = message
         super().send_goal(req, feedback_cb=self._feedback_cb,
                           timeout_sec=timeout_sec)
@@ -146,10 +145,10 @@ class RequestHelpTaskClient(GroupedActionClient):
 #*********************************************************************
 class RequestHelpTaskServer(ActionServer):
     _Pointing = ('NO_RES', 'SWEEP_RES', 'RECAPTURE_RES')
-    _NoReq    = RequestHelp(robot_name='unknown_robot_name',
-                            item_id='unknown_part_ID',
-                            request=RequestHelp.NO_REQ,
-                            message='')
+    _NoReq    = RequestHelpMsg(robot_name='unknown_robot_name',
+                               item_id='unknown_part_ID',
+                               request=RequestHelpMsg.NO_REQ,
+                               message='')
 
     def __init__(self, node, server_ns='request_help'):
         super().__init__(node, RequestHelp, server_ns, self._execute_cb,
@@ -157,7 +156,7 @@ class RequestHelpTaskServer(ActionServer):
                          group_field='robot_name')
 
         # RequestHelp message publishing stuffs: ROS -> Unity
-        period = self.declare_parameter('request_help.period', 0.100).value
+        period = node.declare_parameter('request_help.period', 0.100).value
         self._goal_handle      = None
         self._goal_handle_lock = threading.Lock()
         self._request_help_pub = node.create_publisher(RequestHelpMsg,
@@ -169,7 +168,7 @@ class RequestHelpTaskServer(ActionServer):
         # Pointing message subscription stuffs: ROS <- Unity
         self._pointing      = None
         self._pointing_cond = threading.Condition()
-        self._pointing_sub  = self.create_subscription(Pointing, '/pointing',
+        self._pointing_sub  = node.create_subscription(Pointing, '/pointing',
                                                        self._pointing_cb, 3)
 
     def _timer_cb(self):
@@ -181,7 +180,7 @@ class RequestHelpTaskServer(ActionServer):
         with self._goal_handle_lock:
             req = self._goal_handle.request.request if self._goal_handle else \
                   RequestHelpTaskServer._NoReq
-        req.pose.header.stamp = self.get_clock().now().to_msg()
+        req.pose.header.stamp = self.node.get_clock().now().to_msg()
         self._request_help_pub.publish(req)
 
     def _pointing_cb(self, pointing: Pointing):
