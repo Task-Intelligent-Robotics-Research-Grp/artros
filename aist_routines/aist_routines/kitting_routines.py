@@ -101,7 +101,7 @@ class KittingRoutines(BaseRoutines):
             self.go_to_named_pose(robot_name, 'home')
             self._attempt_bin.send_goal(robot_name, bin_id, True, 5)
         elif command == 'c':
-            self._attempt_bin.cancel_goal()
+            self._attempt_bin.cancel_goal(robot_name)
         elif command == 'H':
             self.go_to_named_pose('all_bots', 'home')
         elif command == 'B':

@@ -244,7 +244,7 @@ SuctionToolController::handle_accepted_cb(
                             _start_time
                             + std::chrono::duration<double>(
                                 _current_goal_handle->get_goal()->timeout) :
-                            rclcpp::Time::max());
+                            rclcpp::Time::max(RCL_ROS_TIME));
 }
 
 void
