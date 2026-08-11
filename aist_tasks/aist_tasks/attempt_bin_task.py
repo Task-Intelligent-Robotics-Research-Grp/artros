@@ -94,42 +94,46 @@ class AttemptBinTaskServer(ActionServer):
             finally:
                 pass
         goal_handle.succeed()
-        self.logger.info('(AttemptBinTask) SUCCEEDED')
+        self.logger.info('=== AttemptBinTask succeeded ===')
         return AttemptBin.Result(stage='')
 
     def _attempt_bin(self, goal_handle, pick_poses, place_offset):
         request = goal_handle.request
+        stop    = lambda: self.node.stop(request.robot_name)
 
         # [1] Prepare stage: Get properties of bin and part.
-        stage = self.enter_stage(goal_handle, 'prepare')
-        bin_props = self.node.bin_props.get(request.bin_id)
-        if not bin_props:
-            raise ActionServer._Error('unknown bin_id[%s]' % request.bin_id,
-                                      stage=stage)
-        part_id    = bin_props['part_id']
-        part_props = self.node.part_props.get(part_id)
-        if not part_props:
-            raise ActionServer._Error('unknown part_id[%s]' % part_id,
-                                      stage=stage)
+        with ActionServer.Stage(self, goal_handle, 'prepare') as stage:
+            bin_props = self.node.bin_props.get(request.bin_id)
+            if not bin_props:
+                raise ActionServer.Error('unknown bin_id[%s]' % request.bin_id,
+                                         stage=stage.name)
+            part_id    = bin_props['part_id']
+            part_props = self.node.part_props.get(part_id)
+            if not part_props:
+                raise ActionServer.Error('unknown part_id[%s]' % part_id,
+                                         stage=stage.name)
 
         if self._is_eye_on_hand(request.robot_name, part_props['camera_name']):
             # [2] Move camera stage: Go to pose for capturing bin.
             #   Move to 0.15m above the bin if the camera is mounted
             #   on the robot.
-            stage = self.enter_stage(goal_handle, 'move_camera', stage)
-            success = self.node.go_to_frame(request.robot_name,
-                                            bin_props['name'], (0, 0, 0.15))
-            if not success:
-                raise ActionServer._Error('failed to move camera', stage=stage)
+            with ActionServer.Stage(self, goal_handle, 'move_camera',
+                                    stop) as stage:
+                success = self.node.go_to_frame(request.robot_name,
+                                                bin_props['name'],
+                                                (0, 0, 0.15))
+                if not success:
+                    raise ActionServer.Error('Failed to move camera',
+                                             stage=stage.name)
 
         if pick_poses is None:
             # [3] Search stage: Search for graspabilities.
-            stage = self.enter_stage(goal_handle, 'search', stage)
-            status, result = self.node.search_bin(request.bin_id)
-            if status != GoalStatus.STATUS_SUCCEEDED:
-                raise ActionServer._Error('failed to search graspabilities',
-                                          stage=stage)
-            pick_poses = result.graspabilities.poses
+            with ActionServer.Stage(self, goal_handle, 'search') as stage:
+                status, result = self.node.search_bin(request.bin_id)
+                if status == GoalStatus.STATUS_ABORTED:
+                    raise ActionServer.Error('Failed to search graspabilities',
+                                             stage=stage.name)
+                pick_poses = result.graspabilities.poses
 
         # Attempt to pick the item.
         nattempts = 0
@@ -144,8 +148,9 @@ class AttemptBinTaskServer(ActionServer):
             self.logger.warn('### pose=%s' % format_pose(pose))
 
             # Perform picking.
-            stage = self.enter_stage(goal_handle, 'pick', stage)
-            status, result = self.node.pick(request.robot_name, part_id, pose)
+            with ActionServer.Stage(self, goal_handle, 'pick') as stage:
+                status, result = self.node.pick(request.robot_name, part_id,
+                                                pose)
 
             # A. Pick succeeded.
             if status == GoalStatus.STATUS_SUCCEEDED:
@@ -155,23 +160,24 @@ class AttemptBinTaskServer(ActionServer):
 
                 # [4] Place stage: Begin placing and wait until reaching
                 #   approach pose.
-                stage = self.enter_stage(goal_handle, 'place', stage)
-                self.node.place_at_frame(request.robot_name, part_id,
-                                         part_props['destination'],
-                                         offset=(0.0, place_offset, 0.0),
-                                         timeout_sec=0.0)
-                self.node.pick_or_place_wait(request.robot_name,
-                                             target_stage='approach')
+                with ActionServer.Stage(self, goal_handle, 'place') as stage:
+                    self.node.place_at_frame(request.robot_name, part_id,
+                                             part_props['destination'],
+                                             offset=(0.0, place_offset, 0.0),
+                                             timeout_sec=0.0)
+                    self.node.pick_or_place_wait(request.robot_name,
+                                                 target_stage='approach')
 
                 # [5] Search stage: Search graspabilities for the next try.
-                stage = self.enter_stage(goal_handle, 'search', stage)
-                status, result = self.node.search_bin(request.bin_id)
-                if status != GoalStatus.STATUS_SUCCEEDED:
-                    raise ActionServer._Error('failed to search graspabilities',
-                                              stage=stage)
-                poses = result.graspabilities.poses
+                with ActionServer.Stage(self, goal_handle, 'search') as stage:
+                    status, result = self.node.search_bin(request.bin_id)
+                    if status == GoalStatus.STATUS_ABORTED:
+                        raise ActionServer.Error(
+                            'Failed to search graspabilities',
+                            stage=stage.name)
+                    poses = result.graspabilities.poses
 
-                # [6] Wait until placing finished.
+                # [4a] Wait until placing finished.
                 status, result = self.node.pick_or_place_wait(
                                      request.robot_name)
                 return status == GoalStatus.STATUS_SUCCEEDED, poses
@@ -184,8 +190,8 @@ class AttemptBinTaskServer(ActionServer):
 
                 # B-2. Pick failed due to error in departing from pick pose
                 elif result.stage == 'depart':
-                    raise ActionServer._Error('failed to depart from pick pose',
-                                              stage=stage)
+                    raise ActionServer.Error('Failed to depart from pick pose',
+                                             stage=stage)
 
                 # B-3. Pick failed due to error in grasping
                 elif result.stage == 'verify':
@@ -220,7 +226,7 @@ class AttemptBinTaskServer(ActionServer):
         self._self.node.pick_or_place_cancel_goal()
         if self._cancel_error_recovery:
             self._cancel_error_recovery()
-            self._self.node.restore_original_graspability_params(
+            self.node.restore_original_graspability_params(
                 self._server.current_goal.get_goal().bin_id)
         self._server.set_preempted()
         self.logger.warn('(AttemptBin) CANCELLED')

@@ -314,6 +314,7 @@ class BaseRoutines(Node):
         print('  gcancel:     cancel gripper action')
         print('  pt:          pick tool')
         print('  PT:          place tool')
+        print('  pcancel:     cancel picking/paciing')
         print('=== Collision object commands ===')
         print('  I:  Initialize all collision objects')
         print('  i:  Show infomation on collision objects')
@@ -481,10 +482,7 @@ class BaseRoutines(Node):
         # Gripper stuffs
         elif command == 'gripper':
             print('  current: %s' % self.gripper(robot_name).name)
-            try:
-                self.set_gripper(robot_name, input('  gripper name? '))
-            except Exception as e:
-                self.get_logger().error('Failed to set gripper: %s' % e)
+            self.set_gripper(robot_name, input('  gripper name? '))
         elif command == 'pregrasp':
             self.pregrasp(robot_name)
         elif command == 'grasp':
@@ -510,6 +508,8 @@ class BaseRoutines(Node):
             self.pick_tool(robot_name, tool_name)
         elif command == 'PT':
             self.place_tool(robot_name)
+        elif command == 'pcancel':
+            self.pick_or_place_cancel_goal(robot_name)
 
         # Collision objects stuffs
         elif command == 'I':

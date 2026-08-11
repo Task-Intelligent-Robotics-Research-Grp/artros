@@ -63,12 +63,12 @@ class KittingRoutines(BaseRoutines):
         return self.settings['bin_props']
 
     @property
-    def borders(self):
-        return self.settings['borders']
-
-    @property
     def part_props(self):
         return self.settings['part_props']
+
+    @property
+    def borders(self):
+        return self.settings['borders']
 
     @property
     def graspability_parameters(self):
@@ -112,18 +112,12 @@ class KittingRoutines(BaseRoutines):
 
     # Commands
     def search_bin(self, bin_id, *, max_slant=45.0):
-        try:
-            bin_props  = self.bin_props[bin_id]
-            border     = self.borders[bin_props['border_id']]
-            part_props = self.part_props[bin_props['part_id']]
-            params     = self.graspability_parameters[bin_props['part_id']]
-        except KeyError as e:
-            self.get_logger().error('search_bin() failed to get settings: %s'
-                                    % e)
-            return GoalStatus.STATUS_UNKNOWN, None
-
+        # Set parameters for searching graspabilities.
+        bin_props  = self.bin_props[bin_id]
+        params = self.graspability_parameters[bin_props['part_id']]
         self._graspability_client.set_parameters(params)
 
+        # Set function for filtering graspabilities.
         if 'min_height' in bin_props and 'max_height' in bin_props:
             max_slant = bin_props.get('max_slant', max_slant)
             self._graspability_client.set_graspability_filter(
@@ -137,24 +131,49 @@ class KittingRoutines(BaseRoutines):
         else:
             self._graspability_client.set_graspability_filter(None)
 
+        border = self.borders[bin_props['border_id']]
+        part_props = self.part_props[bin_props['part_id']]
+
         # Send goal first and then trigger camera frame.
         self._graspability_client.send_goal(
             Border(points=[Point2D(u=p[0], v=p[1]) for p in border]),
-            self.gripper(part_props['robot_name']).type,
+            self._grippers[part_props['gripper_name']].type,
             one_shot=True, timeout_sec=0.0)
         self.camera(part_props['camera_name']).trigger_frame()
 
         return self._graspability_client.wait()
 
-    def graspability_cancel_goal(self):
-        self._graspability_client.cancel_goal()
-
     # Utilities
     def _graspability_filter(self, graspabilities, target_frame,
                              min_height, max_height, max_slant):
-        #  We have to transform the poses to reference frame before moving
-        #  because graspability poses are represented w.r.t. camera frame
-        #  which will change while moving in the case of "eye on hand".
+        def _pose_filter(pose, min_height, max_height, max_slant):
+            def _normalize(x):
+                return x / sqrt(np.dot(x, x))
+
+            T = tfs.quaternion_matrix((pose.orientation.x, pose.orientation.y,
+                                       pose.orientation.z, pose.orientation.w))
+            normal = T[0:3, 2]      # local Z-axis at the graspability point
+            up     = np.array((0, 0, 1))
+
+            # Cosine of angle between the graspability normal and up vector.
+            a = np.dot(normal, up)
+            b = cos(radians(max_slant))
+            if a < b:
+                p = sqrt((1.0 - b*b)/(1.0 - a*a))
+                q = b - a*p
+                R = np.identity(4, dtype=np.float32)
+                R[0:3, 2] = p*normal + q*up                   # fixed Z-axis
+                R[0:3, 1] = _normalize(np.cross(R[0:3, 2], T[0:3, 0]))
+                R[0:3, 0] = np.cross(R[0:3, 1], R[0:3, 2])
+                qR = tfs.quaternion_from_matrix(R)
+                pose.orientation = Quaternion(x=qR[0], y=qR[1],
+                                              z=qR[2], w=qR[3])
+            return pose
+
+        # We have to transform the graspabilitiy poses and contact points
+        # to reference frame before moving because these are represented
+        # w.r.t. camera frame which will change while moving in the case
+        # of "eye on hand".
         graspabilities.contact_points = self.transform_points_to_target_frame(
                                             graspabilities.poses.header,
                                             graspabilities.contact_points,
@@ -169,8 +188,8 @@ class KittingRoutines(BaseRoutines):
         for pose, gscore, contact_point \
             in zip(graspabilities.poses.poses, graspabilities.gscores,
                    graspabilities.contact_points):
-            filtered_pose = self._pose_filter(pose, min_height, max_height,
-                                              max_slant)
+            filtered_pose = _pose_filter(pose, min_height, max_height,
+                                         max_slant)
             if filtered_pose is not None:
                 poses.append(filtered_pose)
                 gscores.append(gscore)
@@ -179,30 +198,6 @@ class KittingRoutines(BaseRoutines):
         graspabilities.gscores        = gscores
         graspabilities.contact_points = contact_points
         return graspabilities
-
-    def _pose_filter(self, pose, min_height, max_height, max_slant):
-        if pose.position.z < min_height or pose.position.z > max_height:
-            return None
-
-        T = tfs.quaternion_matrix((pose.orientation.x, pose.orientation.y,
-                                   pose.orientation.z, pose.orientation.w))
-        normal = T[0:3, 2]      # local Z-axis at the graspability point
-        up     = np.array((0, 0, 1))
-        a = np.dot(normal, up)
-        b = cos(radians(max_slant))
-        if a < b:
-            p = sqrt((1.0 - b*b)/(1.0 - a*a))
-            q = b - a*p
-            R = np.identity(4, dtype=np.float32)
-            R[0:3, 2] = p*normal + q*up                   # fixed Z-axis
-            R[0:3, 1] = self._normalize(np.cross(R[0:3, 2], T[0:3, 0]))
-            R[0:3, 0] = np.cross(R[0:3, 1], R[0:3, 2])
-            qR = tfs.quaternion_from_matrix(R)
-            pose.orientation = Quaternion(x=qR[0], y=qR[1], z=qR[2], w=qR[3])
-        return pose
-
-    def _normalize(self, x):
-        return x / sqrt(np.dot(x, x))
 
     # def _done_cb(self, state, result):
     #     rospy.sleep(1)          # Pause required after cancelling arm motion

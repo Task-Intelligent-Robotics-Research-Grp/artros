@@ -72,51 +72,51 @@ class SweepTaskServer(ActionServer):
                          group_field='robot_name')
 
     def _execute_cb(self, goal_handle):
-        self.logger.info("*** Do sweeping ***")
+        self.logger.info('=== Do sweeping ===')
 
         request = goal_handle.request
         node    = self.node
-
+        stop    = lambda: node.stop(request.robot_name)
         # [1] Move stage: Go to approach pose.
-        stage   = self.enter_stage(goal_handle, 'move')
-        success = node.go_to_pose_goal(request.robot_name, request.pose,
-                                       request.approach_offset,
-                                       request.speed_fast)
-        if not success:
-            raise ActionServer._Error('Failed to go to approach pose',
-                                      stage=stage)
+        with ActionServer.Stage(self, goal_handle, 'move', stop) as stage:
+            success = node.go_to_pose_goal(request.robot_name, request.pose,
+                                           request.approach_offset,
+                                           request.speed_fast)
+            if not success:
+                raise ActionServer.Error('Failed to go to approach pose',
+                                         stage=stage.name)
 
         # [2] Approach stage: Go to sweep pose.
-        stage   = self.enter_stage(goal_handle, 'approach', stage)
-        success = node.go_to_pose_goal(request.robot_name, request.pose,
-                                       request.sweep_offset,
-                                       request.speed_slow)
-        if not success:
-            raise ActionServer._Error('Failed to go to sweep pose',
-                                      stage=stage)
+        with ActionServer.Stage(self, goal_handle, 'approach', stop) as stage:
+            success = node.go_to_pose_goal(request.robot_name, request.pose,
+                                           request.sweep_offset,
+                                           request.speed_slow)
+            if not success:
+                raise ActionServer.Error('Failed to go to sweep pose',
+                                         stage=stage.name)
 
         # [3] Sweep stage: Sweep the object.
-        stage  = self.enter_stage(goal_handle, 'sweep', stage)
-        offset = list(request.sweep_offset)
-        offset[1] += request.sweep_length
-        success = node.go_to_pose_goal(request.robot_name, request.pose,
-                                       offset, request.speed_fast)
-        if not success:
-            raise ActionServer._Error('Failed to go to sweep', stage=stage)
+        with ActionServer.Stage(self, goal_handle, 'sweep', stop) as stage:
+            offset = list(request.sweep_offset)
+            offset[1] += request.sweep_length
+            success = node.go_to_pose_goal(request.robot_name, request.pose,
+                                           offset, request.speed_fast)
+            if not success:
+                raise ActionServer.Error('Failed to sweep', stage=stage.name)
 
         # [4] Depart stage: Go back to departure pose.
-        stage   = self.enter_stage(goal_handle, 'depart', stage)
-        success = node.go_to_pose_goal(request.robot_name, request.pose,
-                                       request.departure_offset,
-                                       request.speed_fast)
-        if not success:
-            raise ActionServer._Error('Failed to go to departure pose',
-                                      stage=stage)
+        with ActionServer.Stage(self, goal_handle, 'depart', stop) as stage:
+            success = node.go_to_pose_goal(request.robot_name, request.pose,
+                                           request.departure_offset,
+                                           request.speed_fast)
+            if not success:
+                raise ActionServer.Error('Failed to go to departure pose',
+                                         stage=stage.name)
 
         # [Final] Goal succeeded.
         goal_handle.succeed()
-        self.logger.info('*** Sweep succeeded. ***')
-        return Sweep.Result(stage=stage)
+        self.logger.info('=== Sweep succeeded ===')
+        return Sweep.Result(stage='')
 
 #************************************************************************
 #  class SweepTask                                                      *

@@ -43,10 +43,7 @@ def _command_line_interface(node):
     axis     = 'Y'
     speed    = 1.0
 
-    if node.com:
-        node.initialize_collision_objects()
-
-    # Reset pose
+    node.initialize_collision_objects()
     node.go_to_named_pose(arm_name, "home")
     node.print_help_messages()
 
@@ -55,8 +52,11 @@ def _command_line_interface(node):
         prompt = '{:>5}:{}({})@{}>> ' \
                  .format(axis, node.format_pose(current_pose), speed, arm_name)
         command = input(prompt)
-        arm_name, axis, speed = node.process_command(command, arm_name,
-                                                     axis, speed)
+        try:
+            arm_name, axis, speed = node.process_command(command, arm_name,
+                                                         axis, speed)
+        except Exception as e:
+            node.get_logger().error(e)
 
 def _main(name, routines):
     rclpy.init(args=sys.argv)

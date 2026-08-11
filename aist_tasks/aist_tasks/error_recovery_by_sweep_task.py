@@ -37,7 +37,7 @@ from rclpy.node                  import Node
 from rclpy.callback_groups       import MutuallyExclusiveCallbackGroup
 from task_wrappers.action_server import ActionServer
 from task_wrappers.action_client import GroupedSimpleActionClient
-from aist_msgs.action            import Sweep
+from aist_msgs.action            import ErrorRecoveryBySweep
 from .request_help_task          import RequestHelpTask
 from .sweep_task                 import SweepTask
 
@@ -75,54 +75,74 @@ class ErrorRecoveryBySweepTaskServer(ActionServer):
         self._sweep        = SweepTask(self)
 
     def _execute_cb(self, goal_handle):
-        self.logger.info("*** Do sweeping ***")
+        def _compute_sweep_dir(self, pose: PoseStamped, pointing: Pointing):
+            ppos = pose.pose.position
+            fpos = self.transform_points_to_target_frame(pointing.header,
+                                                         [pointing.point],
+                                                         pose.header.frame_id)\
+                  .point
+            sdir = (fpos.x - ppos.x, fpos.y - ppos.y, fpos.z - ppos.z)
+            return tuple(sdir / np.linalg.norm(sdir))
 
-        request = goal_handle.request
+        def _fix_orientation(self, orientation: Quaternion, sweep_dir):
+            R = tfs.quaternion_matrix((orientation.x, orientation.y,
+                                       orientation.z, orientation.w))
+            nz = R[0:3, 2]
+            ny = sweep_dir - nz * np.dot(nz, sweep_dir)
+            R[0:3, 1] = ny/np.linalg.norm(ny)
+            R[0:3, 0] = np.cross(R[0:3, 1], nz)
+            q = tfs.quaternion_from_matrix(R)
+            return Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
+
+        self.logger.info("=== ErrorRecoveryBySweep ===")
+
+        request = goal_handle.request.request
         node    = self.node
+        stop    = lambda: node.stop(request.robot_name)
 
-        # [1] Sweep ready stage: Go to approach pose.
-        stage = self.enter_stage(goal_handle, 'sweep_ready')
-        success = self.go_to_named_pose(robot_name, 'sweep_ready')
+        # [1] Sweep ready stage: Go to sweep ready pose.
+        with ActionServer.Stage(self, goal_handle, 'sweep_ready',
+                                stop) as stage:
+            success = node.go_to_named_pose(request.robot_name, 'sweep_ready')
+            if not success:
+                raise ActionServer.Error('Failed to go to sweep ready pose',
+                                         stage=stage.name)
 
-        # [1] Move stage: Go to approach pose.
-        success = node.go_to_pose_goal(request.robot_name, request.pose,
-                                       request.approach_offset,
-                                       request.speed_fast)
-        if not success:
-            raise ActionServer._Error('Failed to go to approach pose',
-                                      stage=stage)
+        # [2] Request help stage:
+        with ActionServer.Stage(self, goal_handle, 'request_help',
+                                stop) as stage:
+            message = 'Picking_failed!'
+            status, result = self._request_help.send_goal(request.robot_name,
+                                                          request.pose,
+                                                          request.item_id,
+                                                          message)
+            if status == GoalStatus.STATUS_ABORTED:
+                raise ActionServer.Error('Failed to get sweep direction',
+                                          stage=stage.name)
+            sweep_dir = self._compute_sweep_dir(request.pose, result.pointing)
 
-        # [2] Approach stage: Go to sweep pose.
-        stage   = self.enter_stage(goal_handle, 'approach', stage)
-        success = node.go_to_pose_goal(request.robot_name, request.pose,
-                                       request.sweep_offset,
-                                       request.speed_slow)
-        if not success:
-            raise ActionServer._Error('Failed to go to sweep pose',
-                                      stage=stage)
+        # [3] Sweep stage:
+        with ActionServer.Stage(self, goal_handle, 'sweep') as stage:
+            pose = copy.deepcopy(request.pose)
+            pose.pose.orientation = _fix_orientation(
+                                        request.pose.pose.orientation,
+                                        sweep_dir)
+            params = self.sweep_parameters[part_id]
+            status, result = self._sweep.send_goal(robot_name, pose,
+                                                   params['sweep_length'],
+                                                   params['sweep_offset'],
+                                                   params['approach_offset'],
+                                                   params['departure_offset'],
+                                                   params['speed_fast'],
+                                                   params['speed_slow'])
+            if status == GoalStatus.STATUS_ABORTED:
+                raise ActionServer.Error('Failed to sweep', stage=stage.name)
 
-        # [3] Sweep stage: Sweep the object.
-        stage  = self.enter_stage(goal_handle, 'sweep', stage)
-        offset = list(request.sweep_offset)
-        offset[1] += request.sweep_length
-        success = node.go_to_pose_goal(request.robot_name, request.pose,
-                                       offset, request.speed_fast)
-        if not success:
-            raise ActionServer._Error('Failed to go to sweep', stage=stage)
-
-        # [4] Depart stage: Go back to departure pose.
-        stage   = self.enter_stage(goal_handle, 'depart', stage)
-        success = node.go_to_pose_goal(request.robot_name, request.pose,
-                                       request.departure_offset,
-                                       request.speed_fast)
-        if not success:
-            raise ActionServer._Error('Failed to go to departure pose',
-                                      stage=stage)
-
-        # [Final] Goal succeeded.
+        # [Final] Final stage: Goal succeeded.
         goal_handle.succeed()
-        self.logger.info('*** Sweep succeeded. ***')
-        return Sweep.Result(stage=stage)
+        self.logger.info('=== ErrorRecoveryBySweep succeeded ===')
+        return ErrorRecoveryBySweep.Result(stage='')
+
 
 #************************************************************************
 #  class ErrorRecoveryBySweepTask                                       *
