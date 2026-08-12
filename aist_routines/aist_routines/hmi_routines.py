@@ -108,11 +108,8 @@ class HMIRoutines(KittingRoutines):
         return robot_name, axis, speed
 
     # Graspability stuffs
-    def search_bin(self, bin_id, *, max_slant=45.0):
-        return super().search_bin(
-                   bin_id,
-                   max_slant=0.0 if self.using_hmi_graspability_params else
-                   max_slant)
+    def search_bin(self, bin_id):
+        return super().search_bin(bin_id, self.using_hmi_graspability_params)
 
     def set_hmi_graspability_params(self, bin_id):
         part_id = self.bin_props[bin_id]['part_id']
@@ -152,7 +149,7 @@ class HMIRoutines(KittingRoutines):
 
         # Search for graspabilities.
         self.set_hmi_graspability_params(bin_id)
-        status, result = self.search_bin(bin_id, max_slant=0.0)
+        status, result = self.search_bin(bin_id)
         self.restore_original_graspability_params(bin_id)
 
         # Attempt to sweep the item along y-axis.

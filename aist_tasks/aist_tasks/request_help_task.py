@@ -44,6 +44,7 @@ from geometry_msgs.msg           import PoseStamped, Point, Vector3
 from visualization_msgs.msg      import Marker
 
 from rclpy.node                  import Node
+from std_msgs.msg                import Header
 from typing                      import Optional
 
 #*********************************************************************

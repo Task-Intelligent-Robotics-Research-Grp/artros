@@ -111,7 +111,7 @@ class KittingRoutines(BaseRoutines):
         return robot_name, axis, speed
 
     # Commands
-    def search_bin(self, bin_id, *, max_slant=45.0):
+    def search_bin(self, bin_id, zero_slant=False):
         # Set parameters for searching graspabilities.
         bin_props  = self.bin_props[bin_id]
         params = self.graspability_parameters[bin_props['part_id']]
@@ -119,7 +119,7 @@ class KittingRoutines(BaseRoutines):
 
         # Set function for filtering graspabilities.
         if 'min_height' in bin_props and 'max_height' in bin_props:
-            max_slant = bin_props.get('max_slant', max_slant)
+            max_slant = 0.0 if zero_slant else bin_props.get('max_slant', 45.0)
             self._graspability_client.set_graspability_filter(
                 lambda graspabilities, \
                        target_frame=bin_props['name'], \
@@ -149,6 +149,9 @@ class KittingRoutines(BaseRoutines):
         def _pose_filter(pose, min_height, max_height, max_slant):
             def _normalize(x):
                 return x / sqrt(np.dot(x, x))
+
+            if pose.position.z < min_height or pose.position.z > max_height:
+                return None
 
             T = tfs.quaternion_matrix((pose.orientation.x, pose.orientation.y,
                                        pose.orientation.z, pose.orientation.w))
