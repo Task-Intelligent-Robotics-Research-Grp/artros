@@ -77,10 +77,11 @@ class RequestHelpTaskClient(GroupedSimpleActionClient):
           message:    Message to be displayed to the operator on VR side.
 
         Returns:
-          Tuple of the GoalStatus and Result of the action.
+          tuple:      Tuple of the GoalStatus and Result of the action.
         """
+        # Keep graspability pose for the start point of the ARROW marker.
         self._pose = self.node.transform_pose_to_target_frame(
-                         pose, target_frame=self._ground_frame)
+                         pose, target_frame=self.node.planning_frame)
 
         goal = RequestHelp.Goal()
         goal.request.robot_name = robot_name
@@ -143,15 +144,13 @@ class RequestHelpTaskServer(ActionServer):
         of the action server.
         """
         pointing.header.stamp = self.get_clock().now().to_msg()
-
         with self._pointing_cond:
             self._pointing = pointing
             self._pointing_cond.notify_all()
 
     def _execute_cb(self, goal_handle):
         # Loop until Pointing.msg other than NO_RES received.
-        pointing = Pointing(pointing_state=Pointing.NO_RES)
-        while goal_handle.is_active:
+        while True:
             # Publish RequestHelp.msg toward the remote operator.
             request = goal_handle.request.request
             request.pose.header.stamp = self.node.get_clock().now().to_msg()

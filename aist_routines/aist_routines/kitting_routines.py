@@ -56,7 +56,7 @@ class KittingRoutines(BaseRoutines):
         super().__init__(name)
 
         self._graspability_client = GraspabilityClient(self)
-        self._attempt_bin = AttemptBinTask(self)
+        self._attempt_bin         = AttemptBinTask(self)
 
     @property
     def bin_props(self):
@@ -74,22 +74,32 @@ class KittingRoutines(BaseRoutines):
     def graspability_parameters(self):
         return self.settings['graspability_parameters']
 
+    @property
+    def fine_graspability_parameters(self):
+        return self.settings['fine_graspability_parameters']
+
     # Interactive stuffs
     def print_help_messages(self):
         super().print_help_messages()
 
         print('=== Kitting commands ===')
-        print('  s: Search graspabilities with normal parameters')
-        print('  a: Attempt to pick and place')
-        print('  A: Repeat attempts to pick and place')
-        print('  c: Cancel attempts to pick and place')
-        print('  H: Move all robots to home')
-        print('  B: Move all robots to back')
+        print('  s:  Search graspabilities with normal parameters')
+        print('  sf: Search graspabilities with fine parameters')
+        print('  a:  Attempt to pick and place')
+        print('  A:  Repeat attempts to pick and place')
+        print('  c:  Cancel attempts to pick and place')
+        print('  H:  Move all robots to home')
+        print('  B:  Move all robots to back')
 
     def process_command(self, command, robot_name, axis, speed):
         if command == 's':
             bin_id = 'bin_' + input('  bin id? ')
             self.search_bin(bin_id)
+        elif command == 'sf':
+            bin_id  = 'bin_' + input('  bin id? ')
+            part_id = self.bin_props[bin_id]['part_id']
+            self.search_bin(bin_id,
+                            self.fine_graspability_parameters.get(part_id))
         elif command == 'a':
             bin_id = 'bin_' + input('  bin id? ')
             self.pick_tool(robot_name, 'suction_tool')
@@ -111,27 +121,29 @@ class KittingRoutines(BaseRoutines):
         return robot_name, axis, speed
 
     # Commands
-    def search_bin(self, bin_id, zero_slant=False):
+    def search_bin(self, bin_id, graspability_parameters=None):
         # Set parameters for searching graspabilities.
-        bin_props  = self.bin_props[bin_id]
-        params = self.graspability_parameters[bin_props['part_id']]
-        self._graspability_client.set_parameters(params)
+        bin_props = self.bin_props[bin_id]
+        self._graspability_client.set_parameters(
+            graspability_parameters if graspability_parameters else \
+            self.graspability_parameters[bin_props['part_id']])
 
         # Set function for filtering graspabilities.
         if 'min_height' in bin_props and 'max_height' in bin_props:
-            max_slant = 0.0 if zero_slant else bin_props.get('max_slant', 45.0)
+            max_slant = 0.0 if using_fine_graspatility_parameters else \
+                        bin_props.get('max_slant', 45.0)
             self._graspability_client.set_graspability_filter(
                 lambda graspabilities, \
                        target_frame=bin_props['name'], \
                        min_height=bin_props['min_height'], \
                        max_height=bin_props['max_height'], \
-                       max_slant =max_slant:
+                       max_slant=max_slant:
                 self._graspability_filter(graspabilities, target_frame,
                                           min_height, max_height, max_slant))
         else:
             self._graspability_client.set_graspability_filter(None)
 
-        border = self.borders[bin_props['border_id']]
+        border     = self.borders[bin_props['border_id']]
         part_props = self.part_props[bin_props['part_id']]
 
         # Send goal first and then trigger camera frame.
@@ -150,6 +162,7 @@ class KittingRoutines(BaseRoutines):
             def _normalize(x):
                 return x / sqrt(np.dot(x, x))
 
+            # Filter out poses whose height is not within the specified range.
             if pose.position.z < min_height or pose.position.z > max_height:
                 return None
 

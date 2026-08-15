@@ -47,9 +47,9 @@ from rclpy.callback_groups         import MutuallyExclusiveCallbackGroup
 from tf2_ros.buffer                import Buffer
 from tf2_ros.transform_listener    import TransformListener
 from std_msgs.msg                  import Header
-from geometry_msgs.msg             import (PoseStamped, Pose, Point,
-                                           Quaternion, PoseArray,
-                                           Vector3, Vector3Stamped)
+from geometry_msgs.msg             import (PoseStamped, Pose, PoseArray,
+                                           PointStamped, Point, Quaternion,
+                                           Vector3Stamped, Vector3)
 from moveit_msgs.msg               import (RobotTrajectory, PositionIKRequest,
                                            MoveItErrorCodes)
 from moveit_msgs.srv               import GetPositionIK
@@ -1088,6 +1088,13 @@ class BaseRoutines(Node):
         except Exception as e:
             self.get_logger().error('BaseRoutines.lookup_transform(): %s' % e)
             raise e
+
+    def transform_point_to_target_frame(self, point, target_frame=''):
+        points = self.transform_points_to_target_frame(point.header,
+                                                       [point.point],
+                                                       target_frame)
+        return PointStamped(header=Header(frame_id=target_frame),
+                            point=points[0])
 
     def transform_points_to_target_frame(self, header, points,
                                          target_frame=''):

@@ -10,10 +10,10 @@ robot_description_provider:
 ####################
 mesh_generator:
   ros__parameters:
-    screen_frame:      virtual_screen
-    reference_frame:   world
-    nsteps_u:          10
-    nsteps_v:          10
+    screen_frame:    virtual_screen
+    reference_frame: world
+    nsteps_u:        10
+    nsteps_v:        10
 
 ################
 #  nep_bridge  #

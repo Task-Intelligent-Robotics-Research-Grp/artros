@@ -33,13 +33,14 @@
 #
 # Author: Toshio Ueshiba
 #
+import numpy as np
 from rclpy.node                  import Node
 from rclpy.callback_groups       import MutuallyExclusiveCallbackGroup
+from action_msgs.msg             import GoalStatus
+from geometry_msgs.msg           import PoseStamped, Pose, Quaternion
 from task_wrappers.action_server import ActionServer
 from task_wrappers.action_client import GroupedSimpleActionClient
 from aist_msgs.action            import ErrorRecoveryBySweep
-from .request_help_task          import RequestHelpTask
-from .sweep_task                 import SweepTask
 
 #*********************************************************************
 #  class ErrorRecoveryBySweepTaskClient                              *
@@ -52,7 +53,7 @@ class ErrorRecoveryBySweepTaskClient(GroupedSimpleActionClient):
         self.wait_for_server()
 
     def send_goal(self, robot_name, pose, part_id, message,
-                  *, timeout_sec=0.0):
+                  *, timeout_sec=None):
         return super().send_goal(
                   ErrorRecoveryBySweep.Goal(robot_name=robot_name,
                                             item_id=part_id,
@@ -71,28 +72,30 @@ class ErrorRecoveryBySweepTaskServer(ActionServer):
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
 
-        self._request_help = RequestHelpTask(self)
-        self._sweep        = SweepTask(self)
-
     def _execute_cb(self, goal_handle):
-        def _compute_sweep_dir(self, pose: PoseStamped, pointing: Pointing):
-            ppos = pose.pose.position
-            fpos = self.transform_points_to_target_frame(pointing.header,
-                                                         [pointing.point],
-                                                         pose.header.frame_id)\
-                  .point
-            sdir = (fpos.x - ppos.x, fpos.y - ppos.y, fpos.z - ppos.z)
-            return tuple(sdir / np.linalg.norm(sdir))
+        def _fix_sweep_direction(pose: PoseStamped, pointing: Pointing):
+            p = pose.pose.position
+            q = self.transform_point_to_target_frame(pointing.header,
+                                                     [pointing.point],
+                                                     pose.header.frame_id) \
+                    .point
+            s = np.array((q.x - p.x, q.y - p.y, q.z - p.z))
 
-        def _fix_orientation(self, orientation: Quaternion, sweep_dir):
-            R = tfs.quaternion_matrix((orientation.x, orientation.y,
-                                       orientation.z, orientation.w))
+            R = tfs.quaternion_matrix((pose.pose.orientation.x,
+                                       pose.pose.orientation.y,
+                                       pose.pose.orientation.z,
+                                       pose.pose.orientation.w))
             nz = R[0:3, 2]
-            ny = sweep_dir - nz * np.dot(nz, sweep_dir)
+            ny = s - nz * np.dot(nz, s)
             R[0:3, 1] = ny/np.linalg.norm(ny)
             R[0:3, 0] = np.cross(R[0:3, 1], nz)
-            q = tfs.quaternion_from_matrix(R)
-            return Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
+            qR = tfs.quaternion_from_matrix(R)
+            return PoseStamped(header=pose.header,
+                               pose=Pose(position=ppos,
+                                         orientation=Quaternion(x=qR[0],
+                                                                y=qR[1],
+                                                                z=qR[2],
+                                                                w=qR[3])))
 
         self.logger.info("=== ErrorRecoveryBySweep ===")
 
@@ -100,45 +103,36 @@ class ErrorRecoveryBySweepTaskServer(ActionServer):
         node    = self.node
         stop    = lambda: node.stop(request.robot_name)
 
-        # [1] Sweep ready stage: Go to sweep ready pose.
-        with ActionServer.Stage(self, goal_handle, 'sweep_ready',
+        # [1] 'sweep_ready' stage: Go to sweep ready pose.
+        with ActionServer.Stage(self, goal_handle, 'go_to_sweep_ready',
                                 stop) as stage:
             success = node.go_to_named_pose(request.robot_name, 'sweep_ready')
             if not success:
                 raise ActionServer.Error('Failed to go to sweep ready pose',
                                          stage=stage.name)
 
-        # [2] Request help stage:
+        # [2] 'request_help' stage: Get Pointing.msg from the remote operator.
         with ActionServer.Stage(self, goal_handle, 'request_help',
                                 stop) as stage:
             message = 'Picking_failed!'
-            status, result = self._request_help.send_goal(request.robot_name,
-                                                          request.pose,
-                                                          request.item_id,
-                                                          message)
+            status, result = node.request_help(request.robot_name,
+                                               request.pose, request.item_id,
+                                               message)
             if status == GoalStatus.STATUS_ABORTED:
                 raise ActionServer.Error('Failed to get sweep direction',
                                           stage=stage.name)
-            sweep_dir = self._compute_sweep_dir(request.pose, result.pointing)
 
-        # [3] Sweep stage:
+        # [3] 'sweep' stage:
         with ActionServer.Stage(self, goal_handle, 'sweep') as stage:
-            pose = copy.deepcopy(request.pose)
-            pose.pose.orientation = _fix_orientation(
-                                        request.pose.pose.orientation,
-                                        sweep_dir)
-            params = self.sweep_parameters[part_id]
-            status, result = self._sweep.send_goal(robot_name, pose,
-                                                   params['sweep_length'],
-                                                   params['sweep_offset'],
-                                                   params['approach_offset'],
-                                                   params['departure_offset'],
-                                                   params['speed_fast'],
-                                                   params['speed_slow'])
+            pose   = _fix_orientation(request.pose, result.pointing)
+            params = node.sweep_parameters[part_id]
+            status, result = node.sweep(request.robot_name, pose,
+                                        request.item_id)
             if status == GoalStatus.STATUS_ABORTED:
-                raise ActionServer.Error('Failed to sweep', stage=stage.name)
+                raise ActionServer.Error('Failed to sweep',
+                                         stage=stage.extend_name(result.stage))
 
-        # [Final] Final stage: Goal succeeded.
+        # [Final] Goal succeeded.
         goal_handle.succeed()
         self.logger.info('=== ErrorRecoveryBySweep succeeded ===')
         return ErrorRecoveryBySweep.Result(stage='')
@@ -147,7 +141,7 @@ class ErrorRecoveryBySweepTaskServer(ActionServer):
 #************************************************************************
 #  class ErrorRecoveryBySweepTask                                       *
 #************************************************************************
-class ErrorRecoveryBySweepTask(SweepTaskClient):
+class ErrorRecoveryBySweepTask(ErrorRecoveryBySweepTaskClient):
     def __init__(self, node, server_ns='error_recovery_by_sweep'):
         self._server = ErrorRecoveryBySweepTaskServer(node, server_ns)
         super().__init__(node, server_ns)

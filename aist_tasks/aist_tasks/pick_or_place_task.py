@@ -107,7 +107,7 @@ class PickOrPlaceTaskServer(ActionServer):
         try:
             stop = lambda: node.stop(request.robot_name)
 
-            # [1] Move stage: Go to approach pose.
+            # [1] 'move' stage: Go to approach pose.
             with ActionServer.Stage(self, goal_handle, 'move', stop) as stage:
                 speed   = request.speed_fast if request.pick else \
                           request.speed_slow
@@ -119,7 +119,7 @@ class PickOrPlaceTaskServer(ActionServer):
                     raise ActionServer.Error('Failed to go to approach pose',
                                              stage=stage.name)
 
-            # [2] Approach stage: Go to pick/place pose.
+            # [2] 'approach' stage: Go to pick/place pose.
             with ActionServer.Stage(self, goal_handle, 'approach',
                                     stop) as stage:
                 if request.pick:
@@ -142,7 +142,7 @@ class PickOrPlaceTaskServer(ActionServer):
                     raise ActionServer.Error('Failed to approach target',
                                              stage=stage.name)
 
-            # [3] Grasp/release stage: Grasp or release at pick/place pose.
+            # [3] 'grasp/release' stage: Grasp or release at pick/place pose.
             with ActionServer.Stage(self, goal_handle,
                                     'grasp/release') as stage:
                 if request.pick:
@@ -158,8 +158,8 @@ class PickOrPlaceTaskServer(ActionServer):
                                 object_id, request.pose.header.frame_id,
                                 _get_object_id(gripper.tip_link))
 
-            # [4] Depart stage: Go back to departure(pick) or approach(place)
-            #     pose.
+            # [4] 'depart' stage: Go back to departure(pick) or approach(place)
+            #      pose.
             with ActionServer.Stage(self, goal_handle, 'depart',
                                     stop) as stage:
                 if request.pick:
@@ -193,7 +193,7 @@ class PickOrPlaceTaskServer(ActionServer):
                     raise ActionServer.Error('Failed to depart from target',
                                              stage=stage.name)
 
-            # [5] Verify stage: Verify success of postgrasp.
+            # [5] 'verify' stage: Verify success of postgrasp.
             with ActionServer.Stage(self, goal_handle, 'verify') as stage:
                 if request.pick and \
                    not node.get_parameter('use_sim_time') \
