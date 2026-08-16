@@ -444,14 +444,17 @@ class BaseRoutines(Node):
                                         % (pose_name, e))
         elif command == 'frame':
             frame    = input('  frame? ')
-            offset   = _get_offset()
-            eef_link = input('  eef_link? ')
-            try:
-                self.go_to_frame(robot_name, frame, offset, speed=speed,
-                                 end_effector_link=eef_link)
-            except Exception as e:
-                self.get_logger().error('Failed to go to frame[%s]: %s'
-                                        % (frame, e))
+            if frame not in self.frame_names:
+                offset   = _get_offset()
+                eef_link = input('  eef_link? ')
+                try:
+                    self.go_to_frame(robot_name, frame, offset, speed=speed,
+                                     end_effector_link=eef_link)
+                except Exception as e:
+                    self.get_logger().error('Failed to go to frame[%s]: %s'
+                                            % (frame, e))
+            else:
+                self.get_logger().error('Unknown frame[%s]' % frame)
         elif command == 'clip':
             self.clip_wrist_joint_value(robot_name)
         elif command == 'speed':
