@@ -204,6 +204,17 @@ class AssemblyRoutines(BaseRoutines):
             self.go_to_named_pose(robot_name, result.pose_name)
 
     # Utilities
+    @property
+    def object_names(self):
+        return [tokens[0] for tokens
+                in [fname.rsplit('/', 1) for fname in self.frame_names]
+                if len(tokens) == 2]
+
+    def subframe_names(self, object_id):
+        return [tokens[1] for tokens
+                in [fname.rsplit('/', 1) for fname in self.frame_names]
+                if len(tokens) == 2 and tokens[0] == object_id]
+
     def _grasped_object_id(self, robot_name):
         gripper_name = self.gripper(robot_name).name
         gripper_link \

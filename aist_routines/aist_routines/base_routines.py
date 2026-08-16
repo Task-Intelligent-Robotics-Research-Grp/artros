@@ -240,6 +240,10 @@ class BaseRoutines(Node):
         return self._cameras.keys()
 
     @property
+    def frame_names(self) -> list[str]:
+        return yaml.safe_load(self.tf2_buffer.all_frames_as_yaml()).keys()
+
+    @property
     def com(self) -> CollisionObjectManager:
         """ Client of collision object manager associated with this class.
         """
