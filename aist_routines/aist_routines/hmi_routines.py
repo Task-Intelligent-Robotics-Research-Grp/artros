@@ -106,14 +106,17 @@ class HMIRoutines(KittingRoutines):
         """ Sweep the specified part along Y-axis of the specified pose.
 
         Args:
-          robot_name: Robot name.
-          part_id:    ID of part.
+          robot_name:  Robot name.
+          pose:        Pose of the sweep point.
+          part_id:     ID of part.
+          timeout_sec: Timeout time waiting for the result. Seconds to wait,
+            if positive. Wait forever, if `None`.
 
         Returns:
           Tuple of GoalStatus and result of sweeping motion.
         """
         params = self.sweep_parameters[part_id]
-        return self._sweep.send_goal(robot_name, target_pose,
+        return self._sweep.send_goal(robot_name, pose,
                                      params['sweep_length'],
                                      params['sweep_offset'],
                                      params['approach_offset'],

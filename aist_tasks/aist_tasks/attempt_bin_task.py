@@ -149,8 +149,7 @@ class AttemptBinTaskServer(ActionServer):
                                                  stage=stage.extend_name(
                                                            result.stage))
 
-            if status is GoalStatus.STATUS_SUCCEEDED or \
-               status is GoalStatus.STATUS_UNKNOWN:
+            if status is GoalStatus.STATUS_SUCCEEDED:
                 # [5] 'place' stage: Begin placing and wait until reaching
                 #     approach pose.
                 with ActionServer.Stage(self, goal_handle, 'place',
@@ -190,13 +189,14 @@ class AttemptBinTaskServer(ActionServer):
                             raise ActionServer.Error('Failed to place',
                                                      stage=stage.extend_name(
                                                                result.stage))
+            elif status is GoalStatus.STATUS_UNKNOWN:  # No poses remained...
+                break
 
             if not request.pick_all:
                 break
             place_offset = -place_offset
 
         goal_handle.succeed()
-        self.logger.info('=== AttemptBinTask succeeded ===')
         return AttemptBin.Result(stage='')
 
     def _attempt_pick(self, robot_name, part_id, pick_poses, fail_poses,
@@ -213,15 +213,15 @@ class AttemptBinTaskServer(ActionServer):
         Returns:
           Tuple of GoalStatus and Result of picking,
         """
-        def _is_close_to_fail_poses(self, pose, tolerance=0.005):
-            def _is_close_to_fail_pose(self, pose, fail_pose, tolerance):
+        def _is_close_to_fail_poses(pose, tolerance=0.005):
+            def _is_close_to_fail_pose(pose, fail_pose, tolerance):
                 position      = pose.pose.position
                 fail_position = fail_pose.pose.position
                 return abs(position.x - fail_position.x) < tolerance and \
                        abs(position.y - fail_position.y) < tolerance and \
                        abs(position.z - fail_position.z) < tolerance
 
-            for fail_pose in self._fail_poses:
+            for fail_pose in fail_poses:
                 if _is_close_to_fail_pose(pose, fail_pose, tolerance):
                     return True
             return False
@@ -232,8 +232,6 @@ class AttemptBinTaskServer(ActionServer):
             pose = PoseStamped(header=pick_poses.header, pose=p)
             if _is_close_to_fail_poses(pose):
                 continue
-
-            self.logger.warn('### pose=%s' % format_pose(pose))
 
             # Perform picking.
             status, result = self.node.pick(robot_name, part_id, pose)

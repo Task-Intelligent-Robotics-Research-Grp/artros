@@ -977,7 +977,6 @@ class BaseRoutines(Node):
         if params is None:
             params = picking_parameters[
                          self.com.get_object_info(part_id).object_type]
-        self.get_logger().info('### [%s] %s' % (part_id, params))
         self.set_gripper_parameters(robot_name,
                                     params.get('gripper_parameters', {}))
         return self._pick_or_place.send_goal(robot_name, True, target_pose,

@@ -130,7 +130,7 @@ class KittingRoutines(BaseRoutines):
 
         # Set function for filtering graspabilities.
         if 'min_height' in bin_props and 'max_height' in bin_props:
-            max_slant = 0.0 if using_fine_graspatility_parameters else \
+            max_slant = 0.0 if graspability_parameters else \
                         bin_props.get('max_slant', 45.0)
             self._graspability_client.set_graspability_filter(
                 lambda graspabilities, \

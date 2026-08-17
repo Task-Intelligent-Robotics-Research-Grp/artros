@@ -72,8 +72,6 @@ class SweepTaskServer(ActionServer):
                          group_field='robot_name')
 
     def _execute_cb(self, goal_handle):
-        self.logger.info('=== Do sweeping ===')
-
         request = goal_handle.request
         node    = self.node
         stop    = lambda: node.stop(request.robot_name)
@@ -115,7 +113,6 @@ class SweepTaskServer(ActionServer):
 
         # [Final] Goal succeeded.
         goal_handle.succeed()
-        self.logger.info('=== Sweep succeeded ===')
         return Sweep.Result(stage='')
 
 #************************************************************************

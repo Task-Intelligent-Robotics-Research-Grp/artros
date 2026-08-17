@@ -12,12 +12,14 @@ from aist_bringup.launch_common import (declare_launch_arguments,
 launch_arguments = [
     {
         'name':        'camera_name',
-        'default':     'live_camera',
+        # 'default':     'live_camera',
+        'default':     'a_motioncam',
         'description': 'name of the camera'
     },
     {
         'name':        'camera_type',
-        'default':     'USBCamera',
+        # 'default':     'USBCamera',
+        'default':     'PhoXiCamera',
         'description': 'type of the camera'
     },
     {

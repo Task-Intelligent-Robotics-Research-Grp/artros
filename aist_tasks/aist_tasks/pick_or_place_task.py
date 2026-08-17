@@ -91,7 +91,6 @@ class PickOrPlaceTaskServer(ActionServer):
                     *tfs.quaternion_from_matrix(T))
 
         request = goal_handle.request
-        self.logger.info('=== %s ===' % ('Pick' if request.pick else 'Place'))
         node    = self.node
         com     = node.com
         gripper = node.gripper(request.robot_name)
@@ -144,7 +143,8 @@ class PickOrPlaceTaskServer(ActionServer):
 
             # [3] 'grasp/release' stage: Grasp or release at pick/place pose.
             with ActionServer.Stage(self, goal_handle,
-                                    'grasp/release') as stage:
+                                    'grasp' if request.pick else
+                                    'release') as stage:
                 if request.pick:
                     gripper.grasp()
                     if object_id != '':
@@ -210,8 +210,6 @@ class PickOrPlaceTaskServer(ActionServer):
 
             # [Final] Goal succeeded.
             goal_handle.succeed()
-            self.logger.info('=== %s succeeded ==='
-                             % ('Pick' if request.pick else 'Place'))
             return PickOrPlace.Result(stage='')
 
         finally:
