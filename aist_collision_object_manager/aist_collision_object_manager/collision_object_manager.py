@@ -801,27 +801,26 @@ class CollisionObjectManager(object):
             return
 
         try:
-            res.visual_array = [self._create_link_mesh(mesh_url,
-                                                       mesh_pose, mesh_scale)
+            res.visual_array = [_create_link_mesh(mesh_url,
+                                                  mesh_pose, mesh_scale)
                                 for mesh_url, mesh_pose, mesh_scale
                                 in zip(obj_props.visual_mesh_urls,
                                        obj_props.visual_mesh_poses,
                                        obj_props.visual_mesh_scales)]
             if not obj_props.primitives:
-                res.collision_array = [self._create_link_mesh(mesh_url,
-                                                              mesh_pose,
-                                                              mesh_scale)
+                res.collision_array = [_create_link_mesh(mesh_url,
+                                                         mesh_pose, mesh_scale)
                                        for mesh_url, mesh_pose, mesh_scale
                                        in zip(obj_props.collision_mesh_urls,
                                               obj_props.collision_mesh_poses,
                                               obj_props.collision_mesh_scales)]
             else:
-                res.collision_array = [self._create_link_primitive(
-                                           primitive, primitive_pose)
+                res.collision_array = [_create_link_primitive(primitive,
+                                                              primitive_pose)
                                        for primitive, primitive_pose
                                        in zip(obj_props.primitives,
                                               obj_props.primitive_poses)]
-            res.material_array = [self._create_link_material(mesh_color)
+            res.material_array = [_create_link_material(mesh_color)
                                   for mesh_color
                                   in obj_props.visual_mesh_colors]
         except Exception as e:

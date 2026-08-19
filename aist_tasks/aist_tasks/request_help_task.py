@@ -36,7 +36,7 @@
 #
 import threading, collections
 from rclpy.callback_groups       import MutuallyExclusiveCallbackGroup
-from task_wrappers.action_client import GroupedSimpleActionClient
+from task_wrappers.action_client import SimpleActionClient
 from task_wrappers.action_server import ActionServer
 from aist_msgs.action            import RequestHelp
 from aist_msgs.msg               import RequestHelp as RequestHelpMsg, Pointing
@@ -50,7 +50,7 @@ from typing                      import Optional
 #*********************************************************************
 #  class RequestHelpTaskClient                                       *
 #*********************************************************************
-class RequestHelpTaskClient(GroupedSimpleActionClient):
+class RequestHelpTaskClient(SimpleActionClient):
     def __init__(self, node: Node, server_ns: str='request_help'):
         """ Create RequestHelpTaskClient.
 
@@ -59,8 +59,7 @@ class RequestHelpTaskClient(GroupedSimpleActionClient):
           server_ns: Namespace of the RequestHelpTaskServer.
         """
         super().__init__(node, RequestHelp, server_ns,
-                         callback_group=MutuallyExclusiveCallbackGroup(),
-                         group_field='robot_name')
+                         callback_group=MutuallyExclusiveCallbackGroup())
         self.wait_for_server()
         self._marker_pub = node.create_publisher(Marker, 'pointing_marker', 1)
 
@@ -89,7 +88,7 @@ class RequestHelpTaskClient(GroupedSimpleActionClient):
         goal.request.pose       = self._pose
         goal.request.request    = RequestHelpMsg.SWEEP_DIR_REQ
         goal.request.message    = message
-        return super().send_goal(goal, feedback_cb=self._feedback_cb,
+        return super().send_goal(goal, feedback_callback=self._feedback_cb,
                                  timeout_sec=timeout_sec)
 
     def delete_markers(self):

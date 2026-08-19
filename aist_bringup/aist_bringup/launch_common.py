@@ -112,6 +112,19 @@ DEVICE_PROPS = {
                                    'config', 'templates',
                                    'rgbd_camera_bridge.yaml']),
     },
+    'PhoXiAreaCamera':
+    {
+        'launch_file':        PathJoinSubstitution(
+                                  [FindPackageShare('aist_phoxi_camera'),
+                                   'launch', 'launch.py']),
+        'key_of_id':          'id',
+        'cinfo_topic':        'color/camera_info',
+        'color_topic':        'color/image',
+        'gz_bridge_template': PathJoinSubstitution(
+                                  [FindPackageShare('aist_bringup'),
+                                   'config', 'templates',
+                                   'area_camera_bridge.yaml']),
+    },
     'RealsenseCamera':
     {
         'launch_file':        PathJoinSubstitution(

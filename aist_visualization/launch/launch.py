@@ -19,7 +19,7 @@ launch_arguments = [
     {
         'name':        'camera_type',
         # 'default':     'USBCamera',
-        'default':     'PhoXiCamera',
+        'default':     'PhoXiAreaCamera',
         'description': 'type of the camera'
     },
     {
@@ -84,7 +84,8 @@ def launch_setup(context):
                     remappings=[
                         ('camera_info',
                          [LaunchConfiguration('camera_name'), '/',
-                          camera_props['cinfo_topic']])],
+                          camera_props['cinfo_topic']])
+                    ],
                     extra_arguments=[{'use_intra_process_comms': True}])
             ]),
     ]

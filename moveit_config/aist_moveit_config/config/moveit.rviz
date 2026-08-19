@@ -7,6 +7,7 @@ Panels:
         - /MotionPlanning1/Planning Request1
         - /MotionPlanning1/Planning Metrics1
         - /MotionPlanning1/Planned Path1
+        - /TF1
         - /TF1/Frames1
         - /Graspabilities1
         - /a_motioncam_color1/Topic1
@@ -3369,7 +3370,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /collision_object_manager/collision_marker
+        Value: /collision_marker
       Value: true
     - Alpha: 1
       Auto Size:
@@ -3596,7 +3597,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 0.4405848979949951
+      Distance: 0.7963506579399109
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -3611,10 +3612,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.9345733523368835
+      Pitch: 0.4395734667778015
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.33767861127853394
+      Yaw: 0.12767894566059113
     Saved: ~
 Window Geometry:
   Displays:
