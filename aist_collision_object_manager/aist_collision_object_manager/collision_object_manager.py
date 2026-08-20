@@ -1140,7 +1140,8 @@ class CollisionObjectManager(object):
             self.logger.error('unknown object[%s]' % object_id)
             return
         self._marker_pub.publish(
-            MarkerArray(markers=[Marker(id=marker.id, action=Marker.DELETE)
+            MarkerArray(markers=[Marker(header=marker.header,
+                                        id=marker.id, action=Marker.DELETE)
                                  for marker in instance_props.markers]))
         with self._instance_props_lock:
             del self._instance_props_dict[object_id]

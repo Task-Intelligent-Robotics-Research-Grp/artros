@@ -1,0 +1,20 @@
+ros_to_nep:
+  - from: /tf
+    to:   Kitting/transforms
+  - from: /mesh_generator/mesh
+    to:   Kitting/screen_mesh
+  - from: /a_motioncam/texture
+    to:   Kitting/image
+  - from: /collision_marker
+    to:   Kitting/collision_marker
+    type: visualization_msgs/MarkerArray
+
+services:
+  - name:     /robot_description_provider/get_links
+    request:  Kitting/get_links
+    response: Kitting/links
+    type:     aist_msgs/srv/GetLinks
+  - name:     /get_collision_object
+    request:  Kitting/get_collision_object
+    response: Kitting/collision_object
+    type:     aist_msgs/srv/GetCollisionObject
