@@ -133,11 +133,11 @@ class AttemptBinTaskServer(ActionServer):
             with ActionServer.Stage(self, goal_handle, 'pick',
                                     pick_or_place_cancel) as stage:
                 # Attempt only once if fine graspability parameters are used.
-                status, result = self._attempt_pick(request.robot_name,
-                                                    part_id,
-                                                    pick_poses, fail_poses,
-                                                    1 if gparameters else \
-                                                    request.max_attempts)
+                status, result, pose = self._attempt_pick(
+                                           request.robot_name, part_id,
+                                           pick_poses, fail_poses,
+                                           1 if gparameters else \
+                                           request.max_attempts)
                 if status is GoalStatus.STATUS_ABORTED:
                     if gparameters is None:
                         gparameters = self.node.fine_graspability_parameters[
@@ -147,7 +147,8 @@ class AttemptBinTaskServer(ActionServer):
                     else:
                         raise ActionServer.Error('Failed to pick',
                                                  stage=stage.extend_name(
-                                                           result.stage))
+                                                           result.stage),
+                                                 pose=pose)
 
             if status is GoalStatus.STATUS_SUCCEEDED:
                 # [5] 'place' stage: Begin placing and wait until reaching
@@ -238,7 +239,7 @@ class AttemptBinTaskServer(ActionServer):
 
             # A. Pick succeeded.
             if status is GoalStatus.STATUS_SUCCEEDED:
-                return status, result
+                return status, result, pose
 
             # B. Pick failed.
             elif status is GoalStatus.STATUS_ABORTED:
@@ -248,21 +249,21 @@ class AttemptBinTaskServer(ActionServer):
 
                 # B-2. Error in departing from pick pose.
                 elif result.stage == 'depart':
-                    return status, result
+                    return status, result, pose
 
                 # B-3. Error in grasping.
                 elif result.stage == 'verify':
                     fail_poses.append(pose)
                     nattempts += 1
                     if nattempts == max_attempts:
-                        return status, result
+                        return status, result, pose
 
             # C. Pick canceled.
             elif status is GoalStatus.STATUS_CANCELED:
-                return status, result
+                return status, result, pose
 
         # Here, no graspability poses remained or max_attempts attained.
-        return GoalStatus.STATUS_UNKNOWN, None
+        return GoalStatus.STATUS_UNKNOWN, None, pose
 
 
 #************************************************************************
