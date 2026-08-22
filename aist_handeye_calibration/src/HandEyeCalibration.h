@@ -41,7 +41,7 @@
 #ifndef HANDEYECALIBRATION_H
 #define HANDEYECALIBRATION_H
 
-#include <Eigen/Dense>
+#include <Eigen/Core>
 #include "Transform.h"
 
 namespace TU
