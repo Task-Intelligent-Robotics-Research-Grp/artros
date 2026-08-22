@@ -10,15 +10,15 @@ repositories:
   moveit_commander_ros2:
     type: git
     url: https://github.com/Task-Intelligent-Robotics-Research-Grp/moveit_commander_ros2
-    version: lyrical-aist
+    version: devel-aist
   aist_robotiq:
     type: git
     url: https://github.com/Task-Intelligent-Robotics-Research-Grp/aist_robotiq
     version: develop
   realsense-ros:
     type: git
-    url: https://github.com/realsenseai/realsense-ros
-    version: ros2-master
+    url: https://github.com/Task-Intelligent-Robotics-Research-Grp/realsense-ros
+    version: ros2-sr300-ok
   dynamixel_workbench_controllers:
     type: git
     url: https://github.com/Task-Intelligent-Robotics-Research-Grp/dynamixel_workbench_controllers
