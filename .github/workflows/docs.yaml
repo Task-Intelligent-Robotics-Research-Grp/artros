@@ -1,0 +1,59 @@
+name: docs
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  ros_build:
+    runs-on: ubuntu-24.04
+    env:
+      WS:  /home/runner/work/ros2_docs_ws
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        path: artros
+
+    - name: Setup ROS
+      uses: ros-tooling/setup-ros@v0.7
+      with:
+        required-ros-distributions: jazzy
+
+    - name: Apt update and upgrade
+      run: |
+        sudo apt update
+        sudo apt upgrade -y
+
+    - name: Install dependencies
+      run: |
+        sudo apt install python3-rosdoc2 python3-doxypypy
+
+    - name: Init workspace
+      run: |
+        mkdir ${WS}
+        ln -s ${GITHUB_WORKSPACE} ${WS}/src
+
+    - name: Build documents of artros
+      run: |
+        cd ${WS}/src/artros
+        doxygen
+
+    - name: Build documents of artros_msgs
+      run: |
+        cd ${WS}/src/artros/docs
+        rosdoc2 build --package-path ../artros_msgs
+        mv ./docs_output/artros_msgs ./html
+
+    - name: Upload artifact of artros
+      uses: actions/upload-pages-artifact@v4
+      with:
+        path: ./artros/docs/html
+
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v5
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write

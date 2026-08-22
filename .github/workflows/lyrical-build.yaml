@@ -9,8 +9,4 @@ jobs:
     with:
       os: ubuntu-26.04
       ros_distro: lyrical
-
-permissions:
-  contents: write
-  pages: write
-  id-token: write
+      branch: lyrical
