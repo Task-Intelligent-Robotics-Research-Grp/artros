@@ -38,11 +38,11 @@ jobs:
         cd ${WS}/src/artros
         doxygen
 
-    - name: Build documents of artros_msgs
+    - name: Build documents of aist_msgs
       run: |
         cd ${WS}/src/artros/docs
-        rosdoc2 build --package-path ../artros_msgs
-        mv ./docs_output/artros_msgs ./html
+        rosdoc2 build --package-path ../aist_msgs
+        mv ./docs_output/aist_msgs ./html
 
     - name: Upload artifact of artros
       uses: actions/upload-pages-artifact@v4
