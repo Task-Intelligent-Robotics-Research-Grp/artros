@@ -14,7 +14,6 @@
   <exec_depend>rclcpp_components</exec_depend>
   <exec_depend>launch_ros</exec_depend>
 
-  <depend>eigen</depend>
   <depend>std_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>sensor_msgs</depend>
@@ -22,6 +21,7 @@
   <depend>aist_msgs</depend>
   <depend>aist_utility</depend>
   <depend>ddynamic_reconfigure2</depend>
+  <depend>eigen</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

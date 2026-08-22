@@ -21,6 +21,7 @@ find_package(PkgConfig)
 pkg_check_modules(YAML-CPP REQUIRED yaml-cpp)
 pkg_check_modules(LIBTIFF REQUIRED libtiff-4)
 find_package(OpenCV REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 include_directories(
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>

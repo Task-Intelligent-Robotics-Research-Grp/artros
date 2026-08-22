@@ -15,10 +15,10 @@ repositories:
     type: git
     url: https://github.com/Task-Intelligent-Robotics-Research-Grp/aist_robotiq
     version: develop
-#  realsense-ros:
-#    type: git
-#    url: https://github.com/realsenseai/realsense-ros
-#    version: ros2-master
+  realsense-ros:
+    type: git
+    url: https://github.com/realsenseai/realsense-ros
+    version: ros2-master
   dynamixel_workbench_controllers:
     type: git
     url: https://github.com/Task-Intelligent-Robotics-Research-Grp/dynamixel_workbench_controllers
