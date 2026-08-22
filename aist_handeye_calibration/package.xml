@@ -21,7 +21,8 @@
   <depend>aist_msgs</depend>
   <depend>aist_utility</depend>
   <depend>ddynamic_reconfigure2</depend>
-  <depend>eigen</depend>
+  <depend>eigen3</depend>
+  <depend>eigen3_cmake_module</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
