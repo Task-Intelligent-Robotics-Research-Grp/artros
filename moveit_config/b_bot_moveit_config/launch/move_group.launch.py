@@ -48,6 +48,8 @@ def load_yaml(file_path):
 def launch_setup(context):
     moveit_configs = MoveItConfigsBuilder(robot_name='b_bot_base_scene',
                                           package_name='b_bot_moveit_config') \
+                    .planning_pipelines(pipelines=[
+                        "pilz_industrial_motion_planner"]) \
                     .to_moveit_configs()
     wait_robot_description = Node(package='aist_bringup',
                                   executable='wait_for_robot_description',

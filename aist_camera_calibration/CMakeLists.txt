@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.20)
 project(aist_camera_calibration)
 
 if(NOT CMAKE_C_STANDARD)
@@ -17,6 +17,7 @@ endif()
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
+find_package(Eigen3 REQUIRED)
 # find_package(PkgConfig)
 # pkg_check_modules(YAML-CPP REQUIRED yaml-cpp)
 

@@ -9,8 +9,4 @@ jobs:
     with:
       os: ubuntu-24.04
       ros_distro: jazzy
-
-permissions:
-  contents: write
-  pages: write
-  id-token: write
+      branch: ros2-devel

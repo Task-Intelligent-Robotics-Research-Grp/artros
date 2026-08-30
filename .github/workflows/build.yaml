@@ -9,6 +9,9 @@ on:
       ros_distro:
         required: true
         type: string
+      branch:
+        required: true
+        type: string
 
 jobs:
   ros_build:
@@ -19,6 +22,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         path: artros
+        ref: ${{ inputs.branch }}
 
     - name: Setup ROS
       uses: ros-tooling/setup-ros@v0.7
@@ -55,23 +59,3 @@ jobs:
         source /opt/ros/${{ inputs.ros_distro }}/setup.bash
         cd ${WS}
         colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
-
-    - name: Build documents of artros
-      run: |
-        cd ${WS}/src/artros
-        doxygen
-
-    - name: Build documents of artros_msgs
-      run: |
-        cd ${WS}/src/artros/docs
-        rosdoc2 build --package-path ../aist_msgs
-        mv ./docs_output/aist_msgs ./html
-
-    - name: Upload artifact of artros
-      uses: actions/upload-pages-artifact@v4
-      with:
-        path: ./artros/docs/html
-
-    - name: Deploy to GitHub Pages
-      id: deployment
-      uses: actions/deploy-pages@v5
