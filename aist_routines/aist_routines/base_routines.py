@@ -1138,6 +1138,12 @@ class BaseRoutines(Node):
                          poses=[pose_from_matrix(T @ pose_matrix(pose) @ S)
                                 for pose in poses.poses])
 
+    def add_offset_to_pose(self, pose, offset):
+        T = pose_matrix(pose.pose) \
+          @ tfs.translation_matrix(self._position_from_offset(offset[0:3])) \
+          @ tfs.quaternion_matrix(self._orientation_from_offset(offset[3:]))
+        return PoseStamped(header=pose.header, pose=pose_from_matrix(T))
+
     def correct_orientation(self, pose):
         poses = self.correct_orientations(PoseArray(header=pose.header,
                                                     poses=[pose.pose]))
