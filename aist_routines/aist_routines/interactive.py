@@ -34,7 +34,7 @@
 #
 # Author: Toshio Ueshiba
 #
-import rclpy, sys, threading
+import rclpy, sys, threading, cmd
 from rclpy.executors import MultiThreadedExecutor
 
 

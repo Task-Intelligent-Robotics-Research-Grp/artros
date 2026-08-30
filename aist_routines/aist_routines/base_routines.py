@@ -33,11 +33,12 @@
 #
 # Author: Toshio Ueshiba
 #
-import rclpy, sys, time, yaml, re
+import rclpy, sys, time, yaml, re, readline
 import numpy as np
 import moveit_commander
 import tf_transformations as tfs
 
+from cmd                           import Cmd
 from math                          import degrees, sqrt, pi
 from rclpy.node                    import Node
 from rclpy.duration                import Duration
@@ -80,7 +81,7 @@ def get_grippers(config, name=''):
 #*********************************************************************
 #  class BaseRoutines                                                *
 #*********************************************************************
-class BaseRoutines(Node):
+class BaseRoutines(Node, Cmd):
     """ Collection of basic routines for controlling arms, grippers
     and cameras.
     """
@@ -97,7 +98,12 @@ class BaseRoutines(Node):
         Args:
           name: Node name.
         """
-        super().__init__(name)
+        Node.__init__(self, name)
+        Cmd.__init__(self)
+
+        delims = readline.get_completer_delims()
+        if '/' in delims:
+            readline.set_completer_delims(delims.replace('/', ''))
 
         # Create TransformListener
         self._tf2_buffer   = Buffer()
@@ -540,6 +546,24 @@ class BaseRoutines(Node):
         else:
             print('  unknown command! [%s]' % command)
         return robot_name, axis, speed
+
+    def do_robot(self, robot_name):
+        ''' robot [robot_name]
+        Change active robot '''
+        if robot_name:
+            if robot_name in self.robot_names:
+                self._robot = robot_name
+            else:
+                print('  unknown robot name[%s]!' % robot_name)
+        else:
+            print('  current robot: %s' % self._robot)
+
+    def complete_robot(self, text, line, ib, ie):
+        if not text:
+            completions = self.robot_names
+        else:
+            completions = [r for r in self.robot_names if r.startswith(text)]
+        return completions
 
     #
     # Joint motion stuffs
