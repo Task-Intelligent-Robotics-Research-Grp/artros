@@ -9,7 +9,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <ament_index_cpp/get_package_share_directory.hpp>
-#include <tf2_ros/transform_broadcaster.h>
+#include <tf2_ros/transform_broadcaster.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <image_transport/image_transport.hpp>
 #include <image_transport/subscriber_filter.hpp>
@@ -197,15 +197,15 @@ Detector3D::Detector3D(const rclcpp::NodeOptions& options)
 	 create_subscription_options(
 	     create_callback_group(
 		 rclcpp::CallbackGroupType::MutuallyExclusive))),
-     _it(rclcpp::Node::SharedPtr(this)),
+     _it(*this),
      _image_sub(),
      _depth_sub(),
-     _cloud_sub(this, "pointcloud",
-		rmw_qos_profile_default, _subscription_options),
-     _cinfo_sub(this, "camera_info",
-		rmw_qos_profile_default, _subscription_options),
-     _depth_sync(_image_sub, _depth_sub, _cinfo_sub, 3),
-     _cloud_sync(_cloud_sub, _cinfo_sub, 3),
+     _cloud_sub(*this, "pointcloud",
+		rclcpp::SystemDefaultsQoS(), _subscription_options),
+     _cinfo_sub(*this, "camera_info",
+		rclcpp::SystemDefaultsQoS(), _subscription_options),
+     _depth_sync(3, _cinfo_sub, _image_sub, _depth_sub),
+     _cloud_sync(3, _cinfo_sub, _cloud_sub),
      _camParam(),
      _useRectifiedImages(ddynamic_reconfigure2::declare_read_only_parameter(
 			     this, "image_is_rectified", false)),
@@ -301,10 +301,10 @@ Detector3D::Detector3D(const rclcpp::NodeOptions& options)
     	{0.0005, 0.05});
 
   // Register callback for marker detection.
-    _image_sub.subscribe(this, "image", "raw",
-			 rmw_qos_profile_default, _subscription_options);
-    _depth_sub.subscribe(this, "depth", "raw",
-			 rmw_qos_profile_default, _subscription_options);
+    _image_sub.subscribe(*this, "image", "raw",
+			 rclcpp::SystemDefaultsQoS(), _subscription_options);
+    _depth_sub.subscribe(*this, "depth", "raw",
+			 rclcpp::SystemDefaultsQoS(), _subscription_options);
     _depth_sync.registerCallback(&Detector3D::detect_marker_from_depth_cb,
 				 this);
     _cloud_sync.registerCallback(&Detector3D::detect_marker_from_cloud_cb,

@@ -11,10 +11,10 @@
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <image_transport/image_transport.hpp>
 #include <image_transport/subscriber_filter.hpp>
-#include <message_filters/synchronizer.h>
-#include <message_filters/sync_policies/approximate_time.h>
-#include <tf2_ros/buffer.h>
-#include <tf2_ros/transform_listener.h>
+#include <message_filters/synchronizer.hpp>
+#include <message_filters/sync_policies/approximate_time.hpp>
+#include <tf2_ros/buffer.hpp>
+#include <tf2_ros/transform_listener.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <ddynamic_reconfigure2/ddynamic_reconfigure2.hpp>
 #include <sensor_msgs/image_encodings.hpp>
@@ -151,7 +151,7 @@ MultiDetector::MultiDetector(const rclcpp::NodeOptions& options)
      _ddr(rclcpp::Node::SharedPtr(this)),
      _camera_names(ddynamic_reconfigure2::declare_read_only_parameter(
       		       this, "camera_names", std::vector<std::string>{})),
-     _it(rclcpp::Node::SharedPtr(this)),
+     _it(*this),
      _image_sub(),
      _image_subs(),
      _result_pubs(),
@@ -182,8 +182,8 @@ MultiDetector::MultiDetector(const rclcpp::NodeOptions& options)
 	if (_camera_names.size() >= 2)
 	{
 	    _image_subs.emplace_back(std::make_unique<subscriber_t>());
-	    _image_subs.back()->subscribe(this, camera_name + "/image", "raw",
-					  rmw_qos_profile_default,
+	    _image_subs.back()->subscribe(*this, camera_name + "/image", "raw",
+					  rclcpp::SystemDefaultsQoS(),
 					  _subscription_options);
 	}
 

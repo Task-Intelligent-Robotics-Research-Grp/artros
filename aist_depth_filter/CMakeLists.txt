@@ -27,6 +27,12 @@ ament_auto_add_library(
     src/DepthFilter.cpp
 )
 
+target_include_directories(
+  ${PROJECT_NAME} PRIVATE
+    $<BUILD_INTERFACE:${EIGEN3_INCLUDE_DIR}>
+    $<INSTALL_INTERFACE:include>
+)
+
 target_link_libraries(
   ${PROJECT_NAME}
     ${OpenCV_LIBRARIES}
