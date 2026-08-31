@@ -119,7 +119,7 @@ class AttemptBinTaskServer(ActionServer):
                             raise ActionServer.Error('Failed to move camera',
                                                      stage=stage.name)
 
-                # [3] Search stage: Search for graspabilities.
+                # [3] 'search' stage: Search for graspabilities.
                 with ActionServer.Stage(self, goal_handle, 'search') as stage:
                     status, result = self.node.search_bin(request.bin_id,
                                                           gparameters)
@@ -140,11 +140,13 @@ class AttemptBinTaskServer(ActionServer):
                                            request.max_attempts)
                 if status is GoalStatus.STATUS_ABORTED:
                     if gparameters is None:
+                        self.logger.warn('### pick@AttemptBin aborted, switch to fine parameters')
                         gparameters = self.node.fine_graspability_parameters[
                                           part_id]
                         pick_poses  = []
                         fail_poses  = []
                     else:
+                        self.logger.warn('### pick@AttemptBin aborted under fine parameters')
                         raise ActionServer.Error('Failed to pick',
                                                  stage=stage.extend_name(
                                                            result.stage),
@@ -190,8 +192,16 @@ class AttemptBinTaskServer(ActionServer):
                             raise ActionServer.Error('Failed to place',
                                                      stage=stage.extend_name(
                                                                result.stage))
-            elif status is GoalStatus.STATUS_UNKNOWN:  # No poses remained...
-                break
+            elif status is not GoalStatus.STATUS_ABORTED:  # No poses remained...
+                if gparameters is None:
+                    self.logger.warn('### pick@AttemptBin terminated with status[%d], switch to fine parameters' % status)
+                    gparameters = self.node.fine_graspability_parameters[
+                                      part_id]
+                    pick_poses  = []
+                    fail_poses  = []
+                else:
+                    self.logger.warn('### pick@AttemptBin terminated with status[%d], break' % status)
+                    break
 
             if not request.pick_all:
                 break
@@ -273,3 +283,7 @@ class AttemptBinTask(AttemptBinTaskClient):
     def __init__(self, node, server_ns='attempt_bin'):
         self._server = AttemptBinTaskServer(node, server_ns)
         super().__init__(node, server_ns)
+
+    @property
+    def server(self):
+        return self._server

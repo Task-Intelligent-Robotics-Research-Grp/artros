@@ -53,6 +53,8 @@ class HMIRoutines(KittingRoutines):
         self._sweep                   = SweepTask(self)
         self._request_help            = RequestHelpTask(self)
         self._error_recovery_by_sweep = ErrorRecoveryBySweepTask(self)
+        self._attempt_bin.server.register_error_handler(
+            'pick', self.error_recovery_by_sweep)
 
     @property
     def sweep_parameters(self):

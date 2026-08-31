@@ -10,7 +10,7 @@ repositories:
   moveit_commander_ros2:
     type: git
     url: https://github.com/Task-Intelligent-Robotics-Research-Grp/moveit_commander_ros2
-    version: lyrical-aist
+    version: devel-aist
   aist_robotiq:
     type: git
     url: https://github.com/Task-Intelligent-Robotics-Research-Grp/aist_robotiq
