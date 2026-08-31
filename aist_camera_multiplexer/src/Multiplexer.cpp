@@ -156,7 +156,7 @@ Multiplexer::Multiplexer(const rclcpp::NodeOptions& options)
      _subscribers(),
      _active_camera_number(0),
      _ddr(rclcpp::Node::SharedPtr(this)),
-     _it(rclcpp::Node::SharedPtr(this)),
+     _it(*this),
      _image_pub( _it.advertise(node_name() + "/image",  1)),
      _depth_pub( _it.advertise(node_name() + "/depth",  1)),
      _normal_pub(_it.advertise(node_name() + "/normal", 1)),

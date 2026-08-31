@@ -38,7 +38,7 @@
   \author	Toshio Ueshiba
 */
 #include <rviz_common/display_context.hpp>
-#include <OgreVector3.h>
+#include <Ogre.h>
 #include <OgreMaterialManager.h>
 #include <OgreTechnique.h>
 #include <cv_bridge/cv_bridge.hpp>
@@ -105,7 +105,7 @@ TexturedMeshDisplay::onInitialize()
     const auto	ros_node = context_->getRosNodeAbstraction().lock();
     image_topic_property_->initialize(ros_node);
     mesh_topic_property_ ->initialize(ros_node);
-    it_.reset(new image_transport::ImageTransport(ros_node->get_raw_node()));
+    it_.reset(new image_transport::ImageTransport(*ros_node->get_raw_node()));
 }
 
 void
@@ -253,7 +253,7 @@ TexturedMeshDisplay::createMesh()
 	auto&&		   rg_mgr = Ogre::ResourceGroupManager::getSingleton();
 	if (!rg_mgr.resourceGroupExists(resource_group_name))
 	    rg_mgr.createResourceGroup(resource_group_name);
-	
+
 	mesh_material_ = Ogre::MaterialManager::getSingleton().create(
 			     "MeshMaterial", resource_group_name);
     }

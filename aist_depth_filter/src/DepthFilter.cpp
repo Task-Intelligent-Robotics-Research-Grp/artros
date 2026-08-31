@@ -269,16 +269,17 @@ DepthFilter::DepthFilter(const rclcpp::NodeOptions& options)
 			       "Scale factor for depth", {0.5, 1.5});
 
   // Setup subscribers
-    _image_sub.subscribe(this, "/image", "raw",
-			 rmw_qos_profile_default, _subscription_options);
-    _depth_sub.subscribe(this, "/depth", "raw",
-			 rmw_qos_profile_default, _subscription_options);
+    _image_sub.subscribe(*this, "/image", "raw",
+			 rclcpp::SystemDefaultsQoS(), _subscription_options);
+    _depth_sub.subscribe(*this, "/depth", "raw",
+			 rclcpp::SystemDefaultsQoS(), _subscription_options);
     if (ddynamic_reconfigure2::declare_read_only_parameter(this,
 							   "subscribe_normal",
 							   false))
     {
-	_normal_sub.subscribe(this, "/normal", "raw",
-			      rmw_qos_profile_default, _subscription_options);
+	_normal_sub.subscribe(*this, "/normal", "raw",
+			      rclcpp::SystemDefaultsQoS(),
+                              _subscription_options);
 	_sync_with_normal.registerCallback(&DepthFilter::filter_with_normal_cb,
 					   this);
     }

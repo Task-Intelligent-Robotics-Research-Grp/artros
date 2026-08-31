@@ -37,7 +37,7 @@
  */
 #pragma once
 
-#include <ament_index_cpp/get_package_share_directory.hpp>
+#include <ament_index_cpp/get_package_share_path.hpp>
 #include <string>
 
 namespace aist_utility

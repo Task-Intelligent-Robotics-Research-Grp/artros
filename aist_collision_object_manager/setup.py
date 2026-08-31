@@ -18,5 +18,4 @@ setup(
     maintainer_email="t.ueshiba@aist.go.jp",
     description="Python interface for managing collision objects in MoveIt",
     license="BSD",
-    tests_require=["pytest"],
 )

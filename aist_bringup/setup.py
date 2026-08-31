@@ -24,7 +24,6 @@ setup(
     maintainer_email="t.ueshiba@aist.go.jp",
     description="Package with bringup scripts/config for various robots",
     license="BSD",
-    tests_require=["pytest"],
     entry_points={
         'console_scripts': [
             'append_ros2_control = ' + package_name + '.append_ros2_control:main',

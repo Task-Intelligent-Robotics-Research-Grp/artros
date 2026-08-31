@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.20)
 project(aist_depth_filter)
 
 if(NOT CMAKE_C_STANDARD)

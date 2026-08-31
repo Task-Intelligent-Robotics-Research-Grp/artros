@@ -20,7 +20,6 @@ setup(
     maintainer_email="t.ueshiba@aist.go.jp",
     description="Package of actions for executing various tasks with robots",
     license="BSD",
-    tests_require=["pytest"],
     entry_points={
         'console_scripts': [
             'interactive = ' + package_name + '.interactive:main'

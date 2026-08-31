@@ -123,11 +123,9 @@ class ForceTorqueSensorBroadcaster
     using trigger_res	 = trigger_t::Response::SharedPtr;
 
     template <class MSG>
-    using publisher_p	 = typename rclcpp::Publisher<MSG>::SharedPtr;
+    using publisher_t	 = realtime_tools::RealtimePublisher<MSG>;
     template <class MSG>
-    using rt_publisher_t = typename realtime_tools::RealtimePublisher<MSG>;
-    template <class MSG>
-    using rt_publisher_p = std::unique_ptr<rt_publisher_t<MSG> >;
+    using publisher_p    = std::shared_ptr<publisher_t<MSG> >;
     template <class MSG>
     using subscription_p = typename rclcpp::Subscription<MSG>::SharedPtr;
     template <class SRV>
@@ -192,9 +190,7 @@ class ForceTorqueSensorBroadcaster
     std::string				_frame_id;
     std::unique_ptr<ft_sensor_t>	_ft_sensor;
     publisher_p<wrench_t>		_wrench_org_pub;
-    rt_publisher_p<wrench_t>		_wrench_org_rt_pub;
     publisher_p<wrench_t>		_wrench_pub;
-    rt_publisher_p<wrench_t>		_wrench_rt_pub;
     rclcpp::Duration			_pub_interval;
     rclcpp::Time			_last_pub_time;
 
@@ -247,9 +243,7 @@ ForceTorqueSensorBroadcaster::ForceTorqueSensorBroadcaster()
      _frame_id(),
      _ft_sensor(),
      _wrench_org_pub(),
-     _wrench_org_rt_pub(),
      _wrench_pub(),
-     _wrench_rt_pub(),
      _pub_interval(0, 0),
      _last_pub_time(),
 
@@ -432,14 +426,14 @@ ForceTorqueSensorBroadcaster::on_configure(const lc_state_t&)
 	sensor_name = ddynamic_reconfigure2::declare_read_only_parameter(
 			  get_node(), "sensor_name", "");
     _ft_sensor	       = std::make_unique<ft_sensor_t>(sensor_name);
-    _wrench_org_pub    = get_node()->create_publisher<wrench_t>(
-			     "~/wrench_org", rclcpp::SystemDefaultsQoS());
-    _wrench_org_rt_pub = std::make_unique<rt_publisher_t<wrench_t> >(
-			     _wrench_org_pub);
-    _wrench_pub	       = get_node()->create_publisher<wrench_t>(
-			     "~/wrench", rclcpp::SystemDefaultsQoS());
-    _wrench_rt_pub     = std::make_unique<rt_publisher_t<wrench_t> >(
-			     _wrench_pub);
+    _wrench_org_pub = std::make_shared<publisher_t<wrench_t> >(
+                          *get_node(), "~/wrench_org",
+                          rclcpp::SystemDefaultsQoS(),
+                          rclcpp::PublisherOptions());
+    _wrench_pub	    = std::make_shared<publisher_t<wrench_t> >(
+                          *get_node(), "~/wrench",
+                          rclcpp::SystemDefaultsQoS(),
+                          rclcpp::PublisherOptions());
     
   // [C] JointSate stuffs
     _joint_state_sub = get_node()->create_subscription<joint_state_t>(
@@ -505,28 +499,23 @@ ForceTorqueSensorBroadcaster::update_and_write_commands(
 	return ci_return_t::OK;
 
   // Get current force-torque values.
-    geometry_msgs::msg::Wrench	wrench;
-    _ft_sensor->get_values_as_message(wrench);
+    geometry_msgs::msg::WrenchStamped	wrench;
+    _ft_sensor->get_values_as_message(wrench.wrench);
     {
 	std::lock_guard<std::mutex>	lock(_ft_mtx);
 
-	_ft(0) = wrench.force.x;
-	_ft(1) = wrench.force.y;
-	_ft(2) = wrench.force.z;
-	_ft(3) = wrench.torque.x;
-	_ft(4) = wrench.torque.x;
-	_ft(5) = wrench.torque.x;
+	_ft(0) = wrench.wrench.force.x;
+	_ft(1) = wrench.wrench.force.y;
+	_ft(2) = wrench.wrench.force.z;
+	_ft(3) = wrench.wrench.torque.x;
+	_ft(4) = wrench.wrench.torque.x;
+	_ft(5) = wrench.wrench.torque.x;
     }
 
   // Publish unfiltered force-torque signal.
-    if (_wrench_org_rt_pub->trylock())
-    {
-	_wrench_org_rt_pub->msg_.header.stamp    = time;
-	_wrench_org_rt_pub->msg_.header.frame_id = _frame_id;
-	_wrench_org_rt_pub->msg_.wrench		 = wrench;
-
-	_wrench_org_rt_pub->unlockAndPublish();
-    }
+    wrench.header.stamp    = time;
+    wrench.header.frame_id = _frame_id;
+    _wrench_org_pub->try_publish(wrench);
 
   // Lookup current joint positions contained in the chain.
     KDL::JntArray	jnt_pos;
@@ -575,20 +564,13 @@ ForceTorqueSensorBroadcaster::update_and_write_commands(
 
   // Publish filtered (and optionally gravity compensated)
   // force-torque signal.
-    if (_wrench_rt_pub->trylock())
-    {
-	_wrench_rt_pub->msg_.header.stamp    = time;
-	_wrench_rt_pub->msg_.header.frame_id = _frame_id;
-	_wrench_rt_pub->msg_.wrench.force.x  = ft(0);
-	_wrench_rt_pub->msg_.wrench.force.y  = ft(1);
-	_wrench_rt_pub->msg_.wrench.force.z  = ft(2);
-	_wrench_rt_pub->msg_.wrench.torque.x = ft(3);
-	_wrench_rt_pub->msg_.wrench.torque.y = ft(4);
-	_wrench_rt_pub->msg_.wrench.torque.z = ft(5);
-
-	_wrench_rt_pub->unlockAndPublish();
-	_last_pub_time = time;
-    }
+    wrench.wrench.force.x  = ft(0);
+    wrench.wrench.force.y  = ft(1);
+    wrench.wrench.force.z  = ft(2);
+    wrench.wrench.torque.x = ft(3);
+    wrench.wrench.torque.y = ft(4);
+    wrench.wrench.torque.z = ft(5);
+    _wrench_pub->try_publish(wrench);
 
     return ci_return_t::OK;
 }

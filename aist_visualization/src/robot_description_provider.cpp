@@ -4,10 +4,10 @@
 *  \brief	Bridge software for publishing URDF and TF to NEP
 */
 #include <rclcpp/rclcpp.hpp>
-#include <tf2_ros/buffer.h>
-#include <tf2_ros/transform_listener.h>
+#include <tf2_ros/buffer.hpp>
+#include <tf2_ros/transform_listener.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-#include <urdf/model.h>
+#include <urdf/model.hpp>
 #include <std_msgs/msg/string.hpp>
 #include <aist_msgs/srv/get_links.hpp>
 #include <aist_msgs/msg/link_geometry.hpp>

@@ -22,7 +22,6 @@ setup(
     maintainer_email="t.ueshiba@aist.go.jp",
     description="Package with basic routines for moving robots with MoveIt",
     license="BSD",
-    tests_require=["pytest"],
     entry_points={
         'console_scripts': [
             'base     = ' + package_name + '.interactive:base',

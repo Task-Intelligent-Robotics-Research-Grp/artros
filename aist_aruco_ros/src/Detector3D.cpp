@@ -95,10 +95,10 @@ class Detector3D : public rclcpp::Node
     using camera_info_t	= sensor_msgs::msg::CameraInfo;
     using image_t	= sensor_msgs::msg::Image;
     using cloud_t	= sensor_msgs::msg::PointCloud2;
-    using depth_sync_t	= message_filters::TimeSynchronizer<image_t, image_t,
-							    camera_info_t>;
-    using cloud_sync_t	= message_filters::TimeSynchronizer<cloud_t,
-							    camera_info_t>;
+    using depth_sync_t	= message_filters::TimeSynchronizer<camera_info_t,
+                                                            image_t, image_t>;
+    using cloud_sync_t	= message_filters::TimeSynchronizer<camera_info_t,
+                                                            cloud_t>;
     using pose_t	= geometry_msgs::msg::PoseStamped;
     using mdetector_t	= aruco::MarkerDetector;
     using mparams_t	= mdetector_t::Params;
@@ -123,16 +123,15 @@ class Detector3D : public rclcpp::Node
     void	set_detection_mode(int mode)				;
     void	set_dictionary(const std::string& dict)			;
     void	detect_marker_from_depth_cb(
-		    const msg_cp<image_t>&	 image_msg,
-		    const msg_cp<image_t>&	 depth,
-		    const msg_cp<camera_info_t>& cinfo)			;
+                    const msg_cp<camera_info_t>& cinfo,
+                    const msg_cp<image_t>&	 image_msg,
+		    const msg_cp<image_t>&	 depth)			;
     void	detect_marker_from_cloud_cb(
-		    const msg_cp<cloud_t>&	 cloud,
-		    const msg_cp<camera_info_t>& cinfo)			;
+                    const msg_cp<camera_info_t>& cinfo,
+		    const msg_cp<cloud_t>&	 cloud)			;
     template <class MSG>
-    void	detect_marker(const MSG& msg,
-			      const camera_info_t& cinfo,
-			      cv::Mat& img)				;
+    void	detect_marker(const camera_info_t& cinfo,
+			      const MSG& msg, cv::Mat& img)		;
     static void	publish_image(const std_msgs::msg::Header& header,
 			      const cv::Mat& img,
 			      const image_transport::Publisher& pub)	;
@@ -348,19 +347,19 @@ Detector3D::set_dictionary(const std::string& dict)
 }
 
 void
-Detector3D::detect_marker_from_depth_cb(const msg_cp<image_t>& image,
-					const msg_cp<image_t>& depth,
-					const msg_cp<camera_info_t>& cinfo)
+Detector3D::detect_marker_from_depth_cb(const msg_cp<camera_info_t>& cinfo,
+                                        const msg_cp<image_t>& image,
+					const msg_cp<image_t>& depth)
 {
     auto	img = cv_bridge::toCvCopy(image,
 					  sensor_msgs::image_encodings::RGB8)
 		    ->image;
-    detect_marker(*depth, *cinfo, img);
+    detect_marker(*cinfo, *depth, img);
 }
 
 void
-Detector3D::detect_marker_from_cloud_cb(const msg_cp<cloud_t>& cloud,
-					const msg_cp<camera_info_t>& cinfo)
+Detector3D::detect_marker_from_cloud_cb(const msg_cp<camera_info_t>& cinfo,
+                                        const msg_cp<cloud_t>& cloud)
 {
     if (cloud->is_dense)
     {
@@ -372,11 +371,11 @@ Detector3D::detect_marker_from_cloud_cb(const msg_cp<cloud_t>& cloud,
 
     cv::Mat	img(cloud->height, cloud->width, CV_8UC3);
     aist_utility::pointcloud_to_rgb(*cloud, img.ptr<rgb_t>());
-    detect_marker(*cloud, *cinfo, img);
+    detect_marker(*cinfo, *cloud, img);
 }
 
 template <class MSG> void
-Detector3D::detect_marker(const MSG& msg, const camera_info_t& cinfo,
+Detector3D::detect_marker(const camera_info_t& cinfo, const MSG& msg,
 			  cv::Mat& img)
 {
   // Convert camera_info to aruco camera parameters

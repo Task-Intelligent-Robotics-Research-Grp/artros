@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.20)
 project(aist_fastening_tools)
 
 if(NOT CMAKE_C_STANDARD)
