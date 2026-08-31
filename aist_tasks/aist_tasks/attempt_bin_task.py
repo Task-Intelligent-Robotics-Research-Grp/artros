@@ -238,6 +238,7 @@ class AttemptBinTaskServer(ActionServer):
             return False
 
         # Attempt to pick the item.
+        pose = None
         nattempts = 0
         for p in pick_poses.poses:
             pose = PoseStamped(header=pick_poses.header, pose=p)
