@@ -41,6 +41,7 @@ from geometry_msgs.msg           import PoseStamped, Pose, Quaternion
 from task_wrappers.action_server import ActionServer
 from task_wrappers.action_client import GroupedSimpleActionClient
 from aist_msgs.action            import ErrorRecoveryBySweep
+from aist_msgs.msg               import Pointing
 
 #*********************************************************************
 #  class ErrorRecoveryBySweepTaskClient                              *
@@ -99,7 +100,7 @@ class ErrorRecoveryBySweepTaskServer(ActionServer):
 
         self.logger.info("=== ErrorRecoveryBySweep ===")
 
-        request = goal_handle.request.request
+        request = goal_handle.request
         node    = self.node
         stop    = lambda: node.stop(request.robot_name)
 

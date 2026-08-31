@@ -53,6 +53,8 @@ class HMIRoutines(KittingRoutines):
         self._sweep                   = SweepTask(self)
         self._request_help            = RequestHelpTask(self)
         self._error_recovery_by_sweep = ErrorRecoveryBySweepTask(self)
+        self._attempt_bin.server.register_error_handler(
+            'pick', self.error_recovery_by_sweep)
 
     @property
     def sweep_parameters(self):
@@ -173,9 +175,9 @@ class HMIRoutines(KittingRoutines):
     def error_recovery_by_sweep(self, goal, stage, pose):
         if stage == 'pick/verify':
             part_id = self.bin_props[goal.bin_id]['part_id']
-            status, result = self._error_recovery_by_sweep(goal.robot_name,
-                                                           pose, part_id,
-                                                           'Pick_failed!')
+            status, result = self._error_recovery_by_sweep \
+                                 .send_goal(goal.robot_name, pose, part_id,
+                                            'Pick_failed!')
             return status != GoalStatus.STATUS_SUCCEEDED
         else:
             return True
