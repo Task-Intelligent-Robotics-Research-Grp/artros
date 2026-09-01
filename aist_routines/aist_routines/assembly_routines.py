@@ -49,6 +49,10 @@ class AssemblyRoutines(BaseRoutines):
         super().__init__(name)
         self._feature_trackers = {}
 
+    @property
+    def screw_types(self):
+        return ('screw_m3', 'screw_m4')
+
     # Interactive stuffs
     def print_help_messages(self):
         super().print_help_messages()
@@ -106,6 +110,24 @@ class AssemblyRoutines(BaseRoutines):
         else:
             return super().process_command(command, robot_name, axis, speed)
         return robot_name, axis, speed
+
+    def do_ps(self, screw_type):
+        '''    ps [screw_type]
+        Pick a screw of specified type.'''
+        if screw_type:
+            if screw_type in self.screw_types:
+                self.pick_screw(self._robot_name, screw_type)
+            else:
+                print('  unknown screw type[%s]!' % screw_type)
+        else:
+            self.place_screw(self._robot_name)
+
+    def complete_ps(self, text, line, ib, ie):
+        if text == '':
+            completions = self.screw_types
+        else:
+            completions = [s for s in self.screw_types if r.startswith(text)]
+        return completions
 
     def switch_camera(self, current_robot_name, new_robot_name,
                       laser_power=16):
