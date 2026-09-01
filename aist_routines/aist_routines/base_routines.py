@@ -699,10 +699,17 @@ class BaseRoutines(Node, Cmd):
         else:
             self.place_tool(self._robot_name)
 
+    def complete_pt(self, text, line, ib, ie):
+        if not text:
+            completions = self.gripper_names
+        else:
+            completions = [g for g in self.gripper_names if g.startswith(text)]
+        return completions
+
     def do_pcancel(self, dummy):
         '''      pcancel
-        Cancel picking/placing tool action.'''
-        self.gripper_cancel(self._robot_name)
+        Cancel pick/place action.'''
+        self.pick_or_place_cancel_goal(self._robot_name)
 
     def do_I(self, dummy):
         '''      I
