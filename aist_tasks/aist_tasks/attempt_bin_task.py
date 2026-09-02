@@ -140,13 +140,15 @@ class AttemptBinTaskServer(ActionServer):
                                            request.max_attempts)
                 if status is GoalStatus.STATUS_ABORTED:
                     if gparameters is None:
-                        self.logger.warn('### pick@AttemptBin aborted, switch to fine parameters')
+                        self.logger.warn('--- AttemptBin: aborted stage[%s], switch to fine parameters'
+                                         % stage.name)
                         gparameters = self.node.fine_graspability_parameters[
                                           part_id]
                         pick_poses  = []
                         fail_poses  = []
                     else:
-                        self.logger.warn('### pick@AttemptBin aborted under fine parameters')
+                        self.logger.warn('--- AttemptBin: aborted stage[%s] under fine parameters'
+                                         % stage.name)
                         raise ActionServer.Error('Failed to pick',
                                                  stage=stage.extend_name(
                                                            result.stage),
@@ -192,15 +194,17 @@ class AttemptBinTaskServer(ActionServer):
                             raise ActionServer.Error('Failed to place',
                                                      stage=stage.extend_name(
                                                                result.stage))
-            elif status is not GoalStatus.STATUS_ABORTED:  # No poses remained...
+            elif status is GoalStatus.STATUS_ABORTED:
+                pass
+            else:                                      # No poses remained...
                 if gparameters is None:
-                    self.logger.warn('### pick@AttemptBin terminated with status[%d], switch to fine parameters' % status)
+                    self.logger.warn('--- AttemptBin: terminated stage[pick] with status[%d] since no poses remained, switch to fine parameters' % status)
                     gparameters = self.node.fine_graspability_parameters[
                                       part_id]
                     pick_poses  = []
                     fail_poses  = []
                 else:
-                    self.logger.warn('### pick@AttemptBin terminated with status[%d], break' % status)
+                    self.logger.warn('---AttemptBin: pick stage terminated with status[%d], break' % status)
                     break
 
             if not request.pick_all:

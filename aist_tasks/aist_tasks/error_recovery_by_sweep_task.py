@@ -34,10 +34,12 @@
 # Author: Toshio Ueshiba
 #
 import numpy as np
+import tf_transformations as tfs
 from rclpy.node                  import Node
 from rclpy.callback_groups       import MutuallyExclusiveCallbackGroup
 from action_msgs.msg             import GoalStatus
-from geometry_msgs.msg           import PoseStamped, Pose, Quaternion
+from geometry_msgs.msg           import (PoseStamped, Pose, Quaternion,
+                                         PointStamped)
 from task_wrappers.action_server import ActionServer
 from task_wrappers.action_client import GroupedSimpleActionClient
 from aist_msgs.action            import ErrorRecoveryBySweep
@@ -74,10 +76,13 @@ class ErrorRecoveryBySweepTaskServer(ActionServer):
                          group_field='robot_name')
 
     def _execute_cb(self, goal_handle):
-        def _fix_sweep_direction(pose: PoseStamped, pointing: Pointing):
+        request = goal_handle.request
+        node    = self.node
+        stop    = lambda: node.stop(request.robot_name)
+
+        def _fix_sweep_direction(pose: PoseStamped, point: PointStamped):
             p = pose.pose.position
-            q = self.transform_point_to_target_frame(pointing.header,
-                                                     [pointing.point],
+            q = node.transform_point_to_target_frame(point,
                                                      pose.header.frame_id) \
                     .point
             s = np.array((q.x - p.x, q.y - p.y, q.z - p.z))
@@ -92,17 +97,11 @@ class ErrorRecoveryBySweepTaskServer(ActionServer):
             R[0:3, 0] = np.cross(R[0:3, 1], nz)
             qR = tfs.quaternion_from_matrix(R)
             return PoseStamped(header=pose.header,
-                               pose=Pose(position=ppos,
+                               pose=Pose(position=pose.pose.position,
                                          orientation=Quaternion(x=qR[0],
                                                                 y=qR[1],
                                                                 z=qR[2],
                                                                 w=qR[3])))
-
-        self.logger.info("=== ErrorRecoveryBySweep ===")
-
-        request = goal_handle.request
-        node    = self.node
-        stop    = lambda: node.stop(request.robot_name)
 
         # [1] 'sweep_ready' stage: Go to sweep ready pose.
         with ActionServer.Stage(self, goal_handle, 'go_to_sweep_ready',
@@ -113,8 +112,7 @@ class ErrorRecoveryBySweepTaskServer(ActionServer):
                                          stage=stage.name)
 
         # [2] 'request_help' stage: Get Pointing.msg from the remote operator.
-        with ActionServer.Stage(self, goal_handle, 'request_help',
-                                stop) as stage:
+        with ActionServer.Stage(self, goal_handle, 'request_help') as stage:
             message = 'Picking_failed!'
             status, result = node.request_help(request.robot_name,
                                                request.pose, request.item_id,
@@ -124,9 +122,12 @@ class ErrorRecoveryBySweepTaskServer(ActionServer):
                                           stage=stage.name)
 
         # [3] 'sweep' stage:
-        with ActionServer.Stage(self, goal_handle, 'sweep') as stage:
-            pose   = _fix_orientation(request.pose, result.pointing)
-            params = node.sweep_parameters[part_id]
+        with ActionServer.Stage(self, goal_handle, 'sweep', stop) as stage:
+            pose   = _fix_sweep_direction(request.pose,
+                                          PointStamped(
+                                              header=result.pointing.header,
+                                              point=result.pointing.point))
+            params = node.sweep_parameters[request.item_id]
             status, result = node.sweep(request.robot_name, pose,
                                         request.item_id)
             if status == GoalStatus.STATUS_ABORTED:
@@ -135,7 +136,6 @@ class ErrorRecoveryBySweepTaskServer(ActionServer):
 
         # [Final] Goal succeeded.
         goal_handle.succeed()
-        self.logger.info('=== ErrorRecoveryBySweep succeeded ===')
         return ErrorRecoveryBySweep.Result(stage='')
 
 

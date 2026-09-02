@@ -178,6 +178,6 @@ class HMIRoutines(KittingRoutines):
             status, result = self._error_recovery_by_sweep \
                                  .send_goal(goal.robot_name, pose, part_id,
                                             'Pick_failed!')
-            return status != GoalStatus.STATUS_SUCCEEDED
+            return status == GoalStatus.STATUS_SUCCEEDED
         else:
-            return True
+            return False

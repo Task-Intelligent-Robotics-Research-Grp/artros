@@ -56,7 +56,7 @@ def _command_line_interface(node):
             arm_name, axis, speed = node.process_command(command, arm_name,
                                                          axis, speed)
         except Exception as e:
-            node.get_logger().error(e)
+            node.get_logger().error(str(e))
 
 def _main(name, routines):
     rclpy.init(args=sys.argv)
