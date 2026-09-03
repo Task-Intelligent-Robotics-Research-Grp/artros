@@ -101,14 +101,9 @@ class BaseRoutines(Node, Cmd):
         Node.__init__(self, name)
         Cmd.__init__(self)
 
-        delims = readline.get_completer_delims()
-        if '/' in delims:
-            readline.set_completer_delims(delims.replace('/', ''))
-
         # Create TransformListener
         self._tf2_buffer   = Buffer()
         self._tf2_listener = TransformListener(self._tf2_buffer, self)
-
         time.sleep(1.0)        # Necessary for listener spinning up
 
         # MoveIt planning parameters
@@ -127,7 +122,6 @@ class BaseRoutines(Node, Cmd):
         for group_name in self._cmd.get_group_names():
             group = self._cmd.get_group(group_name)
             group.set_pose_reference_frame(self.reference_frame)
-
         self.get_logger().info(
             'planning_frame: %s, reference_frame: %s, eef_step: %f'
             % (self.planning_frame, self.reference_frame, self.eef_step))
@@ -187,6 +181,9 @@ class BaseRoutines(Node, Cmd):
         self._robot_name = self.group_names[0]
         self._axis       = 1  # Y-axis
         self._speed      = 1.0
+        delims = readline.get_completer_delims()
+        if '/' in delims:
+            readline.set_completer_delims(delims.replace('/', ''))
 
         self.get_logger().info('BaseRoutines initialized.')
 
@@ -195,31 +192,31 @@ class BaseRoutines(Node, Cmd):
         return self.declare_parameter(name, param.get_parameter_value())
 
     @property
-    def tf2_buffer(self) -> Buffer:
+    def tf2_buffer(self)-> Buffer:
         """ TF2 buffer associated with this class.
         """
         return self._tf2_buffer
 
     @property
-    def planning_frame(self) -> str:
+    def planning_frame(self)-> str:
         """ MoveIt planning frame.
         """
         return self._cmd.get_planning_frame()
 
     @property
-    def reference_frame(self) -> str:
+    def reference_frame(self)-> str:
         """ MoveIt reference frame.
         """
         return self._reference_frame
 
     @property
-    def eef_step(self) -> float:
+    def eef_step(self)-> float:
         """ MoveIt end-effector step.
         """
         return self._eef_step
 
     @property
-    def move_lin(self) -> bool:
+    def move_lin(self)-> bool:
         return self._move_lin
 
     @move_lin.setter
@@ -227,49 +224,63 @@ class BaseRoutines(Node, Cmd):
         self._move_lin = enable
 
     @property
-    def group_names(self) -> list[str]:
+    def group_names(self)-> list[str]:
         """ Name list of MoveIt groups.
         """
         return self._cmd.get_group_names()
 
     @property
-    def robot_names(self) -> list[str]:
+    def robot_names(self)-> list[str]:
         """ Name list of arms.
         """
         return list(self._list_controllers_srvs.keys())
 
     @property
-    def gripper_names(self) -> list[str]:
+    def gripper_names(self)-> list[str]:
         """ Name list of grippers.
         """
         return list(self._grippers.keys())
 
     @property
-    def camera_names(self) -> list[str]:
+    def camera_names(self)-> list[str]:
         """ Name list of cameras.
         """
         return list(self._cameras.keys())
 
     @property
-    def frame_ids(self) -> list[str]:
+    def frame_ids(self)-> list[str]:
+        """ ID list of frames.
+        """
         return list(yaml.safe_load(self.tf2_buffer.all_frames_as_yaml()) \
                     .keys())
 
     @property
-    def com(self) -> CollisionObjectManager:
+    def com(self)-> CollisionObjectManager:
         """ Client of collision object manager associated with this class.
         """
         return self._com
 
     @property
-    def settings(self) -> dict:
+    def collision_object_ids(self)-> list[str]:
+        return list(self.com.collision_objects.keys())
+
+    @property
+    def attached_collision_object_ids(self)-> list[str]:
+        return list(self.com.attached_collision_objects.keys())
+
+    @property
+    def all_collision_object_ids(self)-> list[str]:
+        return self.collision_object_ids + self.attached_collision_object_ids
+
+    @property
+    def settings(self)-> dict:
         """ Settings for this class.
         The settings are loaded from files whose names are specified by
         the parameter 'setting_urls'.
         """
         return self._settings
 
-    def load_settings(self) -> None:
+    def load_settings(self)-> None:
         def recursive_merge(d1, d2):
             if type(d1) != dict or type(d2) != dict:
                 return d2
@@ -292,9 +303,50 @@ class BaseRoutines(Node, Cmd):
     #
     # CLI(command line interface) stuffs
     #
-    def print_help_messages(self):
-        """ Print help messages for CLI(command-line interface).
-        """
+    @property
+    def prompt(self):
+        axes = ('X', 'Y', 'Z', 'Roll', 'Pitch', 'Yaw')
+        return '{:>5}:{}({})@{}>> '.format(axes[self._axis],
+                                           self.format_pose(
+                                               self.get_current_pose(
+                                                   self._robot_name)),
+                                           self._speed, self._robot_name)
+
+    def preloop(self):
+        Cmd.prompt = self.prompt
+        self.initialize_collision_objects()
+        self.go_to_named_pose(self._robot_name, 'home')
+        self.do_cmds(None)
+
+    def precmd(self, line):
+        try:
+            xyzrpy = self.xyzrpy_from_pose(self.get_current_pose(
+                self._robot_name))
+            xyzrpy[self._axis] = float(line)
+            self.go_to_pose_goal(self._robot_name,
+                                 self.pose_from_xyzrpy(xyzrpy),
+                                 speed=self._speed)
+            return ''
+        except ValueError:
+            pass
+
+        offset = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        if line.startswith('+'):
+            offset[self._axis] += 0.01 if self._axis < 3 else 10.0
+            self.move_relative(self._robot_name, offset, self._speed)
+            return ''
+        elif line.startswith('-'):
+            offset[self._axis] -= 0.01 if self._axis < 3 else 10.0
+            self.move_relative(self._robot_name, offset, self._speed)
+            return ''
+        return line
+
+    def postcmd(self, stop, line):
+        Cmd.prompt = self.prompt
+        return stop
+
+    def do_cmds(self, dummy):
+        """      Print command list."""
         print('=== General commands ===')
         print('  quit:        quit this program')
         print('  reload:      reload settings')
@@ -337,114 +389,19 @@ class BaseRoutines(Node, Cmd):
         print('  ci: Show infomation on child collision object of frame')
         print('  r:  Remove specified collision objects')
 
-    def process_command(self, command: str, robot_name: str, axis: str,
-                        speed: float=1.0) -> list[str, str, float]:
-        """ Process interaction with user through CLI(command-line interface).
-
-        Args:
-          command:    Command input from user.
-          robot_name: Robot name currently active.
-          axis:       Axis name currently active.
-          speed:      Current arm speed.
-
-        Returns:
-          Tuple of robot_name, axis and speed.
-        """
-        def _is_num(s):
-            try:
-                float(s)
-            except ValueError:
-                return False
-            else:
-                return True
-
-        def _get_offset():
-            offset = []
-            for s in input('  offset? ').split():
-                if _is_num(s):
-                    offset.append(float(s))
-                else:
-                    return None
-            return offset
-
-        # Collision objects stuffs
-        if command == 'I':
-            self.initialize_collision_objects()
-        elif command == 'i':
-            object_id = input('  object ID? ')
-            info = self.com.get_object_info(object_id)
-            if info is not None:
-                self.print_object_info(info)
-        elif command == 'ci':
-            frame_id = input('  parent frame? ')
-            info_list = self.com.get_attached_child_objects_info(frame_id)
-            for info in info_list:
-                self.print_object_info(info)
-                print('----------------')
-        elif command == 'r':
-            object_id   = input('  object_id? ')
-            attach_link = input('  attach_link? ') if object_id == '' else ''
-            self.com.remove_object(object_id, attach_link)
-
-        else:
-            print('  unknown command! [%s]' % command)
-        return robot_name, axis, speed
-
-    @property
-    def prompt(self):
-        axes = ('X', 'Y', 'Z', 'Roll', 'Pitch', 'Yaw')
-        return '{:>5}:{}({})@{}>> '.format(axes[self._axis],
-                                           self.format_pose(
-                                               self.get_current_pose(
-                                                   self._robot_name)),
-                                           self._speed, self._robot_name)
-
-    def preloop(self):
-        Cmd.prompt = self.prompt
-        self.initialize_collision_objects()
-        self.go_to_named_pose(self._robot_name, 'home')
-        self.print_help_messages()
-
-    def precmd(self, line):
-        try:
-            xyzrpy = self.xyzrpy_from_pose(self.get_current_pose(
-                self._robot_name))
-            xyzrpy[self._axis] = float(line)
-            self.go_to_pose_goal(self._robot_name,
-                                 self.pose_from_xyzrpy(xyzrpy),
-                                 speed=self._speed)
-            return ''
-        except ValueError:
-            pass
-
-        offset = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        if line.startswith('+'):
-            offset[self._axis] += 0.01 if self._axis < 3 else 10.0
-            self.move_relative(self._robot_name, offset, self._speed)
-            return ''
-        elif line.startswith('-'):
-            offset[self._axis] -= 0.01 if self._axis < 3 else 10.0
-            self.move_relative(self._robot_name, offset, self._speed)
-            return ''
-        return line
-
-    def postcmd(self, stop, line):
-        Cmd.prompt = self.prompt
-        return stop
-
     def do_EOF(self, dummy):
-        '''      Quit program.'''
+        """      Quit program."""
         print('bye')
         return True
 
     def do_reload(self, dummy):
-        '''      reload
-        Reload settings.'''
+        """      reload
+        Reload settings."""
         self.load_settings()
 
     def do_robot(self, robot_name):
-        '''      robot [robot_name]
-        Activate the specified robot.'''
+        """      robot [robot_name]
+        Activate the specified robot."""
         if robot_name:
             if robot_name in self.robot_names:
                 self._robot_name = robot_name
@@ -454,76 +411,69 @@ class BaseRoutines(Node, Cmd):
             print('     current robot: %s' % self._robot_name)
 
     def complete_robot(self, text, line, ib, ie):
-        if not text:
-            completions = list(self.robot_names)
-        else:
-            completions = [r for r in self.robot_names if r.startswith(text)]
-        return completions
+        return BaseRoutines._complete_default(text, line, self.robot_names)
 
     def do_X(self, dummy):
-        '''      X
-        Set control axis to X.'''
+        """      X
+        Set control axis to X."""
         self._axis = 0
 
     def do_Y(self, dummy):
-        '''      Y
-        Set control axis to Y.'''
+        """      Y
+        Set control axis to Y."""
         self._axis = 1
 
     def do_Z(self, dummy):
-        '''      Z
-        Set control axis to Z.'''
+        """      Z
+        Set control axis to Z."""
         self._axis = 2
 
     def do_R(self, dummy):
-        '''      R
-        Set control axis to Roll.'''
+        """      R
+        Set control axis to Roll."""
         self._axis = 3
 
     def do_P(self, dummy):
-        '''      P
-        Set control axis to Pitch.'''
+        """      P
+        Set control axis to Pitch."""
         self._axis = 4
 
     def do_W(self, dummy):
-        '''      W
-        Set control axis to Yaw.'''
+        """      W
+        Set control axis to Yaw."""
         self._axis = 5
 
     def do_home(self, dummy):
-        '''      home
-        Move current active robot to home pose.'''
+        """      home
+        Move current active robot to home pose."""
         self.go_to_named_pose(self._robot_name, 'home')
 
     def do_back(self, dummy):
-        '''      back
-        Move current active robot to back pose.'''
+        """      back
+        Move current active robot to back pose."""
         self.go_to_named_pose(self._robot_name, 'back')
 
-    def do_named(self, pose_name):
-        '''      named [pose_name]
-        Move current active robot to the specified named pose.'''
-        pose_names = self._cmd.get_group(self._robot_name).get_named_targets()
-        if pose_name:
-            if pose_name in pose_names:
-                self.go_to_named_pose(self._robot_name, pose_name)
+    def do_named(self, named_pose):
+        """      named [named_pose]
+        Move current active robot to the specified named pose."""
+        named_poses = self._cmd.get_group(self._robot_name).get_named_targets()
+        if named_pose:
+            if named_pose in named_poses:
+                self.go_to_named_pose(self._robot_name, named_pose)
             else:
-                print('      unknown named pose[%s]!' % pose_name)
+                print('      unknown named pose[%s]!' % named_pose)
         else:
-            print('      pose name not specified!')
+            print('      named pose not specified!')
 
     def complete_named(self, text, line, ib, ie):
-        pose_names = self._cmd.get_group(self._robot_name).get_named_targets()
-        if not text:
-            completions = pose_names
-        else:
-            completions = [p for p in pose_names if p.startswith(text)]
-        return completions
+        return BaseRoutines._complete_default(
+                   text, line,
+                   self._cmd.get_group(self._robot_name).get_named_targets())
 
-    def do_frame(self, arg):
-        '''      frame <frame_id> [eef_link] [offset]
-        Move current active robot to the specified frame.'''
-        tokens = arg.split()
+    def do_frame(self, args):
+        """      frame <frame_id> [eef_link] [offset]
+        Move current active robot to the specified frame."""
+        tokens = args.split()
         if len(tokens) == 0:
             print('      frame ID not specified!')
             return
@@ -535,132 +485,106 @@ class BaseRoutines(Node, Cmd):
                 offset.append(float(token))
             except ValueError:
                 if i != 0:
-                    print('      illegal offset value!')
+                    print('      illegal offset value[%s]!' % token)
                     return
                 eef_link = token
-                self.go_to_frame(self._robot_name, frame_id, offset,
-                                 speed=self._speed, end_effector_link=eef_link)
+        self.go_to_frame(self._robot_name, frame_id, offset,
+                         speed=self._speed, end_effector_link=eef_link)
 
     def complete_frame(self, text, line, ib, ie):
-        tip_link = self.gripper(self._robot_name).tip_link
-        child_frame_ids = self._child_frame_ids(tip_link)
-        frame_ids = list(set(self.frame_ids) - set(child_frame_ids))
-        nargs = len(line.split())
-        if nargs == 1:
-            completions = frame_ids
-        elif nargs == 2:
-            if text:
-                completions = [f for f in frame_ids if f.startswith(text)]
-            else:
-                completions = child_frame_ids
-        elif nargs == 3:
-            completions = [e for e in child_frame_ids
-                           if e.startswith(text)]
-        return completions
+        descendant_frame_ids = self.descendant_frame_ids(self._robot_name)
+        frame_ids = list(set(self.frame_ids) - set(descendant_frame_ids))
+        return BaseRoutines._complete_default(text, line,
+                                              frame_ids, descendant_frame_ids)
 
     def do_clip(self, dummy):
-        '''      clip
-        Clip wrist joint value.'''
+        """      clip
+        Clip wrist joint value."""
         self.clip_wrist_joint_value(self._robot_name)
 
     def do_stop(self, dummy):
-        '''      stop
-        Stop robot immediately.'''
+        """      stop
+        Stop robot immediately."""
         self.stop(self._robot_name)
 
     def do_jvalues(self, dummy):
-        '''      jvalues
-        Print current joint values of the robot.'''
+        """      jvalues
+        Print current joint values of the robot."""
         print(self.get_current_joint_values(self._robot_name))
 
     def do_switch(self, controller_name):
-        '''      switch [controller_name]
-        Switch controller of the current robot to the specified one.'''
+        """      switch [controller_name]
+        Switch controller of the current robot to the specified one."""
         if controller_name:
-            try:
-                self.switch_controller(self._robot_name, controller_name)
-            except:
-                self.get_logger().error('unknown controller[%s]'
-                                        % controller_name)
+            self.switch_controller(self._robot_name, controller_name)
         else:
-            active_controller = next(filter(lambda c: c.state == 'active',
-                                            self.list_controllers(
-                                                self._robot_name)), None)
+            active_controller = self.active_controller(self._robot_name)
             if active_controller:
-                self.get_logger().info('      current active controller: %s'
-                                       % active_controller.name)
+                print('      current active controller: %s'
+                      % active_controller.name)
             else:
-                self.get_logger().warn('no active controllers')
+                print('      no active controllers')
 
     def complete_switch(self, text, line, ib, ie):
-        if not text:
-            completions = [c.name for c
-                           in self.list_controllers(self._robot_name)]
-        else:
-            completions = [c.name for c
-                           in self.list_controllers(self._robot_name)
-                           if c.name.startswith(text)]
-        return completions
+        controller_names = [c.name
+                            for c in self.list_controllers(self._robot_name)]
+        return BaseRoutines._complete_default(text, line, controller_names)
 
     def do_toggle(self, dummy):
-        '''      toggle
-        Toggle active/inactive state of motion control handle.'''
+        """      toggle
+        Toggle active/inactive state of motion control handle."""
         self.toggle_motion_control_handle(self._robot_name)
 
     def do_ftreset(self, dummy):
-        '''      ftreset
-        Reset bias of FT-sensor to all-zero.'''
+        """      ftreset
+        Reset bias of FT-sensor to all-zero."""
         self.ftsensor_reset_bias(self._robot_name)
 
     def do_lin(self, dummy):
-        '''      lin
-        Enforce linear path.'''
+        """      lin
+        Enforce linear path."""
         self.move_lin = True
 
     def do_LIN(self, dummy):
-        '''      lin
-        Not enforce linear path.'''
+        """      lin
+        Not enforce linear path."""
         self.move_lin = False
 
     def do_gripper(self, gripper_name):
-        '''      gripper [gripper_name]
-        Assign gripper to current active robot.'''
+        """      gripper [gripper_name]
+        Assign gripper to current active robot."""
         if gripper_name:
             self.set_gripper(self._robot_name, gripper_name)
         else:
-            print('     current gripper: %s'
+            print('      current gripper: %s'
                   % self.gripper(self._robot_name).name)
 
     def complete_gripper(self, text, line, ib, ie):
-        if not text:
-            completion = self.gripper_names
-        else:
-            completion = [g for g in self.gripper_names if g.startswith(text)]
-        return completion
+        return BaseRoutines._complete_default(text, line, self.gripper_names)
 
     def do_pregrasp(self, dummy):
-        '''      pregrasp
-        Pregrasp with current gripper.'''
+        """      pregrasp
+        Pregrasp with current gripper."""
         self.pregrasp(self._robot_name)
 
     def do_grasp(self, dummy):
-        '''      grasp
-        Grasp with current gripper.'''
+        """      grasp
+        Grasp with current gripper."""
         self.grasp(self._robot_name)
 
     def do_postgrasp(self, dummy):
-        '''      postgrasp
-        Postgrasp with current gripper.'''
+        """      postgrasp
+        Postgrasp with current gripper."""
         self.postgrasp(self._robot_name)
 
     def do_release(self, dummy):
-        '''      release
-        Release with current gripper.'''
+        """      release
+        Release with current gripper."""
         self.release(self._robot_name)
 
     def do_gpos(self, pos):
-        '''      gpos <position>
-        Move gripper to the specified position.'''
+        """      gpos <position>
+        Move gripper to the specified position."""
         try:
             position = float(pos)
             self.set_gripper_position(self._robot_name, position)
@@ -668,8 +592,8 @@ class BaseRoutines(Node, Cmd):
             print('      illegal position value[%s]' % pos)
 
     def do_gvel(self, vel):
-        '''      gvel <velocity>
-        Set velocity value of the gripper.'''
+        """      gvel <velocity>
+        Set velocity value of the gripper."""
         try:
             velocity = float(vel)
             self.set_gripper_velocity(self._robot_name, velocity)
@@ -677,48 +601,44 @@ class BaseRoutines(Node, Cmd):
             print('      illegal velocity value[%s]' % vel)
 
     def do_tighten(self, dummy):
-        '''      tighten
-        Tighten screw.'''
+        """      tighten
+        Tighten screw."""
         self.tighten(self._robot_name)
 
     def do_loosen(self, dummy):
-        '''      loosen
-        Loosen screw.'''
+        """      loosen
+        Loosen screw."""
         self.loosen(self._robot_name)
 
     def do_gcancel(self, dummy):
-        '''      gcancel
-        Cancel gripper action.'''
+        """      gcancel
+        Cancel gripper action."""
         self.gripper_cancel(self._robot_name)
 
     def do_pt(self, tool_name):
-        '''      pt [tool_name]
-        Pick tool with specified name. Place tool if no name specified.'''
+        """      pt [tool_name]
+        Pick tool with specified name. Place tool if no name specified."""
         if tool_name:
             self.pick_tool(self._robot_name, tool_name)
         else:
             self.place_tool(self._robot_name)
 
     def complete_pt(self, text, line, ib, ie):
-        if not text:
-            completions = self.gripper_names
-        else:
-            completions = [g for g in self.gripper_names if g.startswith(text)]
-        return completions
+        return BaseRoutines._complete_default(text, line, self.gripper_names)
 
     def do_pcancel(self, dummy):
-        '''      pcancel
-        Cancel pick/place action.'''
+        """      pcancel
+        Cancel pick/place action."""
         self.pick_or_place_cancel_goal(self._robot_name)
 
     def do_I(self, dummy):
-        '''      I
-        Erase all collision objects and then recreate them.'''
+        """      I
+        Erase all collision objects and then recreate them."""
         self.initialize_collision_objects()
 
     def do_i(self, object_id):
-        '''      i <object_id>
-        Show information on collision object with specified ID.'''
+        """      i <object_id>
+        Show information on collision object with specified ID."""
         info = self.com.get_object_info(object_id)
         if info:
             self.print_object_info(info)
@@ -726,9 +646,34 @@ class BaseRoutines(Node, Cmd):
             print('      unknown objet ID[%s]' % object_id)
 
     def complete_i(self, text, line, ib, ie):
-        pass
-        # if not text:
-        #     completion = self.com.
+        return BaseRoutines._complete_default(text, line,
+                                              self.all_collision_object_ids)
+
+    def do_di(self, frame_id):
+        """      di <frame_id>
+        Show infomation on collision objects which are descendants of specified frame."""
+        info_list = self.com.get_attached_descendant_objects_info(frame_id)
+        for info in info_list:
+            self.print_object_info(info)
+            print('----------------')
+
+    def complete_di(self, text, line, ib, ie):
+        return BaseRoutines._complete_default(text, line, self.frame_ids)
+
+    def do_r(self, object_id):
+        """      r [object_id]
+        Remove collision object if specified, or all objects otherwise."""
+        self.com.remove_object(object_id)
+
+    def complete_r(self, text, line, ib, ie):
+        return BaseRoutines._complete_default(text, line,
+                                              self.all_collision_object_ids)
+
+    @staticmethod
+    def _complete_default(text, line, *completions):
+        nargs = len(line.split())
+        return completions[nargs-1] if not text else \
+               [c for c in completions[nargs-2] if c.startswith(text)]
 
     #
     # Joint motion stuffs
@@ -803,7 +748,7 @@ class BaseRoutines(Node, Cmd):
     #
     # Cartesian motion stuffs
     #
-    def get_current_pose(self, robot_name: str) -> PoseStamped:
+    def get_current_pose(self, robot_name: str)-> PoseStamped:
         """ Get current pose of the specified robot.
 
         Args:
@@ -842,7 +787,7 @@ class BaseRoutines(Node, Cmd):
 
     def move_relative(self, robot_name: str, offset,
                       speed: float=1.0, accel: float=1.0,
-                      end_effector_link: str='') -> bool:
+                      end_effector_link: str='')-> bool:
         """ Move the end-effector from current pose by given offset values.
         Offset is specified by a tuple with three, six of seven float values.
 
@@ -985,7 +930,7 @@ class BaseRoutines(Node, Cmd):
                            self._list_controllers_srvs[robot_name].call(
                                ListControllers.Request()).controller))
 
-    def current_controller(self, robot_name: str):
+    def active_controller(self, robot_name: str):
         """ Current active controller associated with the robot.
 
         Args:
@@ -994,12 +939,10 @@ class BaseRoutines(Node, Cmd):
         Returns:
           Active contoller, if exists. `None`, if no active controllers.
         """
-        for controller in self.list_controllers(robot_name):
-            if controller.state == 'active':
-                return controller
-        return None
+        return next(filter(lambda c: c.state == 'active',
+                           self.list_controllers(robot_name)), None)
 
-    def switch_controller(self, robot_name: str, controller_name: str) -> bool:
+    def switch_controller(self, robot_name: str, controller_name: str)-> bool:
         """ Current active controller associated with the robot.
 
         Args:
@@ -1009,46 +952,43 @@ class BaseRoutines(Node, Cmd):
         Returns:
           bool: `True`, if success. `False`, if failure.
         """
-        for controller in self.list_controllers(robot_name):
-            if controller.name == controller_name:
-                if controller.state == 'active':
-                    self.get_logger().warn('Already active[%s]'
-                                           % controller_name)
-                    return True
-                elif controller.state == 'unconfigured' or \
-                     controller.state == 'inactive':
-                    # if controller.type == 'cartesian_force_controller/CartesianForceController' or \
-                    #    controller.type == 'cartesian_compliance_controller/CartesianComplianceController':
-                    #     self.ftsensor_reset_bias()
-                    current_controller = self.current_controller(robot_name)
-                    req = SwitchController.Request()
-                    req.activate_controllers   = [controller_name]
-                    req.deactivate_controllers = [] if not current_controller \
-                                                 else [current_controller.name]
-                    req.strictness             = SwitchController.Request.STRICT
-                    req.activate_asap          = True
-                    req.timeout                = Duration(seconds=1).to_msg()
-                    res = self._switch_controller_srvs[robot_name].call(req)
-                    time.sleep(0.5)
-                    if res.ok:
-                        self.get_logger().info(
-                            'Succesfully switched to controller[%s]'
-                            % controller_name)
-                    else:
-                        self.get_logger().error(
-                            'Failed to switch to controller[%s]'
-                            % controller_name)
-                    return res.ok
-                else:
-                    self.get_logger().warn(
-                        "Controller state is '%', returning True."
-                        % controller.state)
-                    return True
-        self.get_logger().error('Specified controller[%s] not found'
-                                % controller_name)
-        return False
+        controller = next(filter(lambda c: c.name == controller_name,
+                                 self.list_controllers(robot_name)), None)
+        if controller is None:
+            self.get_logger().error('Specified controller[%s] not found'
+                                    % controller_name)
+            return False
 
-    def toggle_motion_control_handle(self, robot_name: str) -> bool:
+        if controller.state == 'active':
+            self.get_logger().warn('Already active[%s]' % controller_name)
+            return True
+        elif controller.state in ('unconfigured', 'inactive'):
+            # if controller.type == 'cartesian_force_controller/CartesianForceController' or \
+                #    controller.type == 'cartesian_compliance_controller/CartesianComplianceController':
+            #     self.ftsensor_reset_bias()
+            active_controller = self.active_controller(robot_name)
+            req = SwitchController.Request()
+            req.activate_controllers   = [controller_name]
+            req.deactivate_controllers = [active_controller.name] \
+                                         if active_controller else []
+            req.strictness             = SwitchController.Request.STRICT
+            req.activate_asap          = True
+            req.timeout                = Duration(seconds=1).to_msg()
+            res = self._switch_controller_srvs[robot_name].call(req)
+            time.sleep(0.5)
+            if res.ok:
+                self.get_logger().info('Succesfully switched to controller[%s]'
+                                       % controller_name)
+            else:
+                self.get_logger().error('Failed to switch to controller[%s]'
+                                        % controller_name)
+            return res.ok
+        else:
+            self.get_logger().warn("Controller state is '%', returning True."
+                                   % controller.state)
+            return True
+
+    def toggle_motion_control_handle(self, robot_name: str)-> bool:
         """ Activate/deactivate motion control handle.
 
         Args:
@@ -1057,35 +997,35 @@ class BaseRoutines(Node, Cmd):
         Returns:
           bool: `True`, if successfully switched. `False`, if failure.
         """
-        controller_name = robot_name + '_motion_control_handle'
-        for controller in self.list_controllers(robot_name):
-            if controller.name == controller_name:
-                req = SwitchController.Request()
-                if controller.state == 'active':
-                    req.activate_controllers    = []
-                    req.deactivate_controllers  = [controller_name]
-                    message = 'deactivated ' + controller_name
-                    self.switch_controller(robot_name,
-                                           robot_name +
-                                           '_scaled_pos_joint_traj_controller')
-                else:
-                    self.switch_controller(robot_name,
-                                           robot_name +
-                                           '_cartesian_compliance_controller')
-                    req.activate_controllers = [controller_name]
-                    req.deactivate_controllers  = []
-                    message = 'activated ' + controller_name
-                req.strictness        = SwitchControllerRequest.STRICT
-                req.start_asap        = True
-                req.timeout           = Duration(seconds=1).to_msg()
-                res = self._switch_controller.call(req)
-                time.sleep(0.5)
-                if res.ok:
-                    self.get_logger().info('Succesfully %s' % message)
-                else:
-                    self.get_logger().error('Failed to %s' % message)
-                return res.ok
-        return False
+        motion_control_handle = next(filter(lambda c:
+                                            c.name == 'motion_control_handle',
+                                            self.list_controllers(robot_name)),
+                                     None)
+        if motion_control_handle is None:
+            return False
+
+        req = SwitchController.Request()
+        if motion_control_handle.state == 'active':
+            req.activate_controllers   = []
+            req.deactivate_controllers = [motion_control_handle.name]
+            message = 'deactivated ' + motion_control_handle.name
+            self.switch_controller(robot_name, 'joint_trajectory_controller')
+        else:
+            self.switch_controller(robot_name,
+                                   'cartesian_compliance_controller')
+            req.activate_controllers   = [motion_control_handle.name]
+            req.deactivate_controllers = []
+            message = 'activated ' + motion_control_handle.name
+        req.strictness = SwitchControllerRequest.STRICT
+        req.start_asap = True
+        req.timeout    = Duration(seconds=1).to_msg()
+        res = self._switch_controller.call(req)
+        time.sleep(0.5)
+        if res.ok:
+            self.get_logger().info('Succesfully %s' % message)
+        else:
+            self.get_logger().error('Failed to %s' % message)
+        return res.ok
 
     #
     # Gripper stuffs
@@ -1160,12 +1100,12 @@ class BaseRoutines(Node, Cmd):
     #
     # Pick and place action stuffs
     #
-    def pick(self, robot_name, part_id, target_pose, *, timeout_sec=None):
+    def pick(self, robot_name, object_id, target_pose, *, timeout_sec=None):
         picking_parameters = self.settings.get('picking_parameters', {})
-        params             = picking_parameters.get(part_id)
+        params             = picking_parameters.get(object_id)
         if params is None:
             params = picking_parameters[
-                         self.com.get_object_info(part_id).object_type]
+                         self.com.get_object_info(object_id).object_type]
         self.set_gripper_parameters(robot_name,
                                     params.get('gripper_parameters', {}))
         return self._pick_or_place.send_goal(robot_name, True, target_pose,
@@ -1177,13 +1117,13 @@ class BaseRoutines(Node, Cmd):
                                              end_effector_link='',
                                              timeout_sec=timeout_sec)
 
-    def place(self, robot_name, part_id, target_pose,
-              *, subframe='', timeout_sec=None):
+    def place(self, robot_name, object_id, target_pose,
+              *, eef_link='', timeout_sec=None):
         picking_parameters = self.settings.get('picking_parameters', {})
-        picking_params     = picking_parameters.get(part_id)
+        picking_params     = picking_parameters.get(object_id)
         if picking_params is None:
             picking_params = picking_parameters[
-                                 self.com.get_object_info(part_id).object_type]
+                                 self.com.get_object_info(object_id).object_type]
         placing_parameters = self.settings.get('placing_parameters', {})
         placing_params     = placing_parameters.get(
                                  target_pose.header.frame_id, picking_params)
@@ -1192,8 +1132,6 @@ class BaseRoutines(Node, Cmd):
         self.set_gripper_parameters(robot_name,
                                     picking_params.get('gripper_parameters',
                                                        {}))
-        eef_link = part_id + '/' + subframe \
-                   if part_id != '' and subframe != '' else ''
         return self._pick_or_place.send_goal(robot_name, False, target_pose,
                                              placing_params['place_offset'],
                                              placing_params['approach_offset'],
@@ -1203,17 +1141,17 @@ class BaseRoutines(Node, Cmd):
                                              end_effector_link=eef_link,
                                              timeout_sec=timeout_sec)
 
-    def pick_at_frame(self, robot_name, part_id, target_frame,
+    def pick_at_frame(self, robot_name, object_id, target_frame,
                       *, offset=(), timeout_sec=None):
-        return self.pick(robot_name, part_id,
+        return self.pick(robot_name, object_id,
                          self.pose_from_xyzrpy(offset, target_frame),
                          timeout_sec=timeout_sec)
 
-    def place_at_frame(self, robot_name, part_id, target_frame,
-                       *, offset=(), subframe='', timeout_sec=None):
-        return self.place(robot_name, part_id,
+    def place_at_frame(self, robot_name, object_id, target_frame,
+                       *, offset=(), eef_link='', timeout_sec=None):
+        return self.place(robot_name, object_id,
                           self.pose_from_xyzrpy(offset, target_frame),
-                          subframe=subframe, timeout_sec=timeout_sec)
+                          eef_link=eef_link, timeout_sec=timeout_sec)
 
     def pick_tool(self, robot_name, tool_name, *, timeout_sec=None):
         if tool_name not in self._grippers:
@@ -1240,7 +1178,7 @@ class BaseRoutines(Node, Cmd):
         self.set_gripper(robot_name, default_gripper_name)
         return self.place_at_frame(robot_name, tool_name,
                                    tool_name + '_holder_link',
-                                   subframe='base_link',
+                                   eef_link=tool_name + '/base_link',
                                    timeout_sec=timeout_sec)
 
     def pick_or_place_wait(self, robot_name,
@@ -1273,6 +1211,22 @@ class BaseRoutines(Node, Cmd):
                  info.attach_link, info.touch_links, info.acm_allowed,
                  self.format_pose(info.pose, info.pose.header.frame_id),
                  info.pose.header.frame_id))
+
+    def descendant_frame_ids(self, robot_name):
+        frames_dict = yaml.safe_load(self.tf2_buffer.all_frames_as_yaml())
+        frame_ids = []
+
+        def _descendant_frame_ids(frame_id):
+            for child_frame_id, child_frame_props in frames_dict.items():
+                if child_frame_props['parent'] == frame_id:
+                    frame_ids.append(child_frame_id)
+                    _descendant_frame_ids(child_frame_id)
+
+        gripper = self.gripper(robot_name)
+        gripper_link = gripper.base_link if '/' in gripper.tip_link else \
+                       gripper.tip_link
+        _descendant_frame_ids(gripper_link)
+        return frame_ids
 
     def lookup_transform(self, target_frame, source_frame,
                          time=Time(), timeout=Duration()):
@@ -1379,14 +1333,6 @@ class BaseRoutines(Node, Cmd):
     #
     # Private functions
     #
-    def _child_frame_ids(self, frame_id):
-        frames_dict = yaml.safe_load(self.tf2_buffer.all_frames_as_yaml())
-        frame_ids   = [frame_id]
-        for child_frame_id, child_frame_props in frames_dict.items():
-            if child_frame_props['parent'] in frame_ids:
-                frame_ids.append(child_frame_id)
-        return frame_ids
-
     def _position_from_offset(self, offset):
         return np.array((0.0, 0.0, 0.0) if len(offset) < 3 else offset[0:3])
 

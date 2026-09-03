@@ -51,8 +51,7 @@ from shape_msgs.msg                import (Mesh, MeshTriangle, Plane,
                                            SolidPrimitive)
 from visualization_msgs.msg        import Marker, MarkerArray
 from aist_msgs.srv                 import GetCollisionObject
-from aist_msgs.msg                 import (CollisionObjectInfo, LinkGeometry,
-                                           Material)
+from aist_msgs.msg                 import LinkGeometry, Material
 from moveit_msgs.msg               import (CollisionObject,
                                            AttachedCollisionObject,
                                            PlanningSceneComponents,
@@ -158,6 +157,29 @@ class CollisionObjectManager(object):
         @property
         def parent_link(self):
             return self.base_link_transform.header.frame_id
+
+    class CollisionObjectInfo(object):
+        """ Infomation on attached/non-attached collision object.
+        """
+        def __init__(self, com, object_id: str):
+            super().__init__()
+
+            self.object_id = object_id
+            co = com.find_collision_object(object_id)
+            if co:
+                self.attach_link = ''
+                self.touch_links = []
+            else:
+                aco = com.find_attached_collision_object(object_id)
+                if aco is None:
+                    raise RuntimeError('unknown object_id[%s]' % object_id)
+                self.attach_link = aco.link_name
+                self.touch_links = aco.touch_links
+                co = aco.object
+            self.pose        = PoseStamped(header=co.header, pose=co.pose)
+            self.object_type = com._instance_props_dict[object_id].type
+            self.parent_link = com._get_parent_link(object_id)
+            self.acm_allowed = com._get_acm_allowed_entries(object_id)
 
     def __init__(self, node: Node):
         """ Create collision object manager.
@@ -273,6 +295,24 @@ class CollisionObjectManager(object):
     @property
     def logger(self):
         return self.node.get_logger()
+
+    @property
+    def collision_objects(self)-> dict:
+        """ Get all non-attached collision objects.
+
+        Returns:
+          Dictionary with object IDs as keys and objects as values.
+        """
+        return self._psi.get_objects()
+
+    @property
+    def attached_collision_objects(self)-> dict:
+        """ Get all attached collision objects.
+
+        Returns:
+          Dictionary with object IDs as keys and objects as values.
+        """
+        return self._psi.get_attached_objects()
 
     #
     # Operations
@@ -415,6 +455,32 @@ class CollisionObjectManager(object):
         self._psi.remove_attached_object(frame_id, object_id)
         self._psi.remove_world_object(object_id)
 
+    def find_collision_object(self, object_id: str) \
+            -> Optional[CollisionObject]:
+        """ Find non-attached collision object with specified object ID.
+
+        Args:
+          object_id: ID of the object to be searched for.
+
+        Returns:
+          * Collision object with `object_id`, if found.
+          * `None`, if not found.
+        """
+        return self._psi.get_objects([object_id]).get(object_id)
+
+    def find_attached_collision_object(self, object_id: str) \
+            ->Optional[AttachedCollisionObject]:
+        """ Find attached collision object with specified object ID.
+
+        Args:
+          object_id: ID of the object to be searched for.
+
+        Returns:
+          * Attached collision object with `object_id`, if found.
+          * `None`, if not found.
+        """
+        return self._psi.get_attached_objects([object_id]).get(object_id)
+
     def attach_object(self, object_id: str, parent_link: str,
                       leaf_id: str='')-> Optional[Tuple[str, PoseStamped]]:
         """ Attach collision object to the specified link.
@@ -498,7 +564,7 @@ class CollisionObjectManager(object):
             "*DETACH_OBJECT*: object_id='%s', parent_link='%s', leaf_id='%s'"
             % (object_id, parent_link, leaf_id))
 
-        aco = self._find_attached_collision_object(object_id)
+        aco = self.find_attached_collision_object(object_id)
         if aco is None:
             self.logger.error("unknown attached collision object '%s'"
                               % object_id)
@@ -593,7 +659,7 @@ class CollisionObjectManager(object):
                          % (object_id, frame_id))
 
         touch_links = self._get_touch_links(frame_id)
-        aco = self._find_attached_collision_object(object_id)
+        aco = self.find_attached_collision_object(object_id)
         if aco is not None:
             self._psi.attach_object(aco,
                                     touch_links=list(set(aco.touch_links) |
@@ -618,7 +684,7 @@ class CollisionObjectManager(object):
                          % (object_id, frame_id))
 
         touch_links = self._get_touch_links(frame_id)
-        aco = self._find_attached_collision_object(object_id)
+        aco = self.find_attached_collision_object(object_id)
         if aco is not None:
             self._psi.attach_object(aco,
                                     touch_links=list(set(aco.touch_links) -
@@ -644,7 +710,7 @@ class CollisionObjectManager(object):
         self.logger.info("*RESET_COLLISION*: object_id='%s'" % object_id)
 
         touch_links = self._get_parent_touch_links(object_id)
-        aco = self._find_attached_collision_object(object_id)
+        aco = self.find_attached_collision_object(object_id)
         if aco is not None:
             self._psi.attach_object(aco, touch_links=touch_links)
             self._set_acm_allowed(object_id, None, allow=False, reset=True)
@@ -652,7 +718,17 @@ class CollisionObjectManager(object):
             self._set_acm_allowed(object_id, touch_links,
                                   allow=True, reset=True)
 
-    def get_object_info(self, object_id: str)-> Optional[CollisionObjectInfo]:
+    def get_attached_descendant_objects(self, frame_id: str) \
+            -> List[AttachedCollisionObject]:
+        aco_list = []
+        for child_aco in self._psi.get_attached_objects().values():
+            if self._get_parent_link(child_aco.object.id) == frame_id:
+                aco_list.append(child_aco)
+                aco_list += self.get_attached_descendant_objects(
+                                child_aco.object.id + '/base_link')
+        return aco_list
+
+    def get_object_info(self, object_id: str):
         """ Get information on attached or non-attached collision object.
 
         Args:
@@ -664,27 +740,13 @@ class CollisionObjectManager(object):
         """
         self.logger.info("*GET_OBJECT_INFO*: object_id='%s'" % object_id)
 
-        info = CollisionObjectInfo()
-        info.object_id = object_id
-        co = self._find_collision_object(object_id)
-        if co is None:
-            aco = self._find_attached_collision_object(object_id)
-            if aco is None:
-                self.logger.error("unknown object '%s'" % object_id)
-                return None
-            info.attach_link = aco.link_name
-            info.touch_links = aco.touch_links
-            info.pose        = PoseStamped(header=aco.object.header,
-                                           pose=aco.object.pose)
-        else:
-            info.pose = PoseStamped(header=co.header, pose=co.pose)
-        info.object_type = self._instance_props_dict[object_id].type
-        info.parent_link = self._get_parent_link(object_id)
-        info.acm_allowed = self._get_acm_allowed_entries(object_id)
-        return info
+        try:
+            return CollisionObjectManager.CollisionObjectInfo(self, object_id)
+        except RuntimeError as e:
+            self.logger.error(str(e))
+            return None
 
-    def get_attached_child_objects_info(self, frame_id: str) \
-            -> List[CollisionObjectInfo]:
+    def get_attached_descendant_objects_info(self, frame_id: str):
         """ Get information on attached or non-attached collision objects
             having contact with the specified frame.
 
@@ -699,18 +761,9 @@ class CollisionObjectManager(object):
                          % frame_id)
 
         info_list = []
-        for aco in self._psi.get_attached_objects().values():
-            if self._get_parent_link(aco.object.id) == frame_id:
-                info = CollisionObjectInfo()
-                info.object_id   = aco.object.id
-                info.attach_link = aco.link_name
-                info.touch_links = aco.touch_links
-                info.pose        = PoseStamped(header=aco.object.header,
-                                               pose=aco.object.pose)
-                info.object_type = self._instance_props_dict[info.object_id] \
-                                       .type
-                info.parent_link = self._get_parent_link(info.object_id)
-                info_list.append(info)
+        for aco in self.get_attached_descendant_objects(frame_id):
+            info_list.append(CollisionObjectManager.CollisionObjectInfo(
+                                 self, aco.object.id))
         return info_list
 
     def relative_frame_pose(self, frame_id: str, object_id: str) \
@@ -909,7 +962,7 @@ class CollisionObjectManager(object):
                                transform_matrix(transform.transform))))
 
         # If 'co' is non-attached collision object, we have reached root!
-        if self._find_attached_collision_object(co.id) is None:
+        if self.find_attached_collision_object(co.id) is None:
             self._psi.attach_object(co, co.header.frame_id)
             return _decompose_transform(
                        self._instance_props_dict[co.id].base_link_transform)
@@ -961,7 +1014,7 @@ class CollisionObjectManager(object):
             self.logger.info("detached '%s' from '%s'@%s"
                              % (co.id, co.header.frame_id,
                                 format_pose(co.pose)))
-            co = self._find_collision_object(co.id)
+            co = self.find_collision_object(co.id)
             attach_link = co.header.frame_id
             Tao = pose_matrix(co.pose)
 
@@ -984,7 +1037,7 @@ class CollisionObjectManager(object):
           Tao: Transformation matrix from `co` to attach link after moved.
         """
         co.pose = pose_from_matrix(Tao)
-        aco = self._find_attached_collision_object(co.id)
+        aco = self.find_attached_collision_object(co.id)
         if aco is None:
             self._psi.add_object(co)
         else:
@@ -1040,32 +1093,6 @@ class CollisionObjectManager(object):
                             pose_matrix(pose.pose))
         return pose
 
-    def _find_collision_object(self, object_id: str) \
-            -> Optional[CollisionObject]:
-        """ Find non-attached collision object with specified object ID.
-
-        Args:
-          object_id: ID of the object to be searched for.
-
-        Returns:
-          * Collision object with `object_id`, if found.
-          * `None`, if not found.
-        """
-        return self._psi.get_objects([object_id]).get(object_id)
-
-    def _find_attached_collision_object(self, object_id: str) \
-            ->Optional[AttachedCollisionObject]:
-        """ Find attached collision object with specified object ID.
-
-        Args:
-          object_id: ID of the object to be searched for.
-
-        Returns:
-          * Attached collision object with `object_id`, if found.
-          * `None`, if not found.
-        """
-        return self._psi.get_attached_objects([object_id]).get(object_id)
-
     def _find_object(self, object_id: str)-> Optional[CollisionObject]:
         """ Find attached or non-attached collision object
         with specified object ID.
@@ -1078,9 +1105,8 @@ class CollisionObjectManager(object):
             collision object with `object_id`, if found.
           * `None`, if neighter found.
         """
-        aco = self._find_attached_collision_object(object_id)
-        return self._find_collision_object(object_id) if aco is None else \
-               aco.object
+        aco = self.find_attached_collision_object(object_id)
+        return aco.object if aco else self.find_collision_object(object_id)
 
     def _get_parent_link(self, object_id: str)-> str:
         """ Get parent link of the attached or non-attached collision object.
