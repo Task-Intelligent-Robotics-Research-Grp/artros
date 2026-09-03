@@ -53,6 +53,10 @@ class AssemblyRoutines(BaseRoutines):
     def screw_types(self):
         return ('screw_m3', 'screw_m4')
 
+    @property
+    def object_frame_ids(self):
+        return list(filter(lambda f: '/' in f, self.frame_ids))
+
     # Interactive stuffs
     def process_command(self, command, robot_name, axis, speed):
         if command == 'pp':
@@ -158,7 +162,6 @@ class AssemblyRoutines(BaseRoutines):
                                      frame_id.endswith('/tip_link'),
                                      self.descendant_frame_ids(robot_name)),
                               None)
-        print('### screw_tip_link=%s' % screw_tip_link)
         if screw_tip_link is None:
             return (GoalStatus.STATUS_UNKNOWN, None)
         screw_id    = AssemblyRoutines._get_object_id(screw_tip_link)

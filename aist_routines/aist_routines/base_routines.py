@@ -1217,9 +1217,9 @@ class BaseRoutines(Node, Cmd):
         frame_ids = []
 
         def _descendant_frame_ids(frame_id):
+            frame_ids.append(frame_id)
             for child_frame_id, child_frame_props in frames_dict.items():
                 if child_frame_props['parent'] == frame_id:
-                    frame_ids.append(child_frame_id)
                     _descendant_frame_ids(child_frame_id)
 
         gripper = self.gripper(robot_name)
