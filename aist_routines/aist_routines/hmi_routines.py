@@ -68,17 +68,24 @@ class HMIRoutines(KittingRoutines):
         print('  sw: sWeep')
         print('  rh: Request help')
 
-    def process_command(self, command, robot_name, axis, speed):
-        if command == 'sw':
-            bin_id = 'bin_' + input('  bin id? ')
-            self.sweep_bin(robot_name, bin_id, timeout_sec=0.0)
-            self.go_to_named_pose(robot_name, 'home')
-        elif command == 'rh':
-            bin_id = 'bin_' + input('  bin id? ')
-            self.request_help_bin(robot_name, bin_id, timeout_sec=0.0)
-        else:
-            return super().process_command(command, robot_name, axis, speed)
-        return robot_name, axis, speed
+    def do_sw(self, bin_id):
+        """      sw <bin_id>
+        Search graspability points from the specified bin and sweep the one
+        with the highest score."""
+        self.sweep_bin(robot_name, bin_id)
+        self.go_to_named_pose(self._robot_name, 'home')
+
+    def complete_sw(self, text, line, ib, ie):
+        return BaseRoutines._complete_default(text, line, self.bin_ids)
+
+    def do_rh(self, bin_id):
+        """      rh <bin_id>
+        Search graspability points from the specified bin and request help
+        for the one with the highest score."""
+        self.request_help_bin(self._robot_name, bin_id, timeout_sec=0.0)
+
+    def complete_rh(self, text, line, ib, ie):
+        return BaseRoutines._complete_default(text, line, self.bin_ids)
 
     # Sweep stuffs
     def sweep_bin(self, robot_name, bin_id, *, timeout_sec=None):
@@ -93,6 +100,11 @@ class HMIRoutines(KittingRoutines):
         Returns:
           Tuple of GoalStatus and result of sweeping motion.
         """
+        if bin_id not in self.bin_ids:
+            self.get_logger().error(
+                'HMIRoutines.sweep_bin(): unknown bin_id[%s]' % bin_id)
+            return GoalStatus.STATUS_ABORTED, None
+
         part_id = self.bin_props[bin_id]['part_id']
 
         # Search for graspabilities.
@@ -143,6 +155,11 @@ class HMIRoutines(KittingRoutines):
         Returns:
           Tuple of GoalStatus and result of sweeping motion.
         """
+        if bin_id not in self.bin_ids:
+            self.get_logger().error(
+                'HMIRoutines.request_help_bin(): unknown bin_id[%s]' % bin_id)
+            return GoalStatus.STATUS_ABORTED, None
+
         part_id = self.bin_props[bin_id]['part_id']
 
         # Search for graspabilities and select the first one.
@@ -174,11 +191,11 @@ class HMIRoutines(KittingRoutines):
                                             timeout_sec=timeout_sec)
 
     def error_recovery_by_sweep(self, goal, stage, pose):
-        if stage == 'pick/verify':
-            part_id = self.bin_props[goal.bin_id]['part_id']
-            status, result = self._error_recovery_by_sweep \
-                                 .send_goal(goal.robot_name, pose, part_id,
-                                            'Pick_failed!')
-            return status != GoalStatus.STATUS_SUCCEEDED
-        else:
+        if stage != 'pick/verify':
             return True
+
+        part_id = self.bin_props[goal.bin_id]['part_id']
+        status, result = self._error_recovery_by_sweep \
+                             .send_goal(goal.robot_name, pose, part_id,
+                                        'Pick_failed!')
+        return status != GoalStatus.STATUS_SUCCEEDED
