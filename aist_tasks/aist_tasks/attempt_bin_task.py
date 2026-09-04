@@ -138,21 +138,20 @@ class AttemptBinTaskServer(ActionServer):
                                            pick_poses, fail_poses,
                                            1 if fine_parameters else \
                                            request.max_attempts)
-                if gparameters is None:
+                if not fine_parameters:
                     if status in (GoalStatus.STATUS_ABORTED,
                                   GoalStatus.STATUS_UNKNOWN):
                         self.logger.warn('--- AttemptBin: failed stage[%s], switch to fine parameters'
                                          % stage.name)
-                        gparameters = self.node.fine_graspability_parameters[
-                                          part_id]
-                        pick_poses  = []
-                        fail_poses  = []
+                        fine_parameters = True
+                        pick_poses      = []
+                        fail_poses      = []
                 elif status is GoalStatus.STATUS_ABORTED:
                     self.logger.warn('--- AttemptBin: aborted stage[%s] under fine parameters'
                                      % stage.name)
-                    gparameters = None
-                    pick_poses  = []
-                    fail_poses  = []
+                    fine_parameters = False
+                    pick_poses      = []
+                    fail_poses      = []
                     raise ActionServer.Error('Failed to pick',
                                              stage=stage.extend_name(
                                                  result.stage),
