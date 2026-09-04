@@ -150,6 +150,9 @@ class AttemptBinTaskServer(ActionServer):
                 elif status is GoalStatus.STATUS_ABORTED:
                     self.logger.warn('--- AttemptBin: aborted stage[%s] under fine parameters'
                                      % stage.name)
+                    gparameters = None
+                    pick_poses  = []
+                    fail_poses  = []
                     raise ActionServer.Error('Failed to pick',
                                              stage=stage.extend_name(
                                                  result.stage),
@@ -164,14 +167,16 @@ class AttemptBinTaskServer(ActionServer):
                 #     approach pose.
                 with ActionServer.Stage(self, goal_handle, 'place',
                                         pick_or_place_cancel) as stage:
-                    # Place the picked part.
+                    # Place the picked part (not wait).
                     self.node.place_at_frame(request.robot_name, part_id,
                                              part_props['destination'],
                                              offset=(0.0, place_offset, 0.0),
                                              timeout_sec=0.0)
+                    place_offset = -place_offset
 
                     if _is_eye_on_hand(request.robot_name,
                                        part_props['camera_name']):
+                        # Wait until placing finished.
                         status, result = self.node \
                                         .pick_or_place_wait(request.robot_name)
                         if status is GoalStatus.STATUS_ABORTED:
@@ -202,7 +207,6 @@ class AttemptBinTaskServer(ActionServer):
 
             if not request.pick_all:
                 break
-            place_offset = -place_offset
 
         goal_handle.succeed()
         return AttemptBin.Result(stage='')
