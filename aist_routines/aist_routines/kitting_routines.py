@@ -39,6 +39,7 @@ import numpy as np
 
 from math                        import pi, radians, degrees, cos, sin, sqrt
 from geometry_msgs.msg           import Quaternion
+from action_msgs.msg             import GoalStatus
 from aist_graspability.client    import GraspabilityClient
 from aist_graspability_msgs.msg  import Border, Point2D
 from aist_utility.fileio         import filepath_from_url
@@ -63,8 +64,16 @@ class KittingRoutines(BaseRoutines):
         return self.settings['bin_props']
 
     @property
+    def bin_ids(self):
+        return list(self.bin_props.keys())
+
+    @property
     def part_props(self):
         return self.settings['part_props']
+
+    @property
+    def part_ids(self):
+        return list(self.part_props.keys())
 
     @property
     def borders(self):
@@ -79,53 +88,69 @@ class KittingRoutines(BaseRoutines):
         return self.settings['fine_graspability_parameters']
 
     # Interactive stuffs
-    def print_help_messages(self):
-        super().print_help_messages()
-
+    def do_cmds(self, dummy):
+        """      Print command list."""
+        super().do_cmds(dummy)
         print('=== Kitting commands ===')
         print('  s:  Search graspabilities with normal parameters')
         print('  sf: Search graspabilities with fine parameters')
         print('  a:  Attempt to pick and place')
         print('  A:  Repeat attempts to pick and place')
         print('  c:  Cancel attempts to pick and place')
-        print('  H:  Move all robots to home')
-        print('  B:  Move all robots to back')
 
-    def process_command(self, command, robot_name, axis, speed):
-        if command == 's':
-            bin_id = 'bin_' + input('  bin id? ')
-            self.search_bin(bin_id)
-        elif command == 'sf':
-            bin_id  = 'bin_' + input('  bin id? ')
-            part_id = self.bin_props[bin_id]['part_id']
-            self.search_bin(bin_id,
-                            self.fine_graspability_parameters.get(part_id))
-        elif command == 'a':
-            bin_id = 'bin_' + input('  bin id? ')
-            self.pick_tool(robot_name, 'suction_tool')
-            self.go_to_named_pose(robot_name, 'home')
-            self._attempt_bin.send_goal(robot_name, bin_id, False, 5)
-        elif command == 'A':
-            bin_id = 'bin_' + input('  bin id? ')
-            self.pick_tool(robot_name, 'suction_tool')
-            self.go_to_named_pose(robot_name, 'home')
-            self._attempt_bin.send_goal(robot_name, bin_id, True, 5)
-        elif command == 'c':
-            self._attempt_bin.cancel_goal(robot_name)
-        elif command == 'H':
-            self.go_to_named_pose('all_bots', 'home')
-        elif command == 'B':
-            self.go_to_named_pose('all_bots', 'back')
-        elif robot_name:
-            return super().process_command(command, robot_name, axis, speed)
-        return robot_name, axis, speed
+    def do_s(self, bin_id):
+        """      s <bin_id>
+        Search graspabilities in the specified bin with normal parameters."""
+        self.search_bin(bin_id, False)
+
+    def complete_s(self, text, line, ib, ie):
+        return BaseRoutines._complete_default(text, line, self.bin_ids)
+
+    def do_sf(self, bin_id):
+        """      sf <bin_id>
+        Search graspabilities in the specified bin with fine parameters."""
+        self.search_bin(bin_id, True)
+
+    def complete_sf(self, text, line, ib, ie):
+        return BaseRoutines._complete_default(text, line, self.bin_ids)
+
+    def do_a(self, bin_id):
+        """      a <bin_id>
+        Attempt to pick a part in the specified bin and place it."""
+        self.pick_tool(robot_name, 'suction_tool')
+        self.go_to_named_pose(robot_name, 'home')
+        self._attempt_bin.send_goal(robot_name, bin_id, False, 5)
+
+    def complete_a(self, text, line, ib, ie):
+        return BaseRoutines._complete_default(text, line, self.bin_ids)
+
+    def do_A(self, bin_id):
+        """      A <bin_id>
+        Attempt to pick all parts in the specified bin and place it."""
+        self.pick_tool(robot_name, 'suction_tool')
+        self.go_to_named_pose(robot_name, 'home')
+        self._attempt_bin.send_goal(robot_name, bin_id, True, 5)
+
+    def complete_A(self, text, line, ib, ie):
+        return BaseRoutines._complete_default(text, line, self.bin_ids)
+
+    def do_c(self, dummy):
+        """      c
+        Cancel attempts to pick and place."""
+        self._attempt_bin.cancel_goal(self._robot_name)
 
     # Commands
-    def search_bin(self, bin_id, graspability_parameters=None):
+    def search_bin(self, bin_id, fine_parameters=False):
+        if bin_id not in self.bin_ids:
+            self.get_logger().error(
+                'KittingRoutines.search_bin(): unknown bin_id[%s]' % bin_id)
+            return GoalStatus.STATUS_ABORTED, None
+
         # Set parameters for searching graspabilities.
         bin_props = self.bin_props[bin_id]
         self._graspability_client.set_parameters(
-            graspability_parameters if graspability_parameters else \
+            self.fine_graspability_parameters[bin_props['part_id']] \
+            if fine_parameters else \
             self.graspability_parameters[bin_props['part_id']])
 
         # Set function for filtering graspabilities.

@@ -97,10 +97,10 @@ class AttemptBinTaskServer(ActionServer):
                 raise ActionServer.Error('unknown part_id[%s]' % part_id,
                                          stage=stage.name)
 
-        gparameters  = None   # Use default graspability parameters
-        pick_poses   = []
-        fail_poses   = []
-        place_offset = 0.020
+        fine_parameters = False  # Use default graspability parameters
+        pick_poses      = []
+        fail_poses      = []
+        place_offset    = 0.020
 
         while True:
             # If no graspability poses available, search for them.
@@ -122,7 +122,7 @@ class AttemptBinTaskServer(ActionServer):
                 # [3] 'search' stage: Search for graspabilities.
                 with ActionServer.Stage(self, goal_handle, 'search') as stage:
                     status, result = self.node.search_bin(request.bin_id,
-                                                          gparameters)
+                                                          fine_parameters)
                     if status is GoalStatus.STATUS_ABORTED:
                         raise ActionServer.Error(
                             'Failed to search graspabilities',
@@ -136,15 +136,14 @@ class AttemptBinTaskServer(ActionServer):
                 status, result, pose = self._attempt_pick(
                                            request.robot_name, part_id,
                                            pick_poses, fail_poses,
-                                           1 if gparameters else \
+                                           1 if fine_parameters else \
                                            request.max_attempts)
                 if status is GoalStatus.STATUS_ABORTED:
-                    if gparameters is None:
+                    if not fine_parameters:
                         self.logger.warn('### pick@AttemptBin aborted, switch to fine parameters')
-                        gparameters = self.node.fine_graspability_parameters[
-                                          part_id]
-                        pick_poses  = []
-                        fail_poses  = []
+                        fine_parameters = True
+                        pick_poses      = []
+                        fail_poses      = []
                     else:
                         self.logger.warn('### pick@AttemptBin aborted under fine parameters')
                         raise ActionServer.Error('Failed to pick',
@@ -178,7 +177,7 @@ class AttemptBinTaskServer(ActionServer):
 
                         # Search graspabilities for the next trial.
                         status, result = self.node.search_bin(request.bin_id,
-                                                              gparameters)
+                                                              fine_parameters)
                         if status is GoalStatus.STATUS_ABORTED:
                             raise ActionServer.Error(
                                 'Failed to search graspabilities',
@@ -193,12 +192,11 @@ class AttemptBinTaskServer(ActionServer):
                                                      stage=stage.extend_name(
                                                                result.stage))
             elif status is not GoalStatus.STATUS_ABORTED:  # No poses remained...
-                if gparameters is None:
+                if not fine_parameters:
                     self.logger.warn('### pick@AttemptBin terminated with status[%d], switch to fine parameters' % status)
-                    gparameters = self.node.fine_graspability_parameters[
-                                      part_id]
-                    pick_poses  = []
-                    fail_poses  = []
+                    fine_parameters = True
+                    pick_poses      = []
+                    fail_poses      = []
                 else:
                     self.logger.warn('### pick@AttemptBin terminated with status[%d], break' % status)
                     break

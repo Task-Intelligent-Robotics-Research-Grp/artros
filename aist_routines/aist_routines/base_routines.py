@@ -400,7 +400,7 @@ class BaseRoutines(Node, Cmd):
 
     def do_quit(self, dummy):
         """      Quit program."""
-        return do_EOF(dummy)
+        return self.do_EOF(dummy)
 
     def do_reload(self, dummy):
         """      reload
@@ -1176,9 +1176,9 @@ class BaseRoutines(Node, Cmd):
     def pick_tool(self, robot_name, tool_name, *, timeout_sec=None):
         if tool_name not in self._grippers:
             self.get_logger().error('Unknown tool name[%s]' % tool_name)
-            return (GoalStatus.STATUS_ABORTED, None)
+            return GoalStatus.STATUS_ABORTED, None
         if self.gripper(robot_name).name == tool_name:
-            return (GoalStatus.STATUS_SUCCEEDED, None)
+            return GoalStatus.STATUS_SUCCEEDED, None
         if self.gripper(robot_name).name != \
            self.default_gripper_name(robot_name):
             self.place_tool(robot_name)
@@ -1188,13 +1188,13 @@ class BaseRoutines(Node, Cmd):
         if status == GoalStatus.STATUS_SUCCEEDED:
             self.set_gripper(robot_name, tool_name)
             #self.ftsensor_reset_bias(robot_name)
-        return (status, result)
+        return status, result
 
     def place_tool(self, robot_name, *, timeout_sec=None):
         tool_name            = self.gripper(robot_name).name
         default_gripper_name = self.default_gripper_name(robot_name)
         if tool_name == default_gripper_name:
-            return (GoalStatus.STATUS_SUCCEEDED, None)
+            return GoalStatus.STATUS_SUCCEEDED, None
         self.set_gripper(robot_name, default_gripper_name)
         return self.place_at_frame(robot_name, tool_name,
                                    tool_name + '_holder_link',

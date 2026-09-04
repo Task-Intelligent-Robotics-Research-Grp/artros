@@ -61,8 +61,9 @@ class HMIRoutines(KittingRoutines):
         return self.settings['sweep_parameters']
 
     # Interactive stuffs
-    def print_help_messages(self):
-        super().print_help_messages()
+    def do_cmds(self, dummy):
+        """      Print command list."""
+        super().do_cmds(dummy)
         print('=== HMI commands ===')
         print('  sw: sWeep')
         print('  rh: Request help')
