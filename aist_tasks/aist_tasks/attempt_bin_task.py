@@ -138,32 +138,45 @@ class AttemptBinTaskServer(ActionServer):
                                            pick_poses, fail_poses,
                                            1 if fine_parameters else \
                                            request.max_attempts)
-                if status is GoalStatus.STATUS_ABORTED:
-                    if not fine_parameters:
-                        self.logger.warn('### pick@AttemptBin aborted, switch to fine parameters')
-                        fine_parameters = True
-                        pick_poses      = []
-                        fail_poses      = []
-                    else:
-                        self.logger.warn('### pick@AttemptBin aborted under fine parameters')
-                        raise ActionServer.Error('Failed to pick',
-                                                 stage=stage.extend_name(
-                                                           result.stage),
-                                                 pose=pose)
+                if gparameters is None:
+                    if status in (GoalStatus.STATUS_ABORTED,
+                                  GoalStatus.STATUS_UNKNOWN):
+                        self.logger.warn('--- AttemptBin: failed stage[%s], switch to fine parameters'
+                                         % stage.name)
+                        gparameters = self.node.fine_graspability_parameters[
+                                          part_id]
+                        pick_poses  = []
+                        fail_poses  = []
+                elif status is GoalStatus.STATUS_ABORTED:
+                    self.logger.warn('--- AttemptBin: aborted stage[%s] under fine parameters'
+                                     % stage.name)
+                    gparameters = None
+                    pick_poses  = []
+                    fail_poses  = []
+                    raise ActionServer.Error('Failed to pick',
+                                             stage=stage.extend_name(
+                                                 result.stage),
+                                             pose=pose)
+                elif status is GoalStatus.STATUS_UNKNOWN:  # no poses remained
+                    self.logger.warn('--- AttemptBin: finished stage[%s] with status[%d], break'
+                                     % (stage.name, status))
+                    break
 
             if status is GoalStatus.STATUS_SUCCEEDED:
                 # [5] 'place' stage: Begin placing and wait until reaching
                 #     approach pose.
                 with ActionServer.Stage(self, goal_handle, 'place',
                                         pick_or_place_cancel) as stage:
-                    # Place the picked part.
+                    # Place the picked part (not wait).
                     self.node.place_at_frame(request.robot_name, part_id,
                                              part_props['destination'],
                                              offset=(0.0, place_offset, 0.0),
                                              timeout_sec=0.0)
+                    place_offset = -place_offset
 
                     if _is_eye_on_hand(request.robot_name,
                                        part_props['camera_name']):
+                        # Wait until placing finished.
                         status, result = self.node \
                                         .pick_or_place_wait(request.robot_name)
                         if status is GoalStatus.STATUS_ABORTED:
@@ -191,19 +204,9 @@ class AttemptBinTaskServer(ActionServer):
                             raise ActionServer.Error('Failed to place',
                                                      stage=stage.extend_name(
                                                                result.stage))
-            elif status is not GoalStatus.STATUS_ABORTED:  # No poses remained...
-                if not fine_parameters:
-                    self.logger.warn('### pick@AttemptBin terminated with status[%d], switch to fine parameters' % status)
-                    fine_parameters = True
-                    pick_poses      = []
-                    fail_poses      = []
-                else:
-                    self.logger.warn('### pick@AttemptBin terminated with status[%d], break' % status)
-                    break
 
             if not request.pick_all:
                 break
-            place_offset = -place_offset
 
         goal_handle.succeed()
         return AttemptBin.Result(stage='')
