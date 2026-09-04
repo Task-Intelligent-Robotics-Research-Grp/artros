@@ -117,9 +117,9 @@ class KittingRoutines(BaseRoutines):
     def do_a(self, bin_id):
         """      a <bin_id>
         Attempt to pick a part in the specified bin and place it."""
-        self.pick_tool(robot_name, 'suction_tool')
-        self.go_to_named_pose(robot_name, 'home')
-        self._attempt_bin.send_goal(robot_name, bin_id, False, 5)
+        self.pick_tool(self._robot_name, 'suction_tool')
+        self.go_to_named_pose(self._robot_name, 'home')
+        self._attempt_bin.send_goal(self._robot_name, bin_id, False, 5)
 
     def complete_a(self, text, line, ib, ie):
         return BaseRoutines._complete_default(text, line, self.bin_ids)
@@ -127,9 +127,9 @@ class KittingRoutines(BaseRoutines):
     def do_A(self, bin_id):
         """      A <bin_id>
         Attempt to pick all parts in the specified bin and place it."""
-        self.pick_tool(robot_name, 'suction_tool')
-        self.go_to_named_pose(robot_name, 'home')
-        self._attempt_bin.send_goal(robot_name, bin_id, True, 5)
+        self.pick_tool(self._robot_name, 'suction_tool')
+        self.go_to_named_pose(self._robot_name, 'home')
+        self._attempt_bin.send_goal(self._robot_name, bin_id, True, 5)
 
     def complete_A(self, text, line, ib, ie):
         return BaseRoutines._complete_default(text, line, self.bin_ids)
@@ -155,7 +155,7 @@ class KittingRoutines(BaseRoutines):
 
         # Set function for filtering graspabilities.
         if 'min_height' in bin_props and 'max_height' in bin_props:
-            max_slant = 0.0 if graspability_parameters else \
+            max_slant = 0.0 if fine_parameters else \
                         bin_props.get('max_slant', 45.0)
             self._graspability_client.set_graspability_filter(
                 lambda graspabilities, \

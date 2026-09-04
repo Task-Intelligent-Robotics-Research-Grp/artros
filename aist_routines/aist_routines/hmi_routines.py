@@ -72,7 +72,7 @@ class HMIRoutines(KittingRoutines):
         """      sw <bin_id>
         Search graspability points from the specified bin and sweep the one
         with the highest score."""
-        self.sweep_bin(robot_name, bin_id)
+        self.sweep_bin(self._robot_name, bin_id)
         self.go_to_named_pose(self._robot_name, 'home')
 
     def complete_sw(self, text, line, ib, ie):
