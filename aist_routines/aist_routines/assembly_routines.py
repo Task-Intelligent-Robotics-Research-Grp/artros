@@ -54,31 +54,12 @@ class AssemblyRoutines(BaseRoutines):
         return ('screw_m3', 'screw_m4')
 
     @property
-    def object_frame_ids(self):
-        return list(filter(lambda f: '/' in f, self.frame_ids))
+    def object_frames(self):
+        return list(filter(lambda frame_id: '/' in frame_id, self.frame_ids))
 
     # Interactive stuffs
     def process_command(self, command, robot_name, axis, speed):
-        if command == 'pp':
-            part_id  = input('  part ID? ')
-            subframe = input('  subframe? ')
-            if subframe == '':
-                subframe = 'default_grasp'
-            self.pick_part(robot_name, part_id, subframe, timeout_sec=0.0)
-        elif command == 'PP':
-            part_id  = input('  part ID? ')
-            subframe = input('  subframe? ')
-            if subframe == '':
-                subframe = 'base_link'
-            place_frame = input('  place frame? ')
-            self.place_part(robot_name, part_id, subframe, place_frame,
-                            timeout_sec=0.0)
-        elif command == 'fb':
-            self.fix_part('base')
-        elif command == 'FB':
-            self.release_part('base')
-
-        elif command == 'at':
+        if command == 'at':
             pose_name = input('  viewing pose? ')
             if pose_name == '':
                 pose_name = 'fasten_screw_m4_ready'
@@ -93,47 +74,74 @@ class AssemblyRoutines(BaseRoutines):
         return robot_name, axis, speed
 
     def do_cmds(self, dummy):
+        """      Print command list."""
         super().do_cmds(dummy)
         print('=== Assembly commands ===')
         print('  ps: Pick/place screw')
         print('  po: Pick object')
         print('  PO: Place object')
-        print('  fb: Fix base')
-        print('  FB: Release base')
+        print('  fb: Fix base to the base fixture')
+        print('  FB: Release base from the base fixture')
         print('  at: Begin approaching target')
         print('  AT: Cancel approaching target action')
 
     def do_ps(self, screw_type):
-        '''    ps [screw_type]
-        Pick a screw of specified type.'''
+        """      ps [screw_type]
+        Pick a screw of specified type."""
         if screw_type:
-            if screw_type in self.screw_types:
-                self.pick_screw(self._robot_name, screw_type)
-            else:
-                print('  unknown screw type[%s]!' % screw_type)
+            self.pick_screw(self._robot_name, screw_type)
         else:
             self.place_screw(self._robot_name)
 
     def complete_ps(self, text, line, ib, ie):
         return BaseRoutines._complete_default(text, line, self.screw_types)
 
-    def do_po(self, subframe):
-        """      po <subframe>
-        Pick a collision object with grasp pose at the specified subframe."""
-        if subframe in self.descendant_frame_ids(self._robot_name):
-            self.pick_object(self._robot_name, subframe, timeout_sec=0.0)
-        else:
-            print('      unknown subframe[%s]' % subframe)
+    def do_po(self, object_frame):
+        """      po <object_frame>
+        Pick a collision object at the specified object frame."""
+        if object_frame not in self.object_frames:
+            print('      unknown object frame[%s]' % object_frame)
+            return
+        self.pick_object(self._robot_name, object_frame, timeout_sec=0.0)
 
     def complete_po(self, text, line, ib, ie):
-        return BaseRoutines._complete_default(text, line,
-                                              self.descendant_frame_ids(
-                                                  self._robot_name))
+        object_frames = list(set(self.object_frames) -
+                             set(self.candidate_eef_links(self._robot_name)))
+        return BaseRoutines._complete_default(text, line, object_frames)
 
-    def switch_camera(self, current_robot_name, new_robot_name,
-                      laser_power=16):
-        self.camera(current_robot_name + '_camera').laser_power = 0
-        self.camera(new_robot_name + '_camera').laser_power = laser_power
+    def do_PO(self, args):
+        """      PO <object_frame> <place_frame>
+        Place a collision object at the specified place frame."""
+        tokens = args.split()
+        if len(tokens) < 2:
+            print('      object frame and/or place frame not specified!')
+            return
+        object_frame = tokens[0]
+        place_frame  = tokens[1]
+        if object_frame not in self.candidate_eef_links(self._robot_name):
+            print('      invalid object frame[%s]!' % object_frame)
+            return
+        if place_frame not in self.frame_ids:
+            print('      unknown place frame[%s]!' % place_frame)
+            return
+        self.place_object(self._robot_name, object_frame, place_frame,
+                          timeout_sec=0.0)
+
+    def complete_PO(self, text, line, ib, ie):
+        object_frames = self.candidate_eef_links(self._robot_name)
+        place_frames  = list(set(self.frame_ids) - set(object_frames))
+        return BaseRoutines._complete_default(text, line,
+                                              object_frames, place_frames)
+
+    def do_fb(self, dummy):
+        """      fb
+        Fix base to the base fixture."""
+        self.fix_object('base/base_link')
+
+    def do_FB(self, dummy):
+        """      FB
+        Release base from the base fixture."""
+        self.release_object('base')
 
     # Assembly stuffs
     def initialize_collision_objects(self):
@@ -160,7 +168,7 @@ class AssemblyRoutines(BaseRoutines):
         screw_tip_link = next(filter(lambda frame_id:
                                      frame_id.startswith('screw_m') and
                                      frame_id.endswith('/tip_link'),
-                                     self.descendant_frame_ids(robot_name)),
+                                     self.candidate_eef_links(robot_name)),
                               None)
         if screw_tip_link is None:
             return (GoalStatus.STATUS_UNKNOWN, None)
@@ -174,28 +182,30 @@ class AssemblyRoutines(BaseRoutines):
             self.com.remove_object(screw_id)
         return (status, result)
 
-    def pick_object(self, robot_name, subframe, *, timeout_sec=None):
-        object_id = AssemblyRoutines._get_object_id(subframe)
-        return self.pick_at_frame(robot_name, object_id, subframe,
+    def pick_object(self, robot_name, object_frame, *, timeout_sec=None):
+        object_id = AssemblyRoutines._get_object_id(object_frame)
+        return self.pick_at_frame(robot_name, object_id, object_frame,
                                   timeout_sec=timeout_sec)
 
-    def place_part(self, robot_name, subframe, place_frame,
-                   *, timeout_sec=None):
-        object_id = AssemblyRoutines._get_object_id(subframe)
+    def place_object(self, robot_name, object_frame, place_frame,
+                     *, timeout_sec=None):
+        object_id = AssemblyRoutines._get_object_id(object_frame)
         return self.place_at_frame(robot_name, object_id, place_frame,
-                                   eef_link=subframe, timeout_sec=timeout_sec)
+                                   eef_link=object_frame,
+                                   timeout_sec=timeout_sec)
 
-    def fix_part(self, part_id, offset=(), subframe='base_link'):
-        gripper = self._grippers['base_fixture']
+    def fix_object(self, object_frame, *, offset=()):
+        object_id = AssemblyRoutines._get_object_id(object_frame)
+        gripper   = self._grippers['base_fixture']
         gripper.grasp()
-        self.com.attach_object(part_id, gripper.tip_link)
-        self.com.move_object(part_id, self.pose_from_xyzrpy(offset),
-                             part_id + '/' + subframe)
+        self.com.attach_object(object_id, gripper.tip_link)
+        self.com.move_object(object_id, self.pose_from_xyzrpy(offset),
+                             object_frame)
 
-    def release_part(self, part_id):
+    def release_object(self, object_id):
         gripper = self._grippers['base_fixture']
         gripper.release()
-        self.com.detach_object(part_id, gripper.tip_link)
+        self.com.detach_object(object_id, gripper.tip_link)
 
     def approach_target(self, robot_name,
                         pose_name, target_frame, target_force=(0, 0, -5)):
@@ -225,6 +235,11 @@ class AssemblyRoutines(BaseRoutines):
         if tracker.wait_for_result():
             result = tracker.get_result()
             self.go_to_named_pose(robot_name, result.pose_name)
+
+    def switch_camera(self, current_robot_name, new_robot_name,
+                      laser_power=16):
+        self.camera(current_robot_name + '_camera').laser_power = 0
+        self.camera(new_robot_name + '_camera').laser_power = laser_power
 
     # Utilities
     def _generate_screw(self, screw_type):

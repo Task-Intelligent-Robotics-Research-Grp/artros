@@ -1,3 +1,4 @@
+#
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2021, National Institute of Advanced Industrial Science and Technology (AIST)
@@ -345,6 +346,9 @@ class BaseRoutines(Node, Cmd):
         Cmd.prompt = self.prompt
         return stop
 
+    def emptyline(self):
+        pass
+
     def do_cmds(self, dummy):
         """      Print command list."""
         print('=== General commands ===')
@@ -393,6 +397,10 @@ class BaseRoutines(Node, Cmd):
         """      Quit program."""
         print('bye')
         return True
+
+    def do_quit(self, dummy):
+        """      Quit program."""
+        return do_EOF(dummy)
 
     def do_reload(self, dummy):
         """      reload
@@ -456,14 +464,7 @@ class BaseRoutines(Node, Cmd):
     def do_named(self, named_pose):
         """      named [named_pose]
         Move current active robot to the specified named pose."""
-        named_poses = self._cmd.get_group(self._robot_name).get_named_targets()
-        if named_pose:
-            if named_pose in named_poses:
-                self.go_to_named_pose(self._robot_name, named_pose)
-            else:
-                print('      unknown named pose[%s]!' % named_pose)
-        else:
-            print('      named pose not specified!')
+        self.go_to_named_pose(self._robot_name, named_pose)
 
     def complete_named(self, text, line, ib, ie):
         return BaseRoutines._complete_default(
@@ -485,22 +486,41 @@ class BaseRoutines(Node, Cmd):
                 offset.append(float(token))
             except ValueError:
                 if i != 0:
-                    print('      illegal offset value[%s]!' % token)
+                    print('      invalid offset value[%s]!' % token)
                     return
                 eef_link = token
+
+        if frame_id not in self.frame_ids:
+            print('      unknown frame ID[%s]!' % frame_id)
+            return
+        if eef_link not in self.candidate_eef_links(self._robot_name):
+            print('      invalid end-effector link[%s]!' % eef_link)
+            return
+
         self.go_to_frame(self._robot_name, frame_id, offset,
                          speed=self._speed, end_effector_link=eef_link)
 
     def complete_frame(self, text, line, ib, ie):
-        descendant_frame_ids = self.descendant_frame_ids(self._robot_name)
-        frame_ids = list(set(self.frame_ids) - set(descendant_frame_ids))
+        candidate_eef_links = self.candidate_eef_links(self._robot_name)
+        frame_ids = list(set(self.frame_ids) - set(candidate_eef_links))
         return BaseRoutines._complete_default(text, line,
-                                              frame_ids, descendant_frame_ids)
+                                              frame_ids, candidate_eef_links)
 
     def do_clip(self, dummy):
         """      clip
         Clip wrist joint value."""
         self.clip_wrist_joint_value(self._robot_name)
+
+    def do_speed(self, speed_value):
+        """      speed [speed_value]
+        Set speed value of the current robot."""
+        if speed_value:
+            try:
+                self._speed = float(speed_value)
+            except ValueError:
+                print('      invalid speed value[%s]!' % speed_value)
+        else:
+            print('      current speed: %f' % self._speed)
 
     def do_stop(self, dummy):
         """      stop
@@ -589,7 +609,7 @@ class BaseRoutines(Node, Cmd):
             position = float(pos)
             self.set_gripper_position(self._robot_name, position)
         except ValueError:
-            print('      illegal position value[%s]' % pos)
+            print('      invalid position value[%s]' % pos)
 
     def do_gvel(self, vel):
         """      gvel <velocity>
@@ -598,7 +618,7 @@ class BaseRoutines(Node, Cmd):
             velocity = float(vel)
             self.set_gripper_velocity(self._robot_name, velocity)
         except ValueError:
-            print('      illegal velocity value[%s]' % vel)
+            print('      invalid velocity value[%s]' % vel)
 
     def do_tighten(self, dummy):
         """      tighten
@@ -1212,20 +1232,20 @@ class BaseRoutines(Node, Cmd):
                  self.format_pose(info.pose, info.pose.header.frame_id),
                  info.pose.header.frame_id))
 
-    def descendant_frame_ids(self, robot_name):
+    def candidate_eef_links(self, robot_name):
         frames_dict = yaml.safe_load(self.tf2_buffer.all_frames_as_yaml())
         frame_ids = []
 
-        def _descendant_frame_ids(frame_id):
+        def _candidate_eef_links(frame_id):
             frame_ids.append(frame_id)
             for child_frame_id, child_frame_props in frames_dict.items():
                 if child_frame_props['parent'] == frame_id:
-                    _descendant_frame_ids(child_frame_id)
+                    _candidate_eef_links(child_frame_id)
 
         gripper = self.gripper(robot_name)
         gripper_link = gripper.base_link if '/' in gripper.tip_link else \
                        gripper.tip_link
-        _descendant_frame_ids(gripper_link)
+        _candidate_eef_links(gripper_link)
         return frame_ids
 
     def lookup_transform(self, target_frame, source_frame,
