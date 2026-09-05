@@ -1,4 +1,3 @@
-#
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2021, National Institute of Advanced Industrial Science and Technology (AIST)
@@ -58,21 +57,21 @@ def _main(name, routines):
 #  entry points                                                      *
 #*********************************************************************
 def base():
-    from aist_routines.base_routines import BaseRoutines
+    from aist_routines import BaseRoutines
 
     _main('base', BaseRoutines)
 
 def assembly():
-    from aist_routines.assembly_routines import AssemblyRoutines
+    from aist_routines import AssemblyRoutines
 
     _main('assembly', AssemblyRoutines)
 
 def kitting():
-    from aist_routines.kitting_routines  import KittingRoutines
+    from aist_routines import KittingRoutines
 
     _main('kitting', KittingRoutines)
 
 def hmi_demo():
-    from aist_routines.hmi_routines  import HMIRoutines
+    from aist_routines import HMIRoutines
 
     _main('hmi_demo', HMIRoutines)

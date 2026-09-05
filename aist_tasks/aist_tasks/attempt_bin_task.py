@@ -33,20 +33,15 @@
 #
 # Author: Toshio Ueshiba
 #
-from rclpy.node                    import Node
-from rclpy.action                  import GoalResponse, CancelResponse
-from rclpy.callback_groups         import MutuallyExclusiveCallbackGroup
-from action_msgs.msg               import GoalStatus
-from geometry_msgs.msg             import (PoseStamped, QuaternionStamped,
-                                           Transform, Vector3, Quaternion)
-from aist_msgs.action              import PickOrPlace, AttemptBin
-from aist_tasks.pick_or_place_task import PickOrPlaceTaskClient
-from aist_graspability.client      import GraspabilityClient
-from task_wrappers.action_client   import GroupedSimpleActionClient
-from task_wrappers.action_server   import ActionServer
-from aist_utility.geometry_msgs    import format_pose
+from rclpy.node                  import Node
+from rclpy.callback_groups       import MutuallyExclusiveCallbackGroup
+from action_msgs.msg             import GoalStatus
+from geometry_msgs.msg           import PoseStamped
+from aist_msgs.action            import AttemptBin
+from task_wrappers.action_client import GroupedSimpleActionClient
+from task_wrappers.action_server import ActionServer
 
-from typing                        import Optional
+from typing                      import Optional
 
 #*********************************************************************
 #  class AttemptBinTaskClient                                        *

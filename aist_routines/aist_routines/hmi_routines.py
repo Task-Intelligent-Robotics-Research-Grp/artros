@@ -1,4 +1,3 @@
-#
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2021, National Institute of Advanced Industrial Science and Technology (AIST)
@@ -34,12 +33,11 @@
 #
 # Author: Toshio Ueshiba
 #
-from geometry_msgs.msg                       import PoseStamped
-from action_msgs.msg                         import GoalStatus
-from aist_tasks.request_help_task            import RequestHelpTask
-from aist_tasks.sweep_task                   import SweepTask
-from aist_tasks.error_recovery_by_sweep_task import ErrorRecoveryBySweepTask
-from .kitting_routines                       import KittingRoutines
+from geometry_msgs.msg import PoseStamped
+from action_msgs.msg   import GoalStatus
+from aist_tasks        import (RequestHelpTask, SweepTask,
+                               ErrorRecoveryBySweepTask)
+from aist_routines     import KittingRoutines
 
 #*********************************************************************
 #  class HMIRoutines                                                 *

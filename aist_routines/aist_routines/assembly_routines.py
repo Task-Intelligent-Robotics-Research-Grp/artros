@@ -1,4 +1,3 @@
-#
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2021, National Institute of Advanced Industrial Science and Technology (AIST)
@@ -36,7 +35,7 @@
 #
 from geometry_msgs.msg import PoseStamped, WrenchStamped, Vector3
 from action_msgs.msg   import GoalStatus
-from .base_routines    import BaseRoutines
+from aist_routines     import BaseRoutines
 #from cuda_feature_tracker_3d          import FeatureTrackerClient
 
 #*********************************************************************

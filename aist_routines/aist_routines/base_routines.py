@@ -1,4 +1,3 @@
-#
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2021, National Institute of Advanced Industrial Science and Technology (AIST)
@@ -61,9 +60,8 @@ from action_msgs.msg               import GoalStatus
 from aist_utility.fileio           import filepath_from_url
 from aist_utility.geometry_msgs    import (transform_matrix, pose_matrix,
                                            pose_from_matrix)
-from aist_tasks.pick_or_place_task import PickOrPlaceTask
-from aist_collision_object_manager \
-    .collision_object_manager      import CollisionObjectManager
+from aist_tasks                    import PickOrPlaceTask, PickOrPlaceToolTask
+from aist_collision_object_manager import CollisionObjectManager
 from ddynamic_reconfigure2.utils   import declare_read_only_parameter
 from .gripper_client               import create_gripper
 from .camera_client                import CameraClient
@@ -178,6 +176,9 @@ class BaseRoutines(Node, Cmd):
         # Pick and place task
         self._pick_or_place  = PickOrPlaceTask(self)
 
+        # Pick and place tool task
+        self._pick_or_place_tool = PickOrPlaceToolTask(self)
+
         # Interpreter stuffs
         self._robot_name = self.group_names[0]
         self._axis       = 1  # Y-axis
@@ -241,6 +242,12 @@ class BaseRoutines(Node, Cmd):
         """ Name list of grippers.
         """
         return list(self._grippers.keys())
+
+    @property
+    def tool_names(self)-> list[str]:
+        """ Name list of tools.
+        """
+        return [n for n, g in self._grippers.items() if '/' in g.base_link]
 
     @property
     def camera_names(self)-> list[str]:
@@ -644,7 +651,7 @@ class BaseRoutines(Node, Cmd):
             self.place_tool(self._robot_name)
 
     def complete_pt(self, text, line, ib, ie):
-        return BaseRoutines._complete_default(text, line, self.gripper_names)
+        return BaseRoutines._complete_default(text, line, self.tool_names)
 
     def do_pcancel(self, dummy):
         """      pcancel
@@ -1167,40 +1174,6 @@ class BaseRoutines(Node, Cmd):
                          self.pose_from_xyzrpy(offset, target_frame),
                          timeout_sec=timeout_sec)
 
-    def place_at_frame(self, robot_name, object_id, target_frame,
-                       *, offset=(), eef_link='', timeout_sec=None):
-        return self.place(robot_name, object_id,
-                          self.pose_from_xyzrpy(offset, target_frame),
-                          eef_link=eef_link, timeout_sec=timeout_sec)
-
-    def pick_tool(self, robot_name, tool_name, *, timeout_sec=None):
-        if tool_name not in self._grippers:
-            self.get_logger().error('Unknown tool name[%s]' % tool_name)
-            return GoalStatus.STATUS_ABORTED, None
-        if self.gripper(robot_name).name == tool_name:
-            return GoalStatus.STATUS_SUCCEEDED, None
-        if self.gripper(robot_name).name != \
-           self.default_gripper_name(robot_name):
-            self.place_tool(robot_name)
-        status, result = self.pick_at_frame(robot_name, tool_name,
-                                            tool_name + '/base_link',
-                                            timeout_sec=timeout_sec)
-        if status == GoalStatus.STATUS_SUCCEEDED:
-            self.set_gripper(robot_name, tool_name)
-            #self.ftsensor_reset_bias(robot_name)
-        return status, result
-
-    def place_tool(self, robot_name, *, timeout_sec=None):
-        tool_name            = self.gripper(robot_name).name
-        default_gripper_name = self.default_gripper_name(robot_name)
-        if tool_name == default_gripper_name:
-            return GoalStatus.STATUS_SUCCEEDED, None
-        self.set_gripper(robot_name, default_gripper_name)
-        return self.place_at_frame(robot_name, tool_name,
-                                   tool_name + '_holder_link',
-                                   eef_link=tool_name + '/base_link',
-                                   timeout_sec=timeout_sec)
-
     def pick_or_place_wait(self, robot_name,
                            *, target_stage=None, timeout_sec=None):
         return self._pick_or_place.wait(robot_name, target_stage=target_stage,
@@ -1208,6 +1181,20 @@ class BaseRoutines(Node, Cmd):
 
     def pick_or_place_cancel_goal(self, robot_name):
         self._pick_or_place.cancel_goal(robot_name)
+
+    def place_at_frame(self, robot_name, object_id, target_frame,
+                       *, offset=(), eef_link='', timeout_sec=None):
+        return self.place(robot_name, object_id,
+                          self.pose_from_xyzrpy(offset, target_frame),
+                          eef_link=eef_link, timeout_sec=timeout_sec)
+
+    def pick_tool(self, robot_name, tool_name, *, timeout_sec=None):
+        return self._pick_or_place_tool.send_goal(robot_name, tool_name,
+                                                  timeout_sec=timeout_sec)
+
+    def place_tool(self, robot_name, *, timeout_sec=None):
+        return self._pick_or_place_tool.send_goal(robot_name, '',
+                                                  timeout_sec=timeout_sec)
 
     #
     # Utility functions
