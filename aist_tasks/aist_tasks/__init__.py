@@ -10,6 +10,9 @@ from .pick_or_place_task           import (PickOrPlaceTaskClient,
 from .pick_or_place_tool_task      import (PickOrPlaceToolTaskClient,
                                            PickOrPlaceToolTaskServer,
                                            PickOrPlaceToolTask)
+from .pick_or_place_screw_task     import (PickOrPlaceScrewTaskClient,
+                                           PickOrPlaceScrewTaskServer,
+                                           PickOrPlaceScrewTask)
 from .request_help_task            import (RequestHelpTaskClient,
                                            RequestHelpTaskServer,
                                            RequestHelpTask)
@@ -23,6 +26,8 @@ __all__ = [
     'PickOrPlaceTaskClient', 'PickOrPlaceTaskServer', 'PickOrPlaceTask',
     'PickOrPlaceToolTaskClient', 'PickOrPlaceToolTaskServer',
     'PickOrPlaceToolTask',
+    'PickOrPlaceScrewTaskClient', 'PickOrPlaceToolScrewServer',
+    'PickOrPlaceScrewTask',
     'RequestHelpTaskClient', 'RequestHelpTaskServer', 'RequestHelpTask',
     'SweepTaskClient', 'SweepTaskServer', 'SweepTask',
 ]

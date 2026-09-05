@@ -1,0 +1,10 @@
+# Goal
+string robot_name
+string screw_type  # 'screw_m3', 'screw_m4'
+---
+# Result
+string stage       # 'pick_tool', 'pick_screw', 'place_screw'
+string screw_id
+---
+# Feedback
+string stage       # 'pick_tool', 'pick_screw', 'place_screw'

@@ -35,6 +35,7 @@
 #
 from geometry_msgs.msg import PoseStamped, WrenchStamped, Vector3
 from action_msgs.msg   import GoalStatus
+from aist_tasks        import PickOrPlaceScrewTask
 from aist_routines     import BaseRoutines
 #from cuda_feature_tracker_3d          import FeatureTrackerClient
 
@@ -46,6 +47,8 @@ class AssemblyRoutines(BaseRoutines):
 
     def __init__(self, name):
         super().__init__(name)
+
+        self._pick_or_place_screw = PickOrPlaceScrewTask(self)
         self._feature_trackers = {}
 
     @property
@@ -151,35 +154,10 @@ class AssemblyRoutines(BaseRoutines):
         self._generate_screw('screw_m4')
 
     def pick_screw(self, robot_name, screw_type):
-        tool_name = 'screw_tool_' + screw_type[-2:]
-        status, result = self.pick_tool(robot_name, tool_name)
-        if status != GoalStatus.STATUS_SUCCEEDED:
-            return (status, result)
-        feeder_name = 'screw_feeder_' + screw_type[-2:]
-        screw_id    = self._get_screw_id(screw_type)
-        status, result = self.pick_at_frame(robot_name, screw_id,
-                                            screw_id + '/head')
-        if status == GoalStatus.STATUS_SUCCEEDED:
-            self._generate_screw(screw_type)
-        return (status, result)
+        return self._pick_or_place_screw.send_goal(robot_name, screw_type)
 
     def place_screw(self, robot_name):
-        screw_tip_link = next(filter(lambda frame_id:
-                                     frame_id.startswith('screw_m') and
-                                     frame_id.endswith('/tip_link'),
-                                     self.candidate_eef_links(robot_name)),
-                              None)
-        if screw_tip_link is None:
-            return (GoalStatus.STATUS_UNKNOWN, None)
-        screw_id    = AssemblyRoutines._get_object_id(screw_tip_link)
-        screw_type  = screw_id.rsplit('_', 1)[0]
-        feeder_name = 'screw_feeder_' + screw_type[-2:]
-        status, result = self.place_at_frame(robot_name, screw_id,
-                                             feeder_name + '_inlet_link',
-                                             eef_link=screw_tip_link)
-        if status == GoalStatus.STATUS_SUCCEEDED:
-            self.com.remove_object(screw_id)
-        return (status, result)
+        return self._pick_or_place_screw.send_goal(robot_name, '')
 
     def pick_object(self, robot_name, object_frame, *, timeout_sec=None):
         object_id = AssemblyRoutines._get_object_id(object_frame)
