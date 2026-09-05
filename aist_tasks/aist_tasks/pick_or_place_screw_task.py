@@ -72,13 +72,16 @@ class PickOrPlaceScrewTaskServer(ActionServer):
             return self._place_screw(goal_handle)
 
     def _pick_screw(self, goal_handle):
-        request   = goal_handle.request
-        node      = self.node
-        tool_name = 'screw_tool_' + request.screw_type[-2:]
+        request              = goal_handle.request
+        node                 = self.node
+        tool_name            = 'screw_tool_' + request.screw_type[-2:]
+        pick_or_place_cancel = lambda: node.pick_or_place_cancel_goal(
+                                           request.robot_name)
 
         if node.gripper(request.robot_name).name != tool_name:
             # [1] 'pick_tool' stage: Pick screw tool for requested screw type.
-            with ActionServer.Stage(self, goal_handle, 'pick_tool') as stage:
+            with ActionServer.Stage(self, goal_handle, 'pick_tool',
+                                    pick_or_place_cancel) as stage:
                 status, result = node.pick_tool(request.robot_name, tool_name)
                 if status is GoalStatus.STATUS_ABORTED:
                     raise ActionServer.Error('Failed to pick tool!',
@@ -86,7 +89,8 @@ class PickOrPlaceScrewTaskServer(ActionServer):
                                                        result.stage))
 
         # [2] 'pick_screw' stage: Place current tool.
-        with ActionServer.Stage(self, goal_handle, 'pick_screw') as stage:
+        with ActionServer.Stage(self, goal_handle, 'pick_screw',
+                                pick_or_place_cancel) as stage:
             screw_id = node._get_screw_id(request.screw_type)
             status, result = node.pick_at_frame(request.robot_name, screw_id,
                                                 screw_id + '/head')
@@ -99,14 +103,17 @@ class PickOrPlaceScrewTaskServer(ActionServer):
         return PickOrPlaceScrew.Result(stage='', screw_id=screw_id)
 
     def _place_screw(self, goal_handle):
-        request        = goal_handle.request
-        node           = self.node
-        screw_tip_link = next(filter(lambda frame_id:
-                                     frame_id.startswith('screw_m') and
-                                     frame_id.endswith('/tip_link'),
-                                     node.candidate_eef_links(
-                                         request.robot_name)),
-                              None)
+        request              = goal_handle.request
+        node                 = self.node
+        screw_tip_link       = next(filter(lambda frame_id:
+                                           frame_id.startswith('screw_m') and
+                                           frame_id.endswith('/tip_link'),
+                                           node.candidate_eef_links(
+                                               request.robot_name)),
+                                    None)
+        pick_or_place_cancel = lambda: node.pick_or_place_cancel_goal(
+                                           request.robot_name)
+
         if screw_tip_link is None:
             raise ActionServer.Error('No screw grasped!', stage='')
 
@@ -115,7 +122,8 @@ class PickOrPlaceScrewTaskServer(ActionServer):
         feeder_name = 'screw_feeder_' + screw_type[-2:]
 
         # [1] 'place_screw' stage:
-        with ActionServer.Stage(self, goal_handle, 'place_screw') as stage:
+        with ActionServer.Stage(self, goal_handle, 'place_screw',
+                                pick_or_place_cancel) as stage:
             status, result = node.place_at_frame(request.robot_name, screw_id,
                                                  feeder_name + '_inlet_link',
                                                  eef_link=screw_tip_link)

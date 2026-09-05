@@ -66,10 +66,12 @@ class PickOrPlaceToolTaskServer(ActionServer):
                          group_field='robot_name')
 
     def _execute_cb(self, goal_handle):
-        request       = goal_handle.request
-        node          = self.node
-        current_gname = node.gripper(request.robot_name).name
-        default_gname = node.default_gripper_name(request.robot_name)
+        request              = goal_handle.request
+        node                 = self.node
+        current_gname        = node.gripper(request.robot_name).name
+        default_gname        = node.default_gripper_name(request.robot_name)
+        pick_or_place_cancel = lambda: node.pick_or_place_cancel_goal(
+                                           request.robot_name)
 
         if current_gname == request.tool_name:
             goal_handle.succeed()
@@ -77,7 +79,8 @@ class PickOrPlaceToolTaskServer(ActionServer):
 
         if current_gname in node.tool_names:
             # [1] 'place' stage: Place current tool.
-            with ActionServer.Stage(self, goal_handle, 'place') as stage:
+            with ActionServer.Stage(self, goal_handle, 'place',
+                                    pick_or_place_cancel) as stage:
                 node.set_gripper(request.robot_name, default_gname)
                 status, result = node.place_at_frame(
                                      request.robot_name, current_gname,
@@ -98,7 +101,8 @@ class PickOrPlaceToolTaskServer(ActionServer):
                                      stage='check')
 
         # [2] 'pick' stage: Pick requested tool.
-        with ActionServer.Stage(self, goal_handle, 'pick') as stage:
+        with ActionServer.Stage(self, goal_handle, 'pick',
+                                pick_or_place_cancel) as stage:
             status, result = node.pick_at_frame(
                                  request.robot_name, request.tool_name,
                                  request.tool_name + '/base_link')
