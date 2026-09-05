@@ -90,6 +90,9 @@ class PickOrPlaceScrewTaskServer(ActionServer):
             screw_id = node._get_screw_id(request.screw_type)
             status, result = node.pick_at_frame(request.robot_name, screw_id,
                                                 screw_id + '/head')
+            if status is GoalStatus.STATUS_ABORTED:
+                raise ActionServer.Error('Failed to pick screw!',
+                                         stage=stage.extend_name(result.stage))
 
         # [Final] Goal succeeded.
         goal_handle.succeed()
