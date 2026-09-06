@@ -70,8 +70,8 @@ class HMIRoutines(KittingRoutines):
         """      sw <bin_id>
         Search graspability points from the specified bin and sweep the one
         with the highest score."""
+        self._recent_tasks[self._robot_name] = self._sweep
         self.sweep_bin(self._robot_name, bin_id)
-        self.go_to_named_pose(self._robot_name, 'home')
 
     def complete_sw(self, text, line, ib, ie):
         return BaseRoutines._complete_default(text, line, self.bin_ids)
@@ -80,13 +80,14 @@ class HMIRoutines(KittingRoutines):
         """      rh <bin_id>
         Search graspability points from the specified bin and request help
         for the one with the highest score."""
-        self.request_help_bin(self._robot_name, bin_id, timeout_sec=0.0)
+        self._recent_tasks[self._robot_name] = self._request_help
+        self.request_help_bin(self._robot_name, bin_id)
 
     def complete_rh(self, text, line, ib, ie):
         return BaseRoutines._complete_default(text, line, self.bin_ids)
 
     # Sweep stuffs
-    def sweep_bin(self, robot_name, bin_id, *, timeout_sec=None):
+    def sweep_bin(self, robot_name, bin_id):
         """ Sweep object in the specified bin.
         Search graspability points from the specified bin and sweep the one
         with the highest score.
@@ -113,7 +114,8 @@ class HMIRoutines(KittingRoutines):
         # Attempt to sweep the item along y-axis.
         pose = PoseStamped(header=result.graspabilities.poses.header,
                            pose=result.graspabilities.poses.poses[0])
-        return self.sweep(robot_name, pose, part_id, timeout_sec=timeout_sec)
+        self.sweep(robot_name, pose, part_id, timeout_sec=0.0)
+        self.go_to_named_pose(self._robot_name, 'home')
 
     def sweep(self, robot_name, pose, part_id, *, timeout_sec=None):
         """ Sweep the specified part along Y-axis of the specified pose.
@@ -139,7 +141,7 @@ class HMIRoutines(KittingRoutines):
                                      timeout_sec=timeout_sec)
 
     # Request help stuffs
-    def request_help_bin(self, robot_name, bin_id, *, timeout_sec=None):
+    def request_help_bin(self, robot_name, bin_id):
         """ Request help for the object in the specified bin.
         Search graspability points from the specified bin and request help
         for the one with the highest score.
@@ -166,9 +168,8 @@ class HMIRoutines(KittingRoutines):
         pose = PoseStamped(header=result.graspabilities.poses.header,
                            pose=result.graspabilities.poses.poses[0])
 
-        return self.request_help(robot_name, pose, part_id,
-                                 'Please_specify_sweep_direction.',
-                                 timeout_sec=timeout_sec)
+        self.request_help(robot_name, pose, part_id,
+                          'Please_specify_sweep_direction.', timeout_sec=0.0)
 
     def request_help(self, robot_name, pose, part_id, message,
                      *, timeout_sec=None):

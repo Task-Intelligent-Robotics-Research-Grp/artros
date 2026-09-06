@@ -180,9 +180,10 @@ class BaseRoutines(Node, Cmd):
         self._pick_or_place_tool = PickOrPlaceToolTask(self)
 
         # Interpreter stuffs
-        self._robot_name = self.group_names[0]
-        self._axis       = 1  # Y-axis
-        self._speed      = 1.0
+        self._robot_name   = self.group_names[0]
+        self._axis         = 1  # Y-axis
+        self._speed        = 1.0
+        self._recent_tasks = {}
         delims = readline.get_completer_delims()
         if '/' in delims:
             readline.set_completer_delims(delims.replace('/', ''))
@@ -261,6 +262,10 @@ class BaseRoutines(Node, Cmd):
         """
         return list(yaml.safe_load(self.tf2_buffer.all_frames_as_yaml()) \
                     .keys())
+
+    @property
+    def object_frames(self):
+        return list(filter(lambda frame_id: '/' in frame_id, self.frame_ids))
 
     @property
     def com(self)-> CollisionObjectManager:
@@ -359,7 +364,7 @@ class BaseRoutines(Node, Cmd):
     def do_cmds(self, dummy):
         """      Print command list."""
         print('=== General commands ===')
-        print('  quit:        quit this program')
+        print('  quit/EOF:    quit this program')
         print('  reload:      reload settings')
         print('  robot:       select robot')
         print('  ?|help:      print help messages')
@@ -391,9 +396,11 @@ class BaseRoutines(Node, Cmd):
         print('  tighten:     tighten screw')
         print('  loosen:      loosen screw')
         print('  gcancel:     cancel gripper action')
-        print('  pt:          pick tool')
-        print('  PT:          place tool')
-        print('  pcancel:     cancel picking/paciing')
+        print('=== Task commands ===')
+        print('  pick:        pick object')
+        print('  place:       place object')
+        print('  pt:          pick/place tool')
+        print('  cancel       cancel recent task')
         print('=== Collision object commands ===')
         print('  I:  Initialize all collision objects')
         print('  i:  Show infomation on collision objects')
@@ -642,21 +649,67 @@ class BaseRoutines(Node, Cmd):
         Cancel gripper action."""
         self.gripper_cancel(self._robot_name)
 
+    def do_pick(self, object_frame):
+        """      pick <object_frame>
+        Pick a collision object at the specified object frame."""
+        if object_frame not in self.object_frames:
+            print('      unknown object frame[%s]' % object_frame)
+            return
+        self._recent_tasks[self._robot_name] = self._pick_or_place
+        self.pick_at_frame(self._robot_name,
+                           BaseRoutines._get_object_id(object_frame),
+                           object_frame, timeout_sec=0.0)
+
+    def complete_pick(self, text, line, ib, ie):
+        object_frames = list(set(self.object_frames) -
+                             set(self.candidate_eef_links(self._robot_name)))
+        return BaseRoutines._complete_default(text, line, object_frames)
+
+    def do_place(self, args):
+        """      place <object_frame> <place_frame>
+        Place a collision object at the specified place frame."""
+        tokens = args.split()
+        if len(tokens) < 2:
+            print('      object frame and/or place frame not specified!')
+            return
+        object_frame = tokens[0]
+        place_frame  = tokens[1]
+        if object_frame not in self.candidate_eef_links(self._robot_name):
+            print('      invalid object frame[%s]!' % object_frame)
+            return
+        if place_frame not in self.frame_ids:
+            print('      unknown place frame[%s]!' % place_frame)
+            return
+        self._recent_tasks[self._robot_name] = self._pick_or_place
+        self.place_at_frame(self._robot_name,
+                            BaseRoutines._get_object_id(object_frame),
+                            place_frame, eef_link=object_frame,
+                            timeout_sec=0.0)
+
+    def complete_place(self, text, line, ib, ie):
+        object_frames = self.candidate_eef_links(self._robot_name)
+        place_frames  = list(set(self.frame_ids) - set(object_frames))
+        return BaseRoutines._complete_default(text, line,
+                                              object_frames, place_frames)
+
     def do_pt(self, tool_name):
         """      pt [tool_name]
         Pick tool with specified name. Place tool if no name specified."""
+        self._recent_tasks[self._robot_name] = self._pick_or_place_tool
         if tool_name:
-            self.pick_tool(self._robot_name, tool_name)
+            self.pick_tool(self._robot_name, tool_name, timeout_sec=0.0)
         else:
-            self.place_tool(self._robot_name)
+            self.place_tool(self._robot_name, timeout_sec=0.0)
 
     def complete_pt(self, text, line, ib, ie):
         return BaseRoutines._complete_default(text, line, self.tool_names)
 
-    def do_pcancel(self, dummy):
-        """      pcancel
-        Cancel pick/place action."""
-        self.pick_or_place_cancel_goal(self._robot_name)
+    def do_cancel(self, dummy):
+        """      cancel
+        Cancel task currently executed by the current robot."""
+        recent_task = self._recent_tasks.pop(self._robot_name, None)
+        if recent_task:
+            recent_task.cancel_goal(self._robot_name)
 
     def do_I(self, dummy):
         """      I
@@ -1363,3 +1416,8 @@ class BaseRoutines(Node, Cmd):
         q_corrected = tfs.quaternion_multiply(q, dq)
         return Quaternion(x=q_corrected.x, y=q_corrected.y,
                           z=q_corrected.z, w=q_corrected.w)
+
+    @staticmethod
+    def _get_object_id(link_name):
+        tokens = link_name.rsplit('/', 1)
+        return tokens[0] if len(tokens) == 2 else ''

@@ -95,7 +95,6 @@ class KittingRoutines(BaseRoutines):
         print('  sf: Search graspabilities with fine parameters')
         print('  a:  Attempt to pick and place')
         print('  A:  Repeat attempts to pick and place')
-        print('  c:  Cancel attempts to pick and place')
 
     def do_s(self, bin_id):
         """      s <bin_id>
@@ -116,6 +115,7 @@ class KittingRoutines(BaseRoutines):
     def do_a(self, bin_id):
         """      a <bin_id>
         Attempt to pick a part in the specified bin and place it."""
+        self._recent_tasks[self._robot_name] = self._attempt_bin
         self._attempt_bin.send_goal(self._robot_name, bin_id, False, 5)
 
     def complete_a(self, text, line, ib, ie):
@@ -124,15 +124,11 @@ class KittingRoutines(BaseRoutines):
     def do_A(self, bin_id):
         """      A <bin_id>
         Attempt to pick all parts in the specified bin and place it."""
+        self._recent_tasks[self._robot_name] = self._attempt_bin
         self._attempt_bin.send_goal(self._robot_name, bin_id, True, 5)
 
     def complete_A(self, text, line, ib, ie):
         return BaseRoutines._complete_default(text, line, self.bin_ids)
-
-    def do_c(self, dummy):
-        """      c
-        Cancel attempts to pick and place."""
-        self._attempt_bin.cancel_goal(self._robot_name)
 
     # Commands
     def search_bin(self, bin_id, fine_parameters=False):

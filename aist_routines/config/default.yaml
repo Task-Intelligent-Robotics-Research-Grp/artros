@@ -62,6 +62,7 @@ base:
       period:      0.1
       object_properties_urls:
         - package://aist_fastening_tools/config/fastening_tools_properties.yaml
+        - package://aist_description/parts/config/parts_properties.yaml
       touch_links_urls:
         - package://aist_routines/config/inc/touch_links.yaml
 

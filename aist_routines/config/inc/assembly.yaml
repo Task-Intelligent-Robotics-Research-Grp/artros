@@ -1,35 +1,4 @@
 picking_parameters:
-  base:
-    approach_offset:  [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
-    #pick_offset:      [0.000, 0.000, -0.014, 0.0, 0.0, 0.0]
-    pick_offset:      [0.000, 0.000,  0.000, 0.0, 0.0, 0.0]
-    departure_offset: [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
-    speed_fast:       0.05
-    speed_slow:       0.01
-    gripper_parameters:
-      grasp_position:   0.000
-      release_position: 3.140
-      max_effort:       30.0
-  panel_motor:
-    approach_offset:  [0.000, 0.000,  0.120, 0.0, -20.0, 0.0]
-    pick_offset:      [0.000, 0.000, -0.020, 0.0, -20.0, 0.0]
-    departure_offset: [0.000, 0.000,  0.120, 0.0, -20.0, 0.0]
-    speed_fast:       0.1
-    speed_slow:       0.1
-    gripper_parameters:
-      grasp_position:   0.000
-      release_position: 0.025
-      max_effort:       30.0
-  panel_bearing:
-    approach_offset:  [0.000, 0.000,  0.120, 0.0, -20.0, 0.0]
-    pick_offset:      [0.000, 0.000, -0.020, 0.0, -20.0, 0.0]
-    departure_offset: [0.000, 0.000,  0.120, 0.0, -20.0, 0.0]
-    speed_fast:       0.1
-    speed_slow:       0.1
-    gripper_parameters:
-      grasp_position:   0.000
-      release_position: 0.025
-      max_effort:       30.0
   screw_m3:
     approach_offset:  [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
     pick_offset:      [0.000, 0.000,  0.000, 0.0, 0.0, 0.0]

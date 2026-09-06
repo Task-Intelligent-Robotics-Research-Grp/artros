@@ -55,10 +55,6 @@ class AssemblyRoutines(BaseRoutines):
     def screw_types(self):
         return ('screw_m3', 'screw_m4')
 
-    @property
-    def object_frames(self):
-        return list(filter(lambda frame_id: '/' in frame_id, self.frame_ids))
-
     # Interactive stuffs
     def process_command(self, command, robot_name, axis, speed):
         if command == 'at':
@@ -79,61 +75,23 @@ class AssemblyRoutines(BaseRoutines):
         """      Print command list."""
         super().do_cmds(dummy)
         print('=== Assembly commands ===')
-        print('  ps: Pick/place screw')
-        print('  po: Pick object')
-        print('  PO: Place object')
-        print('  fb: Fix base to the base fixture')
-        print('  FB: Release base from the base fixture')
-        print('  at: Begin approaching target')
-        print('  AT: Cancel approaching target action')
+        print('  ps:    Pick/place screw')
+        print('  fb:    Fix base to the base fixture')
+        print('  FB:    Release base from the base fixture')
+        print('  at:    Begin approaching target')
+        print('  AT:    Cancel approaching target action')
 
     def do_ps(self, screw_type):
         """      ps [screw_type]
         Pick a screw of specified type."""
+        self._recent_tasks[self._robot_name] = self._pick_or_place_screw
         if screw_type:
-            self.pick_screw(self._robot_name, screw_type)
+            self.pick_screw(self._robot_name, screw_type, timeout_sec=0.0)
         else:
-            self.place_screw(self._robot_name)
+            self.place_screw(self._robot_name, timeout_sec=0.0)
 
     def complete_ps(self, text, line, ib, ie):
         return BaseRoutines._complete_default(text, line, self.screw_types)
-
-    def do_po(self, object_frame):
-        """      po <object_frame>
-        Pick a collision object at the specified object frame."""
-        if object_frame not in self.object_frames:
-            print('      unknown object frame[%s]' % object_frame)
-            return
-        self.pick_object(self._robot_name, object_frame, timeout_sec=0.0)
-
-    def complete_po(self, text, line, ib, ie):
-        object_frames = list(set(self.object_frames) -
-                             set(self.candidate_eef_links(self._robot_name)))
-        return BaseRoutines._complete_default(text, line, object_frames)
-
-    def do_PO(self, args):
-        """      PO <object_frame> <place_frame>
-        Place a collision object at the specified place frame."""
-        tokens = args.split()
-        if len(tokens) < 2:
-            print('      object frame and/or place frame not specified!')
-            return
-        object_frame = tokens[0]
-        place_frame  = tokens[1]
-        if object_frame not in self.candidate_eef_links(self._robot_name):
-            print('      invalid object frame[%s]!' % object_frame)
-            return
-        if place_frame not in self.frame_ids:
-            print('      unknown place frame[%s]!' % place_frame)
-            return
-        self.place_object(self._robot_name, object_frame, place_frame,
-                          timeout_sec=0.0)
-
-    def complete_PO(self, text, line, ib, ie):
-        object_frames = self.candidate_eef_links(self._robot_name)
-        place_frames  = list(set(self.frame_ids) - set(object_frames))
-        return BaseRoutines._complete_default(text, line,
-                                              object_frames, place_frames)
 
     def do_fb(self, dummy):
         """      fb
@@ -153,23 +111,13 @@ class AssemblyRoutines(BaseRoutines):
         self._generate_screw('screw_m3')
         self._generate_screw('screw_m4')
 
-    def pick_screw(self, robot_name, screw_type):
-        return self._pick_or_place_screw.send_goal(robot_name, screw_type)
+    def pick_screw(self, robot_name, screw_type, *, timeout_sec=None):
+        return self._pick_or_place_screw.send_goal(robot_name, screw_type,
+                                                   timeout_sec=timeout_sec)
 
-    def place_screw(self, robot_name):
-        return self._pick_or_place_screw.send_goal(robot_name, '')
-
-    def pick_object(self, robot_name, object_frame, *, timeout_sec=None):
-        object_id = AssemblyRoutines._get_object_id(object_frame)
-        return self.pick_at_frame(robot_name, object_id, object_frame,
-                                  timeout_sec=timeout_sec)
-
-    def place_object(self, robot_name, object_frame, place_frame,
-                     *, timeout_sec=None):
-        object_id = AssemblyRoutines._get_object_id(object_frame)
-        return self.place_at_frame(robot_name, object_id, place_frame,
-                                   eef_link=object_frame,
-                                   timeout_sec=timeout_sec)
+    def place_screw(self, robot_name, *, timeout_sec=None):
+        return self._pick_or_place_screw.send_goal(robot_name, '',
+                                                   timeout_sec=timeout_sec)
 
     def fix_object(self, object_frame, *, offset=()):
         object_id = AssemblyRoutines._get_object_id(object_frame)
@@ -238,8 +186,3 @@ class AssemblyRoutines(BaseRoutines):
         return screw_type + '_' + str(self._screw_m3_id) \
                if screw_type == 'screw_m3' else \
                screw_type + '_' + str(self._screw_m4_id)
-
-    @staticmethod
-    def _get_object_id(link_name):
-        tokens = link_name.rsplit('/', 1)
-        return tokens[0] if len(tokens) == 2 else ''
