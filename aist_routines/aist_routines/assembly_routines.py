@@ -1,4 +1,3 @@
-#
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2021, National Institute of Advanced Industrial Science and Technology (AIST)
@@ -36,7 +35,8 @@
 #
 from geometry_msgs.msg import PoseStamped, WrenchStamped, Vector3
 from action_msgs.msg   import GoalStatus
-from .base_routines    import BaseRoutines
+from aist_tasks        import PickOrPlaceScrewTask
+from aist_routines     import BaseRoutines
 #from cuda_feature_tracker_3d          import FeatureTrackerClient
 
 #*********************************************************************
@@ -47,49 +47,17 @@ class AssemblyRoutines(BaseRoutines):
 
     def __init__(self, name):
         super().__init__(name)
+
+        self._pick_or_place_screw = PickOrPlaceScrewTask(self)
         self._feature_trackers = {}
 
+    @property
+    def screw_types(self):
+        return ('screw_m3', 'screw_m4')
+
     # Interactive stuffs
-    def print_help_messages(self):
-        super().print_help_messages()
-        print('=== Assembly commands ===')
-        print('  ps: Pick screw')
-        print('  PS: Place screw')
-        print('  pp: Pick part')
-        print('  PP: Place part')
-        print('  fb: Fix base')
-        print('  FB: Release base')
-        print('  at: Begin approaching target')
-        print('  AT: Cancel approaching target action')
-        print('  H:  Move all robots to home')
-        print('  B:  Move all robots to back')
-
     def process_command(self, command, robot_name, axis, speed):
-        if command == 'ps':
-            screw_type = input('  screw type? ')
-            self.pick_screw(robot_name, screw_type)
-        elif command == 'PS':
-            self.place_screw(robot_name)
-        elif command == 'pp':
-            part_id  = input('  part ID? ')
-            subframe = input('  subframe? ')
-            if subframe == '':
-                subframe = 'default_grasp'
-            self.pick_part(robot_name, part_id, subframe, timeout_sec=0.0)
-        elif command == 'PP':
-            part_id  = input('  part ID? ')
-            subframe = input('  subframe? ')
-            if subframe == '':
-                subframe = 'base_link'
-            place_frame = input('  place frame? ')
-            self.place_part(robot_name, part_id, subframe, place_frame,
-                            timeout_sec=0.0)
-        elif command == 'fb':
-            self.fix_part('base')
-        elif command == 'FB':
-            self.release_part('base')
-
-        elif command == 'at':
+        if command == 'at':
             pose_name = input('  viewing pose? ')
             if pose_name == '':
                 pose_name = 'fasten_screw_m4_ready'
@@ -99,18 +67,41 @@ class AssemblyRoutines(BaseRoutines):
             self.approach_target(robot_name, pose_name, target_frame)
         elif command == 'AT':
             self.cancel_approach_target(robot_name)
-        elif command == 'H':
-            self.go_to_named_pose('all_bots', 'home')
-        elif command == 'B':
-            self.go_to_named_pose('all_bots', 'back')
         else:
             return super().process_command(command, robot_name, axis, speed)
         return robot_name, axis, speed
 
-    def switch_camera(self, current_robot_name, new_robot_name,
-                      laser_power=16):
-        self.camera(current_robot_name + '_camera').laser_power = 0
-        self.camera(new_robot_name + '_camera').laser_power = laser_power
+    def do_cmds(self, dummy):
+        """      Print command list."""
+        super().do_cmds(dummy)
+        print('=== Assembly commands ===')
+        print('  ps:    Pick/place screw')
+        print('  fb:    Fix base to the base fixture')
+        print('  FB:    Release base from the base fixture')
+        print('  at:    Begin approaching target')
+        print('  AT:    Cancel approaching target action')
+
+    def do_ps(self, screw_type):
+        """      ps [screw_type]
+        Pick a screw of specified type."""
+        self._recent_tasks[self._robot_name] = self._pick_or_place_screw
+        if screw_type:
+            self.pick_screw(self._robot_name, screw_type, timeout_sec=0.0)
+        else:
+            self.place_screw(self._robot_name, timeout_sec=0.0)
+
+    def complete_ps(self, text, line, ib, ie):
+        return BaseRoutines._complete_default(text, line, self.screw_types)
+
+    def do_fb(self, dummy):
+        """      fb
+        Fix base to the base fixture."""
+        self.fix_object('base/base_link')
+
+    def do_FB(self, dummy):
+        """      FB
+        Release base from the base fixture."""
+        self.release_object('base')
 
     # Assembly stuffs
     def initialize_collision_objects(self):
@@ -120,59 +111,26 @@ class AssemblyRoutines(BaseRoutines):
         self._generate_screw('screw_m3')
         self._generate_screw('screw_m4')
 
-    def pick_screw(self, robot_name, screw_type):
-        tool_name = 'screw_tool_' + screw_type[-2:]
-        status, result = self.pick_tool(robot_name, tool_name)
-        if status != GoalStatus.STATUS_SUCCEEDED:
-            return (status, result)
-        feeder_name = 'screw_feeder_' + screw_type[-2:]
-        screw_id    = self._screw_id(screw_type)
-        status, result = self.pick_at_frame(robot_name, screw_id,
-                                            screw_id + '/head')
-        if status == GoalStatus.STATUS_SUCCEEDED:
-            self._generate_screw(screw_type)
-        return (status, result)
+    def pick_screw(self, robot_name, screw_type, *, timeout_sec=None):
+        return self._pick_or_place_screw.send_goal(robot_name, screw_type,
+                                                   timeout_sec=timeout_sec)
 
-    def place_screw(self, robot_name):
-        screw_id = self._grasped_object_id(robot_name)
-        if screw_id is None:
-            return (GoalStatus.STATUS_ABORTED, None)
-        screw_type  = screw_id.rsplit('_', 1)[0]
-        feeder_name = 'screw_feeder_' + screw_type[-2:]
-        status, result = self.place_at_frame(robot_name, screw_id,
-                                             feeder_name + '_inlet_link',
-                                             subframe='tip_link')
-        if status == GoalStatus.STATUS_SUCCEEDED:
-            self.com.remove_object(screw_id)
-        return (status, result)
+    def place_screw(self, robot_name, *, timeout_sec=None):
+        return self._pick_or_place_screw.send_goal(robot_name, '',
+                                                   timeout_sec=timeout_sec)
 
-    def pick_part(self, robot_name, part_id, subframe, *, timeout_sec=None):
-        if self.gripper(robot_name).name != \
-           self.default_gripper_name(robot_name):
-            self.place_tool(robot_name)
-        return self.pick_at_frame(robot_name, part_id,
-                                  part_id + '/' + subframe,
-                                  timeout_sec=timeout_sec)
-
-    def place_part(self, robot_name, part_id, subframe, place_frame,
-                   *, timeout_sec=None):
-        if self.gripper(robot_name).name != \
-           self.default_gripper_name(robot_name):
-            return (GoalStatus.STATUS_ABORTED, None)
-        return self.place_at_frame(robot_name, part_id, place_frame,
-                                   subframe=subframe, timeout_sec=timeout_sec)
-
-    def fix_part(self, part_id, offset=(), subframe='base_link'):
-        gripper = self._grippers['base_fixture']
+    def fix_object(self, object_frame, *, offset=()):
+        object_id = AssemblyRoutines._get_object_id(object_frame)
+        gripper   = self._grippers['base_fixture']
         gripper.grasp()
-        self.com.attach_object(part_id, gripper.tip_link)
-        self.com.move_object(part_id, self.pose_from_xyzrpy(offset),
-                             part_id + '/' + subframe)
+        self.com.attach_object(object_id, gripper.tip_link)
+        self.com.move_object(object_id, self.pose_from_xyzrpy(offset),
+                             object_frame)
 
-    def release_part(self, part_id):
+    def release_object(self, object_id):
         gripper = self._grippers['base_fixture']
         gripper.release()
-        self.com.detach_object(part_id, gripper.tip_link)
+        self.com.detach_object(object_id, gripper.tip_link)
 
     def approach_target(self, robot_name,
                         pose_name, target_frame, target_force=(0, 0, -5)):
@@ -203,53 +161,28 @@ class AssemblyRoutines(BaseRoutines):
             result = tracker.get_result()
             self.go_to_named_pose(robot_name, result.pose_name)
 
+    def switch_camera(self, current_robot_name, new_robot_name,
+                      laser_power=16):
+        self.camera(current_robot_name + '_camera').laser_power = 0
+        self.camera(new_robot_name + '_camera').laser_power = laser_power
+
     # Utilities
-    @property
-    def object_names(self):
-        return [tokens[0] for tokens
-                in [fname.rsplit('/', 1) for fname in self.frame_names]
-                if len(tokens) == 2]
-
-    def subframe_names(self, object_id):
-        return [tokens[1] for tokens
-                in [fname.rsplit('/', 1) for fname in self.frame_names]
-                if len(tokens) == 2 and tokens[0] == object_id]
-
-    def _grasped_object_id(self, robot_name):
-        gripper_name = self.gripper(robot_name).name
-        gripper_link \
-            = gripper_name + '_tip_link' \
-              if gripper_name == self.default_gripper_name(robot_name) else \
-              gripper_name + '/base_link'
-        info_list = self.com.get_attached_child_objects_info(gripper_link)
-        return info_list[0].object_id if info_list else None
-
     def _generate_screw(self, screw_type):
         if screw_type == 'screw_m3':
             self._screw_m3_id += 1
-            screw_name = screw_type + '_' + str(self._screw_m3_id)
+            screw_id = screw_type + '_' + str(self._screw_m3_id)
         else:
             self._screw_m4_id += 1
-            screw_name = screw_type + '_' + str(self._screw_m4_id)
+            screw_id = screw_type + '_' + str(self._screw_m4_id)
         feeder_name = 'screw_feeder_' + screw_type[-2:]
         self.com.create_object(screw_type,
                                self.pose_from_xyzrpy(
                                    (), frame_id=feeder_name + '_outlet_link'),
-                               object_id=self._screw_id(screw_type))
-        self.com.allow_collision(screw_name, feeder_name + '_outlet_link')
-        return screw_name
+                               object_id=self._get_screw_id(screw_type))
+        self.com.allow_collision(screw_id, feeder_name + '_outlet_link')
+        return screw_id
 
-    def _screw_id(self, screw_type):
+    def _get_screw_id(self, screw_type):
         return screw_type + '_' + str(self._screw_m3_id) \
                if screw_type == 'screw_m3' else \
                screw_type + '_' + str(self._screw_m4_id)
-
-    @staticmethod
-    def _get_object_id(link_name):
-        tokens = link_name.rsplit('/', 1)
-        return tokens[0] if len(tokens) == 2 else ''
-
-    @staticmethod
-    def _get_subframe(link_name):
-        tokens = link_name.rsplit('/', 1)
-        return tokens[1] if len(tokens) == 2 else link_name

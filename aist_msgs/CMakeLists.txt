@@ -4,9 +4,16 @@ project(aist_msgs)
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
-file(GLOB msg_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} msg/*)
-file(GLOB srv_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} srv/*)
-file(GLOB action_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} action/*)
+file(
+  GLOB msg_files CONFIGURE_DEPENDS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} msg/*
+)
+file(
+  GLOB srv_files CONFIGURE_DEPENDS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} srv/*
+)
+file(
+  GLOB action_files CONFIGURE_DEPENDS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+  action/*
+)
 
 rosidl_generate_interfaces(
   ${PROJECT_NAME}

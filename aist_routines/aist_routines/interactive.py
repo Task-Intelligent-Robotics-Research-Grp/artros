@@ -1,4 +1,3 @@
-#
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2021, National Institute of Advanced Industrial Science and Technology (AIST)
@@ -39,24 +38,9 @@ from rclpy.executors import MultiThreadedExecutor
 
 
 def _command_line_interface(node):
-    arm_name = node.group_names[0]
-    axis     = 'Y'
-    speed    = 1.0
-
-    node.initialize_collision_objects()
-    node.go_to_named_pose(arm_name, "home")
-    node.print_help_messages()
-
-    while rclpy.ok():
-        current_pose = node.get_current_pose(arm_name)
-        prompt = '{:>5}:{}({})@{}>> ' \
-                 .format(axis, node.format_pose(current_pose), speed, arm_name)
-        command = input(prompt)
-        try:
-            arm_name, axis, speed = node.process_command(command, arm_name,
-                                                         axis, speed)
-        except Exception as e:
-            node.get_logger().error(e)
+    node.cmdloop()
+    node.destroy_node()
+    rclpy.shutdown()
 
 def _main(name, routines):
     rclpy.init(args=sys.argv)
@@ -73,21 +57,21 @@ def _main(name, routines):
 #  entry points                                                      *
 #*********************************************************************
 def base():
-    from aist_routines.base_routines import BaseRoutines
+    from aist_routines import BaseRoutines
 
     _main('base', BaseRoutines)
 
 def assembly():
-    from aist_routines.assembly_routines import AssemblyRoutines
+    from aist_routines import AssemblyRoutines
 
     _main('assembly', AssemblyRoutines)
 
 def kitting():
-    from aist_routines.kitting_routines  import KittingRoutines
+    from aist_routines import KittingRoutines
 
     _main('kitting', KittingRoutines)
 
 def hmi_demo():
-    from aist_routines.hmi_routines  import HMIRoutines
+    from aist_routines import HMIRoutines
 
     _main('hmi_demo', HMIRoutines)

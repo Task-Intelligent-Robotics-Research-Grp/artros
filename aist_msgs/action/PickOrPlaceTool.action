@@ -1,0 +1,9 @@
+# Goal
+string robot_name
+string tool_name   # Tool name to be picked. Place current tool, if empty,
+---
+# Result
+string stage       # 'place', 'pick'
+---
+# Feedback
+string stage       # 'place', 'pick'

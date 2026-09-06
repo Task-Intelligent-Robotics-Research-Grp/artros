@@ -42,6 +42,8 @@ from aist_msgs.action            import RequestHelp
 from aist_msgs.msg               import RequestHelp as RequestHelpMsg, Pointing
 from geometry_msgs.msg           import PoseStamped, Point, Vector3
 from visualization_msgs.msg      import Marker
+from std_msgs.msg                import ColorRGBA
+from builtin_interfaces.msg      import Duration
 
 from rclpy.node                  import Node
 from std_msgs.msg                import Header
@@ -110,7 +112,7 @@ class RequestHelpTaskClient(SimpleActionClient):
         marker.scale        = Vector3(x=0.006, y=0.014, z=0.015)
         marker.color        = ColorRGBA(r=1.0, g=1.0, b=0.0, a=1.0)
         marker.lifetime     = Duration(sec=lifetime, usec=0)
-        marker.points       = [self._pose.position, pos]
+        marker.points       = [self._pose.pose.position, pos]
         self._marker_pub.publish(marker)
 
     def _feedback_cb(self, feedback):
@@ -129,12 +131,12 @@ class RequestHelpTaskServer(ActionServer):
 
         # RequestHelp message publishing stuffs: ROS -> Unity
         self._request_help_pub = node.create_publisher(RequestHelpMsg,
-                                                       '/help', 10)
+                                                       'help', 10)
 
         # Pointing message subscription stuffs: ROS <- Unity
         self._pointing      = None
         self._pointing_cond = threading.Condition()
-        self._pointing_sub  = node.create_subscription(Pointing, '/pointing',
+        self._pointing_sub  = node.create_subscription(Pointing, 'pointing',
                                                        self._pointing_cb, 3)
 
     def _pointing_cb(self, pointing: Pointing):
@@ -142,7 +144,7 @@ class RequestHelpTaskServer(ActionServer):
         Reception of the message is notified to the execution callback
         of the action server.
         """
-        pointing.header.stamp = self.get_clock().now().to_msg()
+        pointing.header.stamp = self.node.get_clock().now().to_msg()
         with self._pointing_cond:
             self._pointing = pointing
             self._pointing_cond.notify_all()
@@ -157,13 +159,11 @@ class RequestHelpTaskServer(ActionServer):
 
             # Get Pointing.msg from the remote operator.
             with self._pointing_cond:
-                if not self._pointing_cond.wait_for(lambda: self._pointing,
-                                                    1.0):
-                    raise ActionServer.Error(
-                        'timeout expired while waiting for Pointing.msg from the remote operator',
-                        pointing=Pointing(pointing_state=Pointing.NO_RES))
-                pointing = self._pointing
-                self._pointing = None
+                if self._pointing_cond.wait_for(lambda: self._pointing, 1.0):
+                    pointing = self._pointing
+                    self._pointing = None
+                else:
+                    pointing = Pointing(pointing_state=Pointing.NO_RES)
 
             goal_handle.publish_feedback(
                 RequestHelp.Feedback(pointing=pointing))
