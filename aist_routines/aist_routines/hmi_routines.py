@@ -37,7 +37,7 @@ from geometry_msgs.msg import PoseStamped
 from action_msgs.msg   import GoalStatus
 from aist_tasks        import (RequestHelpTask, SweepTask,
                                ErrorRecoveryBySweepTask)
-from aist_routines     import KittingRoutines
+from .kitting_routines import KittingRoutines
 
 #*********************************************************************
 #  class HMIRoutines                                                 *

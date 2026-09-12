@@ -36,7 +36,7 @@
 from geometry_msgs.msg import PoseStamped, WrenchStamped, Vector3
 from action_msgs.msg   import GoalStatus
 from aist_tasks        import PickOrPlaceScrewTask
-from aist_routines     import BaseRoutines
+from .base_routines    import BaseRoutines
 #from cuda_feature_tracker_3d          import FeatureTrackerClient
 
 #*********************************************************************

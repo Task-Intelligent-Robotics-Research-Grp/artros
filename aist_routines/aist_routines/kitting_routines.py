@@ -36,15 +36,15 @@
 import tf_transformations as tfs
 import numpy as np
 
-from math                        import pi, radians, degrees, cos, sin, sqrt
-from geometry_msgs.msg           import Quaternion
-from action_msgs.msg             import GoalStatus
-from aist_graspability.client    import GraspabilityClient
-from aist_graspability_msgs.msg  import Border, Point2D
-from aist_utility.fileio         import filepath_from_url
+from math                       import pi, radians, degrees, cos, sin, sqrt
+from geometry_msgs.msg          import Quaternion
+from action_msgs.msg            import GoalStatus
+from aist_graspability          import GraspabilityClient
+from aist_graspability_msgs.msg import Border, Point2D
+from aist_utility.fileio        import filepath_from_url
 
-from aist_tasks                  import AttemptBinTask
-from aist_routines               import BaseRoutines
+from aist_tasks                 import AttemptBinTask
+from .base_routines             import BaseRoutines
 
 #************************************************************************
 #  class KittingRoutines                                                *

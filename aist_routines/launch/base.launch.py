@@ -17,7 +17,7 @@ launch_arguments = [
         'name':        'settings_file',
         'default':     PathJoinSubstitution([
                            FindPackageShare('aist_routines'), 'config',
-                           'default.yaml']),
+                           [LaunchConfiguration('config'), '.yaml']]),
         'description': 'Name of the hardware configuration'
     },
     {

@@ -34,11 +34,13 @@
 # Author: Toshio Ueshiba
 #
 from action_msgs.msg      import GoalStatus
-from aist_robotiq         import RobotiqGripper, RobotiqSuction
 from aist_fastening_tools import (SuctionTool, SuctionGripper,
                                   ScrewTool, PrecisionTool)
-from aist_barrett         import BarrettHand
-
+try:
+  from aist_robotiq import RobotiqGripper, RobotiqSuction
+  from aist_barrett import BarrettHand
+except ModuleNotFoundError:
+  pass
 
 def create_gripper(node, name, gripper_type, client_args):
     gripper_client_class = globals().get(gripper_type)

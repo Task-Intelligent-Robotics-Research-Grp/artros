@@ -62,17 +62,17 @@ def base():
     _main('base', BaseRoutines)
 
 def assembly():
-    from aist_routines import AssemblyRoutines
+    from .assembly_routines import AssemblyRoutines
 
     _main('assembly', AssemblyRoutines)
 
 def kitting():
-    from aist_routines import KittingRoutines
+    from .kitting_routines import KittingRoutines
 
     _main('kitting', KittingRoutines)
 
 def hmi_demo():
-    from aist_routines import HMIRoutines
+    from .hmi_routines import HMIRoutines
 
     _main('hmi_demo', HMIRoutines)
 
