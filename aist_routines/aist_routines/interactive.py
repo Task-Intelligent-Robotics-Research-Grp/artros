@@ -57,7 +57,7 @@ def _main(name, routines):
 #  entry points                                                      *
 #*********************************************************************
 def base():
-    from aist_routines import BaseRoutines
+    from .base_routines import BaseRoutines
 
     _main('base', BaseRoutines)
 
