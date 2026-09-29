@@ -145,15 +145,15 @@
 
   <!-- Add RealSense camera mount and camera -->
   <xacro:include filename="$(find aist_description
-			   )/objects/urdf/sr305_mount_2f140.urdf.xacro"/>
-  <xacro:sr305_mount_2f140 prefix="a_bot_"
-			   parent="a_bot_gripper_coupling_flange_link"/>
+			   )/objects/urdf/d435_mount_2f140.urdf.xacro"/>
+  <xacro:d435_mount_2f140 prefix="a_bot_"
+			  parent="a_bot_gripper_coupling_flange_link"/>
   <xacro:include filename="$(find aist_description
-			   )/devices/urdf/_sr305.urdf.xacro"/>
-  <xacro:sensor_sr305 name="a_bot_camera" parent="a_bot_camera_mount_flange"
-		      use_nominal_extrinsics="$(arg sim)">
+			   )/devices/urdf/_d435.urdf.xacro"/>
+  <xacro:sensor_d435 name="a_bot_camera" parent="a_bot_camera_mount_flange"
+		     use_nominal_extrinsics="$(arg sim)">
     <origin xyz="0 0 0" rpy="0 0 0"/>
-  </xacro:sensor_sr305>
+  </xacro:sensor_d435>
 
   <!-- Add camera optical links from camera calibrations -->
   <xacro:unless value="$(arg sim)">

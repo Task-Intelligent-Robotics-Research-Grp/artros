@@ -1,0 +1,5 @@
+b_bot:
+  kinematics_solver: trac_ik_kinematics_plugin/TRAC_IKKinematicsPlugin
+  kinematics_solver_timeout: 0.01
+  solve_type: Distance  # [Speed|Distance|Manip1|Manip2]
+  epsilon: 1e-5
