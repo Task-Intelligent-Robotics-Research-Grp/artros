@@ -310,8 +310,9 @@ class ScrewTool(SuctionTool):
         return self._screw_tool.wait(timeout_sec=timeout_sec)
 
     def grasped(self, *, timeout_sec: Optional[float]=None)-> bool:
-        _, result = self.wait(timeout_sec=timeout_sec)
-        return result.suctioned
+        return super().grasped(timeout_sec=timeout_sec)
+        # _, result = self.wait(timeout_sec=timeout_sec)
+        # return result.suctioned
 
     def cancel_goal(self)-> None:
         """ Cancel the latest motion command sent to the gripper.

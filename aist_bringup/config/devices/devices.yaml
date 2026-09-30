@@ -217,7 +217,7 @@ precision_tool_controller:
 #############
 a_bot_camera:
   ros__parameters:
-    serial_no:       "636203005853"
+    serial_no:       "244222075971"
     camera_name:     a_bot_camera       # required for prefix of frame IDs
     usb_port_id:     ""
     device_type:     ""
@@ -239,16 +239,16 @@ a_bot_camera:
     depth_module:
       depth_profile: "640x480x30"  # D405, D435
       infra_profile: "848x480x60"  # D405, D435
-    coded_light_depth_sensor:
-      depth_profile: "640x480x30"  # SR305
-      infra_profile: "640x480x30"  # SR305
+    # coded_light_depth_sensor:
+    #   depth_profile: "640x480x30"  # SR305
+    #   infra_profile: "640x480x30"  # SR305
 
-    pointcloud:
-      enable:                  false
-      stream_filter:           RS2_STREAM_COLOR  # RS2_STREAM_ANY
-      stream_index_filter:     0
-      allow_no_texture_points: false
-      ordered_pc:              false
+    # pointcloud:
+    #   enable:                  false
+    #   stream_filter:           RS2_STREAM_COLOR  # RS2_STREAM_ANY
+    #   stream_index_filter:     0
+    #   allow_no_texture_points: false
+    #   ordered_pc:              false
 
     publish_tf:              true
     tf_publish_rate:         0.0  # 0 - static transform
@@ -267,7 +267,7 @@ a_bot_camera:
 
 b_bot_camera:
   ros__parameters:
-    serial_no:       "636203005303"
+    serial_no:       "242322073523"
     camera_name:     b_bot_camera       # required for prefix of frame IDs
     usb_port_id:     ""
     device_type:     ""
@@ -289,16 +289,16 @@ b_bot_camera:
     depth_module:
       depth_profile: "640x480x30"  # D405, D435
       infra_profile: "848x480x60"  # D405, D435
-    coded_light_depth_sensor:
-      depth_profile: "640x480x30"  # SR305
-      infra_profile: "640x480x30"  # SR305
+    # coded_light_depth_sensor:
+    #   depth_profile: "640x480x30"  # SR305
+    #   infra_profile: "640x480x30"  # SR305
 
-    pointcloud:
-      enable:                  false
-      stream_filter:           RS2_STREAM_COLOR  # RS2_STREAM_ANY
-      stream_index_filter:     0
-      allow_no_texture_points: false
-      ordered_pc:              false
+    # pointcloud:
+    #   enable:                  false
+    #   stream_filter:           RS2_STREAM_COLOR  # RS2_STREAM_ANY
+    #   stream_index_filter:     0
+    #   allow_no_texture_points: false
+    #   ordered_pc:              false
 
     publish_tf:              true
     tf_publish_rate:         0.0  # 0 - static transform

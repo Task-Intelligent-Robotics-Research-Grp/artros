@@ -90,6 +90,13 @@ class AreaCamera(CameraClient):
         self.set_parameters_sync([('continuous_shot', enabled)])
 
 ######################################################################
+#  class RealsenseCamera                                             #
+######################################################################
+class RealsenseCamera(CameraClient):
+    def __init__(self, node, name='a_bot_camera'):
+        super().__init__(node, name)
+
+######################################################################
 #  class CodedLightRealsenseCamera                                   #
 ######################################################################
 class CodedLightRealsenseCamera(CameraClient):

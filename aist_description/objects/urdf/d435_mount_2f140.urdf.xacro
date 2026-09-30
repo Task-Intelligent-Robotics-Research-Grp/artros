@@ -11,13 +11,13 @@
 
     <link name="${prefix}camera_mount">
       <inertial>
-        <origin rpy="0 0 ${radians(90.0)}" xyz="0 0 0.0"/>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 ${radians(90.0)}"/>
         <mass value="1.0"/>
         <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0"/>
       </inertial>
       <visual>
-        <origin rpy="0 0 ${radians(90.0)}" xyz="0 0 0.0"/>
-        <geometry>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 ${radians(90.0)}"/>
+	<geometry>
           <mesh filename="${mesh_dir}/d435_mount_2f140.stl"
 		scale=".001 .001 .001"/>
         </geometry>
@@ -26,7 +26,7 @@
         </material>
       </visual>
       <collision>
-        <origin rpy="0 0 ${radians(90.0)}" xyz="0 0 0.0"/>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 ${radians(90.0)}"/>
         <geometry>
           <mesh filename="${mesh_dir}/collision/d435_mount_2f140.stl"
 		scale=".001 .001 .001"/>
@@ -36,7 +36,7 @@
     <joint name="${prefix}camera_mount_joint" type="fixed">
       <parent link="${parent}" />
       <child  link="${prefix}camera_mount" />
-      <origin xyz="0.030 0.0 0.0335" rpy="0 0 0"/>
+      <origin xyz="-0.002 0.0 0.0335" rpy="0 0 0"/>
     </joint>
 
     <link name="${prefix}camera_mount_flange"/>
