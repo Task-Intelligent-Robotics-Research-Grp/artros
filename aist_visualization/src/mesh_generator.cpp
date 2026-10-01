@@ -41,7 +41,7 @@
 #include <tf2_ros/transform_listener.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <sensor_msgs/CameraInfo.h>
-#include <aist_visualization/TexturedMeshStamped.h>
+#include <aist_msgs/TexturedMeshStamped.h>
 #include <opencv2/imgproc.hpp>	// for cv::undistortPoints() (OpenCV3)
 #include <opencv2/calib3d.hpp>	// for cv::undistortPoints() (OpenCV4)
 
@@ -57,7 +57,7 @@ class MeshGenerator
     using camera_info_cp = sensor_msgs::CameraInfoConstPtr;
     using transform_t	 = geometry_msgs::TransformStamped;
     using point_t	 = geometry_msgs::Point;
-    using mesh_t	 = TexturedMeshStamped;
+    using mesh_t	 = aist_msgs::TexturedMeshStamped;
 
   public:
 		MeshGenerator(ros::NodeHandle& nh)			;

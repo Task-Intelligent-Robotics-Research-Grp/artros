@@ -13,6 +13,7 @@ find_package(catkin REQUIRED
     shape_msgs
     rviz
     cv_bridge
+    aist_msgs
 )
 
 find_package(OpenCV)
@@ -25,17 +26,17 @@ find_package(Qt5 ${rviz_QT_VERSION} EXACT REQUIRED
 set(QT_LIBRARIES Qt5::Widgets)
 add_definitions(-DQT_NO_KEYWORDS)
 
-add_message_files(
-  FILES
-    TexturedMeshStamped.msg
-)
+# add_message_files(
+#   FILES
+#     TexturedMeshStamped.msg
+# )
 
-generate_messages(
-  DEPENDENCIES
-    std_msgs
-    geometry_msgs
-    shape_msgs
-)
+# generate_messages(
+#   DEPENDENCIES
+#     std_msgs
+#     geometry_msgs
+#     shape_msgs
+# )
 
 catkin_package(
   CATKIN_DEPENDS
@@ -46,6 +47,7 @@ catkin_package(
     tf2_ros
     tf2_geometry_msgs
     shape_msgs
+    aist_msgs
 )
 
 include_directories(
@@ -86,9 +88,26 @@ target_link_libraries(textured_mesh_display
   ${QT_LIBRARIES}
 )
 
+add_executable(robot_description_provider
+  src/robot_description_provider.cpp
+)
+
+add_dependencies(robot_description_provider
+  ${${PREOJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+  ${PROJECT_NAME}_generate_messages_cpp
+)
+
+target_link_libraries(robot_description_provider
+  ${catkin_LIBRARIES}
+  ${roscpp_LIBRARIES}
+  ${URDFDOM_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+)
+
 install(
   TARGETS
-    mesh_generator textured_mesh_display
+    mesh_generator textured_mesh_display robot_description_provider
   ARCHIVE
     DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY

@@ -54,7 +54,7 @@
 #  include <rviz/frame_manager.h>
 #  include <rviz/image/image_display_base.h>
 #  include <rviz/image/ros_image_texture.h>
-#  include <aist_visualization/TexturedMeshStamped.h>
+#  include <aist_msgs/TexturedMeshStamped.h>
 #endif  // Q_MOC_RUN
 
 namespace rviz
@@ -85,8 +85,8 @@ class TexturedMeshDisplay: public rviz::Display,
   private:
     using image_t  = sensor_msgs::Image;
     using image_cp = sensor_msgs::Image::ConstPtr;
-    using mesh_t   = aist_visualization::TexturedMeshStamped;
-    using mesh_cp  = aist_visualization::TexturedMeshStampedPtr;
+    using mesh_t   = aist_msgs::TexturedMeshStamped;
+    using mesh_cp  = aist_msgs::TexturedMeshStampedPtr;
 
     void		updateImage(const image_cp& image)		;
     void		updateMesh(const mesh_cp& mesh)			;
