@@ -1,27 +1,30 @@
+<?xml version="1.0" ?>
 <launch>
 
-  <arg name="camera_name"	default="camera"/>
-  <arg name="video_device"	default="/dev/video0"/>
+  <arg name="model"		default="$(dirname)/../urdf/test_arm.urdf"/>
+  <arg name="description_param"	default="/robot_description"/>
+  <arg name="config_file"	default="$(find nep_bridge)/config/nep_bridge.yaml"/>
 
-  <!-- Launch camera -->
-  <include file="$(find toyota2_bbox_tracker)/launch/toyota2_camera.launch">
-    <arg name="camera_name"	value="$(arg camera_name)"/>
-    <arg name="video_device"	value="$(arg video_device)"/>
-    <arg name="vis"		value="false"/>
-  </include>
-
-  <!-- Launch mesh_generator -->
-  <include file="$(dirname)/mesh_generator.launch">
-    <arg name="screen_frame"	  value="conveyor_origin"/>
-    <arg name="reference_frame"	  value="conveyor_origin"/>
-    <arg name="camera_info_topic" value="$(arg camera_name)/camera_info"/>
-  </include>
-
-  <!-- Launch RViz -->
+  <!-- Display model arm -->
   <include file="$(find urdf_tutorial)/launch/display.launch">
-    <arg name="model"		value="$(find toyota2_description
-				       )/urdf/toyota2_base_scene.urdf.xacro"/>
-    <arg name="rvizconfig"	value="$(dirname)/test.rviz"/>
+    <arg name="model"	value="$(arg model)"/>
+  </include>
+
+  <node name="robot_description_provider"
+	pkg="aist_visualization" type="robot_description_provider"
+	output="screen">
+    <param name="description_param"	value="$(arg description_param)"/>
+  </node>
+
+  <!-- Launch live camera -->
+  <!-- <node name="live_camera" -->
+  <!-- 	pkg="usb_cam" type="usb_cam_node" output="screen"> -->
+  <!--     <rosparam file="$(dirname)/../config/live_camera.yaml"/> -->
+  <!-- </node> -->
+
+  <!-- Launch nep_bridge -->
+  <include file="$(find nep_bridge)/launch/run.launch">
+    <arg name="config_file"		value="$(arg config_file)"/>
   </include>
 
 </launch>

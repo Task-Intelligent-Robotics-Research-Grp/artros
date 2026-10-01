@@ -20,6 +20,7 @@
   <depend>shape_msgs</depend>
   <depend>rviz</depend>
   <depend>cv_bridge</depend>
+  <depend>aist_msgs</depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
