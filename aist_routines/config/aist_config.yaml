@@ -45,8 +45,10 @@ grippers:
 
 cameras:
   a_motioncam:  PhoXiCamera
-  a_bot_camera: CodedLightRealSenseCamera
-  b_bot_camera: CodedLightRealSenseCamera
+  # a_bot_camera: CodedLightRealSenseCamera
+  # b_bot_camera: CodedLightRealSenseCamera
+  a_bot_camera: RealSenseCamera
+  b_bot_camera: RealSenseCamera
 #  a_bot_zivid:  ZividCamera
 
 moveit_eef_step: 0.002

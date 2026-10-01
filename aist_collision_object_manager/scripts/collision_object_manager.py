@@ -46,7 +46,7 @@ from std_msgs.msg           import Header, ColorRGBA
 from geometry_msgs.msg      import (Point, Vector3, Quaternion, Pose,
                                     Transform, TransformStamped, PoseStamped)
 from shape_msgs.msg         import Mesh, MeshTriangle, Plane, SolidPrimitive
-from visualization_msgs.msg import Marker
+from visualization_msgs.msg import Marker, MarkerArray
 from aist_msgs.srv          import (ManageCollisionObject,
                                     ManageCollisionObjectRequest,
                                     ManageCollisionObjectResponse,
@@ -244,7 +244,7 @@ class CollisionObjectManager(object):
         self._marker_id_min       = 0
         self._marker_id_lists     = {}
         self._marker_pub          = rospy.Publisher('~collision_marker',
-                                                    Marker, queue_size=10)
+                                                    MarkerArray, queue_size=10)
         self._buffer              = Buffer()
         self._listener            = TransformListener(self._buffer)
         self._broadcaster         = TransformBroadcaster()
@@ -269,13 +269,20 @@ class CollisionObjectManager(object):
 
         Publish subframes and visual markers periodically
         """
+        now = rospy.Time.now()
+        transforms = []
+        markers = []
         with self._lock:
             for instance_props in self._instance_props_dict.values():
                 for subframe_transform in instance_props.subframe_transforms:
-                    subframe_transform.header.stamp = rospy.Time.now()
-                    self._broadcaster.sendTransform(subframe_transform)
+                    subframe_transform.header.stamp = now
+                    transforms.append(subframe_transform)
                 for marker in instance_props.markers:
-                    self._marker_pub.publish(marker)
+                    marker.header.stamp = now
+                    markers.append(marker)
+        self._broadcaster.sendTransform(transforms)
+        self._marker_pub.publish(MarkerArray(markers=markers))
+
 
     def _get_mesh_resource_cb(self, req):
         """Service callback for GetMeshResource
@@ -790,9 +797,11 @@ class CollisionObjectManager(object):
             rospy.logerr('(CollisionObjectManager) unknown object[%s]',
                          object_id)
             return
-        for marker in instance_props.markers:
-            marker.action = Marker.DELETE
-            self._marker_pub.publish(marker)
+        self._marker_pub.publish(
+            MarkerArray(markers=[Marker(header=marker.header,
+                                        id=marker.id,
+                                        action=Marker.DELETE)
+                                 for marker in instance_props.markers]))
         with self._lock:
             del self._instance_props_dict[object_id]
         rospy.loginfo("(CollisionObjectManager) removed '%s'", object_id)
