@@ -5,8 +5,8 @@
             <author>VCGLab</author>
             <authoring_tool>VCGLib | MeshLab</authoring_tool>
         </contributor>
-        <created>Mon Jul 9 09:11:22 2018 GMT</created>
-        <modified>Mon Jul 9 09:11:22 2018 GMT</modified>
+        <!-- <created>Mon Jul 9 09:11:22 2018 GMT</created> -->
+        <!-- <modified>Mon Jul 9 09:11:22 2018 GMT</modified> -->
         <up_axis>Y_UP</up_axis>
     </asset>
     <library_geometries>

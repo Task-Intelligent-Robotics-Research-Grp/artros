@@ -51,7 +51,7 @@ from aist_msgs.srv          import (ManageCollisionObject,
                                     ManageCollisionObjectRequest,
                                     ManageCollisionObjectResponse,
                                     GetCollisionObject, GetCollisionObjectResponse)
-from aist_msgs.msg          import CollisionObjectInfo
+from aist_msgs.msg          import LinkGeometry, Material, CollisionObjectInfo
 from moveit_msgs.msg        import (CollisionObject, AttachedCollisionObject,
                                     PlanningSceneComponents, PlanningScene)
 from moveit_commander       import planning_scene_interface as psi
@@ -289,16 +289,55 @@ class CollisionObjectManager(object):
         Send response with binary mesh data according to the requested URL
         of mesh resource
         """
+        def _create_link_mesh(mesh_url, mesh_pose, mesh_scale):
+            link_geometry = LinkGeometry()
+            link_geometry.origin = mesh_pose
+            link_geometry.primitive.type = 0  # Mesh
+            link_geometry.primitive.dimensions = [mesh_scale.x, mesh_scale.y,
+                                                  mesh_scale.z]
+            with open(_url_to_filepath(mesh_url), 'rb') as f:
+                link_geometry.data = f.read()
+            return link_geometry
+
+        def _create_link_primitive(primitive, primitive_pose):
+            return LinkGeometry(origin=primitive_pose, primitive=primitive)
+
+        def _create_link_material(color):
+            return Material(color=color, texture_height=0, texture_width=0)
+
         res = GetCollisionObjectResponse()
-        res.mesh_resource = req.mesh_resource
-        for obj_props in self._obj_props_dict.values():
-            if req.mesh_resource in obj_props.visual_mesh_urls:
-                with open(_url_to_filepath(req.mesh_resource), 'rb') as f:
-                    res.data = f.read()
-                rospy.loginfo('(ObjectDatabaseServer) Send response to GetCollisionObject request for the mesh_url[%s]', req.mesh_resource)
-                break
-        else:
-            rospy.logerr('(ObjectDatabaseServer) Received GetCollisionObject request with unknown mesh_url[%s]', req.mesh_resource)
+
+        obj_props = self._obj_props_dict.get(req.object_type)
+        if not obj_props:
+            rospy.logerr('_get_collision_object_cb(): Received GetCollisionObject request with unknown object_type[%s]', req.object_type)
+            return res
+
+        try:
+            res.visual_array = [_create_link_mesh(mesh_url,
+                                                  mesh_pose, mesh_scale)
+                                for mesh_url, mesh_pose, mesh_scale
+                                in zip(obj_props.visual_mesh_urls,
+                                       obj_props.visual_mesh_poses,
+                                       obj_props.visual_mesh_scales)]
+            if not obj_props.primitives:
+                res.collision_array = [_create_link_mesh(mesh_url,
+                                                         mesh_pose, mesh_scale)
+                                       for mesh_url, mesh_pose, mesh_scale
+                                       in zip(obj_props.collision_mesh_urls,
+                                              obj_props.collision_mesh_poses,
+                                              obj_props.collision_mesh_scales)]
+            else:
+                res.collision_array = [_create_link_primitive(primitive,
+                                                              primitive_pose)
+                                       for primitive, primitive_pose
+                                       in zip(obj_props.primitives,
+                                              obj_props.primitive_poses)]
+            res.material_array = [_create_link_material(mesh_color)
+                                  for mesh_color
+                                  in obj_props.visual_mesh_colors]
+        except Exception as e:
+            rospy.logerr('_get_collision_object_cb(): %s' % e)
+
         return res
 
     def _manage_collision_object_cb(self, req):
@@ -448,6 +487,7 @@ class CollisionObjectManager(object):
             marker.lifetime        = rospy.Duration(0)
             marker.frame_locked    = False
             marker.mesh_resource   = mesh_url
+            marker.text            = object_type
             instance_props.markers.append(marker)
 
         # Store object info.
