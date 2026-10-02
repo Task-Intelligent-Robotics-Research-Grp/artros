@@ -299,7 +299,7 @@ class ScrewTool(SuctionTool):
         return status, result
 
     def postgrasp(self)-> None:
-        self._screw_tool.cancel_goal()
+        self._screw_command(0.0, timeout_sec=0.0)
         super().postgrasp()
 
     def release(self, *, timeout_sec: Optional[float]=0.0):

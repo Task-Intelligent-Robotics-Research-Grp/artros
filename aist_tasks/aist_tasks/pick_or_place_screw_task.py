@@ -86,7 +86,7 @@ class PickOrPlaceScrewTaskServer(ActionServer):
                                              stage=stage.extend_name(
                                                        result.stage))
 
-        # [2] 'pick_screw' stage: Place current tool.
+        # [2] 'pick_screw' stage: Pick screw from the feeder.
         with ActionServer.Stage(self, goal_handle, 'pick_screw',
                                 pick_or_place_cancel) as stage:
             screw_id = node._get_screw_id(request.screw_type)
