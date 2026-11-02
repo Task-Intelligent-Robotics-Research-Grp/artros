@@ -29,7 +29,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: a_motioncam_depth_cloud
+    SyncSource: ""
 Visualization Manager:
   Class: ""
   Displays:
@@ -2760,6 +2760,10 @@ Visualization Manager:
           Value: false
         plate_lower_left_corner:
           Value: false
+        precision_tool/base_link:
+          Value: true
+        precision_tool/tip_link:
+          Value: true
         precision_tool_holder_base_link:
           Value: false
         precision_tool_holder_link:
@@ -2788,14 +2792,26 @@ Visualization Manager:
           Value: false
         screw_feeder_m4_outlet_link:
           Value: false
+        screw_tool_m3/base_link:
+          Value: true
+        screw_tool_m3/tip_link:
+          Value: true
         screw_tool_m3_holder_base_link:
           Value: false
         screw_tool_m3_holder_link:
           Value: false
+        screw_tool_m4/base_link:
+          Value: true
+        screw_tool_m4/tip_link:
+          Value: true
         screw_tool_m4_holder_base_link:
           Value: false
         screw_tool_m4_holder_link:
           Value: false
+        suction_tool/base_link:
+          Value: true
+        suction_tool/tip_link:
+          Value: true
         suction_tool_holder_base_link:
           Value: false
         suction_tool_holder_link:
@@ -2972,8 +2988,7 @@ Visualization Manager:
                                                 a_bot_camera_bottom_screw_frame:
                                                   a_bot_camera_link:
                                                     a_bot_camera_color_frame:
-                                                      a_bot_camera_color_optical_frame:
-                                                        {}
+                                                      {}
                                                     a_bot_camera_depth_frame:
                                                       a_bot_camera_depth_optical_frame:
                                                         {}
@@ -2981,6 +2996,8 @@ Visualization Manager:
                                                       a_bot_camera_infra2_optical_frame:
                                                         {}
                                             a_bot_gripper_base_link:
+                                              a_bot_camera_color_optical_frame:
+                                                {}
                                               a_bot_gripper_robotiq_arg2f_base_link:
                                                 a_bot_gripper_left_inner_knuckle:
                                                   {}
@@ -3040,8 +3057,7 @@ Visualization Manager:
                                                 b_bot_camera_bottom_screw_frame:
                                                   b_bot_camera_link:
                                                     b_bot_camera_color_frame:
-                                                      b_bot_camera_color_optical_frame:
-                                                        {}
+                                                      {}
                                                     b_bot_camera_depth_frame:
                                                       b_bot_camera_depth_optical_frame:
                                                         {}
@@ -3049,6 +3065,8 @@ Visualization Manager:
                                                       b_bot_camera_infra2_optical_frame:
                                                         {}
                                             b_bot_gripper_base_link:
+                                              b_bot_camera_color_optical_frame:
+                                                {}
                                               b_bot_gripper_robotiq_arg2f_base_link:
                                                 b_bot_gripper_left_inner_knuckle:
                                                   {}
@@ -3084,16 +3102,24 @@ Visualization Manager:
                   cage_tool_bar:
                     precision_tool_holder_base_link:
                       precision_tool_holder_link:
-                        {}
+                        precision_tool/base_link:
+                          precision_tool/tip_link:
+                            {}
                     screw_tool_m3_holder_base_link:
                       screw_tool_m3_holder_link:
-                        {}
+                        screw_tool_m3/base_link:
+                          screw_tool_m3/tip_link:
+                            {}
                     screw_tool_m4_holder_base_link:
                       screw_tool_m4_holder_link:
-                        {}
+                        screw_tool_m4/base_link:
+                          screw_tool_m4/tip_link:
+                            {}
                     suction_tool_holder_base_link:
                       suction_tool_holder_link:
-                        {}
+                        suction_tool/base_link:
+                          suction_tool/tip_link:
+                            {}
                   workbench_base_link:
                     screw_feeder_m3_base_link:
                       screw_feeder_m3_front_left_side:
@@ -3351,7 +3377,7 @@ Visualization Manager:
       Enabled: true
       Name: collision_objects
       Namespaces:
-        {}
+        "": true
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -3587,16 +3613,16 @@ Visualization Manager:
       Enabled: true
       Name: b_bot
     - Class: aist_visualization/TexturedMesh
-      Enabled: false
+      Enabled: true
       Image Topic: /a_motioncam/texture
       Mesh Topic: /mesh_generator/mesh
       Name: TexturedMesh
-      Value: false
+      Value: true
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
       Name: Graspabilities
       Namespaces:
-        {}
+        graspability_markers: true
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -3677,25 +3703,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 1.0446761846542358
+      Distance: 0.8089972138404846
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.14172202348709106
-        Y: -0.022676751017570496
-        Z: 0.9350801706314087
+        X: 0.047576598823070526
+        Y: 0.06669453531503677
+        Z: 0.7610792517662048
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.7032149434089661
+      Pitch: 0.8332148790359497
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.42620018124580383
+      Yaw: 6.264385223388672
     Saved: ~
 Window Geometry:
   Displays:
