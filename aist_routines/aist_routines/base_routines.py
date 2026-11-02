@@ -398,7 +398,7 @@ class BaseRoutines(Node, Cmd):
         print('  pick:        pick object')
         print('  place:       place object')
         print('  pt:          pick/place tool')
-        print('  cancel       cancel recent task')
+        print('  c:           cancel recent task')
         print('=== Collision object commands ===')
         print('  I:  Initialize all collision objects')
         print('  i:  Show infomation on collision objects')
@@ -702,8 +702,8 @@ class BaseRoutines(Node, Cmd):
     def complete_pt(self, text, line, ib, ie):
         return BaseRoutines._complete_default(text, line, self.tool_names)
 
-    def do_cancel(self, dummy):
-        """      cancel
+    def do_c(self, dummy):
+        """      c
         Cancel task currently executed by the current robot."""
         recent_task = self._recent_tasks.pop(self._robot_name, None)
         if recent_task:
