@@ -9,23 +9,9 @@
     <xacro:property name ="config"
 		    value="${xacro.load_yaml(config_file)[name]}"/>
 
-    <!-- parameters -->
+    <!-- Read parameters from config -->
     <xacro:property name ="ur_type"
 		    value="${config.get('ur_type', 'ur5e')}"/>
-    <xacro:property name ="tf_prefix"
-		    value="${name}_"/>
-    <xacro:property name="joint_limit_params"
-		    value="$(find ur_description
-			   )/config/${ur_type}/joint_limits.yaml"/>
-    <xacro:property name ="physical_params"
-		    value="$(find ur_description
-			   )/config/${ur_type}/physical_parameters.yaml"/>
-    <xacro:property name ="visual_params"
-		    value="$(find ur_description
-			   )/config/${ur_type}/visual_parameters.yaml"/>
-    <xacro:property name ="kinematics_params"
-		    value="$(find aist_description
-			   )/scenes/calib/${name}.yaml"/>
     <xacro:property name ="safety_limits"
 		    value="${config.get('safety_limits', 'false')}"/>
     <xacro:property name ="safety_pos_margin"
