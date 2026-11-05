@@ -2,7 +2,7 @@
 <robot xmlns:xacro="http://wiki.ros.org/xacro" name="b_bot_base_scene" >
 
   <xacro:arg name="sim"		default="false"/>
-  <xacro:arg name="scene"	default=""/>
+  <xacro:arg name="scene"	default="kitting"/>
 
   <!-- location of robot arms -->
   <xacro:property name="b_bot_x"	value="0"/>

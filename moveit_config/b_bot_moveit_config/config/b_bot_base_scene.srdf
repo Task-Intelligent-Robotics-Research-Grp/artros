@@ -125,9 +125,16 @@
     <disable_collisions link1="a_motioncam_link" link2="b_bot_table_leg3" reason="Never"/>
     <disable_collisions link1="a_motioncam_link" link2="b_bot_table_top" reason="Never"/>
     <disable_collisions link1="a_motioncam_link" link2="b_bot_upper_arm_link" reason="Never"/>
+    <disable_collisions link1="a_motioncam_link" link2="b_bot_usb_repeater_left_leg" reason="Never"/>
     <disable_collisions link1="a_motioncam_link" link2="base_fixture_base_link" reason="Never"/>
     <disable_collisions link1="a_motioncam_link" link2="base_fixture_head_base_link" reason="Never"/>
     <disable_collisions link1="a_motioncam_link" link2="base_fixture_piston" reason="Never"/>
+    <disable_collisions link1="a_motioncam_link" link2="bin_1_part_16" reason="Never"/>
+    <disable_collisions link1="a_motioncam_link" link2="bin_1_part_17" reason="Never"/>
+    <disable_collisions link1="a_motioncam_link" link2="bin_1_part_5" reason="Never"/>
+    <disable_collisions link1="a_motioncam_link" link2="bin_2_part_4" reason="Never"/>
+    <disable_collisions link1="a_motioncam_link" link2="bin_2_part_7" reason="Never"/>
+    <disable_collisions link1="a_motioncam_link" link2="bin_2_part_8" reason="Never"/>
     <disable_collisions link1="a_motioncam_link" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="a_motioncam_link" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="a_motioncam_link" link2="cage_front_left_pillar" reason="Adjacent"/>
@@ -142,6 +149,7 @@
     <disable_collisions link1="a_motioncam_link" link2="cage_upper_left_bar" reason="Never"/>
     <disable_collisions link1="a_motioncam_link" link2="cage_upper_right_bar" reason="Never"/>
     <disable_collisions link1="a_motioncam_link" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="a_motioncam_link" link2="plate" reason="Adjacent"/>
     <disable_collisions link1="a_motioncam_link" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="a_motioncam_link" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="a_motioncam_link" link2="screw_feeder_m3_front_left_side" reason="Never"/>
@@ -155,6 +163,9 @@
     <disable_collisions link1="a_motioncam_link" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="a_motioncam_link" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="a_motioncam_link" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="a_motioncam_link" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="a_motioncam_link" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="a_motioncam_link" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="a_motioncam_link" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="a_motioncam_link" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="a_motioncam_link" link2="workbench_center_bar" reason="Never"/>
@@ -171,38 +182,21 @@
     <disable_collisions link1="a_motioncam_link" link2="workspace_table_leg2" reason="Never"/>
     <disable_collisions link1="a_motioncam_link" link2="workspace_table_leg3" reason="Never"/>
     <disable_collisions link1="a_motioncam_link" link2="workspace_table_top" reason="Never"/>
-    <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_camera_link" reason="Never"/>
-    <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_camera_mount" reason="Never"/>
-    <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_forearm_link" reason="Never"/>
-    <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_gripper_coupling_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_gripper_left_inner_finger" reason="Never"/>
-    <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_gripper_left_inner_finger_pad" reason="Never"/>
-    <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_gripper_left_inner_knuckle" reason="Never"/>
-    <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_gripper_left_outer_finger" reason="Never"/>
-    <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_gripper_left_outer_knuckle" reason="Never"/>
-    <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_gripper_right_inner_finger" reason="Never"/>
-    <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_gripper_right_inner_finger_pad" reason="Never"/>
-    <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_gripper_right_inner_knuckle" reason="Never"/>
-    <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_gripper_right_outer_finger" reason="Never"/>
-    <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_gripper_right_outer_knuckle" reason="Never"/>
-    <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_gripper_robotiq_arg2f_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_shoulder_link" reason="Adjacent"/>
     <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_table_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_table_leg1" reason="Never"/>
     <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_table_leg2" reason="Never"/>
     <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_table_leg3" reason="Never"/>
     <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_table_top" reason="Adjacent"/>
-    <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_usb_repeater_body" reason="Never"/>
-    <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_usb_repeater_front_leg" reason="Never"/>
-    <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_usb_repeater_left_leg" reason="Never"/>
-    <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_usb_repeater_plate" reason="Never"/>
-    <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_usb_repeater_right_leg" reason="Never"/>
-    <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_wrist_1_link" reason="Never"/>
-    <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_wrist_2_link" reason="Never"/>
-    <disable_collisions link1="b_bot_base_link_inertia" link2="b_bot_wrist_3_link" reason="Never"/>
     <disable_collisions link1="b_bot_base_link_inertia" link2="base_fixture_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_base_link_inertia" link2="base_fixture_head_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_base_link_inertia" link2="base_fixture_piston" reason="Never"/>
+    <disable_collisions link1="b_bot_base_link_inertia" link2="bin_1_part_16" reason="Never"/>
+    <disable_collisions link1="b_bot_base_link_inertia" link2="bin_1_part_17" reason="Never"/>
+    <disable_collisions link1="b_bot_base_link_inertia" link2="bin_1_part_5" reason="Never"/>
+    <disable_collisions link1="b_bot_base_link_inertia" link2="bin_2_part_4" reason="Never"/>
+    <disable_collisions link1="b_bot_base_link_inertia" link2="bin_2_part_7" reason="Never"/>
+    <disable_collisions link1="b_bot_base_link_inertia" link2="bin_2_part_8" reason="Never"/>
     <disable_collisions link1="b_bot_base_link_inertia" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_base_link_inertia" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_base_link_inertia" link2="cage_front_left_pillar" reason="Never"/>
@@ -217,6 +211,7 @@
     <disable_collisions link1="b_bot_base_link_inertia" link2="cage_upper_left_bar" reason="Never"/>
     <disable_collisions link1="b_bot_base_link_inertia" link2="cage_upper_right_bar" reason="Never"/>
     <disable_collisions link1="b_bot_base_link_inertia" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="b_bot_base_link_inertia" link2="plate" reason="Never"/>
     <disable_collisions link1="b_bot_base_link_inertia" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_base_link_inertia" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_base_link_inertia" link2="screw_feeder_m3_front_left_side" reason="Never"/>
@@ -230,6 +225,9 @@
     <disable_collisions link1="b_bot_base_link_inertia" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_base_link_inertia" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_base_link_inertia" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="b_bot_base_link_inertia" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="b_bot_base_link_inertia" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="b_bot_base_link_inertia" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="b_bot_base_link_inertia" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="b_bot_base_link_inertia" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_base_link_inertia" link2="workbench_center_bar" reason="Never"/>
@@ -259,23 +257,20 @@
     <disable_collisions link1="b_bot_camera_link" link2="b_bot_gripper_right_outer_finger" reason="Never"/>
     <disable_collisions link1="b_bot_camera_link" link2="b_bot_gripper_right_outer_knuckle" reason="Never"/>
     <disable_collisions link1="b_bot_camera_link" link2="b_bot_gripper_robotiq_arg2f_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_camera_link" link2="b_bot_shoulder_link" reason="Never"/>
-    <disable_collisions link1="b_bot_camera_link" link2="b_bot_upper_arm_link" reason="Never"/>
     <disable_collisions link1="b_bot_camera_link" link2="b_bot_usb_repeater_body" reason="Never"/>
     <disable_collisions link1="b_bot_camera_link" link2="b_bot_usb_repeater_front_leg" reason="Never"/>
     <disable_collisions link1="b_bot_camera_link" link2="b_bot_usb_repeater_left_leg" reason="Never"/>
     <disable_collisions link1="b_bot_camera_link" link2="b_bot_usb_repeater_plate" reason="Never"/>
     <disable_collisions link1="b_bot_camera_link" link2="b_bot_usb_repeater_right_leg" reason="Never"/>
-    <disable_collisions link1="b_bot_camera_link" link2="b_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="b_bot_camera_link" link2="b_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="b_bot_camera_link" link2="b_bot_wrist_3_link" reason="Never"/>
     <disable_collisions link1="b_bot_camera_link" link2="cage_front_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_camera_link" link2="cage_front_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_camera_link" link2="cage_lower_front_bar" reason="Never"/>
     <disable_collisions link1="b_bot_camera_link" link2="cage_upper_front_bar" reason="Never"/>
-    <disable_collisions link1="b_bot_camera_link" link2="workbench_right_border" reason="Never"/>
-    <disable_collisions link1="b_bot_camera_link" link2="workbench_table_leg3" reason="Never"/>
+    <disable_collisions link1="b_bot_camera_link" link2="workbench_table_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_camera_link" link2="workspace_table_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_camera_link" link2="workspace_table_leg1" reason="Never"/>
     <disable_collisions link1="b_bot_camera_mount" link2="b_bot_gripper_coupling_base_link" reason="Adjacent"/>
     <disable_collisions link1="b_bot_camera_mount" link2="b_bot_gripper_left_inner_finger" reason="Never"/>
     <disable_collisions link1="b_bot_camera_mount" link2="b_bot_gripper_left_inner_finger_pad" reason="Never"/>
@@ -288,25 +283,19 @@
     <disable_collisions link1="b_bot_camera_mount" link2="b_bot_gripper_right_outer_finger" reason="Never"/>
     <disable_collisions link1="b_bot_camera_mount" link2="b_bot_gripper_right_outer_knuckle" reason="Never"/>
     <disable_collisions link1="b_bot_camera_mount" link2="b_bot_gripper_robotiq_arg2f_base_link" reason="Adjacent"/>
-    <disable_collisions link1="b_bot_camera_mount" link2="b_bot_shoulder_link" reason="Never"/>
-    <disable_collisions link1="b_bot_camera_mount" link2="b_bot_table_top" reason="Never"/>
-    <disable_collisions link1="b_bot_camera_mount" link2="b_bot_upper_arm_link" reason="Never"/>
     <disable_collisions link1="b_bot_camera_mount" link2="b_bot_usb_repeater_body" reason="Never"/>
     <disable_collisions link1="b_bot_camera_mount" link2="b_bot_usb_repeater_front_leg" reason="Never"/>
     <disable_collisions link1="b_bot_camera_mount" link2="b_bot_usb_repeater_left_leg" reason="Never"/>
     <disable_collisions link1="b_bot_camera_mount" link2="b_bot_usb_repeater_plate" reason="Never"/>
     <disable_collisions link1="b_bot_camera_mount" link2="b_bot_usb_repeater_right_leg" reason="Never"/>
-    <disable_collisions link1="b_bot_camera_mount" link2="b_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="b_bot_camera_mount" link2="b_bot_wrist_2_link" reason="Never"/>
-    <disable_collisions link1="b_bot_camera_mount" link2="b_bot_wrist_3_link" reason="Never"/>
-    <disable_collisions link1="b_bot_camera_mount" link2="base_fixture_piston" reason="Never"/>
+    <disable_collisions link1="b_bot_camera_mount" link2="b_bot_wrist_3_link" reason="Default"/>
     <disable_collisions link1="b_bot_camera_mount" link2="cage_front_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_camera_mount" link2="cage_front_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_camera_mount" link2="cage_lower_front_bar" reason="Never"/>
     <disable_collisions link1="b_bot_camera_mount" link2="cage_upper_front_bar" reason="Never"/>
+    <disable_collisions link1="b_bot_camera_mount" link2="workbench_table_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_camera_mount" link2="workspace_table_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_forearm_link" link2="b_bot_shoulder_link" reason="Never"/>
-    <disable_collisions link1="b_bot_forearm_link" link2="b_bot_table_top" reason="Never"/>
     <disable_collisions link1="b_bot_forearm_link" link2="b_bot_upper_arm_link" reason="Adjacent"/>
     <disable_collisions link1="b_bot_forearm_link" link2="b_bot_usb_repeater_front_leg" reason="Never"/>
     <disable_collisions link1="b_bot_forearm_link" link2="b_bot_usb_repeater_left_leg" reason="Never"/>
@@ -332,9 +321,6 @@
     <disable_collisions link1="b_bot_gripper_coupling_base_link" link2="b_bot_gripper_right_outer_finger" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_coupling_base_link" link2="b_bot_gripper_right_outer_knuckle" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_coupling_base_link" link2="b_bot_gripper_robotiq_arg2f_base_link" reason="Adjacent"/>
-    <disable_collisions link1="b_bot_gripper_coupling_base_link" link2="b_bot_shoulder_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_coupling_base_link" link2="b_bot_table_top" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_coupling_base_link" link2="b_bot_upper_arm_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_coupling_base_link" link2="b_bot_usb_repeater_body" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_coupling_base_link" link2="b_bot_usb_repeater_front_leg" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_coupling_base_link" link2="b_bot_usb_repeater_left_leg" reason="Never"/>
@@ -343,10 +329,12 @@
     <disable_collisions link1="b_bot_gripper_coupling_base_link" link2="b_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_coupling_base_link" link2="b_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_coupling_base_link" link2="b_bot_wrist_3_link" reason="Adjacent"/>
+    <disable_collisions link1="b_bot_gripper_coupling_base_link" link2="base_fixture_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_coupling_base_link" link2="cage_front_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_coupling_base_link" link2="cage_front_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_coupling_base_link" link2="cage_lower_front_bar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_coupling_base_link" link2="cage_upper_front_bar" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_coupling_base_link" link2="screw_feeder_m4_front_left_side" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_coupling_base_link" link2="workspace_table_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="b_bot_gripper_left_inner_finger_pad" reason="Adjacent"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="b_bot_gripper_left_inner_knuckle" reason="Default"/>
@@ -358,7 +346,6 @@
     <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="b_bot_gripper_right_outer_finger" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="b_bot_gripper_right_outer_knuckle" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="b_bot_gripper_robotiq_arg2f_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="b_bot_shoulder_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="b_bot_usb_repeater_body" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="b_bot_usb_repeater_front_leg" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="b_bot_usb_repeater_left_leg" reason="Never"/>
@@ -367,18 +354,17 @@
     <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="b_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="b_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="b_bot_wrist_3_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="base_fixture_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="base_fixture_head_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="base_fixture_piston" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="cage_front_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="cage_front_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="cage_lower_front_bar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="cage_upper_front_bar" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="screw_feeder_m3_front_right_side" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="screw_feeder_m3_gap" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="screw_feeder_m4_front_right_side" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="screw_tool_m3_holder_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="workbench_center_bar" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="workbench_front_border" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="screw_feeder_m4_gap" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="screw_tool_m4_holder_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="workbench_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="workbench_right_border" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="workspace_table_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger" link2="workspace_table_leg1" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="b_bot_gripper_left_inner_knuckle" reason="Never"/>
@@ -390,7 +376,6 @@
     <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="b_bot_gripper_right_outer_finger" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="b_bot_gripper_right_outer_knuckle" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="b_bot_gripper_robotiq_arg2f_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="b_bot_shoulder_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="b_bot_usb_repeater_body" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="b_bot_usb_repeater_front_leg" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="b_bot_usb_repeater_left_leg" reason="Never"/>
@@ -399,19 +384,17 @@
     <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="b_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="b_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="b_bot_wrist_3_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="base_fixture_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="base_fixture_head_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="base_fixture_piston" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="cage_front_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="cage_front_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="cage_lower_front_bar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="cage_upper_front_bar" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="screw_feeder_m3_front_right_side" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="screw_feeder_m3_gap" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="screw_feeder_m4_front_right_side" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="screw_feeder_m4_gap" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="screw_tool_m3_holder_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="workbench_front_border" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="screw_tool_m4_holder_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="workbench_table_leg2" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="workbench_table_leg3" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="workspace_table_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_finger_pad" link2="workspace_table_leg1" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="b_bot_gripper_left_outer_finger" reason="Never"/>
@@ -422,8 +405,6 @@
     <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="b_bot_gripper_right_outer_finger" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="b_bot_gripper_right_outer_knuckle" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="b_bot_gripper_robotiq_arg2f_base_link" reason="Adjacent"/>
-    <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="b_bot_shoulder_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="b_bot_upper_arm_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="b_bot_usb_repeater_body" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="b_bot_usb_repeater_front_leg" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="b_bot_usb_repeater_left_leg" reason="Never"/>
@@ -432,13 +413,18 @@
     <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="b_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="b_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="b_bot_wrist_3_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="base_fixture_head_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="base_fixture_piston" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="cage_front_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="cage_front_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="cage_lower_front_bar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="cage_upper_front_bar" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="screw_feeder_m4_front_right_side" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="screw_feeder_m4_gap" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="workbench_table_leg2" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="screw_tool_m3_holder_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="screw_tool_m4_holder_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="workbench_right_border" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="workbench_table_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="workspace_table_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_inner_knuckle" link2="workspace_table_leg1" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="b_bot_gripper_left_outer_knuckle" reason="Adjacent"/>
     <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="b_bot_gripper_right_inner_finger" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="b_bot_gripper_right_inner_finger_pad" reason="Never"/>
@@ -446,8 +432,6 @@
     <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="b_bot_gripper_right_outer_finger" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="b_bot_gripper_right_outer_knuckle" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="b_bot_gripper_robotiq_arg2f_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="b_bot_shoulder_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="b_bot_upper_arm_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="b_bot_usb_repeater_body" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="b_bot_usb_repeater_front_leg" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="b_bot_usb_repeater_left_leg" reason="Never"/>
@@ -456,26 +440,26 @@
     <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="b_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="b_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="b_bot_wrist_3_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="base_fixture_head_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="base_fixture_piston" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="cage_front_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="cage_front_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="cage_lower_front_bar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="cage_upper_front_bar" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="screw_tool_m3_holder_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="workbench_center_bar" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="workbench_front_border" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="screw_feeder_m3_front_left_side" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="screw_feeder_m4_front_right_side" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="screw_tool_m4_holder_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="workbench_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="workbench_right_border" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="workbench_table_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="workbench_table_leg2" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="workbench_table_leg3" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="workspace_table_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_outer_finger" link2="workspace_table_leg1" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="b_bot_gripper_right_inner_finger" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="b_bot_gripper_right_inner_finger_pad" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="b_bot_gripper_right_inner_knuckle" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="b_bot_gripper_right_outer_finger" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="b_bot_gripper_right_outer_knuckle" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="b_bot_gripper_robotiq_arg2f_base_link" reason="Adjacent"/>
-    <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="b_bot_shoulder_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="b_bot_table_top" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="b_bot_upper_arm_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="b_bot_usb_repeater_body" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="b_bot_usb_repeater_front_leg" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="b_bot_usb_repeater_left_leg" reason="Never"/>
@@ -484,25 +468,26 @@
     <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="b_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="b_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="b_bot_wrist_3_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="base_fixture_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="base_fixture_head_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="base_fixture_piston" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="cage_front_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="cage_front_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="cage_lower_front_bar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="cage_upper_front_bar" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="screw_tool_m3_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="screw_tool_m4_holder_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="workbench_back_bar" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="workbench_front_border" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="workbench_right_bar" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="workbench_table_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="workbench_table_leg2" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="workbench_right_border" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="workbench_table_leg1" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="workspace_table_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_left_outer_knuckle" link2="workspace_table_leg1" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="b_bot_gripper_right_inner_finger_pad" reason="Adjacent"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="b_bot_gripper_right_inner_knuckle" reason="Default"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="b_bot_gripper_right_outer_finger" reason="Adjacent"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="b_bot_gripper_right_outer_knuckle" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="b_bot_gripper_robotiq_arg2f_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="b_bot_shoulder_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="b_bot_usb_repeater_body" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="b_bot_usb_repeater_front_leg" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="b_bot_usb_repeater_left_leg" reason="Never"/>
@@ -511,26 +496,20 @@
     <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="b_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="b_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="b_bot_wrist_3_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="base_fixture_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="base_fixture_head_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="base_fixture_piston" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="cage_front_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="cage_front_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="cage_lower_front_bar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="cage_upper_front_bar" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="screw_feeder_m3_front_left_side" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="screw_feeder_m3_gap" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="screw_tool_m4_holder_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="precision_tool_holder_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="screw_tool_m3_holder_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="workbench_front_border" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="workbench_right_border" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="workbench_table_leg3" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="workspace_table_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger" link2="workspace_table_leg1" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="b_bot_gripper_right_inner_knuckle" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="b_bot_gripper_right_outer_finger" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="b_bot_gripper_right_outer_knuckle" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="b_bot_gripper_robotiq_arg2f_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="b_bot_shoulder_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="b_bot_usb_repeater_body" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="b_bot_usb_repeater_front_leg" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="b_bot_usb_repeater_left_leg" reason="Never"/>
@@ -539,27 +518,18 @@
     <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="b_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="b_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="b_bot_wrist_3_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="base_fixture_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="base_fixture_head_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="base_fixture_piston" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="cage_front_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="cage_front_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="cage_lower_front_bar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="cage_upper_front_bar" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="screw_feeder_m3_front_left_side" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="screw_feeder_m3_gap" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="screw_tool_m4_holder_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="workbench_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="workbench_center_bar" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="workbench_front_border" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="workbench_right_border" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="workbench_table_leg2" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="precision_tool_holder_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="screw_tool_m3_holder_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="workspace_table_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_right_inner_finger_pad" link2="workspace_table_leg1" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_knuckle" link2="b_bot_gripper_right_outer_finger" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_knuckle" link2="b_bot_gripper_right_outer_knuckle" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_knuckle" link2="b_bot_gripper_robotiq_arg2f_base_link" reason="Adjacent"/>
-    <disable_collisions link1="b_bot_gripper_right_inner_knuckle" link2="b_bot_shoulder_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_inner_knuckle" link2="b_bot_upper_arm_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_knuckle" link2="b_bot_usb_repeater_body" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_knuckle" link2="b_bot_usb_repeater_front_leg" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_knuckle" link2="b_bot_usb_repeater_left_leg" reason="Never"/>
@@ -574,14 +544,12 @@
     <disable_collisions link1="b_bot_gripper_right_inner_knuckle" link2="cage_front_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_knuckle" link2="cage_lower_front_bar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_knuckle" link2="cage_upper_front_bar" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_inner_knuckle" link2="screw_feeder_m3_gap" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_right_inner_knuckle" link2="screw_tool_m3_holder_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_right_inner_knuckle" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_knuckle" link2="workspace_table_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_inner_knuckle" link2="workspace_table_leg1" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="b_bot_gripper_right_outer_knuckle" reason="Adjacent"/>
     <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="b_bot_gripper_robotiq_arg2f_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="b_bot_shoulder_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="b_bot_table_top" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="b_bot_upper_arm_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="b_bot_usb_repeater_body" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="b_bot_usb_repeater_front_leg" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="b_bot_usb_repeater_left_leg" reason="Never"/>
@@ -590,20 +558,18 @@
     <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="b_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="b_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="b_bot_wrist_3_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="base_fixture_head_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="base_fixture_piston" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="bin_1_part_17" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="cage_front_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="cage_front_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="cage_lower_front_bar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="cage_upper_front_bar" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="screw_feeder_m3_gap" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="screw_feeder_m3_front_left_side" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="screw_tool_m3_holder_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="workbench_front_border" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="workbench_table_leg3" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="workspace_table_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_right_outer_finger" link2="workspace_table_leg1" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="b_bot_gripper_robotiq_arg2f_base_link" reason="Adjacent"/>
-    <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="b_bot_shoulder_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="b_bot_table_top" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="b_bot_upper_arm_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="b_bot_usb_repeater_body" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="b_bot_usb_repeater_front_leg" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="b_bot_usb_repeater_left_leg" reason="Never"/>
@@ -612,22 +578,17 @@
     <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="b_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="b_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="b_bot_wrist_3_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="base_fixture_head_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="base_fixture_piston" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="base_fixture_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="bin_1_part_17" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="cage_front_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="cage_front_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="cage_lower_front_bar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="cage_upper_front_bar" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="screw_feeder_m3_front_right_side" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="screw_feeder_m3_gap" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="screw_tool_m3_holder_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="precision_tool_holder_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="workbench_front_border" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="workbench_table_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="workbench_right_border" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="workspace_table_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_right_outer_knuckle" link2="workspace_table_leg1" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_robotiq_arg2f_base_link" link2="b_bot_shoulder_link" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_robotiq_arg2f_base_link" link2="b_bot_table_top" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_robotiq_arg2f_base_link" link2="b_bot_upper_arm_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_robotiq_arg2f_base_link" link2="b_bot_usb_repeater_body" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_robotiq_arg2f_base_link" link2="b_bot_usb_repeater_front_leg" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_robotiq_arg2f_base_link" link2="b_bot_usb_repeater_left_leg" reason="Never"/>
@@ -636,28 +597,28 @@
     <disable_collisions link1="b_bot_gripper_robotiq_arg2f_base_link" link2="b_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_robotiq_arg2f_base_link" link2="b_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_robotiq_arg2f_base_link" link2="b_bot_wrist_3_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_robotiq_arg2f_base_link" link2="base_fixture_piston" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_robotiq_arg2f_base_link" link2="cage_front_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_robotiq_arg2f_base_link" link2="cage_front_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_robotiq_arg2f_base_link" link2="cage_lower_front_bar" reason="Never"/>
     <disable_collisions link1="b_bot_gripper_robotiq_arg2f_base_link" link2="cage_upper_front_bar" reason="Never"/>
-    <disable_collisions link1="b_bot_gripper_robotiq_arg2f_base_link" link2="workbench_table_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_robotiq_arg2f_base_link" link2="screw_tool_m4_holder_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_gripper_robotiq_arg2f_base_link" link2="workspace_table_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_shoulder_link" link2="b_bot_table_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_shoulder_link" link2="b_bot_table_leg1" reason="Never"/>
     <disable_collisions link1="b_bot_shoulder_link" link2="b_bot_table_leg2" reason="Never"/>
     <disable_collisions link1="b_bot_shoulder_link" link2="b_bot_table_leg3" reason="Never"/>
     <disable_collisions link1="b_bot_shoulder_link" link2="b_bot_table_top" reason="Never"/>
     <disable_collisions link1="b_bot_shoulder_link" link2="b_bot_upper_arm_link" reason="Adjacent"/>
-    <disable_collisions link1="b_bot_shoulder_link" link2="b_bot_usb_repeater_body" reason="Never"/>
-    <disable_collisions link1="b_bot_shoulder_link" link2="b_bot_usb_repeater_front_leg" reason="Never"/>
-    <disable_collisions link1="b_bot_shoulder_link" link2="b_bot_usb_repeater_left_leg" reason="Never"/>
-    <disable_collisions link1="b_bot_shoulder_link" link2="b_bot_usb_repeater_plate" reason="Never"/>
-    <disable_collisions link1="b_bot_shoulder_link" link2="b_bot_usb_repeater_right_leg" reason="Never"/>
-    <disable_collisions link1="b_bot_shoulder_link" link2="b_bot_wrist_1_link" reason="Never"/>
-    <disable_collisions link1="b_bot_shoulder_link" link2="b_bot_wrist_2_link" reason="Never"/>
-    <disable_collisions link1="b_bot_shoulder_link" link2="b_bot_wrist_3_link" reason="Never"/>
     <disable_collisions link1="b_bot_shoulder_link" link2="base_fixture_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_shoulder_link" link2="base_fixture_head_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_shoulder_link" link2="base_fixture_piston" reason="Never"/>
+    <disable_collisions link1="b_bot_shoulder_link" link2="bin_1_part_16" reason="Never"/>
+    <disable_collisions link1="b_bot_shoulder_link" link2="bin_1_part_17" reason="Never"/>
+    <disable_collisions link1="b_bot_shoulder_link" link2="bin_1_part_5" reason="Never"/>
+    <disable_collisions link1="b_bot_shoulder_link" link2="bin_2_part_4" reason="Never"/>
+    <disable_collisions link1="b_bot_shoulder_link" link2="bin_2_part_7" reason="Never"/>
+    <disable_collisions link1="b_bot_shoulder_link" link2="bin_2_part_8" reason="Never"/>
     <disable_collisions link1="b_bot_shoulder_link" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_shoulder_link" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_shoulder_link" link2="cage_front_left_pillar" reason="Never"/>
@@ -672,6 +633,7 @@
     <disable_collisions link1="b_bot_shoulder_link" link2="cage_upper_left_bar" reason="Never"/>
     <disable_collisions link1="b_bot_shoulder_link" link2="cage_upper_right_bar" reason="Never"/>
     <disable_collisions link1="b_bot_shoulder_link" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="b_bot_shoulder_link" link2="plate" reason="Never"/>
     <disable_collisions link1="b_bot_shoulder_link" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_shoulder_link" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_shoulder_link" link2="screw_feeder_m3_front_left_side" reason="Never"/>
@@ -685,6 +647,9 @@
     <disable_collisions link1="b_bot_shoulder_link" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_shoulder_link" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_shoulder_link" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="b_bot_shoulder_link" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="b_bot_shoulder_link" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="b_bot_shoulder_link" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="b_bot_shoulder_link" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="b_bot_shoulder_link" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_shoulder_link" link2="workbench_center_bar" reason="Never"/>
@@ -708,6 +673,12 @@
     <disable_collisions link1="b_bot_table_base_link" link2="base_fixture_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_base_link" link2="base_fixture_head_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_base_link" link2="base_fixture_piston" reason="Never"/>
+    <disable_collisions link1="b_bot_table_base_link" link2="bin_1_part_16" reason="Never"/>
+    <disable_collisions link1="b_bot_table_base_link" link2="bin_1_part_17" reason="Never"/>
+    <disable_collisions link1="b_bot_table_base_link" link2="bin_1_part_5" reason="Never"/>
+    <disable_collisions link1="b_bot_table_base_link" link2="bin_2_part_4" reason="Never"/>
+    <disable_collisions link1="b_bot_table_base_link" link2="bin_2_part_7" reason="Never"/>
+    <disable_collisions link1="b_bot_table_base_link" link2="bin_2_part_8" reason="Never"/>
     <disable_collisions link1="b_bot_table_base_link" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_table_base_link" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_table_base_link" link2="cage_front_left_pillar" reason="Adjacent"/>
@@ -722,6 +693,7 @@
     <disable_collisions link1="b_bot_table_base_link" link2="cage_upper_left_bar" reason="Never"/>
     <disable_collisions link1="b_bot_table_base_link" link2="cage_upper_right_bar" reason="Never"/>
     <disable_collisions link1="b_bot_table_base_link" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="b_bot_table_base_link" link2="plate" reason="Adjacent"/>
     <disable_collisions link1="b_bot_table_base_link" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_base_link" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_base_link" link2="screw_feeder_m3_front_left_side" reason="Never"/>
@@ -735,6 +707,9 @@
     <disable_collisions link1="b_bot_table_base_link" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_base_link" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_base_link" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="b_bot_table_base_link" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="b_bot_table_base_link" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="b_bot_table_base_link" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="b_bot_table_base_link" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="b_bot_table_base_link" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_base_link" link2="workbench_center_bar" reason="Never"/>
@@ -756,6 +731,12 @@
     <disable_collisions link1="b_bot_table_leg1" link2="base_fixture_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg1" link2="base_fixture_head_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg1" link2="base_fixture_piston" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg1" link2="bin_1_part_16" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg1" link2="bin_1_part_17" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg1" link2="bin_1_part_5" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg1" link2="bin_2_part_4" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg1" link2="bin_2_part_7" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg1" link2="bin_2_part_8" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg1" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg1" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg1" link2="cage_front_left_pillar" reason="Never"/>
@@ -770,6 +751,7 @@
     <disable_collisions link1="b_bot_table_leg1" link2="cage_upper_left_bar" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg1" link2="cage_upper_right_bar" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg1" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg1" link2="plate" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg1" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg1" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg1" link2="screw_feeder_m3_front_left_side" reason="Never"/>
@@ -783,6 +765,9 @@
     <disable_collisions link1="b_bot_table_leg1" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg1" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg1" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg1" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg1" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg1" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg1" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg1" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg1" link2="workbench_center_bar" reason="Never"/>
@@ -804,6 +789,12 @@
     <disable_collisions link1="b_bot_table_leg2" link2="base_fixture_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg2" link2="base_fixture_head_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg2" link2="base_fixture_piston" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg2" link2="bin_1_part_16" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg2" link2="bin_1_part_17" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg2" link2="bin_1_part_5" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg2" link2="bin_2_part_4" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg2" link2="bin_2_part_7" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg2" link2="bin_2_part_8" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg2" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg2" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg2" link2="cage_front_left_pillar" reason="Never"/>
@@ -818,6 +809,7 @@
     <disable_collisions link1="b_bot_table_leg2" link2="cage_upper_left_bar" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg2" link2="cage_upper_right_bar" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg2" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg2" link2="plate" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg2" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg2" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg2" link2="screw_feeder_m3_front_left_side" reason="Never"/>
@@ -831,6 +823,9 @@
     <disable_collisions link1="b_bot_table_leg2" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg2" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg2" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg2" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg2" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg2" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg2" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg2" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg2" link2="workbench_center_bar" reason="Never"/>
@@ -850,6 +845,12 @@
     <disable_collisions link1="b_bot_table_leg3" link2="base_fixture_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg3" link2="base_fixture_head_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg3" link2="base_fixture_piston" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg3" link2="bin_1_part_16" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg3" link2="bin_1_part_17" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg3" link2="bin_1_part_5" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg3" link2="bin_2_part_4" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg3" link2="bin_2_part_7" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg3" link2="bin_2_part_8" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg3" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg3" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg3" link2="cage_front_left_pillar" reason="Never"/>
@@ -864,6 +865,7 @@
     <disable_collisions link1="b_bot_table_leg3" link2="cage_upper_left_bar" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg3" link2="cage_upper_right_bar" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg3" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg3" link2="plate" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg3" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg3" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg3" link2="screw_feeder_m3_front_left_side" reason="Never"/>
@@ -877,6 +879,9 @@
     <disable_collisions link1="b_bot_table_leg3" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg3" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg3" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg3" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg3" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="b_bot_table_leg3" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg3" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg3" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg3" link2="workbench_center_bar" reason="Never"/>
@@ -893,17 +898,15 @@
     <disable_collisions link1="b_bot_table_leg3" link2="workspace_table_leg2" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg3" link2="workspace_table_leg3" reason="Never"/>
     <disable_collisions link1="b_bot_table_leg3" link2="workspace_table_top" reason="Never"/>
-    <disable_collisions link1="b_bot_table_top" link2="b_bot_usb_repeater_body" reason="Never"/>
-    <disable_collisions link1="b_bot_table_top" link2="b_bot_usb_repeater_front_leg" reason="Never"/>
-    <disable_collisions link1="b_bot_table_top" link2="b_bot_usb_repeater_left_leg" reason="Never"/>
-    <disable_collisions link1="b_bot_table_top" link2="b_bot_usb_repeater_plate" reason="Never"/>
-    <disable_collisions link1="b_bot_table_top" link2="b_bot_usb_repeater_right_leg" reason="Never"/>
-    <disable_collisions link1="b_bot_table_top" link2="b_bot_wrist_1_link" reason="Never"/>
-    <disable_collisions link1="b_bot_table_top" link2="b_bot_wrist_2_link" reason="Never"/>
-    <disable_collisions link1="b_bot_table_top" link2="b_bot_wrist_3_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_top" link2="base_fixture_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_top" link2="base_fixture_head_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_top" link2="base_fixture_piston" reason="Never"/>
+    <disable_collisions link1="b_bot_table_top" link2="bin_1_part_16" reason="Never"/>
+    <disable_collisions link1="b_bot_table_top" link2="bin_1_part_17" reason="Never"/>
+    <disable_collisions link1="b_bot_table_top" link2="bin_1_part_5" reason="Never"/>
+    <disable_collisions link1="b_bot_table_top" link2="bin_2_part_4" reason="Never"/>
+    <disable_collisions link1="b_bot_table_top" link2="bin_2_part_7" reason="Never"/>
+    <disable_collisions link1="b_bot_table_top" link2="bin_2_part_8" reason="Never"/>
     <disable_collisions link1="b_bot_table_top" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_table_top" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_table_top" link2="cage_front_left_pillar" reason="Never"/>
@@ -918,6 +921,7 @@
     <disable_collisions link1="b_bot_table_top" link2="cage_upper_left_bar" reason="Never"/>
     <disable_collisions link1="b_bot_table_top" link2="cage_upper_right_bar" reason="Never"/>
     <disable_collisions link1="b_bot_table_top" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="b_bot_table_top" link2="plate" reason="Never"/>
     <disable_collisions link1="b_bot_table_top" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_top" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_top" link2="screw_feeder_m3_front_left_side" reason="Never"/>
@@ -931,6 +935,9 @@
     <disable_collisions link1="b_bot_table_top" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_top" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_top" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="b_bot_table_top" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="b_bot_table_top" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="b_bot_table_top" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="b_bot_table_top" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="b_bot_table_top" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_table_top" link2="workbench_center_bar" reason="Never"/>
@@ -947,14 +954,7 @@
     <disable_collisions link1="b_bot_table_top" link2="workspace_table_leg2" reason="Never"/>
     <disable_collisions link1="b_bot_table_top" link2="workspace_table_leg3" reason="Never"/>
     <disable_collisions link1="b_bot_table_top" link2="workspace_table_top" reason="Default"/>
-    <disable_collisions link1="b_bot_upper_arm_link" link2="b_bot_usb_repeater_body" reason="Never"/>
-    <disable_collisions link1="b_bot_upper_arm_link" link2="b_bot_usb_repeater_front_leg" reason="Never"/>
-    <disable_collisions link1="b_bot_upper_arm_link" link2="b_bot_usb_repeater_left_leg" reason="Never"/>
-    <disable_collisions link1="b_bot_upper_arm_link" link2="b_bot_usb_repeater_plate" reason="Never"/>
-    <disable_collisions link1="b_bot_upper_arm_link" link2="b_bot_usb_repeater_right_leg" reason="Never"/>
-    <disable_collisions link1="b_bot_upper_arm_link" link2="b_bot_wrist_1_link" reason="Never"/>
-    <disable_collisions link1="b_bot_upper_arm_link" link2="b_bot_wrist_2_link" reason="Never"/>
-    <disable_collisions link1="b_bot_upper_arm_link" link2="b_bot_wrist_3_link" reason="Never"/>
+    <disable_collisions link1="b_bot_upper_arm_link" link2="bin_1_part_17" reason="Never"/>
     <disable_collisions link1="b_bot_upper_arm_link" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_upper_arm_link" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_upper_arm_link" link2="cage_front_left_pillar" reason="Never"/>
@@ -976,11 +976,13 @@
     <disable_collisions link1="b_bot_upper_arm_link" link2="screw_feeder_m3_gap" reason="Never"/>
     <disable_collisions link1="b_bot_upper_arm_link" link2="screw_feeder_m4_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_upper_arm_link" link2="screw_feeder_m4_front_left_side" reason="Never"/>
-    <disable_collisions link1="b_bot_upper_arm_link" link2="screw_feeder_m4_gap" reason="Never"/>
     <disable_collisions link1="b_bot_upper_arm_link" link2="screw_tool_m3_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_upper_arm_link" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_upper_arm_link" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_upper_arm_link" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="b_bot_upper_arm_link" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="b_bot_upper_arm_link" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="b_bot_upper_arm_link" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="b_bot_upper_arm_link" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_upper_arm_link" link2="workbench_front_border" reason="Never"/>
     <disable_collisions link1="b_bot_upper_arm_link" link2="workbench_right_border" reason="Never"/>
@@ -996,18 +998,16 @@
     <disable_collisions link1="b_bot_usb_repeater_body" link2="b_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_body" link2="b_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_body" link2="b_bot_wrist_3_link" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_body" link2="base_fixture_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_body" link2="base_fixture_head_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_body" link2="base_fixture_piston" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_body" link2="cage_front_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_body" link2="cage_front_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_body" link2="cage_lower_front_bar" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_body" link2="cage_lower_left_bar" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_body" link2="cage_upper_front_bar" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_body" link2="precision_tool_holder_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_body" link2="screw_feeder_m3_front_left_side" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_body" link2="screw_tool_m3_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_body" link2="screw_tool_m4_holder_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_body" link2="suction_tool_holder_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_body" link2="workbench_right_border" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_body" link2="workbench_table_leg3" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_body" link2="workbench_front_border" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_body" link2="workspace_table_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_body" link2="workspace_table_leg1" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="b_bot_usb_repeater_left_leg" reason="Adjacent"/>
@@ -1016,26 +1016,27 @@
     <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="b_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="b_bot_wrist_2_link" reason="Adjacent"/>
     <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="b_bot_wrist_3_link" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="base_fixture_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="base_fixture_head_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="base_fixture_piston" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="cage_front_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="cage_front_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="cage_lower_front_bar" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="cage_lower_left_bar" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="cage_upper_front_bar" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="cage_upper_left_bar" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="screw_feeder_m3_front_left_side" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="screw_feeder_m3_front_right_side" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="screw_feeder_m3_gap" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="screw_feeder_m4_front_left_side" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="screw_feeder_m4_gap" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="screw_tool_m3_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="screw_tool_m4_holder_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="suction_tool_holder_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="workbench_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="tray_2_screw_holder" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="workbench_center_bar" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="workbench_front_border" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="workbench_right_border" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="workbench_table_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="workbench_table_leg1" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="workbench_table_leg2" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="workbench_table_leg3" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="workspace_table_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_front_leg" link2="workspace_table_leg1" reason="Never"/>
@@ -1045,48 +1046,46 @@
     <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="b_bot_wrist_2_link" reason="Adjacent"/>
     <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="b_bot_wrist_3_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="base_fixture_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="base_fixture_head_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="base_fixture_piston" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="bin_1_part_17" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="cage_front_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="cage_front_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="cage_lower_front_bar" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="cage_lower_left_bar" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="cage_lower_right_bar" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="cage_upper_front_bar" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="cage_upper_left_bar" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="precision_tool_holder_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="screw_feeder_m3_front_left_side" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="screw_feeder_m3_front_right_side" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="screw_feeder_m3_gap" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="screw_feeder_m4_front_right_side" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="screw_feeder_m4_gap" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="screw_tool_m3_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="screw_tool_m4_holder_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="suction_tool_holder_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="tray_2_divider2" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="workbench_center_bar" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="workbench_front_border" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="workbench_right_bar" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="workbench_right_border" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="workbench_table_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="workbench_table_leg2" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="workbench_table_leg3" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="workspace_table_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_left_leg" link2="workspace_table_leg1" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_plate" link2="b_bot_usb_repeater_right_leg" reason="Adjacent"/>
     <disable_collisions link1="b_bot_usb_repeater_plate" link2="b_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_plate" link2="b_bot_wrist_2_link" reason="Adjacent"/>
     <disable_collisions link1="b_bot_usb_repeater_plate" link2="b_bot_wrist_3_link" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_plate" link2="base_fixture_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_plate" link2="base_fixture_piston" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_plate" link2="cage_front_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_plate" link2="cage_front_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_plate" link2="cage_lower_front_bar" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_plate" link2="cage_upper_front_bar" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_plate" link2="suction_tool_holder_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_plate" link2="workbench_right_border" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_plate" link2="screw_feeder_m4_gap" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_plate" link2="screw_tool_m3_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_plate" link2="workspace_table_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_plate" link2="workspace_table_leg1" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="b_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="b_bot_wrist_2_link" reason="Adjacent"/>
     <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="b_bot_wrist_3_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="base_fixture_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="base_fixture_head_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="base_fixture_piston" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="cage_front_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="cage_front_right_pillar" reason="Never"/>
@@ -1096,14 +1095,18 @@
     <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="cage_upper_front_bar" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="screw_feeder_m3_front_left_side" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="screw_tool_m4_holder_base_link" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="suction_tool_holder_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="screw_feeder_m3_front_right_side" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="screw_feeder_m4_front_left_side" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="screw_feeder_m4_front_right_side" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="screw_feeder_m4_gap" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="screw_tool_m3_holder_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="tray_2_divider2" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="workbench_front_border" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="workbench_right_border" reason="Never"/>
+    <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="workbench_table_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="workbench_table_leg1" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="workbench_table_leg2" reason="Never"/>
-    <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="workbench_table_leg3" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="workspace_table_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_usb_repeater_right_leg" link2="workspace_table_leg1" reason="Never"/>
     <disable_collisions link1="b_bot_wrist_1_link" link2="b_bot_wrist_2_link" reason="Adjacent"/>
@@ -1114,7 +1117,6 @@
     <disable_collisions link1="b_bot_wrist_1_link" link2="cage_lower_left_bar" reason="Never"/>
     <disable_collisions link1="b_bot_wrist_1_link" link2="cage_lower_right_bar" reason="Never"/>
     <disable_collisions link1="b_bot_wrist_1_link" link2="cage_upper_front_bar" reason="Never"/>
-    <disable_collisions link1="b_bot_wrist_1_link" link2="workbench_table_leg3" reason="Never"/>
     <disable_collisions link1="b_bot_wrist_1_link" link2="workspace_table_base_link" reason="Never"/>
     <disable_collisions link1="b_bot_wrist_1_link" link2="workspace_table_leg1" reason="Never"/>
     <disable_collisions link1="b_bot_wrist_2_link" link2="b_bot_wrist_3_link" reason="Adjacent"/>
@@ -1123,6 +1125,7 @@
     <disable_collisions link1="b_bot_wrist_2_link" link2="cage_lower_front_bar" reason="Never"/>
     <disable_collisions link1="b_bot_wrist_2_link" link2="cage_upper_front_bar" reason="Never"/>
     <disable_collisions link1="b_bot_wrist_2_link" link2="workspace_table_base_link" reason="Never"/>
+    <disable_collisions link1="b_bot_wrist_3_link" link2="base_fixture_piston" reason="Never"/>
     <disable_collisions link1="b_bot_wrist_3_link" link2="cage_front_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_wrist_3_link" link2="cage_front_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_wrist_3_link" link2="cage_lower_front_bar" reason="Never"/>
@@ -1130,6 +1133,12 @@
     <disable_collisions link1="b_bot_wrist_3_link" link2="workspace_table_base_link" reason="Never"/>
     <disable_collisions link1="base_fixture_base_link" link2="base_fixture_head_base_link" reason="Never"/>
     <disable_collisions link1="base_fixture_base_link" link2="base_fixture_piston" reason="Adjacent"/>
+    <disable_collisions link1="base_fixture_base_link" link2="bin_1_part_16" reason="Never"/>
+    <disable_collisions link1="base_fixture_base_link" link2="bin_1_part_17" reason="Never"/>
+    <disable_collisions link1="base_fixture_base_link" link2="bin_1_part_5" reason="Never"/>
+    <disable_collisions link1="base_fixture_base_link" link2="bin_2_part_4" reason="Never"/>
+    <disable_collisions link1="base_fixture_base_link" link2="bin_2_part_7" reason="Never"/>
+    <disable_collisions link1="base_fixture_base_link" link2="bin_2_part_8" reason="Never"/>
     <disable_collisions link1="base_fixture_base_link" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="base_fixture_base_link" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="base_fixture_base_link" link2="cage_front_left_pillar" reason="Never"/>
@@ -1144,6 +1153,7 @@
     <disable_collisions link1="base_fixture_base_link" link2="cage_upper_left_bar" reason="Never"/>
     <disable_collisions link1="base_fixture_base_link" link2="cage_upper_right_bar" reason="Never"/>
     <disable_collisions link1="base_fixture_base_link" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="base_fixture_base_link" link2="plate" reason="Never"/>
     <disable_collisions link1="base_fixture_base_link" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="base_fixture_base_link" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="base_fixture_base_link" link2="screw_feeder_m3_front_left_side" reason="Never"/>
@@ -1157,6 +1167,9 @@
     <disable_collisions link1="base_fixture_base_link" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="base_fixture_base_link" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="base_fixture_base_link" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="base_fixture_base_link" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="base_fixture_base_link" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="base_fixture_base_link" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="base_fixture_base_link" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="base_fixture_base_link" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="base_fixture_base_link" link2="workbench_center_bar" reason="Never"/>
@@ -1174,6 +1187,12 @@
     <disable_collisions link1="base_fixture_base_link" link2="workspace_table_leg3" reason="Never"/>
     <disable_collisions link1="base_fixture_base_link" link2="workspace_table_top" reason="Never"/>
     <disable_collisions link1="base_fixture_head_base_link" link2="base_fixture_piston" reason="Adjacent"/>
+    <disable_collisions link1="base_fixture_head_base_link" link2="bin_1_part_16" reason="Never"/>
+    <disable_collisions link1="base_fixture_head_base_link" link2="bin_1_part_17" reason="Never"/>
+    <disable_collisions link1="base_fixture_head_base_link" link2="bin_1_part_5" reason="Never"/>
+    <disable_collisions link1="base_fixture_head_base_link" link2="bin_2_part_4" reason="Never"/>
+    <disable_collisions link1="base_fixture_head_base_link" link2="bin_2_part_7" reason="Never"/>
+    <disable_collisions link1="base_fixture_head_base_link" link2="bin_2_part_8" reason="Never"/>
     <disable_collisions link1="base_fixture_head_base_link" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="base_fixture_head_base_link" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="base_fixture_head_base_link" link2="cage_front_left_pillar" reason="Never"/>
@@ -1188,6 +1207,7 @@
     <disable_collisions link1="base_fixture_head_base_link" link2="cage_upper_left_bar" reason="Never"/>
     <disable_collisions link1="base_fixture_head_base_link" link2="cage_upper_right_bar" reason="Never"/>
     <disable_collisions link1="base_fixture_head_base_link" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="base_fixture_head_base_link" link2="plate" reason="Never"/>
     <disable_collisions link1="base_fixture_head_base_link" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="base_fixture_head_base_link" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="base_fixture_head_base_link" link2="screw_feeder_m3_front_left_side" reason="Never"/>
@@ -1201,6 +1221,9 @@
     <disable_collisions link1="base_fixture_head_base_link" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="base_fixture_head_base_link" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="base_fixture_head_base_link" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="base_fixture_head_base_link" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="base_fixture_head_base_link" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="base_fixture_head_base_link" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="base_fixture_head_base_link" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="base_fixture_head_base_link" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="base_fixture_head_base_link" link2="workbench_center_bar" reason="Never"/>
@@ -1217,6 +1240,12 @@
     <disable_collisions link1="base_fixture_head_base_link" link2="workspace_table_leg2" reason="Never"/>
     <disable_collisions link1="base_fixture_head_base_link" link2="workspace_table_leg3" reason="Never"/>
     <disable_collisions link1="base_fixture_head_base_link" link2="workspace_table_top" reason="Never"/>
+    <disable_collisions link1="base_fixture_piston" link2="bin_1_part_16" reason="Never"/>
+    <disable_collisions link1="base_fixture_piston" link2="bin_1_part_17" reason="Never"/>
+    <disable_collisions link1="base_fixture_piston" link2="bin_1_part_5" reason="Never"/>
+    <disable_collisions link1="base_fixture_piston" link2="bin_2_part_4" reason="Never"/>
+    <disable_collisions link1="base_fixture_piston" link2="bin_2_part_7" reason="Never"/>
+    <disable_collisions link1="base_fixture_piston" link2="bin_2_part_8" reason="Never"/>
     <disable_collisions link1="base_fixture_piston" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="base_fixture_piston" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="base_fixture_piston" link2="cage_front_left_pillar" reason="Never"/>
@@ -1231,6 +1260,7 @@
     <disable_collisions link1="base_fixture_piston" link2="cage_upper_left_bar" reason="Never"/>
     <disable_collisions link1="base_fixture_piston" link2="cage_upper_right_bar" reason="Never"/>
     <disable_collisions link1="base_fixture_piston" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="base_fixture_piston" link2="plate" reason="Never"/>
     <disable_collisions link1="base_fixture_piston" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="base_fixture_piston" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="base_fixture_piston" link2="screw_feeder_m3_front_left_side" reason="Never"/>
@@ -1244,6 +1274,9 @@
     <disable_collisions link1="base_fixture_piston" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="base_fixture_piston" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="base_fixture_piston" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="base_fixture_piston" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="base_fixture_piston" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="base_fixture_piston" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="base_fixture_piston" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="base_fixture_piston" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="base_fixture_piston" link2="workbench_center_bar" reason="Never"/>
@@ -1260,6 +1293,303 @@
     <disable_collisions link1="base_fixture_piston" link2="workspace_table_leg2" reason="Never"/>
     <disable_collisions link1="base_fixture_piston" link2="workspace_table_leg3" reason="Never"/>
     <disable_collisions link1="base_fixture_piston" link2="workspace_table_top" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="bin_1_part_17" reason="Adjacent"/>
+    <disable_collisions link1="bin_1_part_16" link2="bin_1_part_5" reason="Adjacent"/>
+    <disable_collisions link1="bin_1_part_16" link2="bin_2_part_4" reason="Adjacent"/>
+    <disable_collisions link1="bin_1_part_16" link2="bin_2_part_7" reason="Adjacent"/>
+    <disable_collisions link1="bin_1_part_16" link2="bin_2_part_8" reason="Adjacent"/>
+    <disable_collisions link1="bin_1_part_16" link2="cage_back_left_pillar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="cage_back_right_pillar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="cage_front_left_pillar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="cage_front_right_pillar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="cage_lower_back_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="cage_lower_front_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="cage_lower_left_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="cage_lower_right_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="cage_tool_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="cage_upper_back_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="cage_upper_front_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="cage_upper_left_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="cage_upper_right_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="plate" reason="Adjacent"/>
+    <disable_collisions link1="bin_1_part_16" link2="precision_tool_holder_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="screw_feeder_m3_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="screw_feeder_m3_front_left_side" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="screw_feeder_m3_front_right_side" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="screw_feeder_m3_gap" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="screw_feeder_m4_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="screw_feeder_m4_front_left_side" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="screw_feeder_m4_front_right_side" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="screw_feeder_m4_gap" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="screw_tool_m3_holder_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="screw_tool_m4_holder_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="suction_tool_holder_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="tray_2" reason="Adjacent"/>
+    <disable_collisions link1="bin_1_part_16" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="tray_2_screw_holder" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="workbench_back_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="workbench_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="workbench_center_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="workbench_front_border" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="workbench_right_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="workbench_right_border" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="workbench_table_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="workbench_table_leg1" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="workbench_table_leg2" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="workbench_table_leg3" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="workbench_table_top" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="workspace_table_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="workspace_table_leg1" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="workspace_table_leg2" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="workspace_table_leg3" reason="Never"/>
+    <disable_collisions link1="bin_1_part_16" link2="workspace_table_top" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="bin_1_part_5" reason="Adjacent"/>
+    <disable_collisions link1="bin_1_part_17" link2="bin_2_part_4" reason="Adjacent"/>
+    <disable_collisions link1="bin_1_part_17" link2="bin_2_part_7" reason="Adjacent"/>
+    <disable_collisions link1="bin_1_part_17" link2="bin_2_part_8" reason="Adjacent"/>
+    <disable_collisions link1="bin_1_part_17" link2="cage_back_left_pillar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="cage_back_right_pillar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="cage_front_left_pillar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="cage_front_right_pillar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="cage_lower_back_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="cage_lower_front_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="cage_lower_left_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="cage_lower_right_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="cage_tool_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="cage_upper_back_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="cage_upper_front_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="cage_upper_left_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="cage_upper_right_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="plate" reason="Adjacent"/>
+    <disable_collisions link1="bin_1_part_17" link2="precision_tool_holder_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="screw_feeder_m3_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="screw_feeder_m3_front_left_side" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="screw_feeder_m3_front_right_side" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="screw_feeder_m3_gap" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="screw_feeder_m4_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="screw_feeder_m4_front_left_side" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="screw_feeder_m4_front_right_side" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="screw_feeder_m4_gap" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="screw_tool_m3_holder_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="screw_tool_m4_holder_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="suction_tool_holder_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="tray_2" reason="Adjacent"/>
+    <disable_collisions link1="bin_1_part_17" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="tray_2_screw_holder" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="workbench_back_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="workbench_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="workbench_center_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="workbench_front_border" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="workbench_right_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="workbench_right_border" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="workbench_table_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="workbench_table_leg1" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="workbench_table_leg2" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="workbench_table_leg3" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="workbench_table_top" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="workspace_table_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="workspace_table_leg1" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="workspace_table_leg2" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="workspace_table_leg3" reason="Never"/>
+    <disable_collisions link1="bin_1_part_17" link2="workspace_table_top" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="bin_2_part_4" reason="Adjacent"/>
+    <disable_collisions link1="bin_1_part_5" link2="bin_2_part_7" reason="Adjacent"/>
+    <disable_collisions link1="bin_1_part_5" link2="bin_2_part_8" reason="Adjacent"/>
+    <disable_collisions link1="bin_1_part_5" link2="cage_back_left_pillar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="cage_back_right_pillar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="cage_front_left_pillar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="cage_front_right_pillar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="cage_lower_back_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="cage_lower_front_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="cage_lower_left_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="cage_lower_right_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="cage_tool_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="cage_upper_back_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="cage_upper_front_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="cage_upper_left_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="cage_upper_right_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="plate" reason="Adjacent"/>
+    <disable_collisions link1="bin_1_part_5" link2="precision_tool_holder_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="screw_feeder_m3_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="screw_feeder_m3_front_left_side" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="screw_feeder_m3_front_right_side" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="screw_feeder_m3_gap" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="screw_feeder_m4_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="screw_feeder_m4_front_left_side" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="screw_feeder_m4_front_right_side" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="screw_feeder_m4_gap" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="screw_tool_m3_holder_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="screw_tool_m4_holder_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="suction_tool_holder_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="tray_2" reason="Adjacent"/>
+    <disable_collisions link1="bin_1_part_5" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="tray_2_screw_holder" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="workbench_back_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="workbench_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="workbench_center_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="workbench_front_border" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="workbench_right_bar" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="workbench_right_border" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="workbench_table_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="workbench_table_leg1" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="workbench_table_leg2" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="workbench_table_leg3" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="workbench_table_top" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="workspace_table_base_link" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="workspace_table_leg1" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="workspace_table_leg2" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="workspace_table_leg3" reason="Never"/>
+    <disable_collisions link1="bin_1_part_5" link2="workspace_table_top" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="bin_2_part_7" reason="Adjacent"/>
+    <disable_collisions link1="bin_2_part_4" link2="bin_2_part_8" reason="Adjacent"/>
+    <disable_collisions link1="bin_2_part_4" link2="cage_back_left_pillar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="cage_back_right_pillar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="cage_front_left_pillar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="cage_front_right_pillar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="cage_lower_back_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="cage_lower_front_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="cage_lower_left_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="cage_lower_right_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="cage_tool_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="cage_upper_back_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="cage_upper_front_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="cage_upper_left_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="cage_upper_right_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="plate" reason="Adjacent"/>
+    <disable_collisions link1="bin_2_part_4" link2="precision_tool_holder_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="screw_feeder_m3_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="screw_feeder_m3_front_left_side" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="screw_feeder_m3_front_right_side" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="screw_feeder_m3_gap" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="screw_feeder_m4_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="screw_feeder_m4_front_left_side" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="screw_feeder_m4_front_right_side" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="screw_feeder_m4_gap" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="screw_tool_m3_holder_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="screw_tool_m4_holder_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="suction_tool_holder_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="tray_2" reason="Adjacent"/>
+    <disable_collisions link1="bin_2_part_4" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="tray_2_screw_holder" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="workbench_back_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="workbench_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="workbench_center_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="workbench_front_border" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="workbench_right_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="workbench_right_border" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="workbench_table_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="workbench_table_leg1" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="workbench_table_leg2" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="workbench_table_leg3" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="workbench_table_top" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="workspace_table_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="workspace_table_leg1" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="workspace_table_leg2" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="workspace_table_leg3" reason="Never"/>
+    <disable_collisions link1="bin_2_part_4" link2="workspace_table_top" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="bin_2_part_8" reason="Adjacent"/>
+    <disable_collisions link1="bin_2_part_7" link2="cage_back_left_pillar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="cage_back_right_pillar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="cage_front_left_pillar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="cage_front_right_pillar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="cage_lower_back_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="cage_lower_front_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="cage_lower_left_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="cage_lower_right_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="cage_tool_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="cage_upper_back_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="cage_upper_front_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="cage_upper_left_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="cage_upper_right_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="plate" reason="Adjacent"/>
+    <disable_collisions link1="bin_2_part_7" link2="precision_tool_holder_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="screw_feeder_m3_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="screw_feeder_m3_front_left_side" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="screw_feeder_m3_front_right_side" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="screw_feeder_m3_gap" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="screw_feeder_m4_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="screw_feeder_m4_front_left_side" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="screw_feeder_m4_front_right_side" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="screw_feeder_m4_gap" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="screw_tool_m3_holder_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="screw_tool_m4_holder_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="suction_tool_holder_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="tray_2" reason="Adjacent"/>
+    <disable_collisions link1="bin_2_part_7" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="tray_2_screw_holder" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="workbench_back_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="workbench_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="workbench_center_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="workbench_front_border" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="workbench_right_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="workbench_right_border" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="workbench_table_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="workbench_table_leg1" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="workbench_table_leg2" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="workbench_table_leg3" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="workbench_table_top" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="workspace_table_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="workspace_table_leg1" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="workspace_table_leg2" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="workspace_table_leg3" reason="Never"/>
+    <disable_collisions link1="bin_2_part_7" link2="workspace_table_top" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="cage_back_left_pillar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="cage_back_right_pillar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="cage_front_left_pillar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="cage_front_right_pillar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="cage_lower_back_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="cage_lower_front_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="cage_lower_left_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="cage_lower_right_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="cage_tool_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="cage_upper_back_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="cage_upper_front_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="cage_upper_left_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="cage_upper_right_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="plate" reason="Adjacent"/>
+    <disable_collisions link1="bin_2_part_8" link2="precision_tool_holder_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="screw_feeder_m3_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="screw_feeder_m3_front_left_side" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="screw_feeder_m3_front_right_side" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="screw_feeder_m3_gap" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="screw_feeder_m4_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="screw_feeder_m4_front_left_side" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="screw_feeder_m4_front_right_side" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="screw_feeder_m4_gap" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="screw_tool_m3_holder_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="screw_tool_m4_holder_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="suction_tool_holder_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="tray_2" reason="Adjacent"/>
+    <disable_collisions link1="bin_2_part_8" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="tray_2_screw_holder" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="workbench_back_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="workbench_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="workbench_center_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="workbench_front_border" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="workbench_right_bar" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="workbench_right_border" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="workbench_table_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="workbench_table_leg1" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="workbench_table_leg2" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="workbench_table_leg3" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="workbench_table_top" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="workspace_table_base_link" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="workspace_table_leg1" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="workspace_table_leg2" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="workspace_table_leg3" reason="Never"/>
+    <disable_collisions link1="bin_2_part_8" link2="workspace_table_top" reason="Never"/>
     <disable_collisions link1="cage_back_left_pillar" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="cage_back_left_pillar" link2="cage_front_left_pillar" reason="Adjacent"/>
     <disable_collisions link1="cage_back_left_pillar" link2="cage_front_right_pillar" reason="Never"/>
@@ -1268,11 +1598,11 @@
     <disable_collisions link1="cage_back_left_pillar" link2="cage_lower_left_bar" reason="Default"/>
     <disable_collisions link1="cage_back_left_pillar" link2="cage_lower_right_bar" reason="Never"/>
     <disable_collisions link1="cage_back_left_pillar" link2="cage_tool_bar" reason="Default"/>
-    <disable_collisions link1="cage_back_left_pillar" link2="cage_upper_back_bar" reason="Never"/>
     <disable_collisions link1="cage_back_left_pillar" link2="cage_upper_front_bar" reason="Never"/>
     <disable_collisions link1="cage_back_left_pillar" link2="cage_upper_left_bar" reason="Default"/>
     <disable_collisions link1="cage_back_left_pillar" link2="cage_upper_right_bar" reason="Never"/>
     <disable_collisions link1="cage_back_left_pillar" link2="cage_workspace_bar" reason="Default"/>
+    <disable_collisions link1="cage_back_left_pillar" link2="plate" reason="Never"/>
     <disable_collisions link1="cage_back_left_pillar" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_back_left_pillar" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="cage_back_left_pillar" link2="screw_feeder_m3_front_left_side" reason="Never"/>
@@ -1286,6 +1616,9 @@
     <disable_collisions link1="cage_back_left_pillar" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_back_left_pillar" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_back_left_pillar" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="cage_back_left_pillar" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="cage_back_left_pillar" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="cage_back_left_pillar" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="cage_back_left_pillar" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="cage_back_left_pillar" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="cage_back_left_pillar" link2="workbench_center_bar" reason="Never"/>
@@ -1313,6 +1646,7 @@
     <disable_collisions link1="cage_back_right_pillar" link2="cage_upper_left_bar" reason="Never"/>
     <disable_collisions link1="cage_back_right_pillar" link2="cage_upper_right_bar" reason="Default"/>
     <disable_collisions link1="cage_back_right_pillar" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="cage_back_right_pillar" link2="plate" reason="Never"/>
     <disable_collisions link1="cage_back_right_pillar" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_back_right_pillar" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="cage_back_right_pillar" link2="screw_feeder_m3_front_left_side" reason="Never"/>
@@ -1326,6 +1660,9 @@
     <disable_collisions link1="cage_back_right_pillar" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_back_right_pillar" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_back_right_pillar" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="cage_back_right_pillar" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="cage_back_right_pillar" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="cage_back_right_pillar" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="cage_back_right_pillar" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="cage_back_right_pillar" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="cage_back_right_pillar" link2="workbench_center_bar" reason="Never"/>
@@ -1352,6 +1689,7 @@
     <disable_collisions link1="cage_front_left_pillar" link2="cage_upper_left_bar" reason="Adjacent"/>
     <disable_collisions link1="cage_front_left_pillar" link2="cage_upper_right_bar" reason="Adjacent"/>
     <disable_collisions link1="cage_front_left_pillar" link2="cage_workspace_bar" reason="Default"/>
+    <disable_collisions link1="cage_front_left_pillar" link2="plate" reason="Adjacent"/>
     <disable_collisions link1="cage_front_left_pillar" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_front_left_pillar" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="cage_front_left_pillar" link2="screw_feeder_m3_front_left_side" reason="Never"/>
@@ -1365,6 +1703,9 @@
     <disable_collisions link1="cage_front_left_pillar" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_front_left_pillar" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_front_left_pillar" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="cage_front_left_pillar" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="cage_front_left_pillar" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="cage_front_left_pillar" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="cage_front_left_pillar" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="cage_front_left_pillar" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="cage_front_left_pillar" link2="workbench_center_bar" reason="Never"/>
@@ -1387,10 +1728,10 @@
     <disable_collisions link1="cage_front_right_pillar" link2="cage_lower_right_bar" reason="Default"/>
     <disable_collisions link1="cage_front_right_pillar" link2="cage_tool_bar" reason="Never"/>
     <disable_collisions link1="cage_front_right_pillar" link2="cage_upper_back_bar" reason="Never"/>
-    <disable_collisions link1="cage_front_right_pillar" link2="cage_upper_front_bar" reason="Never"/>
     <disable_collisions link1="cage_front_right_pillar" link2="cage_upper_left_bar" reason="Never"/>
     <disable_collisions link1="cage_front_right_pillar" link2="cage_upper_right_bar" reason="Never"/>
     <disable_collisions link1="cage_front_right_pillar" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="cage_front_right_pillar" link2="plate" reason="Never"/>
     <disable_collisions link1="cage_front_right_pillar" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_front_right_pillar" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="cage_front_right_pillar" link2="screw_feeder_m3_front_left_side" reason="Never"/>
@@ -1404,6 +1745,9 @@
     <disable_collisions link1="cage_front_right_pillar" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_front_right_pillar" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_front_right_pillar" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="cage_front_right_pillar" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="cage_front_right_pillar" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="cage_front_right_pillar" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="cage_front_right_pillar" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="cage_front_right_pillar" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="cage_front_right_pillar" link2="workbench_center_bar" reason="Never"/>
@@ -1429,6 +1773,7 @@
     <disable_collisions link1="cage_lower_back_bar" link2="cage_upper_left_bar" reason="Never"/>
     <disable_collisions link1="cage_lower_back_bar" link2="cage_upper_right_bar" reason="Never"/>
     <disable_collisions link1="cage_lower_back_bar" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="cage_lower_back_bar" link2="plate" reason="Never"/>
     <disable_collisions link1="cage_lower_back_bar" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_lower_back_bar" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="cage_lower_back_bar" link2="screw_feeder_m3_front_left_side" reason="Never"/>
@@ -1442,6 +1787,9 @@
     <disable_collisions link1="cage_lower_back_bar" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_lower_back_bar" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_lower_back_bar" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="cage_lower_back_bar" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="cage_lower_back_bar" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="cage_lower_back_bar" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="cage_lower_back_bar" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="cage_lower_back_bar" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="cage_lower_back_bar" link2="workbench_center_bar" reason="Never"/>
@@ -1466,6 +1814,7 @@
     <disable_collisions link1="cage_lower_front_bar" link2="cage_upper_left_bar" reason="Never"/>
     <disable_collisions link1="cage_lower_front_bar" link2="cage_upper_right_bar" reason="Never"/>
     <disable_collisions link1="cage_lower_front_bar" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="cage_lower_front_bar" link2="plate" reason="Never"/>
     <disable_collisions link1="cage_lower_front_bar" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_lower_front_bar" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="cage_lower_front_bar" link2="screw_feeder_m3_front_left_side" reason="Never"/>
@@ -1479,6 +1828,9 @@
     <disable_collisions link1="cage_lower_front_bar" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_lower_front_bar" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_lower_front_bar" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="cage_lower_front_bar" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="cage_lower_front_bar" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="cage_lower_front_bar" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="cage_lower_front_bar" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="cage_lower_front_bar" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="cage_lower_front_bar" link2="workbench_center_bar" reason="Never"/>
@@ -1502,6 +1854,7 @@
     <disable_collisions link1="cage_lower_left_bar" link2="cage_upper_left_bar" reason="Never"/>
     <disable_collisions link1="cage_lower_left_bar" link2="cage_upper_right_bar" reason="Never"/>
     <disable_collisions link1="cage_lower_left_bar" link2="cage_workspace_bar" reason="Adjacent"/>
+    <disable_collisions link1="cage_lower_left_bar" link2="plate" reason="Never"/>
     <disable_collisions link1="cage_lower_left_bar" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_lower_left_bar" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="cage_lower_left_bar" link2="screw_feeder_m3_front_left_side" reason="Never"/>
@@ -1515,6 +1868,9 @@
     <disable_collisions link1="cage_lower_left_bar" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_lower_left_bar" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_lower_left_bar" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="cage_lower_left_bar" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="cage_lower_left_bar" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="cage_lower_left_bar" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="cage_lower_left_bar" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="cage_lower_left_bar" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="cage_lower_left_bar" link2="workbench_center_bar" reason="Never"/>
@@ -1537,6 +1893,7 @@
     <disable_collisions link1="cage_lower_right_bar" link2="cage_upper_left_bar" reason="Never"/>
     <disable_collisions link1="cage_lower_right_bar" link2="cage_upper_right_bar" reason="Never"/>
     <disable_collisions link1="cage_lower_right_bar" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="cage_lower_right_bar" link2="plate" reason="Never"/>
     <disable_collisions link1="cage_lower_right_bar" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_lower_right_bar" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="cage_lower_right_bar" link2="screw_feeder_m3_front_left_side" reason="Never"/>
@@ -1550,6 +1907,9 @@
     <disable_collisions link1="cage_lower_right_bar" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_lower_right_bar" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_lower_right_bar" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="cage_lower_right_bar" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="cage_lower_right_bar" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="cage_lower_right_bar" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="cage_lower_right_bar" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="cage_lower_right_bar" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="cage_lower_right_bar" link2="workbench_center_bar" reason="Never"/>
@@ -1571,6 +1931,7 @@
     <disable_collisions link1="cage_tool_bar" link2="cage_upper_left_bar" reason="Never"/>
     <disable_collisions link1="cage_tool_bar" link2="cage_upper_right_bar" reason="Never"/>
     <disable_collisions link1="cage_tool_bar" link2="cage_workspace_bar" reason="Adjacent"/>
+    <disable_collisions link1="cage_tool_bar" link2="plate" reason="Never"/>
     <disable_collisions link1="cage_tool_bar" link2="precision_tool_holder_base_link" reason="Adjacent"/>
     <disable_collisions link1="cage_tool_bar" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="cage_tool_bar" link2="screw_feeder_m3_front_left_side" reason="Never"/>
@@ -1584,6 +1945,9 @@
     <disable_collisions link1="cage_tool_bar" link2="screw_tool_m4_holder_base_link" reason="Adjacent"/>
     <disable_collisions link1="cage_tool_bar" link2="suction_tool_holder_base_link" reason="Adjacent"/>
     <disable_collisions link1="cage_tool_bar" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="cage_tool_bar" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="cage_tool_bar" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="cage_tool_bar" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="cage_tool_bar" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="cage_tool_bar" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="cage_tool_bar" link2="workbench_center_bar" reason="Never"/>
@@ -1604,6 +1968,7 @@
     <disable_collisions link1="cage_upper_back_bar" link2="cage_upper_left_bar" reason="Never"/>
     <disable_collisions link1="cage_upper_back_bar" link2="cage_upper_right_bar" reason="Never"/>
     <disable_collisions link1="cage_upper_back_bar" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="cage_upper_back_bar" link2="plate" reason="Never"/>
     <disable_collisions link1="cage_upper_back_bar" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_upper_back_bar" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="cage_upper_back_bar" link2="screw_feeder_m3_front_left_side" reason="Never"/>
@@ -1617,6 +1982,9 @@
     <disable_collisions link1="cage_upper_back_bar" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_upper_back_bar" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_upper_back_bar" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="cage_upper_back_bar" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="cage_upper_back_bar" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="cage_upper_back_bar" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="cage_upper_back_bar" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="cage_upper_back_bar" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="cage_upper_back_bar" link2="workbench_center_bar" reason="Never"/>
@@ -1636,6 +2004,7 @@
     <disable_collisions link1="cage_upper_front_bar" link2="cage_upper_left_bar" reason="Never"/>
     <disable_collisions link1="cage_upper_front_bar" link2="cage_upper_right_bar" reason="Never"/>
     <disable_collisions link1="cage_upper_front_bar" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="cage_upper_front_bar" link2="plate" reason="Never"/>
     <disable_collisions link1="cage_upper_front_bar" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_upper_front_bar" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="cage_upper_front_bar" link2="screw_feeder_m3_front_left_side" reason="Never"/>
@@ -1649,6 +2018,9 @@
     <disable_collisions link1="cage_upper_front_bar" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_upper_front_bar" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_upper_front_bar" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="cage_upper_front_bar" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="cage_upper_front_bar" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="cage_upper_front_bar" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="cage_upper_front_bar" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="cage_upper_front_bar" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="cage_upper_front_bar" link2="workbench_center_bar" reason="Never"/>
@@ -1667,6 +2039,7 @@
     <disable_collisions link1="cage_upper_front_bar" link2="workspace_table_top" reason="Never"/>
     <disable_collisions link1="cage_upper_left_bar" link2="cage_upper_right_bar" reason="Never"/>
     <disable_collisions link1="cage_upper_left_bar" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="cage_upper_left_bar" link2="plate" reason="Never"/>
     <disable_collisions link1="cage_upper_left_bar" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_upper_left_bar" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="cage_upper_left_bar" link2="screw_feeder_m3_front_left_side" reason="Never"/>
@@ -1680,6 +2053,9 @@
     <disable_collisions link1="cage_upper_left_bar" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_upper_left_bar" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_upper_left_bar" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="cage_upper_left_bar" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="cage_upper_left_bar" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="cage_upper_left_bar" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="cage_upper_left_bar" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="cage_upper_left_bar" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="cage_upper_left_bar" link2="workbench_center_bar" reason="Never"/>
@@ -1697,6 +2073,7 @@
     <disable_collisions link1="cage_upper_left_bar" link2="workspace_table_leg3" reason="Never"/>
     <disable_collisions link1="cage_upper_left_bar" link2="workspace_table_top" reason="Never"/>
     <disable_collisions link1="cage_upper_right_bar" link2="cage_workspace_bar" reason="Never"/>
+    <disable_collisions link1="cage_upper_right_bar" link2="plate" reason="Never"/>
     <disable_collisions link1="cage_upper_right_bar" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_upper_right_bar" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="cage_upper_right_bar" link2="screw_feeder_m3_front_left_side" reason="Never"/>
@@ -1710,6 +2087,9 @@
     <disable_collisions link1="cage_upper_right_bar" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_upper_right_bar" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_upper_right_bar" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="cage_upper_right_bar" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="cage_upper_right_bar" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="cage_upper_right_bar" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="cage_upper_right_bar" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="cage_upper_right_bar" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="cage_upper_right_bar" link2="workbench_center_bar" reason="Never"/>
@@ -1726,6 +2106,7 @@
     <disable_collisions link1="cage_upper_right_bar" link2="workspace_table_leg2" reason="Never"/>
     <disable_collisions link1="cage_upper_right_bar" link2="workspace_table_leg3" reason="Never"/>
     <disable_collisions link1="cage_upper_right_bar" link2="workspace_table_top" reason="Never"/>
+    <disable_collisions link1="cage_workspace_bar" link2="plate" reason="Never"/>
     <disable_collisions link1="cage_workspace_bar" link2="precision_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_workspace_bar" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="cage_workspace_bar" link2="screw_feeder_m3_front_left_side" reason="Never"/>
@@ -1739,6 +2120,9 @@
     <disable_collisions link1="cage_workspace_bar" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_workspace_bar" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="cage_workspace_bar" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="cage_workspace_bar" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="cage_workspace_bar" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="cage_workspace_bar" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="cage_workspace_bar" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="cage_workspace_bar" link2="workbench_base_link" reason="Adjacent"/>
     <disable_collisions link1="cage_workspace_bar" link2="workbench_center_bar" reason="Never"/>
@@ -1754,6 +2138,38 @@
     <disable_collisions link1="cage_workspace_bar" link2="workspace_table_leg1" reason="Never"/>
     <disable_collisions link1="cage_workspace_bar" link2="workspace_table_leg2" reason="Never"/>
     <disable_collisions link1="cage_workspace_bar" link2="workspace_table_leg3" reason="Never"/>
+    <disable_collisions link1="plate" link2="precision_tool_holder_base_link" reason="Never"/>
+    <disable_collisions link1="plate" link2="screw_feeder_m3_base_link" reason="Never"/>
+    <disable_collisions link1="plate" link2="screw_feeder_m3_front_left_side" reason="Never"/>
+    <disable_collisions link1="plate" link2="screw_feeder_m3_front_right_side" reason="Never"/>
+    <disable_collisions link1="plate" link2="screw_feeder_m3_gap" reason="Never"/>
+    <disable_collisions link1="plate" link2="screw_feeder_m4_base_link" reason="Never"/>
+    <disable_collisions link1="plate" link2="screw_feeder_m4_front_left_side" reason="Never"/>
+    <disable_collisions link1="plate" link2="screw_feeder_m4_front_right_side" reason="Never"/>
+    <disable_collisions link1="plate" link2="screw_feeder_m4_gap" reason="Never"/>
+    <disable_collisions link1="plate" link2="screw_tool_m3_holder_base_link" reason="Never"/>
+    <disable_collisions link1="plate" link2="screw_tool_m4_holder_base_link" reason="Never"/>
+    <disable_collisions link1="plate" link2="suction_tool_holder_base_link" reason="Never"/>
+    <disable_collisions link1="plate" link2="tray_1" reason="Default"/>
+    <disable_collisions link1="plate" link2="tray_2" reason="Adjacent"/>
+    <disable_collisions link1="plate" link2="tray_2_divider2" reason="Default"/>
+    <disable_collisions link1="plate" link2="tray_2_screw_holder" reason="Default"/>
+    <disable_collisions link1="plate" link2="workbench_back_bar" reason="Default"/>
+    <disable_collisions link1="plate" link2="workbench_base_link" reason="Default"/>
+    <disable_collisions link1="plate" link2="workbench_center_bar" reason="Never"/>
+    <disable_collisions link1="plate" link2="workbench_front_border" reason="Never"/>
+    <disable_collisions link1="plate" link2="workbench_right_bar" reason="Default"/>
+    <disable_collisions link1="plate" link2="workbench_right_border" reason="Never"/>
+    <disable_collisions link1="plate" link2="workbench_table_base_link" reason="Never"/>
+    <disable_collisions link1="plate" link2="workbench_table_leg1" reason="Never"/>
+    <disable_collisions link1="plate" link2="workbench_table_leg2" reason="Never"/>
+    <disable_collisions link1="plate" link2="workbench_table_leg3" reason="Never"/>
+    <disable_collisions link1="plate" link2="workbench_table_top" reason="Never"/>
+    <disable_collisions link1="plate" link2="workspace_table_base_link" reason="Adjacent"/>
+    <disable_collisions link1="plate" link2="workspace_table_leg1" reason="Never"/>
+    <disable_collisions link1="plate" link2="workspace_table_leg2" reason="Never"/>
+    <disable_collisions link1="plate" link2="workspace_table_leg3" reason="Never"/>
+    <disable_collisions link1="plate" link2="workspace_table_top" reason="Default"/>
     <disable_collisions link1="precision_tool_holder_base_link" link2="screw_feeder_m3_base_link" reason="Never"/>
     <disable_collisions link1="precision_tool_holder_base_link" link2="screw_feeder_m3_front_left_side" reason="Never"/>
     <disable_collisions link1="precision_tool_holder_base_link" link2="screw_feeder_m3_front_right_side" reason="Never"/>
@@ -1766,6 +2182,9 @@
     <disable_collisions link1="precision_tool_holder_base_link" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="precision_tool_holder_base_link" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="precision_tool_holder_base_link" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="precision_tool_holder_base_link" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="precision_tool_holder_base_link" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="precision_tool_holder_base_link" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="precision_tool_holder_base_link" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="precision_tool_holder_base_link" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="precision_tool_holder_base_link" link2="workbench_center_bar" reason="Never"/>
@@ -1793,6 +2212,9 @@
     <disable_collisions link1="screw_feeder_m3_base_link" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="screw_feeder_m3_base_link" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="screw_feeder_m3_base_link" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="screw_feeder_m3_base_link" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="screw_feeder_m3_base_link" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="screw_feeder_m3_base_link" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="screw_feeder_m3_base_link" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="screw_feeder_m3_base_link" link2="workbench_base_link" reason="Adjacent"/>
     <disable_collisions link1="screw_feeder_m3_base_link" link2="workbench_center_bar" reason="Never"/>
@@ -1819,6 +2241,9 @@
     <disable_collisions link1="screw_feeder_m3_front_left_side" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="screw_feeder_m3_front_left_side" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="screw_feeder_m3_front_left_side" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="screw_feeder_m3_front_left_side" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="screw_feeder_m3_front_left_side" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="screw_feeder_m3_front_left_side" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="screw_feeder_m3_front_left_side" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="screw_feeder_m3_front_left_side" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="screw_feeder_m3_front_left_side" link2="workbench_center_bar" reason="Never"/>
@@ -1844,6 +2269,9 @@
     <disable_collisions link1="screw_feeder_m3_front_right_side" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="screw_feeder_m3_front_right_side" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="screw_feeder_m3_front_right_side" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="screw_feeder_m3_front_right_side" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="screw_feeder_m3_front_right_side" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="screw_feeder_m3_front_right_side" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="screw_feeder_m3_front_right_side" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="screw_feeder_m3_front_right_side" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="screw_feeder_m3_front_right_side" link2="workbench_center_bar" reason="Never"/>
@@ -1868,6 +2296,9 @@
     <disable_collisions link1="screw_feeder_m3_gap" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="screw_feeder_m3_gap" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="screw_feeder_m3_gap" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="screw_feeder_m3_gap" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="screw_feeder_m3_gap" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="screw_feeder_m3_gap" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="screw_feeder_m3_gap" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="screw_feeder_m3_gap" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="screw_feeder_m3_gap" link2="workbench_center_bar" reason="Never"/>
@@ -1891,6 +2322,9 @@
     <disable_collisions link1="screw_feeder_m4_base_link" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="screw_feeder_m4_base_link" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="screw_feeder_m4_base_link" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="screw_feeder_m4_base_link" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="screw_feeder_m4_base_link" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="screw_feeder_m4_base_link" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="screw_feeder_m4_base_link" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="screw_feeder_m4_base_link" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="screw_feeder_m4_base_link" link2="workbench_center_bar" reason="Never"/>
@@ -1913,6 +2347,9 @@
     <disable_collisions link1="screw_feeder_m4_front_left_side" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="screw_feeder_m4_front_left_side" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="screw_feeder_m4_front_left_side" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="screw_feeder_m4_front_left_side" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="screw_feeder_m4_front_left_side" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="screw_feeder_m4_front_left_side" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="screw_feeder_m4_front_left_side" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="screw_feeder_m4_front_left_side" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="screw_feeder_m4_front_left_side" link2="workbench_center_bar" reason="Never"/>
@@ -1934,6 +2371,9 @@
     <disable_collisions link1="screw_feeder_m4_front_right_side" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="screw_feeder_m4_front_right_side" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="screw_feeder_m4_front_right_side" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="screw_feeder_m4_front_right_side" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="screw_feeder_m4_front_right_side" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="screw_feeder_m4_front_right_side" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="screw_feeder_m4_front_right_side" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="screw_feeder_m4_front_right_side" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="screw_feeder_m4_front_right_side" link2="workbench_center_bar" reason="Never"/>
@@ -1954,6 +2394,9 @@
     <disable_collisions link1="screw_feeder_m4_gap" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="screw_feeder_m4_gap" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="screw_feeder_m4_gap" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="screw_feeder_m4_gap" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="screw_feeder_m4_gap" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="screw_feeder_m4_gap" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="screw_feeder_m4_gap" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="screw_feeder_m4_gap" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="screw_feeder_m4_gap" link2="workbench_center_bar" reason="Never"/>
@@ -1973,6 +2416,9 @@
     <disable_collisions link1="screw_tool_m3_holder_base_link" link2="screw_tool_m4_holder_base_link" reason="Never"/>
     <disable_collisions link1="screw_tool_m3_holder_base_link" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="screw_tool_m3_holder_base_link" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="screw_tool_m3_holder_base_link" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="screw_tool_m3_holder_base_link" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="screw_tool_m3_holder_base_link" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="screw_tool_m3_holder_base_link" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="screw_tool_m3_holder_base_link" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="screw_tool_m3_holder_base_link" link2="workbench_center_bar" reason="Never"/>
@@ -1991,6 +2437,9 @@
     <disable_collisions link1="screw_tool_m3_holder_base_link" link2="workspace_table_top" reason="Never"/>
     <disable_collisions link1="screw_tool_m4_holder_base_link" link2="suction_tool_holder_base_link" reason="Never"/>
     <disable_collisions link1="screw_tool_m4_holder_base_link" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="screw_tool_m4_holder_base_link" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="screw_tool_m4_holder_base_link" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="screw_tool_m4_holder_base_link" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="screw_tool_m4_holder_base_link" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="screw_tool_m4_holder_base_link" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="screw_tool_m4_holder_base_link" link2="workbench_center_bar" reason="Never"/>
@@ -2008,6 +2457,9 @@
     <disable_collisions link1="screw_tool_m4_holder_base_link" link2="workspace_table_leg3" reason="Never"/>
     <disable_collisions link1="screw_tool_m4_holder_base_link" link2="workspace_table_top" reason="Never"/>
     <disable_collisions link1="suction_tool_holder_base_link" link2="tray_1" reason="Never"/>
+    <disable_collisions link1="suction_tool_holder_base_link" link2="tray_2" reason="Never"/>
+    <disable_collisions link1="suction_tool_holder_base_link" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="suction_tool_holder_base_link" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="suction_tool_holder_base_link" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="suction_tool_holder_base_link" link2="workbench_base_link" reason="Never"/>
     <disable_collisions link1="suction_tool_holder_base_link" link2="workbench_center_bar" reason="Never"/>
@@ -2024,6 +2476,9 @@
     <disable_collisions link1="suction_tool_holder_base_link" link2="workspace_table_leg2" reason="Never"/>
     <disable_collisions link1="suction_tool_holder_base_link" link2="workspace_table_leg3" reason="Never"/>
     <disable_collisions link1="suction_tool_holder_base_link" link2="workspace_table_top" reason="Never"/>
+    <disable_collisions link1="tray_1" link2="tray_2" reason="Default"/>
+    <disable_collisions link1="tray_1" link2="tray_2_divider2" reason="Never"/>
+    <disable_collisions link1="tray_1" link2="tray_2_screw_holder" reason="Never"/>
     <disable_collisions link1="tray_1" link2="workbench_back_bar" reason="Never"/>
     <disable_collisions link1="tray_1" link2="workbench_base_link" reason="Adjacent"/>
     <disable_collisions link1="tray_1" link2="workbench_center_bar" reason="Never"/>
@@ -2040,6 +2495,57 @@
     <disable_collisions link1="tray_1" link2="workspace_table_leg2" reason="Never"/>
     <disable_collisions link1="tray_1" link2="workspace_table_leg3" reason="Never"/>
     <disable_collisions link1="tray_1" link2="workspace_table_top" reason="Default"/>
+    <disable_collisions link1="tray_2" link2="tray_2_divider2" reason="Adjacent"/>
+    <disable_collisions link1="tray_2" link2="tray_2_screw_holder" reason="Adjacent"/>
+    <disable_collisions link1="tray_2" link2="workbench_back_bar" reason="Never"/>
+    <disable_collisions link1="tray_2" link2="workbench_base_link" reason="Never"/>
+    <disable_collisions link1="tray_2" link2="workbench_center_bar" reason="Never"/>
+    <disable_collisions link1="tray_2" link2="workbench_front_border" reason="Never"/>
+    <disable_collisions link1="tray_2" link2="workbench_right_bar" reason="Never"/>
+    <disable_collisions link1="tray_2" link2="workbench_right_border" reason="Never"/>
+    <disable_collisions link1="tray_2" link2="workbench_table_base_link" reason="Never"/>
+    <disable_collisions link1="tray_2" link2="workbench_table_leg1" reason="Never"/>
+    <disable_collisions link1="tray_2" link2="workbench_table_leg2" reason="Never"/>
+    <disable_collisions link1="tray_2" link2="workbench_table_leg3" reason="Never"/>
+    <disable_collisions link1="tray_2" link2="workbench_table_top" reason="Never"/>
+    <disable_collisions link1="tray_2" link2="workspace_table_base_link" reason="Never"/>
+    <disable_collisions link1="tray_2" link2="workspace_table_leg1" reason="Never"/>
+    <disable_collisions link1="tray_2" link2="workspace_table_leg2" reason="Never"/>
+    <disable_collisions link1="tray_2" link2="workspace_table_leg3" reason="Never"/>
+    <disable_collisions link1="tray_2" link2="workspace_table_top" reason="Never"/>
+    <disable_collisions link1="tray_2_divider2" link2="tray_2_screw_holder" reason="Never"/>
+    <disable_collisions link1="tray_2_divider2" link2="workbench_back_bar" reason="Never"/>
+    <disable_collisions link1="tray_2_divider2" link2="workbench_base_link" reason="Never"/>
+    <disable_collisions link1="tray_2_divider2" link2="workbench_center_bar" reason="Never"/>
+    <disable_collisions link1="tray_2_divider2" link2="workbench_front_border" reason="Never"/>
+    <disable_collisions link1="tray_2_divider2" link2="workbench_right_bar" reason="Never"/>
+    <disable_collisions link1="tray_2_divider2" link2="workbench_right_border" reason="Never"/>
+    <disable_collisions link1="tray_2_divider2" link2="workbench_table_base_link" reason="Never"/>
+    <disable_collisions link1="tray_2_divider2" link2="workbench_table_leg1" reason="Never"/>
+    <disable_collisions link1="tray_2_divider2" link2="workbench_table_leg2" reason="Never"/>
+    <disable_collisions link1="tray_2_divider2" link2="workbench_table_leg3" reason="Never"/>
+    <disable_collisions link1="tray_2_divider2" link2="workbench_table_top" reason="Never"/>
+    <disable_collisions link1="tray_2_divider2" link2="workspace_table_base_link" reason="Never"/>
+    <disable_collisions link1="tray_2_divider2" link2="workspace_table_leg1" reason="Never"/>
+    <disable_collisions link1="tray_2_divider2" link2="workspace_table_leg2" reason="Never"/>
+    <disable_collisions link1="tray_2_divider2" link2="workspace_table_leg3" reason="Never"/>
+    <disable_collisions link1="tray_2_divider2" link2="workspace_table_top" reason="Never"/>
+    <disable_collisions link1="tray_2_screw_holder" link2="workbench_back_bar" reason="Never"/>
+    <disable_collisions link1="tray_2_screw_holder" link2="workbench_base_link" reason="Never"/>
+    <disable_collisions link1="tray_2_screw_holder" link2="workbench_center_bar" reason="Never"/>
+    <disable_collisions link1="tray_2_screw_holder" link2="workbench_front_border" reason="Never"/>
+    <disable_collisions link1="tray_2_screw_holder" link2="workbench_right_bar" reason="Never"/>
+    <disable_collisions link1="tray_2_screw_holder" link2="workbench_right_border" reason="Never"/>
+    <disable_collisions link1="tray_2_screw_holder" link2="workbench_table_base_link" reason="Never"/>
+    <disable_collisions link1="tray_2_screw_holder" link2="workbench_table_leg1" reason="Never"/>
+    <disable_collisions link1="tray_2_screw_holder" link2="workbench_table_leg2" reason="Never"/>
+    <disable_collisions link1="tray_2_screw_holder" link2="workbench_table_leg3" reason="Never"/>
+    <disable_collisions link1="tray_2_screw_holder" link2="workbench_table_top" reason="Never"/>
+    <disable_collisions link1="tray_2_screw_holder" link2="workspace_table_base_link" reason="Never"/>
+    <disable_collisions link1="tray_2_screw_holder" link2="workspace_table_leg1" reason="Never"/>
+    <disable_collisions link1="tray_2_screw_holder" link2="workspace_table_leg2" reason="Never"/>
+    <disable_collisions link1="tray_2_screw_holder" link2="workspace_table_leg3" reason="Never"/>
+    <disable_collisions link1="tray_2_screw_holder" link2="workspace_table_top" reason="Never"/>
     <disable_collisions link1="workbench_back_bar" link2="workbench_base_link" reason="Adjacent"/>
     <disable_collisions link1="workbench_back_bar" link2="workbench_center_bar" reason="Default"/>
     <disable_collisions link1="workbench_back_bar" link2="workbench_front_border" reason="Never"/>
@@ -2158,5 +2664,4 @@
     <disable_collisions link1="workspace_table_leg1" link2="workspace_table_leg3" reason="Never"/>
     <disable_collisions link1="workspace_table_leg1" link2="workspace_table_top" reason="Default"/>
     <disable_collisions link1="workspace_table_leg2" link2="workspace_table_leg3" reason="Never"/>
-    <disable_collisions link1="workspace_table_leg3" link2="workspace_table_top" reason="Never"/>
 </robot>
