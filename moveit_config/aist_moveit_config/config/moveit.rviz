@@ -11,7 +11,7 @@ Panels:
         - /a_motioncam_color1/Topic1
         - /pointing_marker1/Topic1
       Splitter Ratio: 0.6133093237876892
-    Tree Height: 436
+    Tree Height: 528
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -29,7 +29,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: a_motioncam_depth_cloud
 Visualization Manager:
   Class: ""
   Displays:
@@ -2760,10 +2760,6 @@ Visualization Manager:
           Value: false
         plate_lower_left_corner:
           Value: false
-        precision_tool/base_link:
-          Value: true
-        precision_tool/tip_link:
-          Value: true
         precision_tool_holder_base_link:
           Value: false
         precision_tool_holder_link:
@@ -2792,26 +2788,14 @@ Visualization Manager:
           Value: false
         screw_feeder_m4_outlet_link:
           Value: false
-        screw_tool_m3/base_link:
-          Value: true
-        screw_tool_m3/tip_link:
-          Value: true
         screw_tool_m3_holder_base_link:
           Value: false
         screw_tool_m3_holder_link:
           Value: false
-        screw_tool_m4/base_link:
-          Value: true
-        screw_tool_m4/tip_link:
-          Value: true
         screw_tool_m4_holder_base_link:
           Value: false
         screw_tool_m4_holder_link:
           Value: false
-        suction_tool/base_link:
-          Value: true
-        suction_tool/tip_link:
-          Value: true
         suction_tool_holder_base_link:
           Value: false
         suction_tool_holder_link:
@@ -2988,7 +2972,8 @@ Visualization Manager:
                                                 a_bot_camera_bottom_screw_frame:
                                                   a_bot_camera_link:
                                                     a_bot_camera_color_frame:
-                                                      {}
+                                                      a_bot_camera_color_optical_frame:
+                                                        {}
                                                     a_bot_camera_depth_frame:
                                                       a_bot_camera_depth_optical_frame:
                                                         {}
@@ -2996,8 +2981,6 @@ Visualization Manager:
                                                       a_bot_camera_infra2_optical_frame:
                                                         {}
                                             a_bot_gripper_base_link:
-                                              a_bot_camera_color_optical_frame:
-                                                {}
                                               a_bot_gripper_robotiq_arg2f_base_link:
                                                 a_bot_gripper_left_inner_knuckle:
                                                   {}
@@ -3057,7 +3040,8 @@ Visualization Manager:
                                                 b_bot_camera_bottom_screw_frame:
                                                   b_bot_camera_link:
                                                     b_bot_camera_color_frame:
-                                                      {}
+                                                      b_bot_camera_color_optical_frame:
+                                                        {}
                                                     b_bot_camera_depth_frame:
                                                       b_bot_camera_depth_optical_frame:
                                                         {}
@@ -3065,8 +3049,6 @@ Visualization Manager:
                                                       b_bot_camera_infra2_optical_frame:
                                                         {}
                                             b_bot_gripper_base_link:
-                                              b_bot_camera_color_optical_frame:
-                                                {}
                                               b_bot_gripper_robotiq_arg2f_base_link:
                                                 b_bot_gripper_left_inner_knuckle:
                                                   {}
@@ -3102,24 +3084,16 @@ Visualization Manager:
                   cage_tool_bar:
                     precision_tool_holder_base_link:
                       precision_tool_holder_link:
-                        precision_tool/base_link:
-                          precision_tool/tip_link:
-                            {}
+                        {}
                     screw_tool_m3_holder_base_link:
                       screw_tool_m3_holder_link:
-                        screw_tool_m3/base_link:
-                          screw_tool_m3/tip_link:
-                            {}
+                        {}
                     screw_tool_m4_holder_base_link:
                       screw_tool_m4_holder_link:
-                        screw_tool_m4/base_link:
-                          screw_tool_m4/tip_link:
-                            {}
+                        {}
                     suction_tool_holder_base_link:
                       suction_tool_holder_link:
-                        suction_tool/base_link:
-                          suction_tool/tip_link:
-                            {}
+                        {}
                   workbench_base_link:
                     screw_feeder_m3_base_link:
                       screw_feeder_m3_front_left_side:
@@ -3377,7 +3351,7 @@ Visualization Manager:
       Enabled: true
       Name: collision_objects
       Namespaces:
-        "": true
+        {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -3405,7 +3379,7 @@ Visualization Manager:
       Decay Time: 0
       Depth Map Topic: /a_motioncam/depth_map
       Depth Map Transport Hint: raw
-      Enabled: false
+      Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 4096
@@ -3425,7 +3399,7 @@ Visualization Manager:
       Topic Filter: true
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Class: rviz_default_plugins/Image
       Enabled: false
       Max Value: 1
@@ -3622,7 +3596,7 @@ Visualization Manager:
       Enabled: true
       Name: Graspabilities
       Namespaces:
-        graspability_markers: true
+        {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -3733,7 +3707,7 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd00000004000000000000022e00000457fc020000000efb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005d00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afc0000003f00000213000001b50100001efa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001ee00fffffffb000000100044006900730070006c0061007900730100000000000001ee0000015600fffffffb000000180061005f0062006f0074005f00630061006d0065007200610100000258000000950000001700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb000000280020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004400fffffffb000000180062005f0062006f0074005f00630061006d00650072006101000002f3000000b90000001700fffffffb00000016006c006900760065005f00630061006d0065007200610000000319000000bb0000001700fffffffb000000220061005f006d006f00740069006f006e00630061006d005f0063006f006c006f007201000003b2000000e40000001700ffffff000000010000010f000002b0fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000002b0000000a900fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000006fd0000003efc0100000002fb0000000800540069006d00650100000000000006fd0000026f00fffffffb0000000800540069006d00650100000000000004500000000000000000000004c90000045700000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd00000004000000000000022e00000457fc020000000efb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005d00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afc0000003f0000026f000001b50100001efa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001ee00fffffffb000000100044006900730070006c0061007900730100000000000001ee0000015600fffffffb000000180061005f0062006f0074005f00630061006d00650072006101000002b40000007b0000001700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb000000280020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004400fffffffb000000180062005f0062006f0074005f00630061006d0065007200610100000335000000b90000001700fffffffb00000016006c006900760065005f00630061006d0065007200610000000319000000bb0000001700fffffffb000000220061005f006d006f00740069006f006e00630061006d005f0063006f006c006f007201000003f4000000a20000001700ffffff000000010000010f000002b0fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000002b0000000a900fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000006fd0000003efc0100000002fb0000000800540069006d00650100000000000006fd0000026f00fffffffb0000000800540069006d00650100000000000004500000000000000000000004c90000045700000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
