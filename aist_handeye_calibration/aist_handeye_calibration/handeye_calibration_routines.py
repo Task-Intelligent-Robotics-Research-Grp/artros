@@ -114,7 +114,7 @@ class HandEyeCalibrationRoutines(BaseRoutines):
     def do_ccancel(self, dummy):
         """      ccancel
         Cancel calibration and return to home pose"""
-        self._handeye_calibration.cancel()
+        self._handeye_calibration.cancel_goal()
 
     def do_check(self, dummy):
         """      check
