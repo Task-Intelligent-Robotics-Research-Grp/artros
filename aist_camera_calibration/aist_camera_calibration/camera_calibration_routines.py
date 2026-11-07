@@ -107,7 +107,7 @@ class CameraCalibrationRoutines(BaseRoutines):
     def do_ccancel(self, dummy):
         """      ccancel
         Cancel calibration and return to home pose"""
-        self._camera_calibration.cancel()
+        self._camera_calibration.cancel_goal()
 
     def do_clist(self, dummy):
         """       clist

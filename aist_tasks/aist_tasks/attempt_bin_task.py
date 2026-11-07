@@ -89,15 +89,14 @@ class AttemptBinTaskServer(ActionServer):
             raise ActionServer.Error('unknown part_id[%s]' % part_id,
                                      stage='')
 
-        tool_name = part_props['gripper_name']
-        if node.gripper(request.robot_name).name != tool_name:
-            # [1] 'pick_tool' stage: Pick suction tool.
-            with ActionServer.Stage(self, goal_handle, 'pick_tool') as stage:
-                status, result = node.pick_tool(request.robot_name, tool_name)
-                if status is GoalStatus.STATUS_ABORTED:
-                    raise ActionServer.Error('Failed to pick tool!',
-                                             stage=stage.extend_name(
-                                                       result.stage))
+        # [1] 'pick_tool' stage: Pick tool requested for the part.
+        with ActionServer.Stage(self, goal_handle, 'pick_tool') as stage:
+            status, result = node.pick_tool(request.robot_name,
+                                            part_props['gripper_name'])
+            if status is GoalStatus.STATUS_ABORTED:
+                raise ActionServer.Error('Failed to pick tool!',
+                                         stage=stage.extend_name(
+                                             result.stage))
 
         # [2] 'go_home' stage: Go to home pose.
         with ActionServer.Stage(self, goal_handle, 'go_home', stop) as stage:
@@ -223,6 +222,23 @@ class AttemptBinTaskServer(ActionServer):
                 raise ActionServer.Error('Failed to go back home',
                                          stage=stage.name)
 
+        if request.pick_all:
+            # [8] 'place_tool' stage: Place tool.
+            with ActionServer.Stage(self, goal_handle, 'place_tool') as stage:
+                status, result = node.place_tool(request.robot_name)
+                if status is GoalStatus.STATUS_ABORTED:
+                    raise ActionServer.Error('Failed to place tool!',
+                                             stage=stage.extend_name(
+                                                 result.stage))
+
+            # [9] 'go_back_home_again' stage: Go back to home pose again.
+            with ActionServer.Stage(self, goal_handle, 'go_back_home_again'
+                                    stop) as stage:
+                success = node.go_to_named_pose(request.robot_name, 'home')
+                if not success:
+                    raise ActionServer.Error('Failed to go back home again!',
+                                             stage=stage.name)
+
         goal_handle.succeed()
         return AttemptBin.Result(stage='')
 
@@ -265,28 +281,28 @@ class AttemptBinTaskServer(ActionServer):
             # Perform picking.
             status, result = node.pick(robot_name, part_id, pose)
 
-            # A. Pick succeeded.
+            # [A] Pick succeeded.
             if status is GoalStatus.STATUS_SUCCEEDED:
                 return status, result, pose
 
-            # B. Pick failed.
+            # [B] Pick failed.
             elif status is GoalStatus.STATUS_ABORTED:
-                # B-1. Error in moving to approach or pick pose.
+                # [B-1] Error in moving to approach or pick pose.
                 if result.stage in ('move', 'approach'):
                     fail_poses.append(pose)
 
-                # B-2. Error in departing from pick pose.
+                # [B-2] Error in departing from pick pose.
                 elif result.stage == 'depart':
                     return status, result, pose
 
-                # B-3. Error in grasping.
+                # [B-3] Error in grasping.
                 elif result.stage == 'verify':
                     fail_poses.append(pose)
                     nattempts += 1
                     if nattempts == max_attempts:
                         return status, result, pose
 
-            # C. Pick canceled.
+            # [C] Pick canceled.
             elif status is GoalStatus.STATUS_CANCELED:
                 return status, result, pose
 
