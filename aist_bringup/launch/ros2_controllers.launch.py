@@ -136,7 +136,7 @@ def launch_setup(context):
                              ('motion_control_handle/target_frame',
                               'target_frame'),
                              ('cartesian_compliance_controller/ft_sensor_wrench',
-                              'force_torque_sensor_broadcaster/wrench'),
+                              'force_torque_sensor_broadcaster/ft_data'),
                              ('cartesian_compliance_controller/target_wrench',
                               'target_wrench'),
                              ('cartesian_compliance_controller/target_frame',
