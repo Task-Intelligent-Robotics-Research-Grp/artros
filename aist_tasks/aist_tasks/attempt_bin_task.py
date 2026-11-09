@@ -232,7 +232,7 @@ class AttemptBinTaskServer(ActionServer):
                                                  result.stage))
 
             # [9] 'go_back_home_again' stage: Go back to home pose again.
-            with ActionServer.Stage(self, goal_handle, 'go_back_home_again'
+            with ActionServer.Stage(self, goal_handle, 'go_back_home_again',
                                     stop) as stage:
                 success = node.go_to_named_pose(request.robot_name, 'home')
                 if not success:
