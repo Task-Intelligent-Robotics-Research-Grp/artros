@@ -104,10 +104,10 @@ class AttemptBinTaskServer(ActionServer):
             if not success:
                 raise ActionServer.Error('Failed to go home', stage=stage.name)
 
-        fine_parameters = False  # Use default graspability parameters
-        pick_poses      = []
-        fail_poses      = []
-        place_offset    = 0.020
+        use_fine_parameters = False  # Use default graspability parameters
+        pick_poses          = []
+        fail_poses          = []
+        place_offset        = 0.020
 
         while True:
             # If no graspability poses available, search for them.
@@ -129,7 +129,7 @@ class AttemptBinTaskServer(ActionServer):
                 # [4] 'search' stage: Search for graspabilities.
                 with ActionServer.Stage(self, goal_handle, 'search') as stage:
                     status, result = node.search_bin(request.bin_id,
-                                                     fine_parameters)
+                                                     use_fine_parameters)
                     if status is GoalStatus.STATUS_ABORTED:
                         raise ActionServer.Error(
                             'Failed to search graspabilities',
@@ -143,22 +143,22 @@ class AttemptBinTaskServer(ActionServer):
                 status, result, pose = self._attempt_pick(
                                            request.robot_name, part_id,
                                            pick_poses, fail_poses,
-                                           1 if fine_parameters else \
+                                           1 if use_fine_parameters else \
                                            request.max_attempts)
-                if not fine_parameters:
+                if not use_fine_parameters:
                     if status in (GoalStatus.STATUS_ABORTED,
                                   GoalStatus.STATUS_UNKNOWN):
-                        self.logger.warn('--- AttemptBin: failed stage[%s], switch to fine parameters'
+                        self.logger.warn('--- AttemptBin: failed at stage[%s], switch to fine parameters'
                                          % stage.name)
-                        fine_parameters = True
-                        pick_poses      = []
-                        fail_poses      = []
+                        use_fine_parameters = True
+                        pick_poses          = []
+                        fail_poses          = []
                 elif status is GoalStatus.STATUS_ABORTED:
-                    self.logger.warn('--- AttemptBin: aborted stage[%s] under fine parameters'
+                    self.logger.warn('--- AttemptBin: aborted at stage[%s] under fine parameters'
                                      % stage.name)
-                    fine_parameters = False
-                    pick_poses      = []
-                    fail_poses      = []
+                    use_fine_parameters = False
+                    pick_poses          = []
+                    fail_poses          = []
                     raise ActionServer.Error('Failed to pick',
                                              stage=stage.extend_name(
                                                  result.stage),
@@ -196,7 +196,7 @@ class AttemptBinTaskServer(ActionServer):
 
                         # Search graspabilities for the next trial.
                         status, result = node.search_bin(request.bin_id,
-                                                         fine_parameters)
+                                                         use_fine_parameters)
                         if status is GoalStatus.STATUS_ABORTED:
                             raise ActionServer.Error(
                                 'Failed to search graspabilities',
@@ -254,7 +254,7 @@ class AttemptBinTaskServer(ActionServer):
           max_attempts: Maximum number of picking attempts.
 
         Returns:
-          Tuple of GoalStatus and Result of picking,
+          Tuple of GoalStatus, Result and pose of picking,
         """
         def _is_close_to_fail_poses(pose, tolerance=0.005):
             def _is_close_to_fail_pose(pose, fail_pose, tolerance):

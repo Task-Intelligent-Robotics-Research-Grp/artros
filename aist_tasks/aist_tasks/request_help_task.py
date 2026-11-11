@@ -155,7 +155,7 @@ class RequestHelpTaskServer(ActionServer):
             request.pose.header.stamp = self.node.get_clock().now().to_msg()
             self._request_help_pub.publish(request)
 
-            # Get Pointing.msg from the remote operator.
+            # Wait 1.0 sec. for Pointing.msg from the remote operator.
             with self._pointing_cond:
                 if self._pointing_cond.wait_for(lambda: self._pointing, 1.0):
                     pointing = self._pointing

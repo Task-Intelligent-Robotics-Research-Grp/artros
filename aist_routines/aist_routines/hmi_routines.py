@@ -168,17 +168,17 @@ class HMIRoutines(KittingRoutines):
         pose = PoseStamped(header=result.graspabilities.poses.header,
                            pose=result.graspabilities.poses.poses[0])
 
-        self.request_help(robot_name, pose, part_id,
+        self.request_help(robot_name, pose, bin_id,
                           'Please_specify_sweep_direction.', timeout_sec=0.0)
 
-    def request_help(self, robot_name, pose, part_id, message,
+    def request_help(self, robot_name, pose, bin_id, message,
                      *, timeout_sec=None):
         """ Request help for the specified part.
 
         Args:
           robot_name:  Robot name.
           pose:        Pose of the pick point where the error occured.
-          part_id:     ID of part.
+          bin_id:      ID of bin from which a part to be picked.
           message:     Message sent to the remote operator.
           timeout_sec: Timeout time waiting for the result. Seconds to wait,
             if positive. Wait forever, if `None`.
@@ -186,15 +186,14 @@ class HMIRoutines(KittingRoutines):
         Returns:
           Tuple of GoalStatus and result of sweeping motion.
         """
-        return self._request_help.send_goal(robot_name, pose, part_id, message,
+        return self._request_help.send_goal(robot_name, pose, bin_id, message,
                                             timeout_sec=timeout_sec)
 
     def error_recovery_by_sweep(self, goal, stage, pose):
         if stage != 'pick/verify':
             return False
 
-        part_id = self.bin_props[goal.bin_id]['part_id']
         status, result = self._error_recovery_by_sweep \
-                             .send_goal(goal.robot_name, pose, part_id,
+                             .send_goal(goal.robot_name, pose, goal.bin_id,
                                         'Pick_failed!')
         return status == GoalStatus.STATUS_SUCCEEDED

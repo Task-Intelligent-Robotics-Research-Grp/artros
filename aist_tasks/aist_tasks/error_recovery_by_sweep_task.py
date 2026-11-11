@@ -39,7 +39,7 @@ from rclpy.node            import Node
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from action_msgs.msg       import GoalStatus
 from geometry_msgs.msg     import PoseStamped, Pose, Quaternion, PointStamped
-from aist_msgs.msg         import Pointing
+from aist_msgs.msg         import RequestHelp, Pointing
 from aist_msgs.action      import ErrorRecoveryBySweep
 from task_wrappers         import ActionServer, GroupedSimpleActionClient
 
@@ -52,13 +52,14 @@ class ErrorRecoveryBySweepTaskClient(GroupedSimpleActionClient):
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
 
-    def send_goal(self, robot_name, pose, part_id, message,
+    def send_goal(self, robot_name, pose, bin_id, message,
                   *, timeout_sec=None):
         return super().send_goal(
-                  ErrorRecoveryBySweep.Goal(robot_name=robot_name,
-                                            item_id=part_id,
-                                            pose=pose,
-                                            message=message),
+                  ErrorRecoveryBySweep.Goal(
+                      request=RequestHelp(robot_name=robot_name,
+                                          bin_id=bin_id,
+                                          pose=pose,
+                                          message=message)),
                   feedback_callback=self.stage_feedback_cb,
                   timeout_sec=timeout_sec)
 
@@ -73,7 +74,7 @@ class ErrorRecoveryBySweepTaskServer(ActionServer):
                          group_field='robot_name')
 
     def _execute_cb(self, goal_handle):
-        request = goal_handle.request
+        request = goal_handle.request.request
         node    = self.node
         stop    = lambda: node.stop(request.robot_name)
 
@@ -100,36 +101,55 @@ class ErrorRecoveryBySweepTaskServer(ActionServer):
                                                                 z=qR[2],
                                                                 w=qR[3])))
 
-        # [1] 'sweep_ready' stage: Go to sweep ready pose.
-        with ActionServer.Stage(self, goal_handle, 'go_to_sweep_ready',
-                                stop) as stage:
-            success = node.go_to_named_pose(request.robot_name, 'sweep_ready')
-            if not success:
-                raise ActionServer.Error('Failed to go to sweep ready pose',
-                                         stage=stage.name)
+        while True:
+            # [1] 'go_to_sweep_ready' stage: Go to sweep ready pose.
+            with ActionServer.Stage(self, goal_handle, 'go_to_sweep_ready',
+                                    stop) as stage:
+                success = node.go_to_named_pose(request.robot_name,
+                                                'sweep_ready')
+                if not success:
+                    raise ActionServer.Error(
+                        'Failed to go to sweep_ready pose', stage=stage.name)
 
-        # [2] 'request_help' stage: Get Pointing.msg from the remote operator.
-        with ActionServer.Stage(self, goal_handle, 'request_help') as stage:
-            message = 'Picking_failed!'
-            status, result = node.request_help(request.robot_name,
-                                               request.pose, request.item_id,
-                                               message)
-            if status == GoalStatus.STATUS_ABORTED:
-                raise ActionServer.Error('Failed to get sweep direction',
-                                          stage=stage.name)
+            # [2] 'request_help' stage: Get Pointing.msg from the operator.
+            with ActionServer.Stage(self, goal_handle,
+                                    'request_help') as stage:
+                message = 'Picking_failed!'
+                status, result = node.request_help(request.robot_name,
+                                                   request.pose,
+                                                   request.bin_id, message)
+                if status == GoalStatus.STATUS_ABORTED:
+                    raise ActionServer.Error('Failed to get sweep direction',
+                                             stage=stage.name)
 
-        # [3] 'sweep' stage:
-        with ActionServer.Stage(self, goal_handle, 'sweep', stop) as stage:
-            pose   = _fix_sweep_direction(request.pose,
-                                          PointStamped(
-                                              header=result.pointing.header,
-                                              point=result.pointing.point))
-            params = node.sweep_parameters[request.item_id]
-            status, result = node.sweep(request.robot_name, pose,
-                                        request.item_id)
-            if status == GoalStatus.STATUS_ABORTED:
-                raise ActionServer.Error('Failed to sweep',
-                                         stage=stage.extend_name(result.stage))
+            if result.pointing_state == Pointing.SWEEP_RES:
+                # [3] 'sweep' stage: Sweep the item to upset it.
+                with ActionServer.Stage(self, goal_handle,
+                                        'sweep', stop) as stage:
+                    pose = _fix_sweep_direction(
+                               request.pose,
+                               PointStamped(header=result.pointing.header,
+                                            point=result.pointing.point))
+                    status, result = node.sweep(request.robot_name, pose,
+                                                request.item_id)
+                    if status == GoalStatus.STATUS_ABORTED:
+                        raise ActionServer.Error('Failed to sweep',
+                                                 stage=stage.extend_name(
+                                                     result.stage))
+                break  # Succeeded in sweep.
+
+            elif result.pointing_state == Pointing.RECAPTURE_RES:
+                # [3-2] 'recapture' stage:
+                with ActionServer.Stage(self, goal_handle,
+                                        'recapture') as stage:
+                    status, result = node.search_bin(request.bin_id,
+                                                     use_fine_parameters)
+                    if status is GoalStatus.STATUS_ABORTED:
+                        raise ActionServer.Error(
+                            'Failed to search graspabilities',
+                            stage=stage.name)
+                    pick_poses = result.graspabilities.poses
+
 
         # [Final] Goal succeeded.
         goal_handle.succeed()
