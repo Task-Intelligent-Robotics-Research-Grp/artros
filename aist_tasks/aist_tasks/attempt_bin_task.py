@@ -273,13 +273,11 @@ class AttemptBinTaskServer(ActionServer):
             return False
 
         # Attempt to pick the item.
-        request              = goal_handle.request
-        node                 = self.node
-        cancel_pick_or_place = lambda: node.pick_or_place.cancel_goal(
-                                           request.robot_name)
-        part_id              = node.bin_props[request.bin_id]['part_id']
-        pose                 = None
-        nattempts            = 0
+        request   = goal_handle.request
+        node      = self.node
+        part_id   = node.bin_props[request.bin_id]['part_id']
+        pose      = None
+        nattempts = 0
         for p in pick_poses.poses:
             pose = PoseStamped(header=pick_poses.header, pose=p)
             if _is_close_to_fail_poses(pose):
@@ -298,23 +296,22 @@ class AttemptBinTaskServer(ActionServer):
                 if result.stage in ('move', 'approach'):
                     fail_poses.append(pose)
 
-            # [B-2] Error in departing from pick pose.
-            elif result.stage == 'depart':
-                return status, result, pose
-
-            # [B-3] Error in grasping.
-            elif result.stage == 'verify':
-                fail_poses.append(pose)
-                nattempts += 1
-                if nattempts == max_attempts:
+                # [B-2] Error in departing from pick pose.
+                elif result.stage == 'depart':
                     return status, result, pose
+
+                # [B-3] Error in grasping.
+                elif result.stage == 'verify':
+                    fail_poses.append(pose)
+                    nattempts += 1
+                    if nattempts == max_attempts:
+                        return status, result, pose
 
             ActionServer.check_if_preempted(goal_handle, 'preempted',
                                             stage='pick')
 
         # Here, no graspability poses remained or max_attempts attained.
         return GoalStatus.STATUS_UNKNOWN, None, pose
-
 
 
 #************************************************************************

@@ -73,7 +73,7 @@ class SweepTaskServer(ActionServer):
         request = goal_handle.request
         node    = self.node
         stop    = lambda: node.stop(request.robot_name)
-        # [1] Move stage: Go to approach pose.
+        # [1] 'move' stage: Go to approach pose.
         with ActionServer.Stage(self, goal_handle, 'move', stop) as stage:
             success = node.go_to_pose_goal(request.robot_name, request.pose,
                                            request.approach_offset,
@@ -82,7 +82,7 @@ class SweepTaskServer(ActionServer):
                 raise ActionServer.Error('Failed to go to approach pose',
                                          stage=stage.name)
 
-        # [2] Approach stage: Go to sweep pose.
+        # [2] 'approach' stage: Go to sweep pose.
         with ActionServer.Stage(self, goal_handle, 'approach', stop) as stage:
             success = node.go_to_pose_goal(request.robot_name, request.pose,
                                            request.sweep_offset,
@@ -91,7 +91,7 @@ class SweepTaskServer(ActionServer):
                 raise ActionServer.Error('Failed to go to sweep pose',
                                          stage=stage.name)
 
-        # [3] Sweep stage: Sweep the object.
+        # [3] 'sweep' stage: Sweep the object.
         with ActionServer.Stage(self, goal_handle, 'sweep', stop) as stage:
             offset = list(request.sweep_offset)
             offset[1] += request.sweep_length
@@ -100,7 +100,7 @@ class SweepTaskServer(ActionServer):
             if not success:
                 raise ActionServer.Error('Failed to sweep', stage=stage.name)
 
-        # [4] Depart stage: Go back to departure pose.
+        # [4] 'depart' stage: Go back to departure pose.
         with ActionServer.Stage(self, goal_handle, 'depart', stop) as stage:
             success = node.go_to_pose_goal(request.robot_name, request.pose,
                                            request.departure_offset,
