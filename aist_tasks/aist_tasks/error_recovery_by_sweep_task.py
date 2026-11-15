@@ -35,13 +35,15 @@
 #
 import numpy as np
 import tf_transformations as tfs
-from rclpy.node            import Node
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from action_msgs.msg       import GoalStatus
 from geometry_msgs.msg     import PoseStamped, Pose, Quaternion, PointStamped
 from aist_msgs.msg         import RequestHelp, Pointing
 from aist_msgs.action      import ErrorRecoveryBySweep
 from task_wrappers         import ActionServer, GroupedSimpleActionClient
+
+from rclpy.node            import Node
+from typing                import Optional
 
 #*********************************************************************
 #  class ErrorRecoveryBySweepTaskClient                              *
@@ -52,8 +54,8 @@ class ErrorRecoveryBySweepTaskClient(GroupedSimpleActionClient):
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
 
-    def send_goal(self, robot_name, pose, bin_id, message,
-                  *, timeout_sec=None):
+    def send_goal(self, robot_name: str, pose: PoseStamped, bin_id: str,
+                  message: str, *, timeout_sec: Optional[float]=None):
         return super().send_goal(
                   ErrorRecoveryBySweep.Goal(
                       request=RequestHelp(robot_name=robot_name,
@@ -67,7 +69,7 @@ class ErrorRecoveryBySweepTaskClient(GroupedSimpleActionClient):
 #  class ErrorRecoveryBySweepTaskServer                              *
 #*********************************************************************
 class ErrorRecoveryBySweepTaskServer(ActionServer):
-    def __init__(self, node, server_ns='error_recovery_by_sweep'):
+    def __init__(self, node: Node, server_ns: str='error_recovery_by_sweep'):
         super().__init__(node, ErrorRecoveryBySweep, server_ns,
                          self._execute_cb,
                          callback_group=MutuallyExclusiveCallbackGroup(),
@@ -117,7 +119,7 @@ class ErrorRecoveryBySweepTaskServer(ActionServer):
                 message = 'Picking_failed!'
                 status, result = node.request_help(request.robot_name,
                                                    request.pose,
-                                                   request.bin_id, message)
+                                                   request.item_id, message)
                 if status == GoalStatus.STATUS_ABORTED:
                     raise ActionServer.Error('Failed to get sweep direction',
                                              stage=stage.name)
@@ -132,24 +134,11 @@ class ErrorRecoveryBySweepTaskServer(ActionServer):
                                             point=result.pointing.point))
                     status, result = node.sweep(request.robot_name, pose,
                                                 request.item_id)
-                    if status == GoalStatus.STATUS_ABORTED:
-                        raise ActionServer.Error('Failed to sweep',
-                                                 stage=stage.extend_name(
-                                                     result.stage))
-                break  # Succeeded in sweep.
+                    if status == GoalStatus.STATUS_SUCCEEDED:
+                        break  # Succeeded in sweep
 
             elif result.pointing_state == Pointing.RECAPTURE_RES:
-                # [3-2] 'recapture' stage:
-                with ActionServer.Stage(self, goal_handle,
-                                        'recapture') as stage:
-                    status, result = node.search_bin(request.bin_id,
-                                                     use_fine_parameters)
-                    if status is GoalStatus.STATUS_ABORTED:
-                        raise ActionServer.Error(
-                            'Failed to search graspabilities',
-                            stage=stage.name)
-                    pick_poses = result.graspabilities.poses
-
+                break
 
         # [Final] Goal succeeded.
         goal_handle.succeed()
@@ -160,7 +149,7 @@ class ErrorRecoveryBySweepTaskServer(ActionServer):
 #  class ErrorRecoveryBySweepTask                                       *
 #************************************************************************
 class ErrorRecoveryBySweepTask(ErrorRecoveryBySweepTaskClient):
-    def __init__(self, node, server_ns='error_recovery_by_sweep'):
+    def __init__(self, node: Node, server_ns: str='error_recovery_by_sweep'):
         super().__init__(node, server_ns)
         self._server = ErrorRecoveryBySweepTaskServer(node, server_ns)
         self.wait_for_server()

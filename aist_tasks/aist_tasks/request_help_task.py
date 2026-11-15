@@ -169,8 +169,8 @@ class RequestHelpTaskServer(ActionServer):
             if pointing.pointing_state != Pointing.NO_RES:
                 break
 
-            ActionServer.check_goal_status(goal_handle, 'preempted',
-                                           pointing=pointing)
+            ActionServer.check_if_preempted(goal_handle, 'preempted',
+                                            pointing=pointing)
 
         goal_handle.succeed()
         self.logger.info('goal SUCCEEDED[%s: pos=(%f %f %f)]'

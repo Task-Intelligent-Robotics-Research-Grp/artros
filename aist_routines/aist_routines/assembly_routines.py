@@ -46,11 +46,15 @@ from aist_collision_object_manager import decompose_link_name
 class AssemblyRoutines(BaseRoutines):
     """Implements assembly routines for aist robot system."""
 
-    def __init__(self, name):
+    def __init__(self, name: str):
         super().__init__(name)
 
         self._pick_or_place_screw = PickOrPlaceScrewTask(self)
         self._feature_trackers = {}
+
+    @property
+    def pick_or_place_screw_task(self)-> PickOrPlaceScrewTask:
+        return self._pick_or_place_screw
 
     @property
     def screw_types(self):

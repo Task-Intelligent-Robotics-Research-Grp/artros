@@ -59,6 +59,10 @@ class KittingRoutines(BaseRoutines):
         self._attempt_bin         = AttemptBinTask(self)
 
     @property
+    def attempt_bin_task(self)-> AttemptBinTask:
+        return self._attempt_bin
+
+    @property
     def bin_props(self):
         return self.settings['bin_props']
 

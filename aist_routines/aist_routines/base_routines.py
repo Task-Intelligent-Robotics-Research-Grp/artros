@@ -311,6 +311,14 @@ class BaseRoutines(Node, Cmd):
             except Exception as e:
                 self.get_logger().error('failed to load setting file: %s' % e)
 
+    @property
+    def pick_or_place_task(self)-> PickOrPlaceTask:
+        return self._pick_or_place
+
+    @property
+    def pick_or_place_tool_task(self)-> PickOrPlaceToolTask:
+        return self._pick_or_place_tool
+
     #
     # CLI(command line interface) stuffs
     #
@@ -654,7 +662,7 @@ class BaseRoutines(Node, Cmd):
         if object_frame not in self.object_frames:
             print('      unknown object frame[%s]' % object_frame)
             return
-        self._recent_tasks[self._robot_name] = self._pick_or_place
+        self._recent_tasks[self._robot_name] = self.pick_or_place_task
         self.pick_at_frame(self._robot_name,
                            decompose_link_name(object_frame)[0], object_frame,
                            timeout_sec=0.0)
@@ -679,7 +687,7 @@ class BaseRoutines(Node, Cmd):
         if place_frame not in self.frame_ids:
             print('      unknown place frame[%s]!' % place_frame)
             return
-        self._recent_tasks[self._robot_name] = self._pick_or_place
+        self._recent_tasks[self._robot_name] = self.pick_or_place_task
         self.place_at_frame(self._robot_name,
                             decompose_link_name(object_frame)[0], place_frame,
                             eef_link=object_frame, timeout_sec=0.0)
@@ -693,7 +701,7 @@ class BaseRoutines(Node, Cmd):
     def do_pt(self, tool_name):
         """      pt [tool_name]
         Pick tool with specified name. Place tool if no name specified."""
-        self._recent_tasks[self._robot_name] = self._pick_or_place_tool
+        self._recent_tasks[self._robot_name] = self.pick_or_place_tool_task
         if tool_name:
             self.pick_tool(self._robot_name, tool_name, timeout_sec=0.0)
         else:
@@ -1224,14 +1232,6 @@ class BaseRoutines(Node, Cmd):
         return self.pick(robot_name, object_id,
                          self.pose_from_xyzrpy(offset, target_frame),
                          timeout_sec=timeout_sec)
-
-    def pick_or_place_wait(self, robot_name,
-                           *, target_stage=None, timeout_sec=None):
-        return self._pick_or_place.wait(robot_name, target_stage=target_stage,
-                                        timeout_sec=timeout_sec)
-
-    def pick_or_place_cancel_goal(self, robot_name):
-        self._pick_or_place.cancel_goal(robot_name)
 
     def place_at_frame(self, robot_name, object_id, target_frame,
                        *, offset=(), eef_link='', timeout_sec=None):

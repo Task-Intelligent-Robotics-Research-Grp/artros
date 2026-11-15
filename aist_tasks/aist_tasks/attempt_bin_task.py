@@ -70,14 +70,18 @@ class AttemptBinTaskServer(ActionServer):
                          group_field='robot_name')
 
     def _execute_cb(self, goal_handle):
-        def _is_eye_on_hand(robot_name, camera_name):
+        def _is_eye_on_hand(robot_name: str, camera_name: str):
             return camera_name == robot_name + '_camera'
 
-        request              = goal_handle.request
-        node                 = self.node
-        stop                 = lambda: node.stop(request.robot_name)
-        pick_or_place_cancel = lambda: node.pick_or_place_cancel_goal(
-                                           request.robot_name)
+        request                   = goal_handle.request
+        node                      = self.node
+        stop                      = lambda: node.stop(request.robot_name)
+        cancel_pick_or_place      = lambda: node.pick_or_place_task \
+                                                .cancel_goal(
+                                                    request.robot_name)
+        cancel_pick_or_place_tool = lambda: node.pick_or_place_tool_task \
+                                                .cancel_goal(
+                                                    request.robot_name)
 
         bin_props = node.bin_props.get(request.bin_id)
         if not bin_props:
@@ -90,7 +94,8 @@ class AttemptBinTaskServer(ActionServer):
                                      stage='')
 
         # [1] 'pick_tool' stage: Pick tool requested for the part.
-        with ActionServer.Stage(self, goal_handle, 'pick_tool') as stage:
+        with ActionServer.Stage(self, goal_handle, 'pick_tool',
+                                cancel_pick_or_place_tool) as stage:
             status, result = node.pick_tool(request.robot_name,
                                             part_props['gripper_name'])
             if status is GoalStatus.STATUS_ABORTED:
@@ -138,60 +143,47 @@ class AttemptBinTaskServer(ActionServer):
 
             # [5] 'pick' stage: Pick a part at a pose selected from pick_poses.
             with ActionServer.Stage(self, goal_handle, 'pick',
-                                    pick_or_place_cancel) as stage:
+                                    cancel_pick_or_place) as stage:
                 # Attempt only once if fine graspability parameters are used.
                 status, result, pose = self._attempt_pick(
-                                           request.robot_name, part_id,
+                                           goal_handle,
                                            pick_poses, fail_poses,
                                            1 if use_fine_parameters else \
                                            request.max_attempts)
-                if not use_fine_parameters:
-                    if status in (GoalStatus.STATUS_ABORTED,
-                                  GoalStatus.STATUS_UNKNOWN):
-                        self.logger.warn('--- AttemptBin: failed at stage[%s], switch to fine parameters'
-                                         % stage.name)
-                        use_fine_parameters = True
-                        pick_poses          = []
-                        fail_poses          = []
-                elif status is GoalStatus.STATUS_ABORTED:
+                if use_fine_parameters and status is GoalStatus.STATUS_ABORTED:
                     self.logger.warn('--- AttemptBin: aborted at stage[%s] under fine parameters'
                                      % stage.name)
-                    use_fine_parameters = False
-                    pick_poses          = []
-                    fail_poses          = []
                     raise ActionServer.Error('Failed to pick',
                                              stage=stage.extend_name(
                                                  result.stage),
                                              pose=pose)
-                elif status is GoalStatus.STATUS_UNKNOWN:  # no poses remained
-                    self.logger.warn('--- AttemptBin: finished stage[%s] with status[%d], break'
-                                     % (stage.name, status))
-                    break
 
-            if status is GoalStatus.STATUS_SUCCEEDED:
+            if status is GoalStatus.STATUS_SUCCEEDED:  # pick succeeded
                 # [6] 'place' stage: Begin placing and wait until reaching
                 #     approach pose.
                 with ActionServer.Stage(self, goal_handle, 'place',
-                                        pick_or_place_cancel) as stage:
+                                        cancel_pick_or_place) as stage:
                     # Place the picked part (not wait).
                     node.place_at_frame(request.robot_name, part_id,
                                         part_props['destination'],
                                         offset=(0.0, place_offset, 0.0),
                                         timeout_sec=0.0)
-                    place_offset = -place_offset
+                    place_offset        = -place_offset
+                    use_fine_parameters = False
+                    fail_poses          = []
 
                     if _is_eye_on_hand(request.robot_name,
                                        part_props['camera_name']):
                         # Wait until placing finished.
                         status, result = node \
-                                        .pick_or_place_wait(request.robot_name)
+                                        .pick_or_place.wait(request.robot_name)
                         if status is GoalStatus.STATUS_ABORTED:
                             raise ActionServer.Error('Failed to place',
                                                      stage=stage.extend_name(
                                                                result.stage))
                         pick_poses = []
                     else:
-                        node.pick_or_place_wait(request.robot_name,
+                        node.pick_or_place.wait(request.robot_name,
                                                 target_stage='approach')
 
                         # Search graspabilities for the next trial.
@@ -205,11 +197,22 @@ class AttemptBinTaskServer(ActionServer):
 
                         # Wait until placing finished.
                         status, result = node \
-                                        .pick_or_place_wait(request.robot_name)
+                                        .pick_or_place.wait(request.robot_name)
                         if status is GoalStatus.STATUS_ABORTED:
                             raise ActionServer.Error('Failed to place',
                                                      stage=stage.extend_name(
                                                                result.stage))
+            elif status is GoalStatus.STATUS_ABORTED:  # pick failed
+                if not use_fine_parameters:
+                    self.logger.warn('--- AttemptBin: failed at stage[%s], switch to fine parameters'
+                                     % stage.name)
+                    use_fine_parameters = True
+                    pick_poses          = []
+                    fail_poses          = []
+            else:                                      # no poses remained
+                self.logger.warn('--- AttemptBin: finished stage[%s] with status[%d], break'
+                                 % (stage.name, status))
+                break
 
             if not request.pick_all:
                 break
@@ -224,7 +227,8 @@ class AttemptBinTaskServer(ActionServer):
 
         if request.pick_all:
             # [8] 'place_tool' stage: Place tool.
-            with ActionServer.Stage(self, goal_handle, 'place_tool') as stage:
+            with ActionServer.Stage(self, goal_handle, 'place_tool',
+                                    cancel_pick_or_place_tool) as stage:
                 status, result = node.place_tool(request.robot_name)
                 if status is GoalStatus.STATUS_ABORTED:
                     raise ActionServer.Error('Failed to place tool!',
@@ -242,13 +246,11 @@ class AttemptBinTaskServer(ActionServer):
         goal_handle.succeed()
         return AttemptBin.Result(stage='')
 
-    def _attempt_pick(self, robot_name, part_id, pick_poses, fail_poses,
-                      max_attempts):
+    def _attempt_pick(self, goal_handle, pick_poses, fail_poses, max_attempts):
         """ Repeat until a part successfully picked.
 
         Args:
-          robot_name:   Robot name.
-          part_id:      ID of part to be picked.
+          goal_handle:  Goal handle of this action.
           pick_poses:   Poses of candidate picking points.
           fail_poses:   Poses of picking points already failed.
           max_attempts: Maximum number of picking attempts.
@@ -256,6 +258,7 @@ class AttemptBinTaskServer(ActionServer):
         Returns:
           Tuple of GoalStatus, Result and pose of picking,
         """
+
         def _is_close_to_fail_poses(pose, tolerance=0.005):
             def _is_close_to_fail_pose(pose, fail_pose, tolerance):
                 position      = pose.pose.position
@@ -270,16 +273,20 @@ class AttemptBinTaskServer(ActionServer):
             return False
 
         # Attempt to pick the item.
-        node = self.node
-        pose = None
-        nattempts = 0
+        request              = goal_handle.request
+        node                 = self.node
+        cancel_pick_or_place = lambda: node.pick_or_place.cancel_goal(
+                                           request.robot_name)
+        part_id              = node.bin_props[request.bin_id]['part_id']
+        pose                 = None
+        nattempts            = 0
         for p in pick_poses.poses:
             pose = PoseStamped(header=pick_poses.header, pose=p)
             if _is_close_to_fail_poses(pose):
                 continue
 
             # Perform picking.
-            status, result = node.pick(robot_name, part_id, pose)
+            status, result = node.pick(request.robot_name, part_id, pose)
 
             # [A] Pick succeeded.
             if status is GoalStatus.STATUS_SUCCEEDED:
@@ -291,23 +298,23 @@ class AttemptBinTaskServer(ActionServer):
                 if result.stage in ('move', 'approach'):
                     fail_poses.append(pose)
 
-                # [B-2] Error in departing from pick pose.
-                elif result.stage == 'depart':
+            # [B-2] Error in departing from pick pose.
+            elif result.stage == 'depart':
+                return status, result, pose
+
+            # [B-3] Error in grasping.
+            elif result.stage == 'verify':
+                fail_poses.append(pose)
+                nattempts += 1
+                if nattempts == max_attempts:
                     return status, result, pose
 
-                # [B-3] Error in grasping.
-                elif result.stage == 'verify':
-                    fail_poses.append(pose)
-                    nattempts += 1
-                    if nattempts == max_attempts:
-                        return status, result, pose
-
-            # [C] Pick canceled.
-            elif status is GoalStatus.STATUS_CANCELED:
-                return status, result, pose
+            ActionServer.check_if_preempted(goal_handle, 'preempted',
+                                            stage='pick')
 
         # Here, no graspability poses remained or max_attempts attained.
         return GoalStatus.STATUS_UNKNOWN, None, pose
+
 
 
 #************************************************************************

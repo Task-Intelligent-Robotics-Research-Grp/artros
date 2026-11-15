@@ -68,7 +68,7 @@ class PickOrPlaceToolTaskServer(ActionServer):
         node                 = self.node
         current_gname        = node.gripper(request.robot_name).name
         default_gname        = node.default_gripper_name(request.robot_name)
-        pick_or_place_cancel = lambda: node.pick_or_place_cancel_goal(
+        cancel_pick_or_place = lambda: node.pick_or_place.cancel_goal(
                                            request.robot_name)
 
         if current_gname == request.tool_name:
@@ -78,7 +78,7 @@ class PickOrPlaceToolTaskServer(ActionServer):
         if current_gname in node.tool_names:
             # [1] 'place' stage: Place current tool.
             with ActionServer.Stage(self, goal_handle, 'place',
-                                    pick_or_place_cancel) as stage:
+                                    cancel_pick_or_place) as stage:
                 node.set_gripper(request.robot_name, default_gname)
                 status, result = node.place_at_frame(
                                      request.robot_name, current_gname,
@@ -101,7 +101,7 @@ class PickOrPlaceToolTaskServer(ActionServer):
 
         # [2] 'pick' stage: Pick requested tool.
         with ActionServer.Stage(self, goal_handle, 'pick',
-                                pick_or_place_cancel) as stage:
+                                cancel_pick_or_place) as stage:
             status, result = node.pick_at_frame(
                                  request.robot_name, request.tool_name,
                                  request.tool_name + '/base_link')
