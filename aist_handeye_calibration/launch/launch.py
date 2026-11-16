@@ -3,7 +3,8 @@ from launch.actions             import (SetLaunchConfiguration,
                                         IncludeLaunchDescription,
                                         OpaqueFunction)
 from launch.substitutions       import (LaunchConfiguration,
-                                        PathJoinSubstitution)
+                                        PathJoinSubstitution,
+                                        IfElseSubstitution)
 from launch.conditions          import UnlessCondition
 from launch_ros.actions         import Node, LoadComposableNodes
 from launch_ros.substitutions   import FindPackageShare
@@ -55,6 +56,12 @@ launch_arguments = [
         'description': 'Use simulation time if true',
         'choices':     ['true', 'false', 'True', 'False']
     },
+    {
+        'name':        'debug',
+        'default':     'false',
+        'description': 'Supress opening another terminal window if true',
+        'choices':     ['true', 'false', 'True', 'False']
+    },
 ]
 
 
@@ -98,7 +105,12 @@ def launch_setup(context):
                   'use_sim_time': LaunchConfiguration('sim')}
              ],
              remappings=[('pose', 'detector_3d/pose')],
-             prefix=['gnome-terminal --tab --wait --active --'],
+             prefix=[
+                 IfElseSubstitution(
+                     LaunchConfiguration('debug'),
+                     if_value='',
+                     else_value='gnome-terminal --tab --wait --active --')
+             ],
              output=LaunchConfiguration('output'),
              arguments=['--ros-args', '--log-level',
                         LaunchConfiguration('log_level')])

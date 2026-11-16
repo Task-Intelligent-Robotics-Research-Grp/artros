@@ -1,7 +1,8 @@
 from launch                     import LaunchDescription
 from launch.actions             import OpaqueFunction
 from launch.substitutions       import (LaunchConfiguration,
-                                        PathJoinSubstitution)
+                                        PathJoinSubstitution,
+                                        IfElseSubstitution)
 from launch_ros.actions         import Node
 from launch_ros.substitutions   import FindPackageShare
 from aist_bringup.launch_common import declare_launch_arguments
@@ -34,6 +35,12 @@ launch_arguments = [
         'description': 'Use simulation time if true',
         'choices':     ['true', 'false', 'True', 'False']
     },
+    {
+        'name':        'debug',
+        'default':     'false',
+        'description': 'Supress opening another terminal window if true',
+        'choices':     ['true', 'false', 'True', 'False']
+    },
 ]
 
 def launch_setup(context):
@@ -51,7 +58,12 @@ def launch_setup(context):
                      'use_sim_time': LaunchConfiguration('sim'),
                  }
              ],
-             prefix=['gnome-terminal --tab --wait --active --'],
+             prefix=[
+                 IfElseSubstitution(
+                     LaunchConfiguration('debug'),
+                     if_value='',
+                     else_value='gnome-terminal --tab --wait --active --')
+             ],
              output='screen')
     ]
 

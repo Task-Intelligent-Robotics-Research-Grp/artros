@@ -5,6 +5,7 @@ from launch.actions                    import (OpaqueFunction,
 from launch.substitutions              import (LaunchConfiguration,
                                                ThisLaunchFileDir,
                                                PathJoinSubstitution,
+                                               IfElseSubstitution,
                                                Command, FindExecutable)
 from launch_ros.actions                import Node, PushROSNamespace
 from launch_ros.substitutions          import FindPackageShare
@@ -18,7 +19,13 @@ launch_arguments = [
         'description': 'device name of the tool',
         'choices':     ['screw_tool_m3', 'screw_tool_m4', 'suction_tool',
                         'base_fixture'],
-    }
+    },
+    {
+        'name':        'debug',
+        'default':     'false',
+        'description': 'Supress opening another terminal window if true',
+        'choices':     ['true', 'false', 'True', 'False']
+    },
 ]
 
 def launch_setup(context):
@@ -85,7 +92,12 @@ def launch_setup(context):
              executable='test_suction_tool.py',
 
              parameters=[{'device_name': LaunchConfiguration('device_name')}],
-             prefix=['gnome-terminal --tab --'],
+             prefix=[
+                 IfElseSubstitution(
+                     LaunchConfiguration('debug'),
+                     if_value='',
+                     else_value='gnome-terminal --tab --wait --active --')
+             ],
              output='screen')
     ]
 
