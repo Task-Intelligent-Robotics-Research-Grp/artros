@@ -77,9 +77,9 @@ class PickOrPlaceScrewTaskServer(ActionServer):
         tool_name                 = 'screw_tool_' + request.screw_type[-2:]
         cancel_pick_or_place      = lambda: node.pick_or_place.cancel_goal(
                                                 request.robot_name)
-        cancel_pick_or_place_tool = lambda:
-                                        node.pick_or_place_tool.cancel_goal(
-                                            request.robot_name)
+        cancel_pick_or_place_tool = lambda: node.pick_or_place_tool \
+                                                .cancel_goal(
+                                                    request.robot_name)
 
         if node.gripper(request.robot_name).name != tool_name:
             # [1] 'pick_tool' stage: Pick screw tool for requested screw type.

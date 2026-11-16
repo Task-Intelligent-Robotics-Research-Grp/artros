@@ -57,13 +57,12 @@ class ErrorRecoveryBySweepTaskClient(GroupedSimpleActionClient):
     def send_goal(self, robot_name: str, pose: PoseStamped, bin_id: str,
                   message: str, *, timeout_sec: Optional[float]=None):
         return super().send_goal(
-                  ErrorRecoveryBySweep.Goal(
-                      request=RequestHelp(robot_name=robot_name,
-                                          bin_id=bin_id,
-                                          pose=pose,
-                                          message=message)),
-                  feedback_callback=self.stage_feedback_cb,
-                  timeout_sec=timeout_sec)
+                   ErrorRecoveryBySweep.Goal(robot_name=robot_name,
+                                             bin_id=bin_id,
+                                             pose=pose,
+                                             message=message),
+                   feedback_callback=self.stage_feedback_cb,
+                   timeout_sec=timeout_sec)
 
 #*********************************************************************
 #  class ErrorRecoveryBySweepTaskServer                              *
@@ -76,9 +75,10 @@ class ErrorRecoveryBySweepTaskServer(ActionServer):
                          group_field='robot_name')
 
     def _execute_cb(self, goal_handle):
-        request = goal_handle.request.request
-        node    = self.node
-        stop    = lambda: node.stop(request.robot_name)
+        request      = goal_handle.request.request
+        node         = self.node
+        stop         = lambda: node.stop(request.robot_name)
+        cancel_sweep = lambda: node.sweep_task.cancel_goal(request.robot_name)
 
         def _fix_sweep_direction(pose: PoseStamped, point: PointStamped):
             p = pose.pose.position
@@ -126,8 +126,8 @@ class ErrorRecoveryBySweepTaskServer(ActionServer):
 
             if result.pointing_state == Pointing.SWEEP_RES:
                 # [3] 'sweep' stage: Sweep the item to upset it.
-                with ActionServer.Stage(self, goal_handle,
-                                        'sweep', stop) as stage:
+                with ActionServer.Stage(self, goal_handle, 'sweep',
+                                        cancel_sweep) as stage:
                     pose = _fix_sweep_direction(
                                request.pose,
                                PointStamped(header=result.pointing.header,

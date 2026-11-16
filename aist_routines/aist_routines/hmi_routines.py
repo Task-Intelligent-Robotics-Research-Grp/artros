@@ -51,8 +51,12 @@ class HMIRoutines(KittingRoutines):
         self._sweep                   = SweepTask(self)
         self._request_help            = RequestHelpTask(self)
         self._error_recovery_by_sweep = ErrorRecoveryBySweepTask(self)
-        self._attempt_bin.server.register_error_handler(
+        self.attempt_bin_task.server.register_error_handler(
             'pick', self.error_recovery_by_sweep)
+
+    @property
+    def sweep_task(self)-> SweepTask:
+        return self._sweep
 
     @property
     def request_help_task(self)-> RequestHelpTask:
@@ -198,7 +202,7 @@ class HMIRoutines(KittingRoutines):
                                             timeout_sec=timeout_sec)
 
     def error_recovery_by_sweep(self, goal, stage, pose):
-        if stage != 'attempt_pick/pick/verify':
+        if stage != 'pick/verify':
             return False
 
         status, result = self._error_recovery_by_sweep \

@@ -175,16 +175,16 @@ class AttemptBinTaskServer(ActionServer):
                     if _is_eye_on_hand(request.robot_name,
                                        part_props['camera_name']):
                         # Wait until placing finished.
-                        status, result = node \
-                                        .pick_or_place.wait(request.robot_name)
+                        status, result = node.pick_or_place_task \
+                                             .wait(request.robot_name)
                         if status is GoalStatus.STATUS_ABORTED:
                             raise ActionServer.Error('Failed to place',
                                                      stage=stage.extend_name(
                                                                result.stage))
                         pick_poses = []
                     else:
-                        node.pick_or_place.wait(request.robot_name,
-                                                target_stage='approach')
+                        node.pick_or_place_task.wait(request.robot_name,
+                                                     target_stage='approach')
 
                         # Search graspabilities for the next trial.
                         status, result = node.search_bin(request.bin_id,
@@ -196,19 +196,18 @@ class AttemptBinTaskServer(ActionServer):
                         pick_poses = result.graspabilities.poses
 
                         # Wait until placing finished.
-                        status, result = node \
-                                        .pick_or_place.wait(request.robot_name)
+                        status, result = node.pick_or_place_task \
+                                             .wait(request.robot_name)
                         if status is GoalStatus.STATUS_ABORTED:
                             raise ActionServer.Error('Failed to place',
                                                      stage=stage.extend_name(
                                                                result.stage))
-            elif status is GoalStatus.STATUS_ABORTED:  # pick failed
-                if not use_fine_parameters:
-                    self.logger.warn('--- AttemptBin: failed at stage[%s], switch to fine parameters'
-                                     % stage.name)
-                    use_fine_parameters = True
-                    pick_poses          = []
-                    fail_poses          = []
+            elif not use_fine_parameters:
+                self.logger.warn('--- AttemptBin: failed at stage[%s], switch to fine parameters'
+                                 % stage.name)
+                use_fine_parameters = True
+                pick_poses          = []
+                fail_poses          = []
             else:                                      # no poses remained
                 self.logger.warn('--- AttemptBin: finished stage[%s] with status[%d], break'
                                  % (stage.name, status))
