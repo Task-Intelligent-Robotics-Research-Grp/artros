@@ -39,10 +39,11 @@ from rclpy.callback_groups  import MutuallyExclusiveCallbackGroup
 from task_wrappers          import SimpleActionClient, ActionServer
 from aist_msgs.action       import RequestHelp
 from aist_msgs.msg          import RequestHelp as RequestHelpMsg, Pointing
-from geometry_msgs.msg      import PoseStamped, Point, Vector3
-from visualization_msgs.msg import Marker
+from geometry_msgs.msg      import (PoseStamped, Pose, Point, Vector3,
+                                    Quaternion)
+from visualization_msgs.msg import Marker, MarkerArray
 from std_msgs.msg           import ColorRGBA
-from builtin_interfaces.msg import Duration
+from builtin_interfaces.msg import Time, Duration
 
 from rclpy.node             import Node
 from std_msgs.msg           import Header
@@ -99,14 +100,15 @@ class RequestHelpTaskClient(SimpleActionClient):
         marker.ns     = 'pointing_marker'
         self._marker_pub.publish(marker)
 
-    def _publish_marker(self, header: Header, pos: Point, lifetime: int=15):
+    def _publish_marker(self, header: Header, pos: Point, lifetime: int=1):
         marker              = Marker()
         marker.header       = header
-        marker.header.stamp = self.node.get_clock().now().to_msg()
+        marker.header.stamp = Time(sec=0, nanosec=0)
         marker.ns           = 'pointing_marker'
         marker.id           = 0
         marker.type         = Marker.ARROW
         marker.action       = Marker.ADD
+        marker.pose         = self._pose.pose
         marker.scale        = Vector3(x=0.006, y=0.014, z=0.015)
         marker.color        = ColorRGBA(r=1.0, g=1.0, b=0.0, a=1.0)
         marker.lifetime     = Duration(sec=lifetime, usec=0)
@@ -160,11 +162,10 @@ class RequestHelpTaskServer(ActionServer):
                 if self._pointing_cond.wait_for(lambda: self._pointing, 1.0):
                     pointing = self._pointing
                     self._pointing = None
+                    goal_handle.publish_feedback(
+                        RequestHelp.Feedback(pointing=pointing))
                 else:
                     pointing = Pointing(pointing_state=Pointing.NO_RES)
-
-            goal_handle.publish_feedback(
-                RequestHelp.Feedback(pointing=pointing))
 
             if pointing.pointing_state != Pointing.NO_RES:
                 break

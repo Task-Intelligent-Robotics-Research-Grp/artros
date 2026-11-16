@@ -54,11 +54,11 @@ class ErrorRecoveryBySweepTaskClient(GroupedSimpleActionClient):
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
 
-    def send_goal(self, robot_name: str, pose: PoseStamped, bin_id: str,
+    def send_goal(self, robot_name: str, pose: PoseStamped, part_id: str,
                   message: str, *, timeout_sec: Optional[float]=None):
         return super().send_goal(
                    ErrorRecoveryBySweep.Goal(robot_name=robot_name,
-                                             bin_id=bin_id,
+                                             part_id=part_id,
                                              pose=pose,
                                              message=message),
                    feedback_callback=self.stage_feedback_cb,
@@ -75,10 +75,12 @@ class ErrorRecoveryBySweepTaskServer(ActionServer):
                          group_field='robot_name')
 
     def _execute_cb(self, goal_handle):
-        request      = goal_handle.request.request
-        node         = self.node
-        stop         = lambda: node.stop(request.robot_name)
-        cancel_sweep = lambda: node.sweep_task.cancel_goal(request.robot_name)
+        request             = goal_handle.request
+        node                = self.node
+        stop                = lambda: node.stop(request.robot_name)
+        cancel_request_help = lambda: node.request_help_task.cancel_goal()
+        cancel_sweep        = lambda: node.sweep_task \
+                                          .cancel_goal(request.robot_name)
 
         def _fix_sweep_direction(pose: PoseStamped, point: PointStamped):
             p = pose.pose.position
@@ -114,17 +116,17 @@ class ErrorRecoveryBySweepTaskServer(ActionServer):
                         'Failed to go to sweep_ready pose', stage=stage.name)
 
             # [2] 'request_help' stage: Get Pointing.msg from the operator.
-            with ActionServer.Stage(self, goal_handle,
-                                    'request_help') as stage:
+            with ActionServer.Stage(self, goal_handle, 'request_help',
+                                    cancel_request_help) as stage:
                 message = 'Picking_failed!'
                 status, result = node.request_help(request.robot_name,
                                                    request.pose,
-                                                   request.item_id, message)
+                                                   request.part_id, message)
                 if status == GoalStatus.STATUS_ABORTED:
                     raise ActionServer.Error('Failed to get sweep direction',
                                              stage=stage.name)
 
-            if result.pointing_state == Pointing.SWEEP_RES:
+            if result.pointing.pointing_state == Pointing.SWEEP_RES:
                 # [3] 'sweep' stage: Sweep the item to upset it.
                 with ActionServer.Stage(self, goal_handle, 'sweep',
                                         cancel_sweep) as stage:
@@ -133,11 +135,11 @@ class ErrorRecoveryBySweepTaskServer(ActionServer):
                                PointStamped(header=result.pointing.header,
                                             point=result.pointing.point))
                     status, result = node.sweep(request.robot_name, pose,
-                                                request.item_id)
+                                                request.part_id)
                     if status == GoalStatus.STATUS_SUCCEEDED:
                         break  # Succeeded in sweep
 
-            elif result.pointing_state == Pointing.RECAPTURE_RES:
+            elif result.pointing.pointing_state == Pointing.RECAPTURE_RES:
                 break
 
         # [Final] Goal succeeded.

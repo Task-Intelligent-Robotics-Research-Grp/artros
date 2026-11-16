@@ -202,16 +202,21 @@ class AttemptBinTaskServer(ActionServer):
                             raise ActionServer.Error('Failed to place',
                                                      stage=stage.extend_name(
                                                                result.stage))
-            elif not use_fine_parameters:
-                self.logger.warn('--- AttemptBin: failed at stage[%s], switch to fine parameters'
-                                 % stage.name)
-                use_fine_parameters = True
+            elif status is GoalStatus.STATUS_UNKNOWN:  # no poses remained
+                if not use_fine_parameters:
+                    self.logger.warn('--- AttemptBin: failed at stage[%s], switch to fine parameters'
+                                     % stage.name)
+                    use_fine_parameters = True
+                    pick_poses          = []
+                    fail_poses          = []
+                else:
+                    self.logger.warn('--- AttemptBin: finished stage[%s] with status[%d], break'
+                                     % (stage.name, status))
+                    break
+            else:
+                use_fine_parameters = False
                 pick_poses          = []
                 fail_poses          = []
-            else:                                      # no poses remained
-                self.logger.warn('--- AttemptBin: finished stage[%s] with status[%d], break'
-                                 % (stage.name, status))
-                break
 
             if not request.pick_all:
                 break

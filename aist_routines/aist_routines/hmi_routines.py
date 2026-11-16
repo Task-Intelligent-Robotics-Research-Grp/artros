@@ -205,7 +205,8 @@ class HMIRoutines(KittingRoutines):
         if stage != 'pick/verify':
             return False
 
+        part_id = self.bin_props[goal.bin_id]['part_id']
         status, result = self._error_recovery_by_sweep \
-                             .send_goal(goal.robot_name, pose, goal.bin_id,
+                             .send_goal(goal.robot_name, pose, part_id,
                                         'Pick_failed!')
         return status == GoalStatus.STATUS_SUCCEEDED
