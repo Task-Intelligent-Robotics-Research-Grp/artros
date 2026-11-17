@@ -70,41 +70,40 @@ class SweepTaskServer(ActionServer):
                          group_field='robot_name')
 
     def _execute_cb(self, goal_handle):
-        request = goal_handle.request
-        node    = self.node
-        stop    = lambda: node.stop(request.robot_name)
+        goal = goal_handle.request
+        node = self.node
+        stop = lambda: node.stop(goal.robot_name)
         # [1] 'move' stage: Go to approach pose.
         with ActionServer.Stage(self, goal_handle, 'move', stop) as stage:
-            success = node.go_to_pose_goal(request.robot_name, request.pose,
-                                           request.approach_offset,
-                                           request.speed_fast)
+            success = node.go_to_pose_goal(goal.robot_name, goal.pose,
+                                           goal.approach_offset,
+                                           goal.speed_fast)
             if not success:
                 raise ActionServer.Error('Failed to go to approach pose',
                                          stage=stage.name)
 
         # [2] 'approach' stage: Go to sweep pose.
         with ActionServer.Stage(self, goal_handle, 'approach', stop) as stage:
-            success = node.go_to_pose_goal(request.robot_name, request.pose,
-                                           request.sweep_offset,
-                                           request.speed_slow)
+            success = node.go_to_pose_goal(goal.robot_name, goal.pose,
+                                           goal.sweep_offset, goal.speed_slow)
             if not success:
                 raise ActionServer.Error('Failed to go to sweep pose',
                                          stage=stage.name)
 
         # [3] 'sweep' stage: Sweep the object.
         with ActionServer.Stage(self, goal_handle, 'sweep', stop) as stage:
-            offset = list(request.sweep_offset)
-            offset[1] += request.sweep_length
-            success = node.go_to_pose_goal(request.robot_name, request.pose,
-                                           offset, request.speed_fast)
+            offset = list(goal.sweep_offset)
+            offset[1] += goal.sweep_length
+            success = node.go_to_pose_goal(goal.robot_name, goal.pose,
+                                           offset, goal.speed_fast)
             if not success:
                 raise ActionServer.Error('Failed to sweep', stage=stage.name)
 
         # [4] 'depart' stage: Go back to departure pose.
         with ActionServer.Stage(self, goal_handle, 'depart', stop) as stage:
-            success = node.go_to_pose_goal(request.robot_name, request.pose,
-                                           request.departure_offset,
-                                           request.speed_fast)
+            success = node.go_to_pose_goal(goal.robot_name, goal.pose,
+                                           goal.departure_offset,
+                                           goal.speed_fast)
             if not success:
                 raise ActionServer.Error('Failed to go to departure pose',
                                          stage=stage.name)
