@@ -46,6 +46,7 @@ from std_msgs.msg           import ColorRGBA
 from builtin_interfaces.msg import Time, Duration
 
 from rclpy.node             import Node
+from rclpy.action.server    import ServerGoalHandle
 from std_msgs.msg           import Header
 from typing                 import Optional
 
@@ -125,7 +126,7 @@ class RequestHelpTaskClient(SimpleActionClient):
 class RequestHelpTaskServer(ActionServer):
     _Pointing = ('NO_RES', 'SWEEP_RES', 'RECAPTURE_RES')
 
-    def __init__(self, node, server_ns='request_help'):
+    def __init__(self, node: Node, server_ns: str='request_help'):
         super().__init__(node, RequestHelp, server_ns, self._execute_cb,
                          callback_group=MutuallyExclusiveCallbackGroup())
 
@@ -149,7 +150,7 @@ class RequestHelpTaskServer(ActionServer):
             self._pointing = pointing
             self._pointing_cond.notify_all()
 
-    def _execute_cb(self, goal_handle):
+    def _execute_cb(self, goal_handle: ServerGoalHandle):
         # Loop until Pointing.msg other than NO_RES received.
         while True:
             # Publish RequestHelp.msg toward the remote operator.
@@ -185,7 +186,7 @@ class RequestHelpTaskServer(ActionServer):
 #  class RequestHelpTask                                                *
 #************************************************************************
 class RequestHelpTask(RequestHelpTaskClient):
-    def __init__(self, node, server_ns='request_help'):
+    def __init__(self, node: Node, server_ns: str='request_help'):
         super().__init__(node, server_ns)
         self._server = RequestHelpTaskServer(node, server_ns)
         self.wait_for_server()

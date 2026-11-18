@@ -45,18 +45,23 @@ from task_wrappers              import ActionServer, GroupedSimpleActionClient
 from aist_utility.geometry_msgs import (pose_matrix, pose_from_matrix,
                                         pose_from_xyzrpy)
 
+from rclpy.node                 import Node
+from rclpy.action.server        import ServerGoalHandle
+from typing                     import Optional
+
 #************************************************************************
 #  class PickOrPlaceTaskClient                                          *
 #************************************************************************
 class PickOrPlaceTaskClient(GroupedSimpleActionClient):
-    def __init__(self, node, server_ns='pick_or_place'):
+    def __init__(self, node: Node, server_ns: str='pick_or_place'):
         super().__init__(node, PickOrPlace, server_ns,
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
 
-    def send_goal(self, robot_name, pick, pose, offset,
+    def send_goal(self, robot_name: str, pick: bool, pose: PoseStamped, offset,
                   approach_offset, departure_offset, speed_fast, speed_slow,
-                  *, end_effector_link='', timeout_sec=0.0):
+                  *, end_effector_link: str='',
+                  timeout_sec: Optional[float]=0.0):
         return super().send_goal(PickOrPlace.Goal(
                                      robot_name=robot_name,
                                      pick=pick,
@@ -74,13 +79,13 @@ class PickOrPlaceTaskClient(GroupedSimpleActionClient):
 #  class PickOrPlaceTaskServer                                          *
 #************************************************************************
 class PickOrPlaceTaskServer(ActionServer):
-    def __init__(self, node, server_ns='pick_or_place'):
+    def __init__(self, node: Node, server_ns: str='pick_or_place'):
         super().__init__(node, PickOrPlace, server_ns, self._execute_cb,
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
 
-    def _execute_cb(self, goal_handle):
-        def _get_object_id(link_name):
+    def _execute_cb(self, goal_handle: ServerGoalHandle):
+        def _get_object_id(link_name: str):
             tokens = link_name.rsplit('/', 1)
             return tokens[0] if len(tokens) == 2 else ''
 
@@ -216,7 +221,7 @@ class PickOrPlaceTaskServer(ActionServer):
 #  class PickOrPlaceTask                                                *
 #************************************************************************
 class PickOrPlaceTask(PickOrPlaceTaskClient):
-    def __init__(self, node, server_ns='pick_or_place'):
+    def __init__(self, node: Node, server_ns: str='pick_or_place'):
         super().__init__(node, server_ns)
         self._server = PickOrPlaceTaskServer(node, server_ns)
         self.wait_for_server()

@@ -33,13 +33,16 @@
 #
 # Author: Toshio Ueshiba
 #
-from rclpy.node                    import Node
 from rclpy.callback_groups         import MutuallyExclusiveCallbackGroup
 from action_msgs.msg               import GoalStatus
 from aist_msgs.action              import PickOrPlaceScrew
 from task_wrappers                 import (ActionServer,
                                            GroupedSimpleActionClient)
 from aist_collision_object_manager import decompose_link_name
+
+from rclpy.node                    import Node
+from rclpy.action.server           import ServerGoalHandle
+from typing                        import Optional
 
 #*********************************************************************
 #  class PickOrPlaceScrewTaskClient                                  *
@@ -50,7 +53,8 @@ class PickOrPlaceScrewTaskClient(GroupedSimpleActionClient):
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
 
-    def send_goal(self, robot_name, screw_type, *, timeout_sec=0.0):
+    def send_goal(self, robot_name: str, screw_type: str,
+                  *, timeout_sec: Optional[float]=0.0):
         return super().send_goal(PickOrPlaceScrew.Goal(robot_name=robot_name,
                                                       screw_type=screw_type),
                                  feedback_callback=self.stage_feedback_cb,
@@ -65,13 +69,13 @@ class PickOrPlaceScrewTaskServer(ActionServer):
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
 
-    def _execute_cb(self, goal_handle):
+    def _execute_cb(self, goal_handle: ServerGoalHandle):
         if goal_handle.request.screw_type:
             return self._pick_screw(goal_handle)
         else:
             return self._place_screw(goal_handle)
 
-    def _pick_screw(self, goal_handle):
+    def _pick_screw(self, goal_handle: ServerGoalHandle):
         goal                      = goal_handle.request
         node                      = self.node
         tool_name                 = 'screw_tool_' + goal.screw_type[-2:]
@@ -105,7 +109,7 @@ class PickOrPlaceScrewTaskServer(ActionServer):
         goal_handle.succeed()
         return PickOrPlaceScrew.Result(stage='', screw_id=screw_id)
 
-    def _place_screw(self, goal_handle):
+    def _place_screw(self, goal_handle: ServerGoalHandle):
         goal                 = goal_handle.request
         node                 = self.node
         screw_tip_link       = next(filter(lambda frame_id:
@@ -143,7 +147,7 @@ class PickOrPlaceScrewTaskServer(ActionServer):
 #  class PickOrPlaceScrewTask                                           *
 #************************************************************************
 class PickOrPlaceScrewTask(PickOrPlaceScrewTaskClient):
-    def __init__(self, node, server_ns='pick_or_place_screw'):
+    def __init__(self, node: Node, server_ns: str='pick_or_place_screw'):
         super().__init__(node, server_ns)
         self._server = PickOrPlaceScrewTaskServer(node, server_ns)
         self.wait_for_server()

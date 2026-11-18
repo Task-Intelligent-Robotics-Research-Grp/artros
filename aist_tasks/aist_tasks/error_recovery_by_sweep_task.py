@@ -43,6 +43,7 @@ from aist_msgs.action      import ErrorRecoveryBySweep
 from task_wrappers         import ActionServer, GroupedSimpleActionClient
 
 from rclpy.node            import Node
+from rclpy.action.server   import ServerGoalHandle
 from typing                import Optional
 
 #*********************************************************************
@@ -74,7 +75,7 @@ class ErrorRecoveryBySweepTaskServer(ActionServer):
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
 
-    def _execute_cb(self, goal_handle):
+    def _execute_cb(self, goal_handle: ServerGoalHandle):
         goal                = goal_handle.request
         node                = self.node
         stop                = lambda: node.stop(goal.robot_name)

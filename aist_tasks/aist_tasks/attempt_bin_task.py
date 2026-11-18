@@ -33,15 +33,15 @@
 #
 # Author: Toshio Ueshiba
 #
-from rclpy.node            import Node
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from action_msgs.msg       import GoalStatus
 from geometry_msgs.msg     import PoseStamped
 from aist_msgs.action      import AttemptBin
 from task_wrappers         import GroupedSimpleActionClient, ActionServer
 
+from rclpy.node            import Node
 from rclpy.action.server   import ServerGoalHandle
-from geometry_msgs.msg     import Point, Pose, PoseArray
+from geometry_msgs.msg     import Point, PoseArray
 from typing                import Optional, List
 
 #*********************************************************************
@@ -313,7 +313,7 @@ class AttemptBinTaskServer(ActionServer):
 #  class AttemptBinTask                                                 *
 #************************************************************************
 class AttemptBinTask(AttemptBinTaskClient):
-    def __init__(self, node, server_ns='attempt_bin'):
+    def __init__(self, node: Node, server_ns: str='attempt_bin'):
         super().__init__(node, server_ns)
         self._server = AttemptBinTaskServer(node, server_ns)
         self.wait_for_server()

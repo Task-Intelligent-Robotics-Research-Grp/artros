@@ -33,11 +33,14 @@
 #
 # Author: Toshio Ueshiba
 #
-from rclpy.node            import Node
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from action_msgs.msg       import GoalStatus
 from aist_msgs.action      import PickOrPlaceTool
 from task_wrappers         import ActionServer, GroupedSimpleActionClient
+
+from rclpy.node            import Node
+from rclpy.action.server   import ServerGoalHandle
+from typing                import Optional
 
 #*********************************************************************
 #  class PickOrPlaceToolTaskClient                                   *
@@ -48,7 +51,8 @@ class PickOrPlaceToolTaskClient(GroupedSimpleActionClient):
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
 
-    def send_goal(self, robot_name, tool_name, *, timeout_sec=0.0):
+    def send_goal(self, robot_name, tool_name,
+                  *, timeout_sec: Optional[float]=0.0):
         return super().send_goal(PickOrPlaceTool.Goal(robot_name=robot_name,
                                                       tool_name=tool_name),
                                  feedback_callback=self.stage_feedback_cb,
@@ -58,12 +62,12 @@ class PickOrPlaceToolTaskClient(GroupedSimpleActionClient):
 #  class PickOrPlaceToolTaskServer                                   *
 #*********************************************************************
 class PickOrPlaceToolTaskServer(ActionServer):
-    def __init__(self, node, server_ns='pick_or_place_tool'):
+    def __init__(self, node: Node, server_ns: str='pick_or_place_tool'):
         super().__init__(node, PickOrPlaceTool, server_ns, self._execute_cb,
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
 
-    def _execute_cb(self, goal_handle):
+    def _execute_cb(self, goal_handle: ServerGoalHandle):
         goal                 = goal_handle.request
         node                 = self.node
         current_gname        = node.gripper(goal.robot_name).name
@@ -117,7 +121,7 @@ class PickOrPlaceToolTaskServer(ActionServer):
 #  class PickOrPlaceToolTask                                            *
 #************************************************************************
 class PickOrPlaceToolTask(PickOrPlaceToolTaskClient):
-    def __init__(self, node, server_ns='pick_or_place_tool'):
+    def __init__(self, node: Node, server_ns: str='pick_or_place_tool'):
         super().__init__(node, server_ns)
         self._server = PickOrPlaceToolTaskServer(node, server_ns)
         self.wait_for_server()

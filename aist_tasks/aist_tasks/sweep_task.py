@@ -33,10 +33,12 @@
 #
 # Author: Toshio Ueshiba
 #
-from rclpy.node            import Node
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from task_wrappers         import ActionServer, GroupedSimpleActionClient
 from aist_msgs.action      import Sweep
+
+from rclpy.node            import Node
+from rclpy.action.server   import ServerGoalHandle
 
 #*********************************************************************
 #  class SweepTaskClient                                             *
@@ -64,12 +66,12 @@ class SweepTaskClient(GroupedSimpleActionClient):
 #  class SweepTaskServer                                             *
 #*********************************************************************
 class SweepTaskServer(ActionServer):
-    def __init__(self, node, server_ns='sweep'):
+    def __init__(self, node: Node, server_ns: str='sweep'):
         super().__init__(node, Sweep, server_ns, self._execute_cb,
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
 
-    def _execute_cb(self, goal_handle):
+    def _execute_cb(self, goal_handle: ServerGoalHandle):
         goal = goal_handle.request
         node = self.node
         stop = lambda: node.stop(goal.robot_name)
@@ -116,7 +118,7 @@ class SweepTaskServer(ActionServer):
 #  class SweepTask                                                      *
 #************************************************************************
 class SweepTask(SweepTaskClient):
-    def __init__(self, node, server_ns='sweep'):
+    def __init__(self, node: Node, server_ns: str='sweep'):
         super().__init__(node, server_ns)
         self._server = SweepTaskServer(node, server_ns)
         self.wait_for_server()
