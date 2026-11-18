@@ -42,7 +42,7 @@ from task_wrappers         import GroupedSimpleActionClient, ActionServer
 
 from rclpy.action.server   import ServerGoalHandle
 from geometry_msgs.msg     import Point, Pose, PoseArray
-from typing                import Optional
+from typing                import Optional, List
 
 #*********************************************************************
 #  class AttemptBinTaskClient                                        *
@@ -247,7 +247,7 @@ class AttemptBinTaskServer(ActionServer):
         return AttemptBin.Result(stage='')
 
     def _attempt_pick(self, goal, pick_poses: PoseArray,
-                      fail_poses: PoseStamped[], max_attempts: int):
+                      fail_poses: List[PoseStamped], max_attempts: int):
         """ Repeat until a part successfully picked.
 
         Args:

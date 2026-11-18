@@ -64,14 +64,14 @@ class PickOrPlaceToolTaskServer(ActionServer):
                          group_field='robot_name')
 
     def _execute_cb(self, goal_handle):
-        request              = goal_handle.request
+        goal                 = goal_handle.request
         node                 = self.node
-        current_gname        = node.gripper(request.robot_name).name
-        default_gname        = node.default_gripper_name(request.robot_name)
+        current_gname        = node.gripper(goal.robot_name).name
+        default_gname        = node.default_gripper_name(goal.robot_name)
         cancel_pick_or_place = lambda: node.pick_or_place.cancel_goal(
-                                           request.robot_name)
+                                           goal.robot_name)
 
-        if current_gname == request.tool_name:
+        if current_gname == goal.tool_name:
             goal_handle.succeed()
             return PickOrPlaceTool.Result(stage='')
 
@@ -79,36 +79,35 @@ class PickOrPlaceToolTaskServer(ActionServer):
             # [1] 'place' stage: Place current tool.
             with ActionServer.Stage(self, goal_handle, 'place',
                                     cancel_pick_or_place) as stage:
-                node.set_gripper(request.robot_name, default_gname)
+                node.set_gripper(goal.robot_name, default_gname)
                 status, result = node.place_at_frame(
-                                     request.robot_name, current_gname,
+                                     goal.robot_name, current_gname,
                                      current_gname + '_holder_link',
                                      eef_link=current_gname + '/base_link')
                 if status is GoalStatus.STATUS_ABORTED:
                     if result.stage in ('move', 'approach', 'release'):
-                        node.set_gripper(request.robot_name, current_gname)
+                        node.set_gripper(goal.robot_name, current_gname)
                     raise ActionServer.Error('Failed to place tool',
                                              stage=stage.extend_name(
                                                        result.stage))
 
-        if request.tool_name == '':
+        if goal.tool_name == '':
             goal_handle.succeed()
             return PickOrPlaceTool.Result(stage='')
-        elif request.tool_name not in node.tool_names:
-            raise ActionServer.Error('Unknwon tool name[%s]'
-                                     % request.tool_name,
+        elif goal.tool_name not in node.tool_names:
+            raise ActionServer.Error('Unknwon tool name[%s]' % goal.tool_name,
                                      stage='check')
 
         # [2] 'pick' stage: Pick requested tool.
         with ActionServer.Stage(self, goal_handle, 'pick',
                                 cancel_pick_or_place) as stage:
-            status, result = node.pick_at_frame(
-                                 request.robot_name, request.tool_name,
-                                 request.tool_name + '/base_link')
+            status, result = node.pick_at_frame(goal.robot_name,
+                                                goal.tool_name,
+                                                goal.tool_name + '/base_link')
             if status is GoalStatus.STATUS_ABORTED:
                 raise ActionServer.Error('Failed to pick tool',
                                          stage=stage.extend_name(result.stage))
-            node.set_gripper(request.robot_name, request.tool_name)
+            node.set_gripper(goal.robot_name, goal.tool_name)
 
         # [Final] Goal succeeded.
         goal_handle.succeed()

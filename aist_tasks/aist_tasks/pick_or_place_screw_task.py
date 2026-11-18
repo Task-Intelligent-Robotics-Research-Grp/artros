@@ -72,20 +72,19 @@ class PickOrPlaceScrewTaskServer(ActionServer):
             return self._place_screw(goal_handle)
 
     def _pick_screw(self, goal_handle):
-        request                   = goal_handle.request
+        goal                      = goal_handle.request
         node                      = self.node
-        tool_name                 = 'screw_tool_' + request.screw_type[-2:]
+        tool_name                 = 'screw_tool_' + goal.screw_type[-2:]
         cancel_pick_or_place      = lambda: node.pick_or_place.cancel_goal(
-                                                request.robot_name)
+                                                goal.robot_name)
         cancel_pick_or_place_tool = lambda: node.pick_or_place_tool \
-                                                .cancel_goal(
-                                                    request.robot_name)
+                                                .cancel_goal(goal.robot_name)
 
-        if node.gripper(request.robot_name).name != tool_name:
+        if node.gripper(goal.robot_name).name != tool_name:
             # [1] 'pick_tool' stage: Pick screw tool for requested screw type.
             with ActionServer.Stage(self, goal_handle, 'pick_tool',
                                     cancel_pick_or_place_tool) as stage:
-                status, result = node.pick_tool(request.robot_name, tool_name)
+                status, result = node.pick_tool(goal.robot_name, tool_name)
                 if status is GoalStatus.STATUS_ABORTED:
                     raise ActionServer.Error('Failed to pick tool!',
                                              stage=stage.extend_name(
@@ -94,29 +93,29 @@ class PickOrPlaceScrewTaskServer(ActionServer):
         # [2] 'pick_screw' stage: Pick screw from the feeder.
         with ActionServer.Stage(self, goal_handle, 'pick_screw',
                                 cancel_pick_or_place) as stage:
-            screw_id = node._get_screw_id(request.screw_type)
-            status, result = node.pick_at_frame(request.robot_name, screw_id,
+            screw_id = node._get_screw_id(goal.screw_type)
+            status, result = node.pick_at_frame(goal.robot_name, screw_id,
                                                 screw_id + '/head')
             if status is GoalStatus.STATUS_ABORTED:
                 raise ActionServer.Error('Failed to pick screw!',
                                          stage=stage.extend_name(result.stage))
-            node._generate_screw(request.screw_type)
+            node._generate_screw(goal.screw_type)
 
         # [Final] Goal succeeded.
         goal_handle.succeed()
         return PickOrPlaceScrew.Result(stage='', screw_id=screw_id)
 
     def _place_screw(self, goal_handle):
-        request              = goal_handle.request
+        goal                 = goal_handle.request
         node                 = self.node
         screw_tip_link       = next(filter(lambda frame_id:
                                            frame_id.startswith('screw_m') and
                                            frame_id.endswith('/tip_link'),
                                            node.candidate_eef_links(
-                                               request.robot_name)),
+                                               goal.robot_name)),
                                     None)
         cancel_pick_or_place = lambda: node.pick_or_place.cancel_goal(
-                                           request.robot_name)
+                                           goal.robot_name)
 
         if screw_tip_link is None:
             raise ActionServer.Error('No screw grasped!', stage='')
@@ -128,7 +127,7 @@ class PickOrPlaceScrewTaskServer(ActionServer):
         # [1] 'place_screw' stage:
         with ActionServer.Stage(self, goal_handle, 'place_screw',
                                 cancel_pick_or_place) as stage:
-            status, result = node.place_at_frame(request.robot_name, screw_id,
+            status, result = node.place_at_frame(goal.robot_name, screw_id,
                                                  feeder_name + '_inlet_link',
                                                  eef_link=screw_tip_link)
             if status == GoalStatus.STATUS_ABORTED:
