@@ -42,7 +42,7 @@ def _command_line_interface(node):
     node.destroy_node()
     rclpy.shutdown()
 
-def _main(name, routines):
+def _main(name: str, routines):
     rclpy.init(args=sys.argv)
     node = routines(name)
 

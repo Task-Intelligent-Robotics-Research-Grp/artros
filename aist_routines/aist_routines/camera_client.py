@@ -34,6 +34,7 @@
 # Author: Toshio Ueshiba
 #
 import rclpy, time
+from rclpy.node            import Node
 from ddynamic_reconfigure2 import ParameterClient
 from std_srvs.srv          import Trigger
 
@@ -41,12 +42,12 @@ from std_srvs.srv          import Trigger
 #  class CameraClient                                                #
 ######################################################################
 class CameraClient(ParameterClient):
-    def __init__(self, node, name, props={}):
+    def __init__(self, node: Node, name: str, props: dict={}):
         super().__init__(node, name)
         self._logger = node.get_logger()
 
     @staticmethod
-    def create(node, name, type_name, props):
+    def create(node: Node, name: str, type_name: str, props: dict):
         ClientClass = globals()[type_name]
         if ClientClass is None:
             raise RuntimeError('unknown type[%s] of the camera[%s]'
@@ -60,56 +61,56 @@ class CameraClient(ParameterClient):
     def logger(self):
         return self._logger
 
-    def is_continuous_shot(self):
+    def is_continuous_shot(self)-> bool:
         return True
 
     def continuous_shot(self, enabled):
         pass
 
-    def trigger_frame(self):
+    def trigger_frame(self)-> bool:
         return True
 
 ######################################################################
 #  class USBCamera                                                   #
 ######################################################################
 class USBCamera(CameraClient):
-    def __init__(self, node, name='live_camera'):
+    def __init__(self, node: Node, name: str='live_camera'):
         super().__init__(node, name)
 
 ######################################################################
 #  class AreaCamera                                                  #
 ######################################################################
 class AreaCamera(CameraClient):
-    def __init__(self, node, name='IIDCCamera'):
+    def __init__(self, node: Node, name: str='IIDCCamera'):
         super().__init__(node, name)
 
-    def is_continuous_shot(self):
+    def is_continuous_shot(self)-> bool:
         return self.get_parameters_sync(['continuous_shot'])[0]
 
-    def continuous_shot(self, enabled):
+    def continuous_shot(self, enabled: bool):
         self.set_parameters_sync([('continuous_shot', enabled)])
 
 ######################################################################
 #  class RealsenseCamera                                             #
 ######################################################################
 class RealsenseCamera(CameraClient):
-    def __init__(self, node, name='a_bot_camera'):
+    def __init__(self, node: Node, name: str='a_bot_camera'):
         super().__init__(node, name)
 
 ######################################################################
 #  class CodedLightRealsenseCamera                                   #
 ######################################################################
 class CodedLightRealsenseCamera(CameraClient):
-    def __init__(self, node, name='a_bot_camera'):
+    def __init__(self, node: Node, name: str='a_bot_camera'):
         super().__init__(node, name)
 
     @property
-    def laser_power(self):
+    def laser_power(self)-> int:
         return self.get_parametrs_sync(
                    ['coded_light_depth_sensor.laser_power'])[0]
 
     @laser_power.setter
-    def laser_power(self, value):
+    def laser_power(self, value: int)-> bool:
         return self.set_parameters_sync(
                    [('coded_light_depth_sensor.laser_power', value)])[0] \
                    .successful
@@ -118,7 +119,7 @@ class CodedLightRealsenseCamera(CameraClient):
 #  class PhoXiCamera                                                 #
 ######################################################################
 class PhoXiCamera(CameraClient):
-    def __init__(self, node, name='a_phoxi_m_camera'):
+    def __init__(self, node: Node, name: str='a_phoxi_m_camera'):
         super().__init__(node, name)
         self._trigger_frame = node.create_client(Trigger,
                                                  name + '/trigger_frame')
@@ -128,14 +129,14 @@ class PhoXiCamera(CameraClient):
             self.logger.error(txt)
             raise RuntimeError(txt)
 
-    def is_continuous_shot(self):
+    def is_continuous_shot(self)-> bool:
         return self.get_parameters_sync(['trigger_mode'])[0] == 0
 
-    def continuous_shot(self, enabled):
+    def continuous_shot(self, enabled: bool)-> bool:
         return self.set_parameters_sync([('trigger_mode',
                                           0 if enabled else 1)])[0].successful
 
-    def trigger_frame(self):
+    def trigger_frame(self)-> bool:
         future = self._trigger_frame.call_async(Trigger.Request())
         while not future.done():
             time.sleep(0.1)
@@ -145,7 +146,7 @@ class PhoXiCamera(CameraClient):
 #  class ZividCamera                                                 #
 ######################################################################
 class ZividCamera(CameraClient):
-    def __init__(self, node, name='a_bot_camera'):
+    def __init__(self, node: Node, name: str='a_bot_camera'):
         from zivid_camera.srv import Capture, LoadSettingsFromFile
 
         super().__init__(node, name)
@@ -160,7 +161,7 @@ class ZividCamera(CameraClient):
             self.logger.error(txt)
             raise RuntimeError(txt)
 
-    def trigger_frame(self):
+    def trigger_frame(self)-> bool:
         future = self._trigger_frame.call_async(Trigger.Request())
         while not future.done():
             time.sleep(0.1)
