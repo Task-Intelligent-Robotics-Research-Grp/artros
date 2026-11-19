@@ -40,7 +40,7 @@ from math                       import pi, radians, degrees, cos, sin, sqrt
 from geometry_msgs.msg          import Quaternion
 from action_msgs.msg            import GoalStatus
 from aist_graspability          import GraspabilityClient
-from aist_graspability_msgs.msg import Border, Point2D
+from aist_graspability_msgs.msg import Border, Point2D, Graspabilities
 from aist_utility.fileio        import filepath_from_url
 
 from aist_tasks                 import AttemptBinTask
@@ -135,7 +135,7 @@ class KittingRoutines(BaseRoutines):
         return BaseRoutines._complete_default(text, line, self.bin_ids)
 
     # Commands
-    def search_bin(self, bin_id, fine_parameters=False):
+    def search_bin(self, bin_id: str, use_fine_parameters: bool=False):
         if bin_id not in self.bin_ids:
             self.get_logger().error(
                 'KittingRoutines.search_bin(): unknown bin_id[%s]' % bin_id)
@@ -145,12 +145,12 @@ class KittingRoutines(BaseRoutines):
         bin_props = self.bin_props[bin_id]
         self._graspability_client.set_parameters(
             self.fine_graspability_parameters[bin_props['part_id']] \
-            if fine_parameters else \
+            if use_fine_parameters else \
             self.graspability_parameters[bin_props['part_id']])
 
         # Set function for filtering graspabilities.
         if 'min_height' in bin_props and 'max_height' in bin_props:
-            max_slant = 0.0 if fine_parameters else \
+            max_slant = 0.0 if use_fine_parameters else \
                         bin_props.get('max_slant', 45.0)
             self._graspability_client.set_graspability_filter(
                 lambda graspabilities, \
@@ -176,8 +176,9 @@ class KittingRoutines(BaseRoutines):
         return self._graspability_client.wait()
 
     # Utilities
-    def _graspability_filter(self, graspabilities, target_frame,
-                             min_height, max_height, max_slant):
+    def _graspability_filter(self, graspabilities: Graspabilities,
+                             target_frame: str, min_height: float,
+                             max_height: float, max_slant: float):
         def _pose_filter(pose, min_height, max_height, max_slant):
             def _normalize(x):
                 return x / sqrt(np.dot(x, x))

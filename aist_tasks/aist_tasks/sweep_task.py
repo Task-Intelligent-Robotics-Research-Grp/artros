@@ -39,6 +39,7 @@ from aist_msgs.action      import Sweep
 
 from rclpy.node            import Node
 from rclpy.action.server   import ServerGoalHandle
+from geometry_msgs.msg     import PoseStamped
 
 #*********************************************************************
 #  class SweepTaskClient                                             *
@@ -49,9 +50,13 @@ class SweepTaskClient(GroupedSimpleActionClient):
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
 
-    def send_goal(self, robot_name, pose, sweep_length, sweep_offset,
-                  approach_offset, departure_offset, speed_fast, speed_slow,
-                  *, timeout_sec=0.0):
+    def send_goal(self, robot_name: str, pose: PoseStamped,
+                  sweep_length: float,
+                  sweep_offset: tuple[float]|list[float],
+                  approach_offset: tuple[float]|list[float],
+                  departure_offset: tuple[float]|list[float],
+                  speed_fast: float, speed_slow: float,
+                  *, timeout_sec: float|None=0.0):
         return super().send_goal(Sweep.Goal(robot_name=robot_name, pose=pose,
                                             sweep_length=sweep_length,
                                             sweep_offset=sweep_offset,
@@ -75,6 +80,7 @@ class SweepTaskServer(ActionServer):
         goal = goal_handle.request
         node = self.node
         stop = lambda: node.stop(goal.robot_name)
+
         # [1] 'move' stage: Go to approach pose.
         with ActionServer.Stage(self, goal_handle, 'move', stop) as stage:
             success = node.go_to_pose_goal(goal.robot_name, goal.pose,

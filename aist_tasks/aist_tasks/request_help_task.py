@@ -48,7 +48,6 @@ from builtin_interfaces.msg import Time, Duration
 from rclpy.node             import Node
 from rclpy.action.server    import ServerGoalHandle
 from std_msgs.msg           import Header
-from typing                 import Optional
 
 #*********************************************************************
 #  class RequestHelpTaskClient                                       *
@@ -66,7 +65,7 @@ class RequestHelpTaskClient(SimpleActionClient):
         self._marker_pub = node.create_publisher(Marker, 'pointing_marker', 1)
 
     def send_goal(self, robot_name: str, pose: PoseStamped, part_id: str,
-                  message: str, *, timeout_sec: Optional[float]=0.0):
+                  message: str, *, timeout_sec: float|None=0.0):
         """ Request help to the remote operator.
         Request finger direction for the specified graspability point
         and receive response.

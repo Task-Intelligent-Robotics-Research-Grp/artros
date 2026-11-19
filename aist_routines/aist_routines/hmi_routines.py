@@ -36,7 +36,7 @@
 from geometry_msgs.msg import PoseStamped
 from action_msgs.msg   import GoalStatus
 from aist_tasks        import (RequestHelpTask, SweepTask,
-                               ErrorRecoveryBySweepTask)
+                               ErrorRecoveryBySweepTask, AttemptBinTask)
 from .kitting_routines import KittingRoutines
 
 #*********************************************************************
@@ -45,7 +45,7 @@ from .kitting_routines import KittingRoutines
 class HMIRoutines(KittingRoutines):
     """ Implements HMI routines for aist robot system.
     """
-    def __init__(self, name):
+    def __init__(self, name: str):
         super().__init__(name)
 
         self._sweep                   = SweepTask(self)
@@ -129,7 +129,8 @@ class HMIRoutines(KittingRoutines):
         self.sweep(robot_name, pose, part_id, timeout_sec=0.0)
         self.go_to_named_pose(self._robot_name, 'home')
 
-    def sweep(self, robot_name, pose, part_id, *, timeout_sec=None):
+    def sweep(self, robot_name: str, pose: PoseStamped, part_id: str,
+              *, timeout_sec: float|None=None):
         """ Sweep the specified part along Y-axis of the specified pose.
 
         Args:
@@ -153,7 +154,7 @@ class HMIRoutines(KittingRoutines):
                                      timeout_sec=timeout_sec)
 
     # Request help stuffs
-    def request_help_bin(self, robot_name, bin_id):
+    def request_help_bin(self, robot_name: str, bin_id: str):
         """ Request help for the object in the specified bin.
         Search graspability points from the specified bin and request help
         for the one with the highest score.
@@ -183,8 +184,8 @@ class HMIRoutines(KittingRoutines):
         self.request_help(robot_name, pose, bin_id,
                           'Please_specify_sweep_direction.', timeout_sec=0.0)
 
-    def request_help(self, robot_name, pose, bin_id, message,
-                     *, timeout_sec=None):
+    def request_help(self, robot_name: str, pose: PoseStamped, bin_id: str,
+                     message: str, *, timeout_sec: float|None=None):
         """ Request help for the specified part.
 
         Args:
@@ -201,7 +202,8 @@ class HMIRoutines(KittingRoutines):
         return self._request_help.send_goal(robot_name, pose, bin_id, message,
                                             timeout_sec=timeout_sec)
 
-    def error_recovery_by_sweep(self, goal, stage, pose):
+    def error_recovery_by_sweep(self, goal: AttemptBinTask.Goal, stage: str,
+                                pose: PoseStamped):
         if stage != 'pick/verify':
             return False
 

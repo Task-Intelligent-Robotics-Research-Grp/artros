@@ -42,7 +42,6 @@ from task_wrappers         import GroupedSimpleActionClient, ActionServer
 from rclpy.node            import Node
 from rclpy.action.server   import ServerGoalHandle
 from geometry_msgs.msg     import Point, PoseArray
-from typing                import Optional, List
 
 #*********************************************************************
 #  class AttemptBinTaskClient                                        *
@@ -54,7 +53,7 @@ class AttemptBinTaskClient(GroupedSimpleActionClient):
                          group_field='robot_name')
 
     def send_goal(self, robot_name: str, bin_id: str, pick_all: bool,
-                  max_attempts: int, *, timeout_sec: Optional[float]=0.0):
+                  max_attempts: int, *, timeout_sec: float|None=0.0):
         return super().send_goal(AttemptBin.Goal(robot_name=robot_name,
                                                  bin_id=bin_id,
                                                  pick_all=pick_all,
@@ -247,7 +246,7 @@ class AttemptBinTaskServer(ActionServer):
         return AttemptBin.Result(stage='')
 
     def _attempt_pick(self, goal, pick_poses: PoseArray,
-                      fail_poses: List[PoseStamped], max_attempts: int):
+                      fail_poses: list[PoseStamped], max_attempts: int):
         """ Repeat until a part successfully picked.
 
         Args:

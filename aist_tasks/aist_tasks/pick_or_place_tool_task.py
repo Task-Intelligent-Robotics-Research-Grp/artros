@@ -40,7 +40,6 @@ from task_wrappers         import ActionServer, GroupedSimpleActionClient
 
 from rclpy.node            import Node
 from rclpy.action.server   import ServerGoalHandle
-from typing                import Optional
 
 #*********************************************************************
 #  class PickOrPlaceToolTaskClient                                   *
@@ -51,8 +50,8 @@ class PickOrPlaceToolTaskClient(GroupedSimpleActionClient):
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
 
-    def send_goal(self, robot_name, tool_name,
-                  *, timeout_sec: Optional[float]=0.0):
+    def send_goal(self, robot_name: str, tool_name: str,
+                  *, timeout_sec: float|None=0.0):
         return super().send_goal(PickOrPlaceTool.Goal(robot_name=robot_name,
                                                       tool_name=tool_name),
                                  feedback_callback=self.stage_feedback_cb,

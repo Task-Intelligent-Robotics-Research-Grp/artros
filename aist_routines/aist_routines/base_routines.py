@@ -68,6 +68,8 @@ from ddynamic_reconfigure2         import declare_read_only_parameter
 from .gripper_client               import create_gripper
 from .camera_client                import CameraClient
 
+from collections.abc               import Sequence
+
 #*********************************************************************
 #  global functions                                                  *
 #*********************************************************************
@@ -222,7 +224,7 @@ class BaseRoutines(Node, Cmd):
         return self._move_lin
 
     @move_lin.setter
-    def move_lin(self, enable):
+    def move_lin(self, enable: bool):
         self._move_lin = enable
 
     @property
@@ -292,7 +294,7 @@ class BaseRoutines(Node, Cmd):
         """
         return self._settings
 
-    def load_settings(self)-> None:
+    def load_settings(self):
         def recursive_merge(d1, d2):
             if type(d1) != dict or type(d2) != dict:
                 return d2
@@ -764,23 +766,26 @@ class BaseRoutines(Node, Cmd):
     #
     # Joint motion stuffs
     #
-    def get_joint_names(self, robot_name):
+    def get_joint_names(self, robot_name: str)-> list[str]:
         return self._cmd.get_group(robot_name).get_active_joints()
 
-    def get_current_joint_values(self, robot_name):
+    def get_current_joint_values(self, robot_name: str)-> list[float]:
         return self._cmd.get_group(robot_name).get_current_joint_values()
 
-    def get_named_joint_values(self, robot_name, named_pose):
+    def get_named_joint_values(self, robot_name: str,
+                               named_pose: str)-> list[float]:
         target_values = self._cmd.get_group(robot_name)\
                                  .get_named_target_values(named_pose)
         return [target_values[joint_name]
                 for joint_name in self.get_joint_names(robot_name)]
 
-    def remember_joint_values(self, robot_name, name, joint_values=None):
+    def remember_joint_values(self, robot_name: str, name: str,
+                              joint_values: Sequence[float]|None=None):
         self._cmd.get_group(robot_name).remember_joint_values(name,
                                                               joint_values)
 
-    def go_to_named_pose(self, robot_name, named_pose, speed=1.0, accel=1.0):
+    def go_to_named_pose(self, robot_name: str, named_pose: str,
+                         speed: float=1.0, accel: float=1.0):
         group = self._cmd.get_group(robot_name)
         try:
             group.set_named_target(named_pose)
@@ -790,13 +795,15 @@ class BaseRoutines(Node, Cmd):
             return False
         return self._go(group, speed, accel)
 
-    def go_to_joint_value_target(self, robot_name, joint_values,
-                                 speed=1.0, accel=1.0):
+    def go_to_joint_value_target(self, robot_name: str,
+                                 joint_values: Sequence[float],
+                                 speed: float=1.0, accel: float=1.0)-> bool:
         group = self._cmd.get_group(robot_name)
         group.set_joint_value_target(joint_values)
         return self._go(group, speed, accel)
 
-    def clip_wrist_joint_value(self, robot_name, speed=1.0, accel=1.0):
+    def clip_wrist_joint_value(self, robot_name: str,
+                               speed: float=1.0, accel: float=1.0)-> bool:
         joint_values = self.get_current_joint_values(robot_name)
         if joint_values[-1] >= -pi:
             if joint_values[-1] <= pi:
@@ -807,22 +814,24 @@ class BaseRoutines(Node, Cmd):
         return self.go_to_joint_value_target(robot_name, joint_values,
                                              speed, accel)
 
-    def go_directly_to_joint_value_target(self, robot_name,
-                                          joint_values, duration):
+    def go_directly_to_joint_value_target(self, robot_name: str,
+                                          joint_values: Sequence[float],
+                                          duration: float)-> bool:
         joint_trajectory \
             = JointTrajectory(
-                joint_names=self.joint_names,
+                joint_names=self.get_joint_names(robot_name),
                 points=[
                     JointTrajectoryPoint(
                         positions=self.get_current_joint_values(robot_name),
-                        time_from_start=Duration(seconds=0)),
-                    JointTrajectoryPoint(positions=joint_values,
-                                         time_from_start=duration)])
+                        time_from_start=Duration(seconds=0).to_msg()),
+                    JointTrajectoryPoint(
+                        positions=joint_values,
+                        time_from_start=Duration(seconds=duration).to_msg())])
         return self.execute_path(robot_name,
                                  RobotTrajectory(
                                      joint_trajectory=joint_trajectory))
 
-    def _go(self, group, speed=1.0, accel=1.0):
+    def _go(self, group, speed: float=1.0, accel: float=1.0)-> bool:
         group.set_max_velocity_scaling_factor(np.clip(speed, 0.0, 1.0))
         group.set_max_acceleration_scaling_factor(np.clip(accel, 0.0, 1.0))
         success = group.go(wait=True)
@@ -871,15 +880,15 @@ class BaseRoutines(Node, Cmd):
                                                 z=q[2], w=q[3]))
         return pose
 
-    def move_relative(self, robot_name: str, offset,
+    def move_relative(self, robot_name: str, offset: Sequence[float],
                       speed: float=1.0, accel: float=1.0,
                       end_effector_link: str='')-> bool:
         """ Move the end-effector from current pose by given offset values.
-        Offset is specified by a tuple with three, six of seven float values.
 
         Args:
           robot_name: Robot name.
-          offset:
+          offset: Relative displacement to be moved from current pose.
+            Specified by a tuple with three, six of seven float values.
           speed: Upper-limit ratio relative to the maximum speed.
           accel: Upper-limit ratio relative to the maximum acceleration.
           end_effector_link: Link name of the end-effector. If empty,
@@ -892,8 +901,10 @@ class BaseRoutines(Node, Cmd):
                                     self.get_current_pose(robot_name),
                                     offset, speed, accel, end_effector_link)
 
-    def go_to_frame(self, robot_name, target_frame, offset=(),
-                    speed=1.0, accel=1.0, end_effector_link=''):
+    def go_to_frame(self, robot_name: str, target_frame: str,
+                    offset: Sequence[float]=(),
+                    speed: float=1.0, accel: float=1.0,
+                    end_effector_link: str='')-> bool:
         return self.go_to_pose_goal(robot_name,
                                     PoseStamped(
                                         header=Header(frame_id=target_frame),
@@ -904,15 +915,19 @@ class BaseRoutines(Node, Cmd):
                                                 x=0.0, y=0.0, z=0.0, w=1.0))),
                                     offset, speed, accel, end_effector_link)
 
-    def go_to_pose_goal(self, robot_name, target_pose, offset=(),
-                        speed=1.0, accel=1.0, end_effector_link=''):
+    def go_to_pose_goal(self, robot_name: str, target_pose: PoseStamped,
+                        offset: Sequence[float]=(),
+                        speed: float=1.0, accel: float=1.0,
+                        end_effector_link: str='')-> bool:
         return self.go_along_poses(robot_name,
                                    PoseArray(header=target_pose.header,
                                              poses=[target_pose.pose]),
                                    offset, speed, accel, end_effector_link)
 
-    def go_along_poses(self, robot_name, poses, offset=(),
-                       speed=1.0, accel=1.0, end_effector_link=''):
+    def go_along_poses(self, robot_name: str, poses: PoseArray,
+                       offset: Sequence[float]=(),
+                       speed: float=1.0, accel: float=1.0,
+                       end_effector_link: str='')-> bool:
         path = self.create_path(robot_name, poses, offset,
                                 speed, accel, end_effector_link)
         if path is None:
@@ -925,15 +940,16 @@ class BaseRoutines(Node, Cmd):
         #                              acceleration_scaling_factor=accel))
         return self.execute_path(robot_name, path)
 
-    def execute_path(self, robot_name, path):
+    def execute_path(self, robot_name: str, path: RobotTrajectory)-> bool:
         success = self._cmd.get_group(robot_name).execute(path, wait=True)
         if not success:
             self.get_logger().error('Failed to execute path.')
         self.stop(robot_name)
         return success
 
-    def create_path(self, robot_name, poses, offset=(),
-                    speed=1.0, accel=1.0, end_effector_link=''):
+    def create_path(self, robot_name: str, poses, offset=(),
+                    speed: float=1.0, accel: float=1.0,
+                    end_effector_link: str='')-> RobotTrajectory|None:
         if end_effector_link == '':
             end_effector_link = self.gripper(robot_name).tip_link
         group = self._cmd.get_group(robot_name)
@@ -970,7 +986,8 @@ class BaseRoutines(Node, Cmd):
                                % (100.0*fraction))
         return path
 
-    def create_timed_path(self, robot_name, poses, times_from_start):
+    def create_timed_path(self, robot_name: str, poses: PoseArray,
+                          times_from_start: list[float])-> RobotTrajectory|None:
         robot_state = self._cmd.get_current_state()
         robot_state.joint_state.header.stamp = poses.header.stamp
         req = PositionIKRequest(group_name=robot_name,
@@ -982,8 +999,11 @@ class BaseRoutines(Node, Cmd):
         for pose, time_from_start in zip(transformed_poses.poses,
                                          times_from_start):
             req.pose_stamped = PoseStamped(transformed_poses.header, pose)
-            res = self._compute_ik(req)
-            if res.error_code.val != MoveItErrorCodes.SUCCESS:
+            res = self._compute_ik.call(req)
+            if not res:
+                self.get_logger().error('Failed to solve IK')
+                return None
+            elif res.error_code.val != MoveItErrorCodes.SUCCESS:
                 self.get_logger().error('Failed to solve IK[%d]'
                                         % res.error_code.val)
                 return None
@@ -991,11 +1011,11 @@ class BaseRoutines(Node, Cmd):
             point = JointTrajectoryPoint(positions=joint_state.position,
                                          velocities=joint_state.velocity,
                                          effort=joint_state.effort)
-            point.time_from_start = time_from_start
+            point.time_from_start = Duration(seconds=time_from_start).to_msg()
             joint_trajectory.points.append(point)
         return RobotTrajectory(joint_trajectory=joint_trajectory)
 
-    def stop(self, robot_name):
+    def stop(self, robot_name: str):
         group = self._cmd.get_group(robot_name)
         group.stop()
         group.clear_pose_targets()
@@ -1012,7 +1032,7 @@ class BaseRoutines(Node, Cmd):
         Returns:
           List of controllers.
         """
-        return list(filter(lambda x: x.type in BaseRoutines.ControllerTypes,
+        return list(filter(lambda c: c.type in BaseRoutines.ControllerTypes,
                            self._list_controllers_srvs[robot_name].call(
                                ListControllers.Request()).controller))
 
@@ -1062,15 +1082,16 @@ class BaseRoutines(Node, Cmd):
             req.timeout                = Duration(seconds=1).to_msg()
             res = self._switch_controller_srvs[robot_name].call(req)
             time.sleep(0.5)
-            if res.ok:
+            if res and res.ok:
                 self.get_logger().info('Succesfully switched to controller[%s]'
                                        % controller_name)
+                return True
             else:
                 self.get_logger().error('Failed to switch to controller[%s]'
                                         % controller_name)
-            return res.ok
+                return False
         else:
-            self.get_logger().warn("Controller state is '%', returning True."
+            self.get_logger().warn("Controller state is '%s', returning True."
                                    % controller.state)
             return True
 
@@ -1102,16 +1123,17 @@ class BaseRoutines(Node, Cmd):
             req.activate_controllers   = [motion_control_handle.name]
             req.deactivate_controllers = []
             message = 'activated ' + motion_control_handle.name
-        req.strictness = SwitchControllerRequest.STRICT
+        req.strictness = SwitchController.Request.STRICT
         req.start_asap = True
         req.timeout    = Duration(seconds=1).to_msg()
-        res = self._switch_controller.call(req)
+        res = self._switch_controller_srvs[robot_name].call(req)
         time.sleep(0.5)
-        if res.ok:
+        if res and res.ok:
             self.get_logger().info('Succesfully %s' % message)
+            return True
         else:
             self.get_logger().error('Failed to %s' % message)
-        return res.ok
+            return False
 
     #
     # Gripper stuffs
@@ -1270,7 +1292,7 @@ class BaseRoutines(Node, Cmd):
                  self.format_pose(info.pose, info.pose.header.frame_id),
                  info.pose.header.frame_id))
 
-    def candidate_eef_links(self, robot_name):
+    def candidate_eef_links(self, robot_name: str)-> list[str]:
         frames_dict = yaml.safe_load(self.tf2_buffer.all_frames_as_yaml())
         frame_ids = []
 
@@ -1286,8 +1308,8 @@ class BaseRoutines(Node, Cmd):
         _candidate_eef_links(gripper_link)
         return frame_ids
 
-    def lookup_transform(self, target_frame, source_frame,
-                         time=Time(), timeout=Duration()):
+    def lookup_transform(self, target_frame: str, source_frame: str,
+                         time: Time=Time(), timeout: Duration=Duration()):
         try:
             return self._tf2_buffer.lookup_transform(target_frame,
                                                      source_frame,
@@ -1296,15 +1318,17 @@ class BaseRoutines(Node, Cmd):
             self.get_logger().error('BaseRoutines.lookup_transform(): %s' % e)
             raise e
 
-    def transform_point_to_target_frame(self, point, target_frame=''):
+    def transform_point_to_target_frame(self, point: PointStamped,
+                                        target_frame: str='')-> PointStamped:
         points = self.transform_points_to_target_frame(point.header,
                                                        [point.point],
                                                        target_frame)
         return PointStamped(header=Header(frame_id=target_frame),
                             point=points[0])
 
-    def transform_points_to_target_frame(self, header, points,
-                                         target_frame=''):
+    def transform_points_to_target_frame(self, header: Header,
+                                         points: list[Point],
+                                         target_frame: str='')-> list[PointStamped]:
         if target_frame == '':
             target_frame = self._reference_frame
 
@@ -1317,14 +1341,17 @@ class BaseRoutines(Node, Cmd):
             transformed_points.append(Point(x=p[0], y=p[1], z=p[2]))
         return transformed_points
 
-    def transform_pose_to_target_frame(self, pose, offset=(), target_frame=''):
+    def transform_pose_to_target_frame(self, pose: PoseStamped,
+                                       offset: Sequence[float]=(),
+                                       target_frame: str='')-> PoseStamped:
         poses = self.transform_poses_to_target_frame(
                     PoseArray(header=pose.header, poses=[pose.pose]),
                     offset, target_frame)
         return PoseStamped(header=poses.header, pose=poses.poses[0])
 
-    def transform_poses_to_target_frame(self, poses,
-                                        offset=(), target_frame=''):
+    def transform_poses_to_target_frame(self, poses: PoseArray,
+                                        offset: Sequence[float]=(),
+                                        target_frame: str='')-> PoseArray:
         if target_frame == '':
             target_frame = self.reference_frame
 
@@ -1339,18 +1366,19 @@ class BaseRoutines(Node, Cmd):
                          poses=[pose_from_matrix(T @ pose_matrix(pose) @ S)
                                 for pose in poses.poses])
 
-    def add_offset_to_pose(self, pose, offset):
+    def add_offset_to_pose(self, pose: PoseStamped,
+                           offset: Sequence[float])-> PoseStamped:
         T = pose_matrix(pose.pose) \
           @ tfs.translation_matrix(self._position_from_offset(offset[0:3])) \
           @ tfs.quaternion_matrix(self._orientation_from_offset(offset[3:]))
         return PoseStamped(header=pose.header, pose=pose_from_matrix(T))
 
-    def correct_orientation(self, pose):
+    def correct_orientation(self, pose: PoseStamped)-> PoseStamped:
         poses = self.correct_orientations(PoseArray(header=pose.header,
                                                     poses=[pose.pose]))
         return PoseStamped(header=poses.header, pose=poses.poses[0])
 
-    def correct_orientations(self, poses):
+    def correct_orientations(self, poses: PoseArray)-> PoseArray:
         up = self._tf2_buffer.transformVector3(
                  poses.header.frame_id,
                  Vector3Stamped(Header(stamp=poses.header.stamp,
@@ -1362,7 +1390,8 @@ class BaseRoutines(Node, Cmd):
                                          pose.orientation, up.vector))
                                 for pose in poses.poses])
 
-    def pose_from_xyzrpy(self, xyzrpy, frame_id=''):
+    def pose_from_xyzrpy(self, xyzrpy: Sequence[float],
+                         frame_id: str='')-> PoseStamped:
         if frame_id == '':
             frame_id = self.reference_frame
         t = self._position_from_offset(xyzrpy[0:3])
@@ -1372,7 +1401,8 @@ class BaseRoutines(Node, Cmd):
                                      orientation=Quaternion(x=q[0], y=q[1],
                                                             z=q[2], w=q[3])))
 
-    def xyzrpy_from_pose(self, pose, target_frame=''):
+    def xyzrpy_from_pose(self, pose: PoseStamped,
+                         target_frame: str='')-> list[float]:
         transformed_pose = self.transform_pose_to_target_frame(
                                pose, target_frame=target_frame).pose
         rpy = tfs.euler_from_quaternion((transformed_pose.orientation.x,
@@ -1391,16 +1421,17 @@ class BaseRoutines(Node, Cmd):
     #
     # Private functions
     #
-    def _position_from_offset(self, offset):
+    def _position_from_offset(self, offset: Sequence[float])-> np.ndarray:
         return np.array((0.0, 0.0, 0.0) if len(offset) < 3 else offset[0:3])
 
-    def _orientation_from_offset(self, offset):
+    def _orientation_from_offset(self, offset: Sequence[float])-> np.ndarray:
         return np.array((0.0, 0.0, 0.0, 1.0)) if len(offset) < 3 else \
                tfs.quaternion_from_euler(
                    *np.radians(offset[0:3])) if len(offset) == 3 else \
                np.array(offset[0:4])
 
-    def _correct_orientation(self, orientation, up):
+    def _correct_orientation(self, orientation: Quaternion,
+                             up: Vector3)-> Quaternion:
         q     = (orientation.x, orientation.y, orientation.z, orientation.w)
         r     = tfs.quaternion_matrix(q)[0:3, 2]  # current up vector
         n     = (up.x, up.y, up.z)                # desired up vector

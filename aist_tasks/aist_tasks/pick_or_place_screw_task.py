@@ -42,7 +42,6 @@ from aist_collision_object_manager import decompose_link_name
 
 from rclpy.node                    import Node
 from rclpy.action.server           import ServerGoalHandle
-from typing                        import Optional
 
 #*********************************************************************
 #  class PickOrPlaceScrewTaskClient                                  *
@@ -54,7 +53,7 @@ class PickOrPlaceScrewTaskClient(GroupedSimpleActionClient):
                          group_field='robot_name')
 
     def send_goal(self, robot_name: str, screw_type: str,
-                  *, timeout_sec: Optional[float]=0.0):
+                  *, timeout_sec: float|None=0.0):
         return super().send_goal(PickOrPlaceScrew.Goal(robot_name=robot_name,
                                                       screw_type=screw_type),
                                  feedback_callback=self.stage_feedback_cb,
@@ -64,7 +63,7 @@ class PickOrPlaceScrewTaskClient(GroupedSimpleActionClient):
 #  class PickOrPlaceScrewTaskServer                                  *
 #*********************************************************************
 class PickOrPlaceScrewTaskServer(ActionServer):
-    def __init__(self, node, server_ns='pick_or_place_screw'):
+    def __init__(self, node: Node, server_ns: str='pick_or_place_screw'):
         super().__init__(node, PickOrPlaceScrew, server_ns, self._execute_cb,
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')

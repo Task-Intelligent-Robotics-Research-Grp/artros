@@ -44,7 +44,6 @@ from task_wrappers         import ActionServer, GroupedSimpleActionClient
 
 from rclpy.node            import Node
 from rclpy.action.server   import ServerGoalHandle
-from typing                import Optional
 
 #*********************************************************************
 #  class ErrorRecoveryBySweepTaskClient                              *
@@ -56,7 +55,7 @@ class ErrorRecoveryBySweepTaskClient(GroupedSimpleActionClient):
                          group_field='robot_name')
 
     def send_goal(self, robot_name: str, pose: PoseStamped, part_id: str,
-                  message: str, *, timeout_sec: Optional[float]=None):
+                  message: str, *, timeout_sec: float|None=None):
         return super().send_goal(
                    ErrorRecoveryBySweep.Goal(robot_name=robot_name,
                                              part_id=part_id,

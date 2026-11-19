@@ -33,20 +33,21 @@
 #
 # Author: Toshio Ueshiba
 #
+from rclpy.node           import Node
 from action_msgs.msg      import GoalStatus
 from aist_fastening_tools import (SuctionTool, SuctionGripper,
                                   ScrewTool, PrecisionTool)
 try:
-  from aist_robotiq import RobotiqGripper, RobotiqSuction
-  from aist_barrett import BarrettHand
+    from aist_robotiq import RobotiqGripper, RobotiqSuction
+    from aist_barrett import BarrettHand
 except ModuleNotFoundError:
-  pass
+    pass
 
-def create_gripper(node, name, gripper_type, client_args):
+def create_gripper(node: Node, name: str, gripper_type: str, client_args):
     gripper_client_class = globals().get(gripper_type)
     if gripper_client_class is None:
         raise RuntimeError('unknown type[%s] of the gripper[%s]'
-                               % (gripper_type, name))
+                           % (gripper_type, name))
     if gripper_client_class != RobotiqGripper and \
        node.get_parameter('use_sim_time').get_parameter_value().bool_value:
         return DummyGripper(name, gripper_type)
@@ -57,26 +58,26 @@ def create_gripper(node, name, gripper_type, client_args):
 #  class DummyGripper                                                   *
 #************************************************************************
 class DummyGripper(object):
-    def __init__(self, name, gripper_type):
+    def __init__(self, name: str, gripper_type: str):
         super().__init__()
 
         self._name = name
         self._type = gripper_type
 
     @property
-    def name(self):
+    def name(self)-> str:
         return self._name
 
     @property
-    def type(self):
+    def type(self)-> str:
         return self._type
 
     @property
-    def base_link(self):
+    def base_link(self)-> str:
         return self._name + '/base_link'
 
     @property
-    def tip_link(self):
+    def tip_link(self)-> str:
         return self._name + '/tip_link'
 
     def set_parameters(self, params: dict):
@@ -85,20 +86,20 @@ class DummyGripper(object):
     def pregrasp(self):
         pass
 
-    def grasp(self, *, timeout_sec=0.0):
-        if timeout_sec is not None or timeout_sec <= 0.0:
+    def grasp(self, *, timeout_sec: float|None=0.0):
+        if timeout_sec is not None and timeout_sec <= 0.0:
             return (GoalStatus.STATUS_UNKNOWN, None)
         else:
-            return wait(self, timeout_sec)
+            return self.wait(timeout_sec=timeout_sec)
 
     def postgrasp(self):
         pass
 
-    def release(self, *, timeout_sec=0.0):
-        if timeout_sec is not None or timeout_sec <= 0.0:
+    def release(self, *, timeout_sec: float|None=0.0):
+        if timeout_sec is not None and timeout_sec <= 0.0:
             return (GoalStatus.STATUS_UNKNOWN, None)
         else:
-            return wait(self, timeout_sec)
+            return self.wait(timeout_sec=timeout_sec)
 
-    def wait(self, *, timeout_sec=None):
+    def wait(self, *, timeout_sec: float|None=None):
         return (GoalStatus.STATUS_SUCCEEDED, None)

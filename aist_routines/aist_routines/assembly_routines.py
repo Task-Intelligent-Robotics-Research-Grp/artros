@@ -40,6 +40,8 @@ from .base_routines                import BaseRoutines
 from aist_collision_object_manager import decompose_link_name
 #from cuda_feature_tracker_3d          import FeatureTrackerClient
 
+from collections.abc               import Sequence
+
 #*********************************************************************
 #  class AssemblyRoutines                                            *
 #*********************************************************************
@@ -101,30 +103,31 @@ class AssemblyRoutines(BaseRoutines):
         self._generate_screw('screw_m3')
         self._generate_screw('screw_m4')
 
-    def pick_screw(self, robot_name, screw_type, *, timeout_sec=None):
+    def pick_screw(self, robot_name: str, screw_type: str,
+                   *, timeout_sec: float|None=None):
         return self._pick_or_place_screw.send_goal(robot_name, screw_type,
                                                    timeout_sec=timeout_sec)
 
-    def place_screw(self, robot_name, *, timeout_sec=None):
+    def place_screw(self, robot_name: str, *, timeout_sec: float|None=None):
         return self._pick_or_place_screw.send_goal(robot_name, '',
                                                    timeout_sec=timeout_sec)
 
-    def fix_object(self, object_id, *, offset=()):
+    def fix_object(self, object_id: str, *, offset: Sequence[float]=()):
         gripper = self._grippers['base_fixture']
         gripper.pregrasp()  # Suck with zero min_period value.
         self.com.attach_object(object_id, gripper.tip_link)
 
-    def release_object(self, object_id):
+    def release_object(self, object_id: str):
         gripper = self._grippers['base_fixture']
         gripper.release()
         self.com.detach_object(object_id, 'workbench_holder_link',
                                gripper.tip_link)
 
-    def approach_target(self, robot_name,
-                        pose_name, target_frame, target_force=(0, 0, -5)):
+    def approach_target(self, robot_name: str,
+                        pose_name: str, target_frame: str,
+                        target_force: Sequence[float]=(.0, .0, -5.0)):
         self.go_to_named_pose(robot_name, pose_name)
-        self._ur_robots[robot_name].switch_controller(
-            'cartesian_compliance_controller')
+        self.switch_controller(robot_name, 'cartesian_compliance_controller')
 
         gripper_tip_link = self.gripper(robot_name).tip_link
         object_id, _     = decompose_link_name(target_frame)
@@ -136,26 +139,25 @@ class AssemblyRoutines(BaseRoutines):
         target_wrench.wrench.force    = Vector3(x=target_force[0],
                                                 y=target_force[1],
                                                 z=target_force[2])
-        target_wrench.wrench.torque   = Vector3(x=0, y=0, z=0)
+        target_wrench.wrench.torque   = Vector3(x=0.0, y=0.0, z=0.0)
         self._feature_trackers[robot_name].send_goal(pose_name, feature_names,
                                                      target_wrench)
 
-    def cancel_approach_target(self, robot_name):
+    def cancel_approach_target(self, robot_name: str):
         tracker = self._feature_trackers[robot_name]
         tracker.cancel_goal()
-        self._ur_robots[robot_name].switch_controller(
-            'scaled_pos_joint_traj_controller')
+        self.switch_controller(robot_name, 'scaled_pos_joint_traj_controller')
         if tracker.wait_for_result():
             result = tracker.get_result()
             self.go_to_named_pose(robot_name, result.pose_name)
 
-    def switch_camera(self, current_robot_name, new_robot_name,
-                      laser_power=16):
+    def switch_camera(self, current_robot_name: str, new_robot_name: str,
+                      laser_power: int=16):
         self.camera(current_robot_name + '_camera').laser_power = 0
         self.camera(new_robot_name + '_camera').laser_power = laser_power
 
     # Utilities
-    def _generate_screw(self, screw_type):
+    def _generate_screw(self, screw_type: str)-> str:
         if screw_type == 'screw_m3':
             self._screw_m3_id += 1
             screw_id = screw_type + '_' + str(self._screw_m3_id)
@@ -170,7 +172,7 @@ class AssemblyRoutines(BaseRoutines):
         self.com.allow_collision(screw_id, feeder_name + '_outlet_link')
         return screw_id
 
-    def _get_screw_id(self, screw_type):
+    def _get_screw_id(self, screw_type: str)-> str:
         return screw_type + '_' + str(self._screw_m3_id) \
                if screw_type == 'screw_m3' else \
                screw_type + '_' + str(self._screw_m4_id)
