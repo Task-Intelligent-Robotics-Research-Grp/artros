@@ -151,10 +151,9 @@ class AttemptBinTaskServer(ActionServer):
                 if use_fine_parameters and status is GoalStatus.STATUS_ABORTED:
                     self.logger.warn('--- AttemptBin: aborted at stage[%s] under fine parameters'
                                      % stage.name)
-                    raise ActionServer.Error('Failed to pick',
+                    raise ActionServer.Error('Failed to pick', pose,
                                              stage=stage.extend_name(
-                                                 result.stage),
-                                             pose=pose)
+                                                 result.stage))
 
             if status is GoalStatus.STATUS_SUCCEEDED:  # pick succeeded
                 # [6] 'place' stage: Begin placing and wait until reaching

@@ -5,8 +5,7 @@ bool   pick_all      # Pick all items if true
 uint32 max_attempts  # Maximum number of attempts per picking try
 ---
 # Result
-string stage                    # 'search', 'pick', 'place'
-geometry_msgs/PoseStamped pose
+string stage  # 'search', 'pick', 'place'
 ---
 # Feedback
 string stage  # 'search', 'pick', 'place'

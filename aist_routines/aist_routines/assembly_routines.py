@@ -59,7 +59,7 @@ class AssemblyRoutines(BaseRoutines):
         return self._pick_or_place_screw
 
     @property
-    def screw_types(self):
+    def screw_types(self)-> tuple[str]:
         return ('screw_m3', 'screw_m4')
 
     # Interactive stuffs

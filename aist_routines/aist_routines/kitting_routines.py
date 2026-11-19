@@ -63,31 +63,31 @@ class KittingRoutines(BaseRoutines):
         return self._attempt_bin
 
     @property
-    def bin_props(self):
+    def bin_props(self)-> dict:
         return self.settings['bin_props']
 
     @property
-    def bin_ids(self):
+    def bin_ids(self)-> list[str]:
         return list(self.bin_props.keys())
 
     @property
-    def part_props(self):
+    def part_props(self)-> dict:
         return self.settings['part_props']
 
     @property
-    def part_ids(self):
+    def part_ids(self)-> list[str]:
         return list(self.part_props.keys())
 
     @property
-    def borders(self):
+    def borders(self)-> list:
         return self.settings['borders']
 
     @property
-    def graspability_parameters(self):
+    def graspability_parameters(self)-> dict:
         return self.settings['graspability_parameters']
 
     @property
-    def fine_graspability_parameters(self):
+    def fine_graspability_parameters(self)-> dict:
         return self.settings['fine_graspability_parameters']
 
     # Interactive stuffs
