@@ -141,7 +141,8 @@ class ErrorRecoveryBySweepTaskServer(ActionServer):
 
         # [Final] Goal succeeded.
         goal_handle.succeed()
-        return ErrorRecoveryBySweep.Result(stage='')
+        return ErrorRecoveryBySweep.Result(
+                   stage='', pointing_state=result.pointing.pointing_state)
 
 
 #************************************************************************

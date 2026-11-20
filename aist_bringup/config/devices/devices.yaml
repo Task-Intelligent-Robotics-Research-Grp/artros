@@ -320,12 +320,15 @@ b_bot_camera:
 a_motioncam:
   ros__parameters:
     id:                          LTR-066
-#    id:                          InstalledExamples-demo-example
     trigger_mode:                0  # 0: Freerun, 1: Software, 2: Hardware
     intensity_scale:             0.5
     rate:                        20.0
     motioncam:
       operation_mode:            1  # 0: None, 1: Camera, 2: Scanner, 3: Mode2D
+      early_transfer:            0  # 0: Off, 1: ColorCameraImage
+    motioncam_camera_mode:
+      camera_coding_strategy:    2  # 1: Normal, 2: Interreflections, 4: Sparse
+      output_topology:           1  # 1: IrregularGrid, 2: Raw, 3: RegularGrid
     processing_settings:
       normals_estimation_radius: 2
     output_settings:

@@ -202,8 +202,7 @@ class HMIRoutines(KittingRoutines):
         return self._request_help.send_goal(robot_name, pose, bin_id, message,
                                             timeout_sec=timeout_sec)
 
-    def error_recovery_by_sweep(self, goal: AttemptBinTask.Goal,
-                                pose: PoseStamped, stage: str):
+    def error_recovery_by_sweep(self, goal, pose: PoseStamped, stage: str):
         if stage != 'pick/verify':
             return False
 

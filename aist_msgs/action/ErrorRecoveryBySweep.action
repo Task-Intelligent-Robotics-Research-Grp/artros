@@ -6,6 +6,7 @@ string message                  # error message to the operator (not used now)
 ---
 # Result
 string stage
+int32  pointing_state           # Pointing.[NO_RES|SWEEP_RES|RECAPTURE_RES]
 ---
 # Feedback
 string stage

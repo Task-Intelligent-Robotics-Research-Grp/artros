@@ -137,8 +137,10 @@ class AttemptBinTaskServer(ActionServer):
                         raise ActionServer.Error(
                             'Failed to search graspabilities',
                             stage=stage.name)
+                    self.logger.info('--- AttemptBin: found %d pick pose(s) ---'
+                                     % len(result.graspabilities.poses.poses))
                     pick_poses = result.graspabilities.poses
-                    fail_poses = []
+                    #fail_poses = []
 
             # [5] 'pick' stage: Pick a part at a pose selected from pick_poses.
             with ActionServer.Stage(self, goal_handle, 'pick',
@@ -149,11 +151,10 @@ class AttemptBinTaskServer(ActionServer):
                                            1 if use_fine_parameters else \
                                            goal.max_attempts)
                 if use_fine_parameters and status is GoalStatus.STATUS_ABORTED:
-                    self.logger.warn('--- AttemptBin: aborted at stage[%s] under fine parameters'
-                                     % stage.name)
-                    raise ActionServer.Error('Failed to pick', pose,
-                                             stage=stage.extend_name(
-                                                 result.stage))
+                    self.logger.warn('--- AttemptBin: failed to pick under fine parameters ---')
+                    raise ActionServer.Error('Failed to pick',
+                                             pose, stage=stage.extend_name(
+                                                             result.stage))
 
             if status is GoalStatus.STATUS_SUCCEEDED:  # pick succeeded
                 # [6] 'place' stage: Begin placing and wait until reaching
@@ -200,17 +201,15 @@ class AttemptBinTaskServer(ActionServer):
                                                                result.stage))
             elif status is GoalStatus.STATUS_UNKNOWN:  # no poses remained
                 if not use_fine_parameters:
-                    self.logger.warn('--- AttemptBin: failed at stage[%s], switch to fine parameters'
-                                     % stage.name)
+                    self.logger.warn('--- AttemptBin: no poses remained, switch to fine parameters')
                     use_fine_parameters = True
                     pick_poses          = None  # Force searching.
+                    fail_poses          = []    # Discard fail poses.
                 else:
-                    self.logger.warn('--- AttemptBin: finished stage[%s] with status[%d], break'
-                                     % (stage.name, status))
+                    self.logger.warn('--- AttemptBin: no poses remained under fine parameters, finish picking')
                     break
             else:  # GoalStatus.STATUS_ABORTED: returned from error handler
-                use_fine_parameters = False
-                pick_poses          = None  # Force searching for pick poses.
+                pick_poses = None  # Force searching while keeping fail_poses.
 
             if not goal.pick_all:
                 break
