@@ -1,10 +1,11 @@
 # Goal
 string robot_name
-string screw_type  # 'screw_m3', 'screw_m4'
+string screw_type    # 'screw_m3', 'screw_m4'
+uint32 max_attempts  # Maximum number of attempts per picking try
 ---
 # Result
-string stage       # 'pick_tool', 'pick_screw', 'place_screw'
+string stage         # 'pick_tool', 'pick_screw', 'place_screw'
 string screw_id
 ---
 # Feedback
-string stage       # 'pick_tool', 'pick_screw', 'place_screw'
+string stage         # 'pick_tool', 'pick_screw', 'place_screw'

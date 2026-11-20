@@ -47,6 +47,7 @@ from aist_utility.geometry_msgs import (pose_matrix, pose_from_matrix,
 
 from rclpy.node                 import Node
 from rclpy.action.server        import ServerGoalHandle
+from collections.abc            import Sequence
 
 #************************************************************************
 #  class PickOrPlaceTaskClient                                          *
@@ -58,9 +59,9 @@ class PickOrPlaceTaskClient(GroupedSimpleActionClient):
                          group_field='robot_name')
 
     def send_goal(self, robot_name: str, pick: bool, pose: PoseStamped,
-                  offset: tuple[float]|list[float],
-                  approach_offset: tuple[float]|list[float],
-                  departure_offset: tuple[float]|list[float],
+                  offset: Sequence[float],
+                  approach_offset: Sequence[float],
+                  departure_offset: Sequence[float],
                   speed_fast: float, speed_slow: float,
                   *, end_effector_link: str='', timeout_sec: float|None=0.0):
         return super().send_goal(PickOrPlace.Goal(

@@ -52,10 +52,12 @@ class PickOrPlaceScrewTaskClient(GroupedSimpleActionClient):
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
 
-    def send_goal(self, robot_name: str, screw_type: str,
+    def send_goal(self, robot_name: str, screw_type: str, max_attempts: int,
                   *, timeout_sec: float|None=0.0):
-        return super().send_goal(PickOrPlaceScrew.Goal(robot_name=robot_name,
-                                                      screw_type=screw_type),
+        return super().send_goal(PickOrPlaceScrew.Goal(
+                                     robot_name=robot_name,
+                                     screw_type=screw_type,
+                                     max_attempts=max_attempts),
                                  feedback_callback=self.stage_feedback_cb,
                                  timeout_sec=timeout_sec)
 
@@ -97,8 +99,7 @@ class PickOrPlaceScrewTaskServer(ActionServer):
         with ActionServer.Stage(self, goal_handle, 'pick_screw',
                                 cancel_pick_or_place) as stage:
             screw_id = node._get_screw_id(goal.screw_type)
-            status, result = node.pick_at_frame(goal.robot_name, screw_id,
-                                                screw_id + '/head')
+            status, result = self._attempt_pick(goal, screw_id)
             if status is GoalStatus.STATUS_ABORTED:
                 raise ActionServer.Error('Failed to pick screw!',
                                          stage=stage.extend_name(result.stage))
@@ -107,6 +108,17 @@ class PickOrPlaceScrewTaskServer(ActionServer):
         # [Final] Goal succeeded.
         goal_handle.succeed()
         return PickOrPlaceScrew.Result(stage='', screw_id=screw_id)
+
+    def _attempt_pick(self, goal, screw_id: int):
+        for i in range(goal.max_attempts):
+            status, result = self.node.pick_at_frame(goal.robot_name, screw_id,
+                                                     screw_id + '/head')
+            if status is GoalStatus.STATUS_SUCCEEDED or \
+               result.stage != 'verify':
+                return status, result
+        raise ActionServer.Error('Failed to pick screw after %d attempts!'
+                                 % goal.max_attempts,
+                                 stage=result.stage)
 
     def _place_screw(self, goal_handle: ServerGoalHandle):
         goal                 = goal_handle.request

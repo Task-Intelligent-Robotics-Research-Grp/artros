@@ -40,6 +40,7 @@ from aist_msgs.action      import Sweep
 from rclpy.node            import Node
 from rclpy.action.server   import ServerGoalHandle
 from geometry_msgs.msg     import PoseStamped
+from collections.abc       import Sequence
 
 #*********************************************************************
 #  class SweepTaskClient                                             *
@@ -52,9 +53,9 @@ class SweepTaskClient(GroupedSimpleActionClient):
 
     def send_goal(self, robot_name: str, pose: PoseStamped,
                   sweep_length: float,
-                  sweep_offset: tuple[float]|list[float],
-                  approach_offset: tuple[float]|list[float],
-                  departure_offset: tuple[float]|list[float],
+                  sweep_offset: Sequence[float],
+                  approach_offset: Sequence[float],
+                  departure_offset: Sequence[float],
                   speed_fast: float, speed_slow: float,
                   *, timeout_sec: float|None=0.0):
         return super().send_goal(Sweep.Goal(robot_name=robot_name, pose=pose,
