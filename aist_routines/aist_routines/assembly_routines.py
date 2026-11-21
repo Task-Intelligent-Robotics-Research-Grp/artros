@@ -78,7 +78,7 @@ class AssemblyRoutines(BaseRoutines):
         Pick a screw of specified type."""
         self._recent_tasks[self._robot_name] = self._pick_or_place_screw
         if screw_type:
-            self.pick_screw(self._robot_name, screw_type, 5, timeout_sec=0.0)
+            self.pick_screw(self._robot_name, screw_type, timeout_sec=0.0)
         else:
             self.place_screw(self._robot_name, timeout_sec=0.0)
 
@@ -103,14 +103,18 @@ class AssemblyRoutines(BaseRoutines):
         self._generate_screw('screw_m3')
         self._generate_screw('screw_m4')
 
-    def pick_screw(self, robot_name: str, screw_type: str, max_attempts: int,
+    def pick_screw(self, robot_name: str, screw_type: str,
                    *, timeout_sec: float|None=None):
+        picking_parameters = self.settings.get('picking_parameters', {})
+        params             = picking_parameters.get(screw_type, {})
+        max_attempts       = params.get('max_attempts', 5)
+        offset_step        = params.get('offset_step', 0.0005)
         return self._pick_or_place_screw.send_goal(robot_name, screw_type,
-                                                   max_attempts,
+                                                   max_attempts, offset_step,
                                                    timeout_sec=timeout_sec)
 
     def place_screw(self, robot_name: str, *, timeout_sec: float|None=None):
-        return self._pick_or_place_screw.send_goal(robot_name, '', 1,
+        return self._pick_or_place_screw.send_goal(robot_name, '', 1, 0.0,
                                                    timeout_sec=timeout_sec)
 
     def fix_object(self, object_id: str, *, offset: Sequence[float]=()):

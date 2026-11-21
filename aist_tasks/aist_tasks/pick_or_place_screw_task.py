@@ -52,12 +52,14 @@ class PickOrPlaceScrewTaskClient(GroupedSimpleActionClient):
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
 
-    def send_goal(self, robot_name: str, screw_type: str, max_attempts: int,
+    def send_goal(self, robot_name: str, screw_type: str,
+                  max_attempts: int, offset_step: float,
                   *, timeout_sec: float|None=0.0):
         return super().send_goal(PickOrPlaceScrew.Goal(
                                      robot_name=robot_name,
                                      screw_type=screw_type,
-                                     max_attempts=max_attempts),
+                                     max_attempts=max_attempts,
+                                     offset_step=offset_step),
                                  feedback_callback=self.stage_feedback_cb,
                                  timeout_sec=timeout_sec)
 
@@ -109,10 +111,12 @@ class PickOrPlaceScrewTaskServer(ActionServer):
         goal_handle.succeed()
         return PickOrPlaceScrew.Result(stage='', screw_id=screw_id)
 
-    def _attempt_pick(self, goal, screw_id: int):
+    def _attempt_pick(self, goal, screw_id: str):
         for i in range(goal.max_attempts):
+            offset = (i//2 + 1 if i%2 else -i//2) * goal.offset_step
             status, result = self.node.pick_at_frame(goal.robot_name, screw_id,
-                                                     screw_id + '/head')
+                                                     screw_id + '/head',
+                                                     offset=(offset, 0.0, 0.0))
             if status is GoalStatus.STATUS_SUCCEEDED or \
                result.stage != 'verify':
                 return status, result

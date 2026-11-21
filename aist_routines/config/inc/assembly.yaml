@@ -5,6 +5,8 @@ picking_parameters:
     departure_offset: [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
     speed_fast:       0.1
     speed_slow:       0.01
+    max_attempts:     5
+    offset_step:      0.0005
     gripper_parameters:
       suck_min_period:        0.5
       blow_min_period:        0.2
@@ -22,6 +24,8 @@ picking_parameters:
     departure_offset: [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
     speed_fast:       0.1
     speed_slow:       0.01
+    max_attempts:     5
+    offset_step:      0.0005
     gripper_parameters:
       suck_min_period:        0.5
       blow_min_period:        0.2
