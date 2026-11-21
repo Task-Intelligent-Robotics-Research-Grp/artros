@@ -200,12 +200,12 @@
   </xacro:unless>
 
   <!-- Add virtual screen -->
-  <link name="virtual_screen"/>
-  <joint name="virtual_screen_joint" type="fixed">
-    <parent link="workspace_center"/>
-    <child  link="virtual_screen"/>
-    <origin xyz="0 0 ${screen_z}" rpy="0 0 0"/>
-  </joint>
+  <!-- <link name="virtual_screen"/> -->
+  <!-- <joint name="virtual_screen_joint" type="fixed"> -->
+  <!--   <parent link="workspace_center"/> -->
+  <!--   <child  link="virtual_screen"/> -->
+  <!--   <origin xyz="0 0 ${screen_z}" rpy="0 0 0"/> -->
+  <!-- </joint> -->
 
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
   <link name="world"/>

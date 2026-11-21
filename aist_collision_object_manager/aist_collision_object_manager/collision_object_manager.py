@@ -38,34 +38,32 @@ import numpy as np
 import tf_transformations as tfs
 import pyassimp
 
-from rclpy.node                    import Node
-from rclpy.callback_groups         import MutuallyExclusiveCallbackGroup
-from rclpy.duration                import Duration
-from rclpy.time                    import Time
-from rclpy.parameter               import Parameter
-from tf2_ros.transform_broadcaster import TransformBroadcaster
-from std_msgs.msg                  import Header, ColorRGBA
-from geometry_msgs.msg             import (Point, Vector3, Quaternion, Pose,
-                                           PoseStamped, TransformStamped)
-from shape_msgs.msg                import (Mesh, MeshTriangle, Plane,
-                                           SolidPrimitive)
-from visualization_msgs.msg        import Marker, MarkerArray
-from aist_msgs.srv                 import GetCollisionObject
-from aist_msgs.msg                 import LinkGeometry, Material
-from moveit_msgs.msg               import (CollisionObject,
-                                           AttachedCollisionObject,
-                                           PlanningSceneComponents,
-                                           PlanningScene)
-from moveit_msgs.srv               import GetPlanningScene
-from moveit_commander              import planning_scene_interface as psi
-from aist_utility.fileio           import filepath_from_url
-from aist_utility.geometry_msgs    import (pose_matrix, pose_from_matrix,
-                                           transform_matrix,
-                                           transform_from_matrix,
-                                           pose_from_transform,
-                                           transform_from_pose,
-                                           format_pose)
-from typing                        import List, Dict, Tuple, Optional
+from rclpy.node                 import Node
+from rclpy.callback_groups      import MutuallyExclusiveCallbackGroup
+from rclpy.duration             import Duration
+from rclpy.time                 import Time
+from rclpy.parameter            import Parameter
+from std_msgs.msg               import Header, ColorRGBA
+from geometry_msgs.msg          import (Point, Vector3, Quaternion, Pose,
+                                        PoseStamped, TransformStamped)
+from shape_msgs.msg             import (Mesh, MeshTriangle, Plane,
+                                        SolidPrimitive)
+from visualization_msgs.msg     import Marker, MarkerArray
+from aist_msgs.srv              import GetCollisionObject
+from aist_msgs.msg              import LinkGeometry, Material
+from moveit_msgs.msg            import (CollisionObject,
+                                        AttachedCollisionObject,
+                                        PlanningSceneComponents, PlanningScene)
+from moveit_msgs.srv            import GetPlanningScene
+from moveit_commander           import planning_scene_interface as psi
+from aist_utility.fileio        import filepath_from_url
+from aist_utility.geometry_msgs import (pose_matrix, pose_from_matrix,
+                                        transform_matrix,
+                                        transform_from_matrix,
+                                        pose_from_transform,
+                                        transform_from_pose,
+                                        format_pose)
+from typing                     import List, Dict, Tuple, Optional
 
 #************************************************************************
 #  global functions                                                     *
@@ -275,7 +273,6 @@ class CollisionObjectManager(object):
         self._marker_pub          = node.create_publisher(MarkerArray,
                                                           'collision_marker',
                                                           1)
-        self._broadcaster         = TransformBroadcaster(node)
         self._timer               = node.create_timer(
                                         node.declare_parameter(
                                             'collision_object_manager.period',
@@ -821,7 +818,7 @@ class CollisionObjectManager(object):
                 for marker in instance_props.markers:
                     marker.header.stamp = now
                     markers.append(marker)
-        self._broadcaster.sendTransform(transforms)
+        self.node.tf2_broadcaster.sendTransform(transforms)
         self._marker_pub.publish(MarkerArray(markers=markers))
 
     def _get_collision_object_cb(self, req, res):

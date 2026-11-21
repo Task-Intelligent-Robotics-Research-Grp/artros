@@ -5,11 +5,10 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /MotionPlanning1
         - /MotionPlanning1/Scene Robot1
-        - /TF1
         - /TF1/Frames1
         - /a_motioncam1/Topic1
+        - /b_bot_handle1
       Splitter Ratio: 0.4684210419654846
     Tree Height: 333
   - Class: rviz_common/Help
@@ -1038,7 +1037,7 @@ Visualization Manager:
         Goal State Color: 250; 128; 0
         Interactive Marker Size: 0.10000000149011612
         Joint Violation Color: 255; 0; 255
-        Planning Group: b_bot
+        Planning Group: b_bot_gripper
         Query Goal State: true
         Query Start State: false
         Show Workspace: false
@@ -2078,10 +2077,19 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /b_bot_camera/color/image_raw
       Value: true
+    - Class: rviz_default_plugins/InteractiveMarkers
+      Enable Transparency: true
+      Enabled: true
+      Interactive Markers Namespace: /b_bot/motion_control_handle
+      Name: b_bot_handle
+      Show Axes: false
+      Show Descriptions: true
+      Show Visual Aids: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: b_bot_base_link
+    Fixed Frame: world
     Frame Rate: 30
   Name: root
   Tools:
@@ -2097,7 +2105,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 0.868217408657074
+      Distance: 1.5300959348678589
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -2112,10 +2120,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.2303767055273056
+      Pitch: 0.1703767329454422
       Target Frame: world
       Value: Orbit (rviz_default_plugins)
-      Yaw: 3.404649019241333
+      Yaw: 0.28146398067474365
     Saved: ~
 Window Geometry:
   Displays:
@@ -2133,8 +2141,8 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1821
-  X: 101
-  Y: 157
+  X: 490
+  Y: 183
   a_motioncam:
     collapsed: false
   b_bot_camera:

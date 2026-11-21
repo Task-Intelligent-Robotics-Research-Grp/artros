@@ -40,7 +40,7 @@ from task_wrappers          import SimpleActionClient, ActionServer
 from aist_msgs.action       import RequestHelp
 from aist_msgs.msg          import RequestHelp as RequestHelpMsg, Pointing
 from geometry_msgs.msg      import (PoseStamped, Pose, Point, Vector3,
-                                    Quaternion)
+                                    Quaternion, TransformStamped)
 from visualization_msgs.msg import Marker, MarkerArray
 from std_msgs.msg           import ColorRGBA
 from builtin_interfaces.msg import Time, Duration
@@ -62,6 +62,8 @@ class RequestHelpTaskClient(SimpleActionClient):
         """
         super().__init__(node, RequestHelp, server_ns,
                          callback_group=MutuallyExclusiveCallbackGroup())
+        node.declare_parameter('request_help_client.screen_frame_id',
+                               'virtual_screen')
         self._marker_pub = node.create_publisher(Marker, 'pointing_marker', 1)
 
     def send_goal(self, robot_name: str, pose: PoseStamped, part_id: str,
@@ -82,6 +84,17 @@ class RequestHelpTaskClient(SimpleActionClient):
         # Keep graspability pose for the start point of the ARROW marker.
         self._pose = self.node.transform_pose_to_target_frame(
                          pose, target_frame=self.node.planning_frame)
+
+        transform = TransformStamped()
+        transform.header.frame_id = self._pose.header.frame_id
+        transform.child_frame_id  = self.node.get_parameter(
+                                        'request_help_client.screen_frame_id')\
+                                        .get_parameter_value().string_value
+        transform.transform.translation = Vector3(x=self._pose.pose.position.x,
+                                                  y=self._pose.pose.position.y,
+                                                  z=self._pose.pose.position.z)
+        transform.transform.rotation = Quaternion(x=0.0, y=0.0, z=0.0, w=1.0)
+        self.node.tf2_broadcaster.sendTransform(transform)
 
         goal = RequestHelp.Goal()
         goal.request.robot_name = robot_name

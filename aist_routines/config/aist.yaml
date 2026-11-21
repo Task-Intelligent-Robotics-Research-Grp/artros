@@ -128,3 +128,5 @@ hmi_demo:
     graspability_client:
       marker_lifetime: 0      # in seconds. Zero means forever.
       marker_scale:    0.004
+    request_help_client:
+      screen_frame_id: virtual_screen

@@ -214,8 +214,8 @@
       # All controllers will build a kinematic chain from this link up to
       # end_effector_link.  It's also the reference frame for the superposition
       # of error components in all controllers.
-      robot_base_link: $(var arm_name)_base_link
-      # robot_base_link: world
+      #robot_base_link: $(var arm_name)_base_link
+      robot_base_link: world
 
       # This is the URDF link of your sensor. Sensor signals are assumed
       # to be given in this frame.  It's important that this link is located
@@ -296,7 +296,8 @@
 
       # See the cartesian_compliance_controller
       end_effector_link:  $(var arm_name)_gripper_tip_link
-      robot_base_link:    $(var arm_name)_base_link
+      # robot_base_link:    $(var arm_name)_base_link
+      robot_base_link: world
       ft_sensor_ref_link: $(var arm_name)_tool0
       joints:
         - $(var arm_name)_shoulder_pan_joint
@@ -328,8 +329,8 @@
 
       # See the cartesian_compliance_controller
       end_effector_link: $(var arm_name)_gripper_tip_link
-      robot_base_link:   $(var arm_name)_base_link
-#      robot_base_link:   world
+      # robot_base_link:   $(var arm_name)_base_link
+      robot_base_link: world
       joints:
         - $(var arm_name)_shoulder_pan_joint
         - $(var arm_name)_shoulder_lift_joint
@@ -360,8 +361,8 @@
     ros__parameters:
       end_effector_link:  $(var arm_name)_gripper_tip_link
       # end_effector_link:  $(var arm_name)_tool0
-      robot_base_link:    $(var arm_name)_base_link
-      # robot_base_link:    world
+      # robot_base_link:    $(var arm_name)_base_link
+      robot_base_link:    world
       ft_sensor_ref_link: $(var arm_name)_tool0
       joints:
         - $(var arm_name)_shoulder_pan_joint
