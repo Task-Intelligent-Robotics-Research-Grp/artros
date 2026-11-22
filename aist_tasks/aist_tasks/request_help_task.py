@@ -62,9 +62,12 @@ class RequestHelpTaskClient(SimpleActionClient):
         """
         super().__init__(node, RequestHelp, server_ns,
                          callback_group=MutuallyExclusiveCallbackGroup())
+        self._marker_pub = node.create_publisher(Marker, 'pointing_marker', 1)
         node.declare_parameter('request_help_client.screen_frame_id',
                                'virtual_screen')
-        self._marker_pub = node.create_publisher(Marker, 'pointing_marker', 1)
+        self._publish_screen_height(
+            node.declare_parameter('request_help_client.initial_screen_height',
+                                   0.818).value)
 
     def send_goal(self, robot_name: str, pose: PoseStamped, part_id: str,
                   message: str, *, timeout_sec: float|None=0.0):
@@ -84,17 +87,7 @@ class RequestHelpTaskClient(SimpleActionClient):
         # Keep graspability pose for the start point of the ARROW marker.
         self._pose = self.node.transform_pose_to_target_frame(
                          pose, target_frame=self.node.planning_frame)
-
-        transform = TransformStamped()
-        transform.header.frame_id = self._pose.header.frame_id
-        transform.child_frame_id  = self.node.get_parameter(
-                                        'request_help_client.screen_frame_id')\
-                                        .get_parameter_value().string_value
-        transform.transform.translation = Vector3(x=self._pose.pose.position.x,
-                                                  y=self._pose.pose.position.y,
-                                                  z=self._pose.pose.position.z)
-        transform.transform.rotation = Quaternion(x=0.0, y=0.0, z=0.0, w=1.0)
-        self.node.tf2_broadcaster.sendTransform(transform)
+        self._publish_screen_height(self._pose.pose.position.z)
 
         goal = RequestHelp.Goal()
         goal.request.robot_name = robot_name
@@ -112,6 +105,16 @@ class RequestHelpTaskClient(SimpleActionClient):
         marker.action = Marker.DELETEALL
         marker.ns     = 'pointing_marker'
         self._marker_pub.publish(marker)
+
+    def _publish_screen_height(self, float: height):
+        transform = TransformStamped()
+        transform.header.frame_id = self.node.planning_frame
+        transform.child_frame_id  = self.node.get_parameter(
+                                        'request_help_client.screen_frame_id')\
+                                        .get_parameter_value().string_value
+        transform.transform.translation = Vector3(x=0.0, y=0,0, z=height)
+        transform.transform.rotation = Quaternion(x=0.0, y=0.0, z=0.0, w=1.0)
+        self.node.tf2_broadcaster.sendTransform(transform)
 
     def _publish_marker(self, header: Header, pos: Point, lifetime: int=1):
         marker              = Marker()

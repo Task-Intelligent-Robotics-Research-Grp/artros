@@ -129,4 +129,5 @@ hmi_demo:
       marker_lifetime: 0      # in seconds. Zero means forever.
       marker_scale:    0.004
     request_help_client:
-      screen_frame_id: virtual_screen
+      screen_frame_id:       virtual_screen
+      initial_screen_height: 0.818
