@@ -133,22 +133,34 @@ def launch_setup(context):
                          ],
                          remappings=[
                              ('joint_states', '/joint_states'),
-                             ('motion_control_handle/target_frame',
-                              'target_frame'),
                              ('force_torque_sensor_broadcaster/wrench',
                               'ft_sensor_wrench'),
+                             ('motion_control_handle/target_frame',
+                              'target_frame'),
+
+                             # cartesian_compliance_controller
                              ('cartesian_compliance_controller/ft_sensor_wrench',
                               'ft_sensor_wrench'),
-                             ('cartesian_compliance_controller/target_wrench',
-                              'target_wrench'),
                              ('cartesian_compliance_controller/target_frame',
                               'target_frame'),
+                             ('cartesian_compliance_controller/target_wrench',
+                              'target_wrench'),
+                             ('cartesian_compliance_controller/current_pose',
+                              'current_pose'),
+
+                             # cartesian_force_controller
                              ('cartesian_force_controller/ft_sensor_wrench',
                               'ft_sensor_wrench'),
                              ('cartesian_force_controller/target_wrench',
                               'target_wrench'),
+                             ('cartesian_force_controller/current_pose',
+                              'current_pose'),
+
+                             # cartesian_motion_controller
                              ('cartesian_motion_controller/target_frame',
                               'target_frame'),
+                             ('cartesian_motion_controller/current_pose',
+                              'current_pose'),
                          ],
                          output='screen',
                          condition=UnlessCondition(

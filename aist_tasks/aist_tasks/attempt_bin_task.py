@@ -110,7 +110,7 @@ class AttemptBinTaskServer(ActionServer):
 
         use_fine_parameters = False  # Use default graspability parameters
         pick_poses          = None
-        fail_poses          = []
+        processed_poses     = []
         place_offset        = 0.020
 
         while True:
@@ -140,21 +140,21 @@ class AttemptBinTaskServer(ActionServer):
                     self.logger.info('--- AttemptBin: found %d pick pose(s) ---'
                                      % len(result.graspabilities.poses.poses))
                     pick_poses = result.graspabilities.poses
-                    #fail_poses = []
+                    #processed_poses = []
 
             # [5] 'pick' stage: Pick a part at a pose selected from pick_poses.
             with ActionServer.Stage(self, goal_handle, 'pick',
                                     cancel_pick_or_place) as stage:
                 # Attempt only once if fine graspability parameters are used.
-                status, result, pose = self._attempt_pick(
-                                           goal, pick_poses, fail_poses,
-                                           1 if use_fine_parameters else \
-                                           goal.max_attempts)
+                status, result = self._attempt_pick(
+                                     goal, pick_poses, processed_poses,
+                                     1 if use_fine_parameters else \
+                                     goal.max_attempts)
                 if use_fine_parameters and status is GoalStatus.STATUS_ABORTED:
                     self.logger.warn('--- AttemptBin: failed to pick under fine parameters ---')
-                    raise ActionServer.Error('Failed to pick',
-                                             pose, stage=stage.extend_name(
-                                                             result.stage))
+                    raise ActionServer.Error('Failed to pick', processed_poses,
+                                             stage=stage.extend_name(
+                                                       result.stage))
 
             if status is GoalStatus.STATUS_SUCCEEDED:  # pick succeeded
                 # [6] 'place' stage: Begin placing and wait until reaching
@@ -168,7 +168,7 @@ class AttemptBinTaskServer(ActionServer):
                                         timeout_sec=0.0)
                     place_offset        = -place_offset
                     use_fine_parameters = False
-                    fail_poses          = []
+                    processed_poses     = []
 
                     if _is_eye_on_hand(goal.robot_name,
                                        part_props['camera_name']):
@@ -201,15 +201,17 @@ class AttemptBinTaskServer(ActionServer):
                                                                result.stage))
             elif status is GoalStatus.STATUS_UNKNOWN:  # no poses remained
                 if not use_fine_parameters:
-                    self.logger.warn('--- AttemptBin: no poses remained, switch to fine parameters')
+                    self.logger.warn('--- AttemptBin: No poses remained under noraml parameters. Switch to fine parameters')
                     use_fine_parameters = True
                     pick_poses          = None  # Force searching.
-                    fail_poses          = []    # Discard fail poses.
+                    processed_poses     = []    # Discard processed poses.
                 else:
-                    self.logger.warn('--- AttemptBin: no poses remained under fine parameters, finish picking')
+                    self.logger.warn('--- AttemptBin: No poses remained under fine parameters. Finish picking.')
                     break
             else:  # GoalStatus.STATUS_ABORTED: returned from error handler
-                pick_poses = None  # Force searching while keeping fail_poses.
+                if not processed_poses:
+                    use_fine_parameters = False
+                    pick_poses          = None  # force searching.
 
             if not goal.pick_all:
                 break
@@ -244,66 +246,67 @@ class AttemptBinTaskServer(ActionServer):
         return AttemptBin.Result(stage='')
 
     def _attempt_pick(self, goal, pick_poses: PoseArray,
-                      fail_poses: list[PoseStamped], max_attempts: int):
+                      processed_poses: list[PoseStamped], max_attempts: int):
         """ Repeat until a part successfully picked.
 
         Args:
-          goal:         Goal request of this action.
-          pick_poses:   Poses of candidate picking points.
-          fail_poses:   Poses of picking points already failed.
-          max_attempts: Maximum number of picking attempts.
+          goal:            Goal request of this action.
+          pick_poses:      Poses of candidate picking points.
+          processed_poses: Poses of picking points already processed.
+          max_attempts:    Maximum number of picking attempts.
 
         Returns:
-          Tuple of GoalStatus, Result and index of the first unprocessed pose.
+          Tuple of GoalStatus and Result of the action.
         """
 
-        def _is_close_to_fail_poses(pose: PoseStamped, tolerance: float=0.005):
-            def _are_close(p: Point, q: Point, tolerance: float):
+        def _is_close_to_processed_poses(pose: PoseStamped,
+                                         tolerance: float=0.005):
+            def _is_close_to(p: Point, q: Point, tolerance: float):
                 return abs(p.x - q.x) < tolerance and \
                        abs(p.y - q.y) < tolerance and \
                        abs(p.z - q.z) < tolerance
 
-            for fail_pose in fail_poses:
-                if _are_close(pose.pose.position, fail_pose.pose.position,
-                              tolerance):
+            for processed_pose in processed_poses:
+                if _is_close_to(pose.pose.position,
+                                processed_pose.pose.position, tolerance):
                     return True
             return False
 
         # Attempt to pick the item.
         part_id   = self.node.bin_props[goal.bin_id]['part_id']
-        pose      = None
         nattempts = 0
         for p in pick_poses.poses:
             pose = PoseStamped(header=pick_poses.header, pose=p)
-            if _is_close_to_fail_poses(pose):
+            if _is_close_to_processed_poses(pose):
+                processed_poses.append(pose)
                 continue
+            processed_poses.append(pose)
 
             # Perform picking.
             status, result = self.node.pick(goal.robot_name, part_id, pose)
 
             # [A] Pick succeeded.
             if status is GoalStatus.STATUS_SUCCEEDED:
-                return status, result, pose
+                return status, result
 
             # [B] Pick failed.
             elif status is GoalStatus.STATUS_ABORTED:
                 # [B-1] Error in moving to approach or pick pose.
                 if result.stage in ('move', 'approach'):
-                    fail_poses.append(pose)
+                    pass
 
                 # [B-2] Error in departing from pick pose.
                 elif result.stage == 'depart':
-                    return status, result, pose
+                    return status, result
 
-                # [B-3] Error in grasping.
+                # [B-3] Error in veryfying success of grasp.
                 elif result.stage == 'verify':
-                    fail_poses.append(pose)
                     nattempts += 1
                     if nattempts == max_attempts:
-                        return status, result, pose
+                        return status, result
 
         # Here, no candidate picking points remained.
-        return GoalStatus.STATUS_UNKNOWN, None, pose
+        return GoalStatus.STATUS_UNKNOWN, None
 
 
 #************************************************************************

@@ -37,6 +37,7 @@ from geometry_msgs.msg import PoseStamped
 from action_msgs.msg   import GoalStatus
 from aist_tasks        import (RequestHelpTask, SweepTask,
                                ErrorRecoveryBySweepTask, AttemptBinTask)
+from aist_msgs.msg     import Pointing
 from .kitting_routines import KittingRoutines
 
 #*********************************************************************
@@ -202,12 +203,17 @@ class HMIRoutines(KittingRoutines):
         return self._request_help.send_goal(robot_name, pose, bin_id, message,
                                             timeout_sec=timeout_sec)
 
-    def error_recovery_by_sweep(self, goal, pose: PoseStamped, stage: str):
+    def error_recovery_by_sweep(self, goal, processed_poses: list[PoseStamped],
+                                stage: str):
         if stage != 'pick/verify':
             return False
 
         part_id = self.bin_props[goal.bin_id]['part_id']
         status, result = self._error_recovery_by_sweep \
-                             .send_goal(goal.robot_name, pose, part_id,
-                                        'Pick_failed!')
-        return status == GoalStatus.STATUS_SUCCEEDED
+                             .send_goal(goal.robot_name, processed_poses[-1],
+                                        part_id, 'Pick_failed!')
+        if status is not GoalStatus.STATUS_SUCCEEDED:
+            return False
+        if result.pointing.pointing_state is Pointing.SWEEP_RES:
+            processed_poses.clear()
+        return True
