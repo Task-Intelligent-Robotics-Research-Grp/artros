@@ -202,7 +202,7 @@
   <!-- Add virtual screen -->
   <link name="virtual_screen"/>
   <joint name="virtual_screen_joint" type="fixed">
-    <parent link="worldNE"/>
+    <parent link="world"/>
     <child  link="virtual_screen"/>
     <origin xyz="0 0 ${screen_z}" rpy="0 0 0"/>
   </joint>
