@@ -214,6 +214,6 @@ class HMIRoutines(KittingRoutines):
                                         part_id, 'Pick_failed!')
         if status is not GoalStatus.STATUS_SUCCEEDED:
             return False
-        if result.pointing.pointing_state is Pointing.SWEEP_RES:
+        if result.pointing_state is Pointing.SWEEP_RES:
             processed_poses.clear()
         return True

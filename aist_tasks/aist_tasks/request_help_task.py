@@ -40,7 +40,7 @@ from task_wrappers          import SimpleActionClient, ActionServer
 from aist_msgs.action       import RequestHelp
 from aist_msgs.msg          import RequestHelp as RequestHelpMsg, Pointing
 from geometry_msgs.msg      import (PoseStamped, Pose, Point, Vector3,
-                                    Quaternion, TransformStamped)
+                                    Quaternion, Transform, TransformStamped)
 from visualization_msgs.msg import Marker, MarkerArray
 from std_msgs.msg           import ColorRGBA
 from builtin_interfaces.msg import Time, Duration
@@ -63,11 +63,6 @@ class RequestHelpTaskClient(SimpleActionClient):
         super().__init__(node, RequestHelp, server_ns,
                          callback_group=MutuallyExclusiveCallbackGroup())
         self._marker_pub = node.create_publisher(Marker, 'pointing_marker', 1)
-        node.declare_parameter('request_help_client.screen_frame_id',
-                               'virtual_screen')
-        self._publish_screen_height(
-            node.declare_parameter('request_help_client.initial_screen_height',
-                                   0.818).value)
 
     def send_goal(self, robot_name: str, pose: PoseStamped, part_id: str,
                   message: str, *, timeout_sec: float|None=0.0):
@@ -87,7 +82,6 @@ class RequestHelpTaskClient(SimpleActionClient):
         # Keep graspability pose for the start point of the ARROW marker.
         self._pose = self.node.transform_pose_to_target_frame(
                          pose, target_frame=self.node.planning_frame)
-        self._publish_screen_height(self._pose.pose.position.z)
 
         goal = RequestHelp.Goal()
         goal.request.robot_name = robot_name
@@ -105,16 +99,6 @@ class RequestHelpTaskClient(SimpleActionClient):
         marker.action = Marker.DELETEALL
         marker.ns     = 'pointing_marker'
         self._marker_pub.publish(marker)
-
-    def _publish_screen_height(self, float: height):
-        transform = TransformStamped()
-        transform.header.frame_id = self.node.planning_frame
-        transform.child_frame_id  = self.node.get_parameter(
-                                        'request_help_client.screen_frame_id')\
-                                        .get_parameter_value().string_value
-        transform.transform.translation = Vector3(x=0.0, y=0,0, z=height)
-        transform.transform.rotation = Quaternion(x=0.0, y=0.0, z=0.0, w=1.0)
-        self.node.tf2_broadcaster.sendTransform(transform)
 
     def _publish_marker(self, header: Header, pos: Point, lifetime: int=1):
         marker              = Marker()
@@ -155,6 +139,18 @@ class RequestHelpTaskServer(ActionServer):
         self._pointing_sub  = node.create_subscription(Pointing, 'pointing',
                                                        self._pointing_cb, 3)
 
+        # Virtual screen stuffs
+        self._screen_frame_id \
+            = node.declare_parameter('request_help.screen_frame_id',
+                                     'virtual_screen').value
+        self._screen_height \
+            = node.declare_parameter('request_help.initial_screen_height',
+                                     0.818).value
+        self._timer = node.create_timer(node.declare_parameter(
+                                            'request_help.period', 0.1).value,
+                                        self._screen_frame_id_cb,
+                                        MutuallyExclusiveCallbackGroup())
+
     def _pointing_cb(self, pointing: Pointing):
         """ Subscribe error recovery command messages from the remote operator.
         Reception of the message is notified to the execution callback
@@ -165,11 +161,25 @@ class RequestHelpTaskServer(ActionServer):
             self._pointing = pointing
             self._pointing_cond.notify_all()
 
+    def _screen_frame_id_cb(self):
+        self.node.tf2_broadcaster.sendTransform(
+            TransformStamped(
+                header=Header(frame_id=self.node.planning_frame,
+                              stamp=self.node.get_clock().now().to_msg()),
+                child_frame_id=self._screen_frame_id,
+                transform=Transform(translation=Vector3(x=0.0, y=0.0,
+                                                        z=self._screen_height),
+                                    rotation=Quaternion(x=0.0, y=0.0,
+                                                        z=0.0, w=1.0))))
+
     def _execute_cb(self, goal_handle: ServerGoalHandle):
+        # Set screen height to that of error point.
+        request = goal_handle.request.request
+        self._screen_height = request.pose.pose.position.z
+
         # Loop until Pointing.msg other than NO_RES received.
         while True:
             # Publish RequestHelp.msg toward the remote operator.
-            request = goal_handle.request.request
             request.pose.header.stamp = self.node.get_clock().now().to_msg()
             self._request_help_pub.publish(request)
 
