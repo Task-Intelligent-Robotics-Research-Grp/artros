@@ -8,7 +8,7 @@ moveit_setup_assistant_config:
   package_settings:
     author_name: Toshio UESHIBA
     author_email: t.ueshiba@aist.go.jp
-    generated_timestamp: 1795575377
+    generated_timestamp: 1795575970
   control_xacro:
     command:
       - position
